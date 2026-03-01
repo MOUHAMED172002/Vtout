@@ -1,0 +1,33 @@
+{
+  "name": "vtout-server",
+  "version": "1.0.0",
+  "description": "Backend API pour Vtout - La boutique en ligne multiservices.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.7",
+    "@supabase/supabase-js": "^2.76.1",
+    "cloudinary": "^1.41.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
+    "mysql2": "^3.17.1",
+    "resend": "^6.9.2",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

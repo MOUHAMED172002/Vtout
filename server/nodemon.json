@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "error.log",
+        "node_output.txt"
+    ],
+    "watch": [
+        "."
+    ]
+}
