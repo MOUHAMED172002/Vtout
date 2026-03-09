@@ -1,0 +1,411 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import {
+    X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
+    ChevronLeft, Package, Layers, Truck, Info, AlertCircle,
+    Upload, Star, Sparkles, Hash, Search
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '@clerk/clerk-react';
+
+import {
+    getCategories,
+    getAttributesByCategory,
+    createProduct
+} from '../../services/productService';
+import { uploadSingleImage } from '../../services/uploadService';
+import CategorySearchModal from './CategorySearchModal';
+
+const steps = [
+    { id: 'info', title: 'Informations', icon: Info },
+    { id: 'images', title: 'Images', icon: ImageIcon },
+    { id: 'variants', title: 'Variantes & Prix', icon: Layers },
+];
+
+export default function SupplierProductForm({ onClose }) {
+    const { getToken } = useAuth();
+    const [currentStep, setCurrentStep] = useState(0);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+    // Attributes handling
+    const [availableAttributes, setAvailableAttributes] = useState([]);
+    const [selectedAttributes, setSelectedAttributes] = useState([]);
+    const [selectedValuesMap, setSelectedValuesMap] = useState({});
+
+    const [imageFiles, setImageFiles] = useState([]);
+
+    const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
+        defaultValues: {
+            name: '',
+            description: '',
+            category_id: '',
+            variants: [],
+            supplier_price: '',
+            stock: 0,
+            supplier_note: ''
+        }
+    });
+
+    const selectedCategoryId = watch('category_id');
+    const variants = watch('variants');
+    const globalSupplierPrice = watch('supplier_price');
+
+    // Fetch categories on mount
+    useEffect(() => {
+        const fetchCats = async () => {
+            const data = await getCategories();
+            setCategories(data || []);
+        };
+        fetchCats();
+    }, []);
+
+    // Fetch attributes when category changes
+    useEffect(() => {
+        if (selectedCategoryId) {
+            const fetchAttrs = async () => {
+                const data = await getAttributesByCategory(selectedCategoryId);
+                setAvailableAttributes(data || []);
+            };
+            fetchAttrs();
+        } else {
+            setAvailableAttributes([]);
+        }
+    }, [selectedCategoryId]);
+
+    const selectedCategory = useMemo(() => {
+        return categories.find(c => String(c.id) === String(selectedCategoryId));
+    }, [categories, selectedCategoryId]);
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const newImages = files.map(file => ({
+            file,
+            preview: URL.createObjectURL(file),
+            isMain: imageFiles.length === 0 && files.indexOf(file) === 0
+        }));
+        setImageFiles([...imageFiles, ...newImages]);
+    };
+
+    const removeImage = (index) => {
+        const newImages = [...imageFiles];
+        const removed = newImages.splice(index, 1)[0];
+        if (removed.isMain && newImages.length > 0) {
+            newImages[0].isMain = true;
+        }
+        setImageFiles(newImages);
+    };
+
+    const generateVariants = () => {
+        try {
+            if (selectedAttributes.length === 0) {
+                throw new Error("Sélectionnez au moins un attribut");
+            }
+            const combinations = cartesianProduct(selectedAttributes.map(a => {
+                const valIds = selectedValuesMap[a.id] || [];
+                const chosenValues = a.values.filter(v => valIds.includes(v.id));
+                if (chosenValues.length === 0) {
+                    throw new Error(`Sélectionnez au moins une valeur pour "${a.name}"`);
+                }
+                return chosenValues.map(v => ({ attribute: a.name, value: v.value }));
+            }));
+
+            const newVariants = combinations.map(combo => {
+                const comboObj = {};
+                const comboArray = Array.isArray(combo) ? combo : [combo];
+                comboArray.forEach(item => { comboObj[item.attribute] = item.value; });
+
+                return {
+                    combination: comboObj,
+                    sku: '',
+                    supplier_price: parseFloat(globalSupplierPrice) || 0,
+                    stock: 0,
+                };
+            });
+
+            setValue('variants', newVariants);
+            toast.success(`${newVariants.length} variantes générées`);
+        } catch (e) {
+            toast.error(e.message);
+        }
+    };
+
+    const cartesianProduct = (arrays) => {
+        return arrays.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]]);
+    };
+
+    const onSubmit = async (data) => {
+        if (imageFiles.length === 0) {
+            toast.error("Veuillez ajouter au moins une image.");
+            setCurrentStep(1);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const token = await getToken();
+            const uploadedImages = [];
+
+            for (const img of imageFiles) {
+                const url = await uploadSingleImage(img.file, token);
+                uploadedImages.push({ url, isMain: img.isMain });
+            }
+
+            const mainImageUrl = uploadedImages.find(img => img.isMain)?.url || null;
+
+            const payload = {
+                name: data.name,
+                description: data.description,
+                category_id: parseInt(data.category_id),
+                images: uploadedImages,
+                supplier_note: data.supplier_note,
+                supplier_price: parseFloat(data.supplier_price) || 0,
+                stock: parseInt(data.stock) || 0,
+                status: 'draft', // Draft pending admin review
+                approval_status: 'pending',
+                variants: (data.variants || []).map(v => ({
+                    combination: v.combination,
+                    sku: v.sku,
+                    stock: parseInt(v.stock) || 0,
+                    image_url: mainImageUrl, // default
+                    supplierLinks: [{
+                        supplier_id: 'me',
+                        supplier_price: parseFloat(v.supplier_price) || parseFloat(data.supplier_price) || 0,
+                        supplier_sku: v.sku
+                    }]
+                }))
+            };
+
+            await createProduct(payload, token);
+            toast.success("Produit envoyé pour validation !");
+            onClose();
+        } catch (err) {
+            toast.error(err.response?.data?.error || "Erreur lors de la création");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const nextStep = () => {
+        if (currentStep === 0 && (!selectedCategoryId || !watch('name'))) {
+            toast.error('Nom et Catégorie requis.');
+            return;
+        }
+        setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    };
+
+    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+    return (
+        <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
+            {/* Header */}
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                        <Plus size={24} />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-slate-900 tracking-tighter">Ajouter un produit</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section Vendeur</p>
+                    </div>
+                </div>
+                <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                    <X size={20} />
+                </button>
+            </div>
+
+            {/* Stepper */}
+            <div className="px-8 py-4 bg-slate-50/50 flex items-center justify-between border-b border-slate-50">
+                {steps.map((step, idx) => (
+                    <React.Fragment key={step.id}>
+                        <div className={`flex items-center gap-3 transition-all ${idx <= currentStep ? 'text-indigo-500' : 'text-slate-300'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${idx === currentStep ? 'bg-indigo-500 text-white shadow-md' : idx < currentStep ? 'bg-emerald-500 text-white' : 'bg-white border'}`}>
+                                {idx < currentStep ? <Check size={14} /> : idx + 1}
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{step.title}</span>
+                        </div>
+                        {idx < steps.length - 1 && <div className={`flex-1 h-px mx-4 ${idx < currentStep ? 'bg-emerald-200' : 'bg-slate-200'}`} />}
+                    </React.Fragment>
+                ))}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar">
+                <AnimatePresence mode="wait">
+                    {currentStep === 0 && (
+                        <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
+                                <input {...register("name", { required: true })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Catégorie</label>
+                                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-left flex items-center justify-between group transition-all">
+                                    <span className={`font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>
+                                        {selectedCategory ? selectedCategory.name : "Choisir une catégorie..."}
+                                    </span>
+                                    <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description (Optionnel)</label>
+                                <textarea {...register("description")} rows={4} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" placeholder="Détails du produit..." />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Note pour l'Admin</label>
+                                <input {...register("supplier_note")} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 outline-none" placeholder="Ex: Disponible seulement en pack de 10..." />
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {currentStep === 1 && (
+                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-black text-slate-900 tracking-tight">Photos du produit</h3>
+                                <label className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-slate-900 transition-all">
+                                    <Upload size={14} /> Ajouter
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                                {imageFiles.map((img, idx) => (
+                                    <div key={idx} className={`relative aspect-square rounded-[2rem] overflow-hidden border-4 group ${img.isMain ? 'border-indigo-500' : 'border-slate-50'}`}>
+                                        <img src={img.preview} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                            <button type="button" onClick={() => removeImage(idx)} className="bg-rose-500 text-white p-2 rounded-full hover:scale-110 transition-transform"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {imageFiles.length === 0 && (
+                                    <div className="col-span-full py-20 border-2 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-300">
+                                        <ImageIcon size={48} strokeWidth={1} />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Aucune image ajoutée</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {currentStep === 2 && (
+                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                            {/* Global Supplier Info */}
+                            <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Mon Prix de Gros (FCFA)</label>
+                                    <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
+                                    <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                </div>
+                            </div>
+
+                            {/* Variants Generator */}
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Variantes personnalisées</h4>
+                                    {availableAttributes.length > 0 && (
+                                        <div className="flex gap-2">
+                                            {availableAttributes.map(attr => (
+                                                <button key={attr.id} type="button" onClick={() => {
+                                                    if (selectedAttributes.find(a => a.id === attr.id)) setSelectedAttributes(selectedAttributes.filter(a => a.id !== attr.id));
+                                                    else setSelectedAttributes([...selectedAttributes, attr]);
+                                                }} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                    {attr.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {selectedAttributes.length > 0 && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-[2rem]">
+                                        {selectedAttributes.map(attr => (
+                                            <div key={attr.id} className="space-y-3">
+                                                <p className="text-[10px] font-black uppercase text-slate-900">{attr.name}</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.values.map(v => (
+                                                        <button key={v.id} type="button" onClick={() => {
+                                                            const current = selectedValuesMap[attr.id] || [];
+                                                            if (current.includes(v.id)) setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: current.filter(id => id !== v.id) });
+                                                            else setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: [...current, v.id] });
+                                                        }} className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-slate-500 border-slate-100'}`}>
+                                                            {v.value}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <button type="button" onClick={generateVariants} className="sm:col-span-2 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl">
+                                            Générer les combinaisons de variantes
+                                        </button>
+                                    </div>
+                                )}
+
+                                {variants.length > 0 && (
+                                    <div className="space-y-4">
+                                        {variants.map((v, idx) => (
+                                            <div key={idx} className="p-6 bg-white border border-slate-100 rounded-3xl flex flex-col md:flex-row items-center gap-6 group hover:shadow-xl hover:shadow-slate-100 transition-all">
+                                                <div className="flex-1 flex flex-wrap gap-2">
+                                                    {Object.entries(v.combination).map(([a, val], i) => (
+                                                        <span key={i} className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black uppercase text-slate-500">{a}: {val}</span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex items-center gap-4 w-full md:w-auto">
+                                                    <div className="relative flex-1 md:w-32">
+                                                        <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
+                                                    </div>
+                                                    <div className="relative flex-1 md:w-32">
+                                                        <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-black" placeholder="Stock" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Footer */}
+            <div className="p-8 border-t border-slate-50 bg-white flex justify-between">
+                <button onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-slate-50 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all disabled:opacity-0">
+                    Précédent
+                </button>
+                <div className="flex gap-4">
+                    {currentStep < steps.length - 1 ? (
+                        <button onClick={nextStep} className="px-10 py-4 bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-indigo-500/20">
+                            Continuer
+                        </button>
+                    ) : (
+                        <button onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2">
+                            {loading ? <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : <><Check size={14} /> Envoyer</>}
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            <AnimatePresence>
+                {showCategoryModal && (
+                    <CategorySearchModal
+                        categories={categories}
+                        onClose={() => setShowCategoryModal(false)}
+                        onSelect={(cat) => {
+                            setValue('category_id', cat.id);
+                            setShowCategoryModal(false);
+                            toast.success(`Catégorie : ${cat.name}`);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
