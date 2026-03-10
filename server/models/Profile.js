@@ -1,0 +1,86 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const Profile = sequelize.define('Profile', {
+    id: {
+        type: DataTypes.CHAR(36),
+        primaryKey: true,
+        allowNull: false
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    fullname: {
+        type: DataTypes.STRING
+    },
+    first_name: {
+        type: DataTypes.STRING(128)
+    },
+    last_name: {
+        type: DataTypes.STRING(128)
+    },
+    username: {
+        type: DataTypes.STRING(128),
+        unique: true
+    },
+    phone: {
+        type: DataTypes.STRING(20),
+        unique: true
+    },
+    avatar_url: {
+        type: DataTypes.TEXT
+    },
+    role: {
+        type: DataTypes.ENUM('user', 'admin', 'vendeur', 'fournisseur', 'livreur'),
+        defaultValue: 'user'
+    },
+    email_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    phone_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    locale: {
+        type: DataTypes.STRING(10)
+    },
+    clerk_id: {
+        type: DataTypes.STRING,
+        unique: true
+    },
+    password_reset_token: {
+        type: DataTypes.STRING
+    },
+    password_reset_expires_at: {
+        type: DataTypes.DATE
+    },
+    last_password_change_at: {
+        type: DataTypes.DATE
+    },
+    last_sign_in_at: {
+        type: DataTypes.DATE
+    },
+    deleted_at: {
+        type: DataTypes.DATE
+    },
+    providers: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
+    metadata: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+    },
+    clerk_raw: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+    }
+}, {
+    tableName: 'profiles',
+    underscored: true
+});
+
+module.exports = Profile;
