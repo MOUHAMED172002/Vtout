@@ -1,0 +1,873 @@
+import React, { useEffect, useState, useRef } from "react";
+ // adapte le chemin
+import toast from "react-hot-toast";
+
+// UserDashboard.jsx
+// Un seul fichier contenant le dashboard utilisateur + composants sectionnés
+// - Utilise DaisyUI / Tailwind pour le style
+// - Chaque section est un composant réutilisable
+// - Remplace les appels mock par des requêtes Supabase réelles si souhaité
+
+export default function UserDashboard() {
+  const [active, setActive] = useState("profile");
+
+  return (
+    <div className="min-h-screen bg-base-100 text-base-content">
+      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <aside className="md:col-span-1">
+          <Sidebar active={active} setActive={setActive} />
+        </aside>
+
+        <main className="md:col-span-3 bg-white rounded-lg shadow p-6">
+          {active === "profile" && <ProfileSection />}
+          {active === "orders" && <OrdersSection />}
+          {active === "addresses" && <AddressesSection />}
+          {active === "payments" && <PaymentsSection />}
+          {active === "favorites" && <FavoritesSection />}
+          {active === "history" && <HistorySection />}
+          {active === "support" && <SupportSection />}
+          {active === "settings" && <SettingsSection />}
+          {active === "logout" && <LogoutSection />}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Sidebar ---------------------- */
+function Sidebar({ active, setActive }) {
+  const items = [
+    { id: "profile", label: "Profil" },
+    { id: "orders", label: "Mes commandes" },
+    { id: "addresses", label: "Adresses" },
+    { id: "payments", label: "Paiements" },
+    { id: "favorites", label: "Favoris" },
+    { id: "history", label: "Historique" },
+    { id: "support", label: "Support" },
+    { id: "settings", label: "Paramètres" },
+    { id: "logout", label: "Se déconnecter" },
+  ];
+
+  return (
+    <div className="sticky top-6">
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">A</div>
+          <div>
+            <div className="font-semibold">Utilisateur</div>
+            <div className="text-xs text-gray-500">Membre depuis 2024</div>
+          </div>
+        </div>
+
+        <div className="menu">
+          {items.map((it) => (
+            <button
+              key={it.id}
+              onClick={() => setActive(it.id)}
+              className={`w-full text-left px-3 py-2 rounded mb-1 transition-colors ${
+                active === it.id ? "bg-primary text-primary-content" : "hover:bg-base-200"
+              }`}
+            >
+              {it.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Profile ---------------------- */
+function ProfileSection() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null); // row from public.profiles
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ fullname: "", email: "", phone: "", avatar_url: "" });
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    async function fetchUserAndProfile() {
+      setLoading(true);
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr) throw userErr;
+        const userObj = userData?.user;
+        if (!userObj) {
+          setLoading(false);
+          return;
+        }
+        setUser(userObj);
+
+        // try to load public.profiles row
+        const { data: profRow, error: profErr } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userObj.id)
+          .single();
+        if (!profErr && profRow) {
+          setProfile(profRow);
+          setForm({
+            fullname: profRow.fullname || userObj.user_metadata?.fullname || userObj.user_metadata?.name || "",
+            email: userObj.email || "",
+            phone: profRow.phone || userObj.user_metadata?.phone || "",
+            avatar_url: profRow.avatar_url || userObj.user_metadata?.avatar_url || "",
+          });
+        } else {
+          // fallback to auth user metadata
+          const meta = userObj.user_metadata || userObj.raw_user_meta_data || {};
+          setForm({
+            fullname: meta.fullname || meta.name || "",
+            email: userObj.email || "",
+            phone: meta.phone || "",
+            avatar_url: meta.avatar_url || "",
+          });
+        }
+      } catch (e) {
+        console.error("fetchUserAndProfile error", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUserAndProfile();
+  }, []);
+
+  // upload avatar to storage and persist URL (profiles + auth metadata)
+  async function uploadAvatar(file) {
+    if (!user || !file) return;
+    try {
+      const path = `avatars/${user.id}/${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
+      const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl || "";
+
+      // update public.profiles
+      try {
+        const { error: upErr } = await supabase
+          .from("profiles")
+          .upsert({ id: user.id, avatar_url: publicUrl }, { onConflict: "id" });
+        if (upErr) console.warn("profiles upsert avatar warning", upErr);
+      } catch (e) {
+        console.warn("profiles upsert avatar exception", e);
+      }
+
+      // update auth user metadata
+      try {
+        const { error: updErr } = await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+        if (updErr) console.warn("auth.updateUser avatar warning", updErr);
+      } catch (e) {
+        console.warn("auth.updateUser avatar exception", e);
+      }
+
+      setForm((f) => ({ ...f, avatar_url: publicUrl }));
+      setProfile((p) => ({ ...(p || {}), avatar_url: publicUrl }));
+      toast.success("Photo mise à jour");
+    } catch (e) {
+      console.error("uploadAvatar error", e);
+      toast.error("Impossible d'uploader l'image");
+    }
+  }
+
+  const onFileChange = async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    await uploadAvatar(f);
+    // clear input so same file can be reselected
+    e.target.value = "";
+  };
+
+  // sauvegarde metadata dans auth.users et profils SQL
+  const save = async () => {
+    try {
+      if (!user) {
+        toast.error("Non connecté");
+        return;
+      }
+      // update auth metadata
+      const { data: updated, error: updateErr } = await supabase.auth.updateUser({
+        data: { fullname: form.fullname, phone: form.phone, avatar_url: form.avatar_url },
+      });
+      if (updateErr) {
+        console.error("auth.updateUser error:", updateErr);
+        toast.error(updateErr.message || "Erreur lors de la mise à jour du profil");
+        return;
+      }
+
+      // upsert public.profiles so data is queryable by SQL
+      const { error: upErr } = await supabase
+        .from("profiles")
+        .upsert(
+          { id: user.id, fullname: form.fullname, phone: form.phone, avatar_url: form.avatar_url, updated_at: new Date().toISOString() },
+          { onConflict: "id" }
+        );
+      if (upErr) console.warn("profiles upsert warning", upErr);
+
+      // refresh local user/profile
+      const { data: refreshed } = await supabase.auth.getUser();
+      setUser(refreshed?.user ?? user);
+      const { data: profRow } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      setProfile(profRow || null);
+
+      toast.success("Profil mis à jour");
+      setEditing(false);
+    } catch (err) {
+      console.error("save profile exception:", err);
+      toast.error("Erreur lors de la sauvegarde");
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Déconnecté");
+      window.location.href = "/";
+    } catch (e) {
+      console.error("logout error", e);
+      toast.error("Erreur lors de la déconnexion");
+    }
+  };
+
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Profil</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
+          <div className="p-4 border rounded">
+            <div className="w-28 h-28 rounded-full bg-gray-200 mb-4 flex items-center justify-center overflow-hidden">
+              {form.avatar_url ? (
+                <img src={form.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-xl text-gray-500">{(user?.email || "U").charAt(0).toUpperCase()}</div>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 mb-2">Photo de profil</div>
+            <div className="flex items-center gap-2">
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => fileRef.current?.click()}>Changer la photo</button>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <div className="bg-base-200 p-4 rounded">
+            {!editing ? (
+              <div>
+                <div className="mb-2"><strong>Nom :</strong> {profile?.fullname || user?.user_metadata?.fullname || user?.user_metadata?.name || form.fullname}</div>
+                <div className="mb-2"><strong>Email :</strong> {user?.email}</div>
+                <div className="mb-2"><strong>Téléphone :</strong> {profile?.phone || user?.user_metadata?.phone || form.phone}</div>
+                <div className="mt-4">
+                  <button type="button" className="btn btn-sm btn-primary mr-2" onClick={() => setEditing(true)}>Modifier</button>
+                  <button type="button" className="btn btn-sm" onClick={logout}>Se déconnecter</button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="text-sm">Nom complet</span>
+                  <input className="input input-bordered w-full" value={form.fullname} onChange={(e) => setForm((f) => ({ ...f, fullname: e.target.value }))} />
+                </label>
+                <label className="block">
+                  <span className="text-sm">Email</span>
+                  <input className="input input-bordered w-full" value={form.email} disabled />
+                </label>
+                <label className="block">
+                  <span className="text-sm">Téléphone</span>
+                  <input className="input input-bordered w-full" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+                </label>
+                <div className="mt-3">
+                  <button type="button" className="btn btn-primary mr-2" onClick={save}>Enregistrer</button>
+                  <button type="button" className="btn" onClick={() => setEditing(false)}>Annuler</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Orders ---------------------- */
+function OrdersSection() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  useEffect(() => {
+    async function fetchOrders() {
+      setLoading(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
+      // fetch orders
+      const { data: ordersData, error: ordersErr } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (ordersErr) {
+        console.error(ordersErr);
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
+      const orderIds = (ordersData || []).map((o) => o.id).filter(Boolean);
+      // fetch order_items for these orders
+      const { data: itemsData = [] } = orderIds.length
+        ? await supabase.from("order_items").select("*").in("order_id", orderIds)
+        : { data: [] };
+
+      // fetch product names for items
+      const productIds = [...new Set(itemsData.map((it) => it.product_id).filter(Boolean))];
+      let productsMap = {};
+      if (productIds.length) {
+        const { data: products = [] } = await supabase
+          .from("products")
+          .select("id, name")
+          .in("id", productIds);
+        productsMap = (products || []).reduce((m, p) => ({ ...m, [p.id]: p }), {});
+      }
+
+      // attach items to their orders
+      const enrichedOrders = (ordersData || []).map((o) => {
+        const items = (itemsData || []).filter((it) => it.order_id === o.id).map((it) => ({
+          ...it,
+          product_name: productsMap[it.product_id]?.name || it.product_id,
+        }));
+        return { ...o, items };
+      });
+
+      setOrders(enrichedOrders || []);
+      setLoading(false);
+    }
+    fetchOrders();
+  }, []);
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Mes commandes</h2>
+      {loading ? (
+        <div>Chargement...</div>
+      ) : orders.length === 0 ? (
+        <div className="text-gray-500">Aucune commande trouvée</div>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((o) => (
+            <div key={o.id} className="p-4 border rounded flex justify-between items-center">
+              <div>
+                <div className="font-medium">Commande #{o.id}</div>
+                <div className="text-sm text-gray-500">{new Date(o.created_at).toLocaleString()}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold">{o.total_amount} FCFA</div>
+                <div className="text-sm">{o.status}</div>
+                <div className="mt-2">
+                  <button className="btn btn-sm btn-outline" onClick={async () => { const { data } = await supabase.from('order_items').select('*').eq('order_id', o.id); setSelectedOrder({ ...o, items: data }); }}>Voir</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedOrder && (
+        <div className="mt-6 p-4 border rounded">
+          <h3 className="font-semibold">Détails commande #{selectedOrder.id}</h3>
+          <div className="mt-2 space-y-2">
+            {selectedOrder.items?.map((it) => (
+              <div key={it.id} className="flex justify-between">
+                <div>{it.product_id}</div>
+                <div>{it.quantity} × {it.price} FCFA</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------- Addresses ---------------------- */
+function AddressesSection() {
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ city: "", district: "", address_line: "", phone: "", is_default: false });
+
+  useEffect(() => {
+    async function fetchAddresses() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) {
+        setAddresses([]);
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase.from("addresses").select("*").eq("user_id", userId).order("id", { ascending: true });
+      setAddresses(data || []);
+      setLoading(false);
+    }
+    fetchAddresses();
+  }, []);
+
+  const save = async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) return alert("Non connecté");
+      await supabase.from("addresses").insert({ ...form, user_id: userId });
+      alert("Adresse ajoutée");
+      // re-fetch
+      const { data } = await supabase.from("addresses").select("*").eq("user_id", userId);
+      setAddresses(data || []);
+      setForm({ city: "", district: "", address_line: "", phone: "", is_default: false });
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de l'ajout");
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Adresses</h2>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          {loading ? (
+            <div>Chargement...</div>
+          ) : addresses.length === 0 ? (
+            <div className="text-gray-500">Aucune adresse</div>
+          ) : (
+            <div className="space-y-3">
+              {addresses.map((a) => (
+                <div key={a.id} className="p-3 border rounded">
+                  <div className="font-medium">{a.city} — {a.district}</div>
+                  <div className="text-sm">{a.address_line}</div>
+                  <div className="text-xs mt-1">{a.phone}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="p-4 border rounded">
+            <h3 className="font-medium mb-2">Ajouter une adresse</h3>
+            <label className="block mb-2">
+              <span className="text-sm">Ville</span>
+              <input className="input input-bordered w-full" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} />
+            </label>
+            <label className="block mb-2">
+              <span className="text-sm">Quartier</span>
+              <input className="input input-bordered w-full" value={form.district} onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))} />
+            </label>
+            <label className="block mb-2">
+              <span className="text-sm">Adresse</span>
+              <input className="input input-bordered w-full" value={form.address_line} onChange={(e) => setForm((f) => ({ ...f, address_line: e.target.value }))} />
+            </label>
+            <label className="block mb-2">
+              <span className="text-sm">Téléphone</span>
+              <input className="input input-bordered w-full" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="checkbox" checked={form.is_default} onChange={(e) => setForm((f) => ({ ...f, is_default: e.target.checked }))} />
+              <span className="text-sm">Définir par défaut</span>
+            </label>
+            <div className="mt-3">
+              <button className="btn btn-primary" onClick={save}>Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Payments ---------------------- */
+function PaymentsSection() {
+  const [methods, setMethods] = useState([]);
+
+  useEffect(() => {
+    async function fetchMethods() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) {
+        setMethods([]);
+        return;
+      }
+      // Payments are linked to orders in schema.
+      // Fetch recent payments for user's orders
+      const { data: userOrders = [] } = await supabase.from("orders").select("id").eq("user_id", userId);
+      const orderIds = (userOrders || []).map((o) => o.id).filter(Boolean);
+      if (!orderIds.length) {
+        setMethods([]);
+        return;
+      }
+      const { data: payments = [] } = await supabase.from("payments").select("*").in("order_id", orderIds).order("created_at", { ascending: false });
+      setMethods(payments || []);
+    }
+    fetchMethods();
+  }, []);
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Moyens de paiement</h2>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          {methods.length === 0 ? (
+            <div className="text-gray-500">Aucun moyen enregistré</div>
+          ) : (
+            <div className="space-y-3">
+              {methods.map((m) => (
+                <div key={m.id} className="p-3 border rounded flex justify-between items-center">
+                  <div>
+                    <div className="font-medium">{m.type}</div>
+                    <div className="text-sm text-gray-500">{m.meta?.label || JSON.stringify(m.meta)}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="btn btn-sm btn-outline">Modifier</button>
+                    <button className="btn btn-sm btn-error">Supprimer</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="p-4 border rounded">
+            <h3 className="font-medium mb-2">Ajouter un moyen</h3>
+            <p className="text-sm text-gray-500 mb-3">Ajoute Flooz, Moov Money, ou une carte bancaire via FedaPay.</p>
+            <div className="flex gap-2 flex-wrap">
+              <button className="btn btn-outline">Flooz</button>
+              <button className="btn btn-outline">Moov Money</button>
+              <button className="btn btn-outline">Visa / Mastercard</button>
+              <button className="btn btn-outline">FedaPay</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Favorites ---------------------- */
+function FavoritesSection() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFavorites() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: favRows = [], error: favErr } = await supabase
+        .from("favorites")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (favErr) {
+        console.error(favErr);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const productIds = [...new Set((favRows || []).map((f) => f.product_id).filter(Boolean))];
+      let productsMap = {};
+      if (productIds.length) {
+        const { data: products = [] } = await supabase
+          .from("products")
+          .select("id, name, price, image_url")
+          .in("id", productIds);
+        productsMap = (products || []).reduce((m, p) => ({ ...m, [p.id]: p }), {});
+      }
+
+      const enriched = (favRows || []).map((f) => ({
+        ...f,
+        product: productsMap[f.product_id] || null,
+      }));
+      setItems(enriched || []);
+      setLoading(false);
+    }
+    fetchFavorites();
+  }, []);
+
+  // Add product to cart (server) or redirect to auth and save pending action
+  const handleAddToCart = async (prod, favRowId) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user || null;
+      const payload = {
+        product_id: prod.id,
+        quantity: 1,
+      };
+      if (!user) {
+        localStorage.setItem("pending_action", JSON.stringify({ type: "add_to_cart", payload }));
+        localStorage.setItem("pending_action_return", window.location.pathname + window.location.search);
+        window.location.href = "/auth";
+        return;
+      }
+
+      // try upsert: if same user/product exists increment quantity
+      const { data: existing = [] } = await supabase
+        .from("cart_items")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("product_id", prod.id)
+        .limit(1);
+
+      if (existing.length) {
+        const item = existing[0];
+        await supabase.from("cart_items").update({ quantity: (item.quantity || 0) + 1 }).eq("id", item.id);
+      } else {
+        await supabase.from("cart_items").insert({
+          user_id: user.id,
+          product_id: prod.id,
+          quantity: 1,
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      toast.success("Produit ajouté au panier");
+    } catch (e) {
+      console.error("addToCart fav error", e);
+      toast.error("Impossible d'ajouter au panier");
+    }
+  };
+
+  // Remove favorite row
+  const handleRemoveFavorite = async (favId) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user || null;
+      if (!user) {
+        toast.error("Connecte-toi pour gérer tes favoris");
+        window.location.href = "/auth";
+        return;
+      }
+      const { error } = await supabase.from("favorites").delete().eq("id", favId);
+      if (error) throw error;
+      setItems((s) => s.filter((it) => it.id !== favId));
+      toast.success("Favori supprimé");
+    } catch (e) {
+      console.error("remove favorite error", e);
+      toast.error("Impossible de supprimer le favori");
+    }
+  };
+
+  if (loading) return <div>Chargement...</div>;
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Favoris</h2>
+
+      {items.length === 0 ? (
+        <div className="text-gray-500">Ta liste de souhaits est vide</div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {items.map((it) => {
+            const p = it.product || {};
+            return (
+              <div key={it.id} className="p-2 border rounded-lg shadow-sm flex flex-col">
+                <a href={`/product/${p.id || it.product_id}`} className="block">
+                  <div className="w-full h-28 bg-gray-100 rounded overflow-hidden mb-2">
+                    <img src={p.image_url || "/images/placeholder-rect.png"} alt={p.name} className="w-full h-full object-cover" />
+                  </div>
+                </a>
+
+                <div className="flex-1">
+                  <div className="font-medium text-sm line-clamp-2">{p.name || "Produit"}</div>
+                  <div className="text-xs text-gray-500 mt-1">{Number(p.price || 0).toLocaleString()} FCFA</div>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary flex-1"
+                    onClick={() => handleAddToCart(p, it.id)}
+                  >
+                    Ajouter
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => handleRemoveFavorite(it.id)}
+                    aria-label="Retirer des favoris"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------- History ---------------------- */
+function HistorySection() {
+  const [recent, setRecent] = useState([]);
+
+  useEffect(() => {
+    // recent products viewed: tu peux stocker en localStorage ou table 'recent_views'
+    const raw = localStorage.getItem("recent_views") || "[]";
+    setRecent(JSON.parse(raw));
+  }, []);
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Historique de navigation</h2>
+      {recent.length === 0 ? (
+        <div className="text-gray-500">Tu n'as regardé aucun produit récemment</div>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-4">
+          {recent.map((p) => (
+            <div key={p.id} className="p-3 border rounded">
+              <div className="font-medium">{p.name}</div>
+              <div className="text-sm text-gray-500">{p.price} FCFA</div>
+              <a href={`/product/${p.id}`} className="link mt-2 inline-block">Voir</a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------- Support ---------------------- */
+function SupportSection() {
+  const [tickets, setTickets] = useState([]);
+  const [form, setForm] = useState({ subject: "", message: "" });
+
+  useEffect(() => {
+    // load user's support tickets if you have a table
+  }, []);
+
+  const submit = async () => {
+    // insert ticket in supabase table 'support_tickets'
+    alert("Ticket envoyé (mock)");
+    setForm({ subject: "", message: "" });
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Support</h2>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <h3 className="font-medium mb-2">Contacte le support</h3>
+          <label className="block mb-2">
+            <span className="text-sm">Sujet</span>
+            <input className="input input-bordered w-full" value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))} />
+          </label>
+          <label className="block mb-2">
+            <span className="text-sm">Message</span>
+            <textarea className="textarea textarea-bordered w-full" value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} />
+          </label>
+          <div>
+            <button className="btn btn-primary" onClick={submit}>Envoyer</button>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-medium mb-2">Tickets récents</h3>
+          {tickets.length === 0 ? (
+            <div className="text-gray-500">Aucun ticket</div>
+          ) : (
+            <div className="space-y-2">
+              {tickets.map((t) => (
+                <div key={t.id} className="p-2 border rounded">{t.subject}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Settings ---------------------- */
+function SettingsSection() {
+  const [pref, setPref] = useState({ theme: "system", language: "fr", currency: "XOF" });
+
+  useEffect(() => {
+    // charger prefs depuis supabase ou localStorage
+    const raw = localStorage.getItem("user_prefs");
+    if (raw) setPref(JSON.parse(raw));
+  }, []);
+
+  const save = () => {
+    localStorage.setItem("user_prefs", JSON.stringify(pref));
+    alert("Préférences enregistrées");
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Paramètres</h2>
+      <div className="space-y-4">
+        <label className="flex items-center gap-3">
+          <span className="w-40 text-sm">Thème</span>
+          <select className="select select-bordered" value={pref.theme} onChange={(e) => setPref((p) => ({ ...p, theme: e.target.value }))}>
+            <option value="light">Clair</option>
+            <option value="dark">Sombre</option>
+            <option value="system">Système</option>
+          </select>
+        </label>
+
+        <label className="flex items-center gap-3">
+          <span className="w-40 text-sm">Langue</span>
+          <select className="select select-bordered" value={pref.language} onChange={(e) => setPref((p) => ({ ...p, language: e.target.value }))}>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+
+        <label className="flex items-center gap-3">
+          <span className="w-40 text-sm">Devise</span>
+          <select className="select select-bordered" value={pref.currency} onChange={(e) => setPref((p) => ({ ...p, currency: e.target.value }))}>
+            <option value="XOF">FCFA (XOF)</option>
+            {/* <option value="USD">USD</option> */}
+          </select>
+        </label>
+
+        <div className="mt-3">
+          <button className="btn btn-primary" onClick={save}>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------- Logout ---------------------- */
+function LogoutSection() {
+  const logout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  return (
+    <div className="text-center">
+      <h2 className="text-xl font-semibold mb-4">Déconnexion</h2>
+      <p className="mb-4">Clique sur le bouton ci-dessous pour te déconnecter en toute sécurité.</p>
+      <button className="btn btn-error" onClick={logout}>Se déconnecter</button>
+    </div>
+  );
+}

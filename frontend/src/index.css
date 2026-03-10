@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --primary: #f97316;
+    /* Orange vibrant */
+    --primary-focus: #ea580c;
+    --neutral-dark: #0f172a;
+    /* Navy profond */
+    --neutral-light: #f8fafc;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+@layer base {
+    body {
+        @apply text-slate-900 bg-slate-50 font-sans antialiased selection:bg-orange-100 selection:text-orange-600;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply tracking-tight;
+    }
+
+    select {
+        @apply text-slate-900 font-bold bg-white border-slate-200 cursor-pointer transition-all;
+    }
+
+    option {
+        @apply text-slate-900 bg-white font-medium p-4;
+    }
+}
+
+@layer components {
+    .glass-card {
+        @apply backdrop-blur-xl bg-white/70 border border-white/30 shadow-sm;
+    }
+
+    .glass-nav {
+        @apply backdrop-blur-md bg-white/80 border-b border-gray-100/50 sticky top-0 z-[100];
+    }
+
+    .btn-premium {
+        @apply px-8 py-3 rounded-2xl font-black transition-all duration-300 transform active:scale-95;
+    }
+
+    .search-bar {
+        @apply w-0 group-hover:w-[250px] md:group-hover:w-[350px] transition-all duration-500 rounded-full border-none px-0 group-hover:px-4 py-2 focus:outline-none bg-transparent group-hover:bg-gray-100/80 backdrop-blur-sm;
+    }
+
+    /* Custom Admin Table */
+    .admin-table {
+        @apply w-full border-separate border-spacing-y-3;
+    }
+
+    .admin-table thead th {
+        @apply px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 border-none;
+    }
+
+    .admin-table tbody tr {
+        @apply bg-white hover:bg-slate-50 transition-all duration-300 rounded-[2rem] shadow-sm hover:shadow-md cursor-default;
+    }
+
+    .admin-table tbody td {
+        @apply px-6 py-5 first:rounded-l-2xl last:rounded-r-2xl border-none align-middle;
+    }
+}
+
+@layer utilities {
+    .hero-bg-color {
+        @apply bg-gradient-to-br from-slate-50 via-white to-orange-50/30;
+    }
+
+    .text-gradient {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        @apply w-2 h-2;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+    }
+
+    @keyframes shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+}

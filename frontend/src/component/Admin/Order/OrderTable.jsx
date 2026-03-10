@@ -1,0 +1,96 @@
+import React from "react";
+import OrderStatusBadge from "../Order/OrderStatusBadge";
+import { Calendar, User, CreditCard, ChevronRight } from "lucide-react";
+
+/**
+ * OrderTable - simple tableau des commandes
+ * props: orders, loading, onView(order)
+ */
+export default function OrderTable({ orders = [], loading = false, onView = () => { } }) {
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Chargement des commandes...</p>
+      </div>
+    );
+  }
+
+  if (!orders.length) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Aucune commande trouvée</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="table w-full border-separate border-spacing-y-4 px-4">
+        <thead>
+          <tr className="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] border-none">
+            <th className="bg-transparent pl-8">Référence</th>
+            <th className="bg-transparent">Client</th>
+            <th className="bg-transparent">Montant</th>
+            <th className="bg-transparent">Statut</th>
+            <th className="bg-transparent">Date</th>
+            <th className="bg-transparent pr-8 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="space-y-4">
+          {orders.map((o) => (
+            <tr
+              key={o.id}
+              className="group bg-white hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
+              onClick={() => onView(o)}
+            >
+              <td className="pl-8 py-5 rounded-l-[1.5rem] border-none">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-black uppercase">REF</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-900 leading-none mb-1">
+                      #{o.id ? o.id.slice(0, 8).toUpperCase() : "N/A"}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none line-clamp-1 w-24">
+                      ID: {o.id || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td className="border-none">
+                <div className="flex items-center gap-2">
+                  <User size={14} className="text-slate-300" />
+                  <span className="text-sm font-bold text-slate-600">
+                    {o.guest_name || (o.user_id ? `${o.user_id.slice(0, 8)}...` : "Client Invité")}
+                  </span>
+                </div>
+              </td>
+              <td className="border-none">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={14} className="text-primary/40" />
+                  <span className="text-sm font-black text-slate-900">{(Number(o.total_amount) || 0).toLocaleString()} F</span>
+                </div>
+              </td>
+              <td className="border-none">
+                <OrderStatusBadge status={o.status} />
+              </td>
+              <td className="border-none">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Calendar size={14} />
+                  <span className="text-xs font-bold">{o.created_at ? new Date(o.created_at).toLocaleDateString() : "-"}</span>
+                </div>
+              </td>
+              <td className="pr-8 rounded-r-[1.5rem] border-none text-right">
+                <button className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all ml-auto">
+                  <ChevronRight size={18} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
