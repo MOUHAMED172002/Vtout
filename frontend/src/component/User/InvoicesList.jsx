@@ -81,7 +81,7 @@ export default function InvoicesList() {
   async function download(invoice) {
     try {
       if (!invoice || !invoice.pdf_path) {
-        alert("Facture non générée pour le moment.");
+        alert("Reçus non générée pour le moment.");
         return;
       }
       const bucket = "invoices";
@@ -128,7 +128,7 @@ export default function InvoicesList() {
           {invoices.map(inv => (
             <div key={inv.id} className="card bg-white p-4 flex items-center justify-between">
               <div>
-                <div className="font-medium">{inv.invoice_number || `Facture ${inv.id}`}</div>
+                <div className="font-medium">{inv.invoice_number || `Reçus ${inv.id}`}</div>
                 <div className="text-sm text-gray-500">
                   {inv.status || "—"} • {inv.issued_at ? new Date(inv.issued_at).toLocaleDateString() : "—"}
                 </div>

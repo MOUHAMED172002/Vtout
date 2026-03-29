@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const favoriteController = require('../controllers/favoriteController');
-const { requireAuth } = require('../middleware/clerkMiddleware');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 router.get('/', requireAuth, favoriteController.getMyFavorites);
 router.get('/check/:product_id', requireAuth, favoriteController.checkFavorite);

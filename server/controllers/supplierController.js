@@ -146,7 +146,7 @@ exports.registerSelf = async (req, res) => {
             terms_accepted: termsAccepted,
             electronic_signature: electronicSignature,
             user_id: userId,
-            status: 'pending'
+            status: '  En attente'
         });
 
         // 3. Update user profile role to 'fournisseur'
@@ -171,6 +171,22 @@ exports.getMyProfile = async (req, res) => {
     } catch (error) {
         console.error('GetMyProfile error:', error);
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+exports.updateMyProfile = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Fournisseur non trouvé' });
+
+        const { name, phone, whatsapp, momo_number, address_line, lat, lng } = req.body;
+        await supplier.update({ name, phone, whatsapp, momo_number, address_line, lat, lng });
+
+        res.json(supplier);
+    } catch (error) {
+        console.error('UpdateMyProfile error:', error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour' });
     }
 };
 

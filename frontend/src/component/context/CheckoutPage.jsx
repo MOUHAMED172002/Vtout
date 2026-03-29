@@ -6,7 +6,7 @@ import { useCart } from "./CartContext";
 import { createOrder, updateOrderStatus } from "../../services/orderService";
 import { createAddress } from "../../services/addressService";
 import toast from "react-hot-toast";
-import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight } from "lucide-react";
+import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();

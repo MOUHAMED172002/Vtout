@@ -51,7 +51,7 @@ const SupplierDashboard = () => {
 
     const stats = [
         { label: 'Produits en ligne', value: products.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
-        { label: 'En attente', value: products.filter(p => p.approval_status === 'pending').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
+        { label: 'En attente', value: products.filter(p => p.approval_status === '  En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
         { label: 'Total Commandes', value: orders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
     ];
 
@@ -62,7 +62,7 @@ const SupplierDashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-12 space-y-12">
             {/* Approval Notice */}
-            {supplierProfile?.status === 'pending' && (
+            {supplierProfile?.status === '  En attente' && (
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -88,8 +88,8 @@ const SupplierDashboard = () => {
                     onClick={() => navigate('/ajouter-produit')}
                     disabled={supplierProfile?.status !== 'active'}
                     className={`flex items-center gap-3 px-8 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all shadow-xl ${supplierProfile?.status === 'active'
-                            ? 'bg-primary text-white hover:bg-slate-900 shadow-primary/20'
-                            : 'bg-slate-200 text-slate-400 cursor-not-allowed grayscale shadow-none'
+                        ? 'bg-primary text-white hover:bg-slate-900 shadow-primary/20'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed grayscale shadow-none'
                         }`}
                 >
                     <Plus size={18} /> Ajouter un Produit

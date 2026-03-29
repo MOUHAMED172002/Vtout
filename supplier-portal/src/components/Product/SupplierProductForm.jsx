@@ -163,8 +163,8 @@ export default function SupplierProductForm({ onClose }) {
                 supplier_note: data.supplier_note,
                 supplier_price: parseFloat(data.supplier_price) || 0,
                 stock: parseInt(data.stock) || 0,
-                status: 'draft', // Draft pending admin review
-                approval_status: 'pending',
+                status: 'draft', // Draft   En attente admin review
+                approval_status: '  En attente',
                 variants: (data.variants || []).map(v => ({
                     combination: v.combination,
                     sku: v.sku,

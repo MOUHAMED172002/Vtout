@@ -26,7 +26,7 @@ const generateInvoiceTemplate = (order, items) => {
 
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #333; text-align: center;">Facture - Commande #${order.id.slice(0, 8)}</h2>
+        <h2 style="color: #333; text-align: center;">Reçus - Commande #${order.id.slice(0, 8)}</h2>
         <p>Bonjour <strong>${order.guest_name || 'Client'}</strong>,</p>
         <p>Merci pour votre commande sur notre boutique. Voici les détails de votre achat :</p>
         
@@ -138,5 +138,5 @@ exports.sendProductApprovalNotification = async (supplierEmail, product, status,
 exports.sendInvoiceEmail = async (order, items) => {
     const email = order.guest_email || order.user_email;
     if (!email) return;
-    return sendMail(email, `🧾 Votre Facture - Commande #${order.id.slice(0, 8)}`, generateInvoiceTemplate(order, items));
+    return sendMail(email, `🧾 Votre Reçus - Commande #${order.id.slice(0, 8)}`, generateInvoiceTemplate(order, items));
 };

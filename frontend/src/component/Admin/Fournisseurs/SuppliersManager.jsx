@@ -44,7 +44,7 @@ const SuppliersManager = () => {
                         <CheckCircle size={14} /> Actif
                     </span>
                 );
-            case 'pending':
+            case '  En attente':
                 return (
                     <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-wider">
                         <Clock size={14} /> En attente
@@ -139,7 +139,7 @@ const SuppliersManager = () => {
                                         </td>
                                         <td className="px-10 py-8 text-right">
                                             <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {supplier.status === 'pending' && (
+                                                {supplier.status === '  En attente' && (
                                                     <button
                                                         onClick={() => handleStatusUpdate(supplier.id, 'active')}
                                                         className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-200"

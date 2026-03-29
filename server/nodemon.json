@@ -1,7 +1,13 @@
 {
     "ignore": [
         "error.log",
-        "node_output.txt"
+        "node_output.txt",
+        "*.log",
+        "test_*.js",
+        "check_*.js",
+        "manual_*.js",
+        "fix_*.js",
+        "generate_*.js"
     ],
     "watch": [
         "."

@@ -49,7 +49,7 @@ const Product = sequelize.define('Product', {
         allowNull: true
     },
     approval_status: {
-        type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+        type: DataTypes.ENUM('  En attente', 'approved', 'rejected'),
         defaultValue: 'approved'
     },
     admin_feedback: {

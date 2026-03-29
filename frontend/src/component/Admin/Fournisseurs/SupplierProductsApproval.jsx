@@ -15,8 +15,8 @@ const SupplierProductsApproval = () => {
     const fetchPendingProducts = async () => {
         try {
             setLoading(true);
-            // On récupère tous les produits avec le status pending
-            const data = await getProducts({ approval_status: 'pending' });
+            // On récupère tous les produits avec le status   En attente
+            const data = await getProducts({ approval_status: '  En attente' });
             setProducts(data);
         } catch (error) {
             console.error('Erreur chargement produits:', error);

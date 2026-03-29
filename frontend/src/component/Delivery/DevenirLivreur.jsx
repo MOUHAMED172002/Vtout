@@ -11,15 +11,28 @@ import { registerLivreur } from "../../services/deliveryService";
 import { getCommunesParDepartement } from "../../utils/communes";
 
 export default function DevenirLivreur() {
-    const { getToken } = useAuth();
+    const { getToken, signOut } = useAuth();
     const { isSignedIn, user } = useUser();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(isSignedIn ? 0 : 1);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [zoneSearch, setZoneSearch] = useState("");
+    const [policies, setPolicies] = useState([]);
+
+    React.useEffect(() => {
+        const fetchPolicies = async () => {
+            try {
+                const { data } = await api.get('/policies/type/delivery');
+                setPolicies(data);
+            } catch (err) {
+                console.error("Policiies load error:", err);
+            }
+        };
+        fetchPolicies();
+    }, []);
     const [form, setForm] = useState({
         phone: user?.primaryPhoneNumber?.phoneNumber || "",
         fullname: user?.fullName || "",
@@ -88,6 +101,54 @@ export default function DevenirLivreur() {
 
                 <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-gray-100 p-10 md:p-16 relative overflow-hidden">
                     <AnimatePresence mode="wait">
+                        {step === 0 && isSignedIn && (
+                            <motion.div
+                                key="confirm"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="text-center space-y-8"
+                            >
+                                <div className="w-24 h-24 bg-primary/10 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
+                                    <ShieldCheck size={48} />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black text-slate-900">Confirmation de Compte</h3>
+                                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest leading-relaxed">
+                                        Vous êtes connecté en tant que <br />
+                                        <span className="text-primary font-black mt-1 inline-block">{user.primaryEmailAddress.emailAddress}</span>
+                                    </p>
+                                </div>
+
+                                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center gap-4 text-left">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shrink-0 shadow-sm">
+                                        <AlertCircle size={20} />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-600 leading-tight">
+                                        Voulez-vous continuer l'inscription avec ce compte ?
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                    <button
+                                        onClick={async () => {
+                                            await signOut();
+                                            window.location.href = "/auth/connexion?redirect=/devenir-livreur";
+                                        }}
+                                        className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                                    >
+                                        Changer
+                                    </button>
+                                    <button
+                                        onClick={() => setStep(1)}
+                                        className="py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                                    >
+                                        Continuer
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {step === 1 && (
                             <motion.div
                                 key="terms"
@@ -99,18 +160,34 @@ export default function DevenirLivreur() {
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-gray-900 border-l-4 border-primary pl-4">Conditions d'admission</h2>
                                     <div className="grid gap-4">
-                                        {[
-                                            { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir au moins 18 ans" },
-                                            { icon: <CheckCircle2 className="text-emerald-500" />, text: "Posséder un moyen de déplacement propre (Moto, Voiture)" },
-                                            { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir un smartphone avec connexion internet" },
-                                            { icon: <CheckCircle2 className="text-emerald-500" />, text: "Fournir une pièce d'identité valide (CIP, CNI ou Passeport)" },
-                                            { icon: <CheckCircle2 className="text-emerald-500" />, text: "Être courtois et respectueux envers les clients" },
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-gray-700">
-                                                {item.icon}
-                                                {item.text}
-                                            </div>
-                                        ))}
+                                        {policies.length > 0 ? (
+                                            policies.map((p, i) => (
+                                                <div key={p.id} className="flex flex-col gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <CheckCircle2 size={18} />
+                                                        </div>
+                                                        <p className="font-black text-gray-900 text-sm">{p.title}</p>
+                                                    </div>
+                                                    <div className="text-xs font-bold text-gray-500 leading-relaxed pl-11 whitespace-pre-wrap">
+                                                        {p.content}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            [
+                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir au moins 18 ans" },
+                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Posséder un moyen de déplacement propre (Moto, Voiture)" },
+                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir un smartphone avec connexion internet" },
+                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Fournir une pièce d'identité valide (CIP, CNI ou Passeport)" },
+                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Être courtois et respectueux envers les clients" },
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-gray-700">
+                                                    {item.icon}
+                                                    {item.text}
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
 

@@ -201,7 +201,7 @@ export default function OrderDetail() {
                 setDownloading(true);
                 try {
                   await generateInvoicePDF(order);
-                  toast.success("Facture téléchargée !");
+                  toast.success("Reçus téléchargée !");
                 } catch {
                   toast.error("Erreur lors de la génération.");
                 } finally {
@@ -215,7 +215,7 @@ export default function OrderDetail() {
                 }`}
             >
               {downloading ? <span className="loading loading-spinner loading-xs" /> : <Download size={14} />}
-              Facture
+              Reçus
               {!invoiceAvailable && (
                 <span className="ml-1 text-[9px] opacity-70 normal-case">
                   {order?.payment_method === "delivery" ? "(après livraison)" : "(paiement requis)"}

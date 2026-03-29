@@ -14,6 +14,7 @@ export default function UserTable({ users = [], loading = false, onView = () => 
               <tr>
                 <th>Utilisateur</th>
                 <th>Téléphone</th>
+                <th>Rôle</th>
                 <th>Inscrit</th>
                 <th>Status</th>
                 <th></th>
@@ -30,7 +31,17 @@ export default function UserTable({ users = [], loading = false, onView = () => 
                       <span>{u.fullname || u.id}</span>
                     </td>
                     <td>{u.phone || "-"}</td>
-                    <td className="text-sm text-muted">{u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</td>
+                    <td>
+                      <span className={`px-2 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                        u.role === 'admin' ? 'bg-rose-50 text-rose-500 border border-rose-100' :
+                        (u.role === 'fournisseur' || u.role === 'vendeur') ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' :
+                        u.role === 'livreur' ? 'bg-amber-50 text-amber-500 border border-amber-100' :
+                        'bg-slate-50 text-slate-500 border border-slate-100'
+                      }`}>
+                        {u.role || 'user'}
+                      </span>
+                    </td>
+                    <td className="text-sm font-medium text-slate-400">{u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</td>
                     <td><UserStatusToggle userId={u.id} /></td>
                     <td><button className="btn btn-sm btn-ghost" onClick={() => onView(u)}>Voir</button></td>
                   </tr>

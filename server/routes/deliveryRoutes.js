@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const deliveryController = require('../controllers/deliveryController');
-const { requireAuth, requireLivreur } = require('../middleware/clerkMiddleware');
+const { requireAuth, requireLivreur } = require('../middleware/authMiddleware');
 
 // Health check for delivery routes
 router.get('/ping', (req, res) => res.json({ status: 'ok', message: 'Delivery routes are active' }));
@@ -20,7 +20,7 @@ router.post('/toggle-status', requireAuth, requireLivreur, deliveryController.to
 router.post('/update-zones', requireAuth, requireLivreur, deliveryController.updateServiceZones);
 
 // Admin routes
-const { requireAdmin } = require('../middleware/clerkMiddleware');
+const { requireAdmin } = require('../middleware/authMiddleware');
 router.get('/admin/list', requireAuth, requireAdmin, deliveryController.getLivreursList);
 router.post('/admin/verify/:id', requireAuth, requireAdmin, deliveryController.verifyLivreur);
 router.post('/admin/assign', requireAuth, requireAdmin, deliveryController.adminAssignOrder);

@@ -87,6 +87,14 @@ const Order = sequelize.define('Order', {
     invoice_sent: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    is_parent: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    parent_id: {
+        type: DataTypes.CHAR(36),
+        allowNull: true
     }
 }, {
     tableName: 'orders',

@@ -12,8 +12,8 @@ require("dotenv").config({ override: true });
 console.log("Loading express and cors...");
 const express = require("express");
 const cors = require("cors");
-console.log("Loading clerk middleware...");
-const { authMiddleware } = require("./middleware/clerkMiddleware");
+console.log("Loading better-auth middleware...");
+const { authMiddleware, betterAuthMiddleware } = require("./middleware/authMiddleware");
 const { applySecurity } = require("./middleware/securityMiddleware");
 console.log("Loading models...");
 const { sequelize } = require("./models");
@@ -30,6 +30,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 applySecurity(app);
+
+// IMPORTANT : Le middleware Better Auth DOIT être avant express.json()
+// car Better Auth lit le stream natif de la requête. S'il est consommé par express.json,
+// Better Auth reçoit un body vide et rejette avec 403 Forbidden !
+app.use("/api/auth", betterAuthMiddleware);
+
 app.use(express.json({ limit: '10kb' })); // Limit body size to prevent DoS
 
 // Request logger
@@ -37,7 +43,7 @@ app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
         const duration = Date.now() - start;
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl || req.url} - ${res.statusCode} (${duration}ms)`);
     });
     if (req.headers.authorization) {
         console.log(`  Auth: ${req.headers.authorization.substring(0, 20)}...`);
@@ -47,6 +53,7 @@ app.use((req, res, next) => {
     next();
 });
 
+// (Le middleware d'auth a été déplacé au-dessus de express.json)
 app.use(authMiddleware); // Injecte req.auth sur toutes les routes
 
 console.log("Loading routes...");
@@ -104,7 +111,7 @@ app.use("/api", (req, res) => {
 
 
 // ping
-app.get("/", (req, res) => res.send("API running with Clerk & Sequelize"));
+app.get("/", (req, res) => res.send("API running with Better Auth & Sequelize"));
 
 const PORT = process.env.PORT || 3000;
 
@@ -112,7 +119,7 @@ const PORT = process.env.PORT || 3000;
 console.log("Starting database sync...");
 sequelize.sync().then(() => {
     console.log("Database sync complete. Starting server...");
-    const server = app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+    const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server listening on http://localhost:${PORT}`));
 
     // Keep process alive explicitly for debugging
     setInterval(() => {

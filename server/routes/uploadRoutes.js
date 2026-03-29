@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { upload } = require('../config/cloudinary');
-const { requireAuth, requireAdmin, requireFournisseur } = require('../middleware/clerkMiddleware');
+const { requireAuth, requireAdmin, requireFournisseur } = require('../middleware/authMiddleware');
 
 // Route pour uploader une seule image
 router.post('/single', requireAuth, upload.single('image'), (req, res) => {

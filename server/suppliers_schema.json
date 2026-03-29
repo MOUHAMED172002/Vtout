@@ -145,10 +145,10 @@
   },
   {
     "Field": "status",
-    "Type": "enum('pending','active','suspended')",
+    "Type": "enum('  En attente','active','suspended')",
     "Null": "YES",
     "Key": "",
-    "Default": "pending",
+    "Default": "  En attente",
     "Extra": ""
   },
   {

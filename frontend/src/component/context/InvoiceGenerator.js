@@ -103,7 +103,7 @@ export async function generateInvoicePDF(order) {
         dueDate.setDate(dueDate.getDate() + 7);
         const dueDateStr = dueDate.toLocaleDateString("fr-FR", { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        doc.text("Date de Facture", W - 60, currentY + 7);
+        doc.text("Date de Reçus", W - 60, currentY + 7);
         doc.setTextColor(...ColorDark);
         doc.setFont("helvetica", "bold");
         doc.text(dateStr, W - 60, currentY + 13);

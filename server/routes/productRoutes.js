@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { requireAdmin, requireFournisseur, requireAuth } = require('../middleware/clerkMiddleware');
+const { requireAdmin, requireFournisseur, requireAuth } = require('../middleware/authMiddleware');
 
 router.get('/', productController.getAllProducts);
 router.get('/search', productController.searchProducts);

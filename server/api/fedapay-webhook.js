@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
     }
 
     // map provider status to your statuses
-    let paymentStatus = "pending";
+    let paymentStatus = "  En attente";
     if (String(providerStatus).toLowerCase() === "paid" || String(providerStatus).toLowerCase() === "successful") {
       paymentStatus = "paid";
     } else if (String(providerStatus).toLowerCase() === "failed") {

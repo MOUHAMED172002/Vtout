@@ -532,7 +532,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       {...register('approval_status')}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/10 transition-all"
                     >
-                      <option value="pending" className="bg-slate-900 text-amber-500">⏳ En attente</option>
+                      <option value="  En attente" className="bg-slate-900 text-amber-500">⏳ En attente</option>
                       <option value="approved" className="bg-slate-900 text-emerald-500">✅ Approuvé</option>
                       <option value="rejected" className="bg-slate-900 text-rose-500">❌ Rejeté</option>
                     </select>

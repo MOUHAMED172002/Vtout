@@ -40,8 +40,9 @@ export default function Navbar() {
   // Dynamic Dashboard Link based on role
   const dashboardLink =
     profileUser?.role === "admin" ? "/admin/dashboard" :
-      profileUser?.role === "livreur" ? "/delivery-rider" :
-        "/user/dashboard";
+      (profileUser?.role === "fournisseur" || profileUser?.role === "vendeur") ? "/fournisseur/dashboard" :
+        profileUser?.role === "livreur" ? "/delivery-rider" :
+          "/user/dashboard";
 
   const isLivreur = profileUser?.role === "livreur";
 
@@ -124,6 +125,15 @@ export default function Navbar() {
                     >
                       <LayoutDashboard size={18} />
                       Admin
+                    </Link>
+                  )}
+                  {(profileUser?.role === "fournisseur" || profileUser?.role === "vendeur") && (
+                    <Link
+                      to="/fournisseur/dashboard"
+                      className="text-sm font-black text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl"
+                    >
+                      <LayoutDashboard size={18} />
+                      Boutique
                     </Link>
                   )}
                   <UserButton afterSignOutUrl="/" />

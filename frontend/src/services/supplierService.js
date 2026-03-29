@@ -27,6 +27,13 @@ export const updateSupplierProductStatus = async (productId, statusData, token) 
     });
     return data;
 };
+export const getMySupplierProfile = async (token) => {
+    const { data } = await api.get('/suppliers/me', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
 export const createSupplier = async (supplierData, token) => {
     const { data } = await api.post('/suppliers', supplierData, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -36,6 +43,13 @@ export const createSupplier = async (supplierData, token) => {
 
 export const registerSelfSupplier = async (supplierData, token) => {
     const { data } = await api.post('/suppliers/register', supplierData, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
+export const updateMySupplierProfile = async (supplierData, token) => {
+    const { data } = await api.patch('/suppliers/me', supplierData, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return data;

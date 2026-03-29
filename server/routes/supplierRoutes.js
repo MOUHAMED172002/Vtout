@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const supplierController = require('../controllers/supplierController');
-const { requireAdmin, requireAuth, requireFournisseur } = require('../middleware/clerkMiddleware');
+const { requireAdmin, requireAuth, requireFournisseur } = require('../middleware/authMiddleware');
 
 // ---- Routes Fournisseur (Self-service) ----
 // Un utilisateur connecté peut s'auto-inscrire comme fournisseur
 router.post('/register', requireAuth, supplierController.registerSelf);
 // Un fournisseur récupère son propre profil
 router.get('/me', requireAuth, supplierController.getMyProfile);
+// Un fournisseur met à jour son profil (position, etc)
+router.patch('/me', requireAuth, requireFournisseur, supplierController.updateMyProfile);
 // Un fournisseur récupère ses propres produits
 router.get('/me/products', requireAuth, requireFournisseur, supplierController.getMyProducts);
 

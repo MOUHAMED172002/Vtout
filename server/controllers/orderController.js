@@ -195,24 +195,15 @@ exports.createOrder = async (req, res) => {
         const userId = req.auth?.userId || null;
         const { total_amount, status, payment_method, address_id, items, guest_name, guest_email, guest_phone } = req.body;
 
-        console.log(`[createOrder] Attempt: Guest=${!userId}, Total=${total_amount}`);
-
-        // Validate: either a logged-in user or guest info must be provided
         if (!userId && !guest_email) {
             return res.status(400).json({ error: 'Informations de contact requises pour les invités' });
         }
 
+        const orderId = crypto.randomUUID();
         const itemsCount = items ? items.reduce((acc, it) => acc + (it.quantity || 1), 0) : 0;
 
-        console.log(`[createOrder] Creating record...`);
-        let orderId;
-        try {
-            orderId = crypto.randomUUID();
-        } catch (e) {
-            orderId = require('crypto').randomBytes(16).toString('hex'); // Fallback safe for node
-        }
-
-        const order = await Order.create({
+        // 1. Create the Master Order
+        const masterOrder = await Order.create({
             id: orderId,
             user_id: userId,
             guest_name: guest_name || null,
@@ -223,47 +214,65 @@ exports.createOrder = async (req, res) => {
             payment_method,
             address_id,
             items_count: itemsCount,
-            payment_status: 'en_attente'
+            payment_status: 'en_attente',
+            is_parent: true
         });
 
-        console.log(`[createOrder] Order created: ${order.id}. Inserting ${items?.length} items...`);
-
+        // 2. Fetch all products to group by supplier
         if (items && items.length > 0) {
-            const itemsPayload = items.map((it, idx) => {
-                if (!it.product_id) {
-                    throw new Error(`Item ${idx} is missing product_id`);
-                }
-                return {
+            const productIds = items.map(it => it.product_id);
+            const products = await Product.findAll({ where: { id: productIds } });
+            
+            // Map supplier_id to items
+            const supplierGroups = {};
+            items.forEach(it => {
+                const prod = products.find(p => p.id === it.product_id);
+                const sId = prod?.supplier_id || 'admin';
+                if (!supplierGroups[sId]) supplierGroups[sId] = [];
+                supplierGroups[sId].push(it);
+            });
+
+            // 3. Create Sub-Orders for EACH supplier
+            for (const [sId, groupItems] of Object.entries(supplierGroups)) {
+                const subOrderId = crypto.randomUUID();
+                const subTotal = groupItems.reduce((acc, it) => acc + (it.price * it.quantity), 0);
+                
+                const subOrder = await Order.create({
+                    id: subOrderId,
+                    user_id: userId,
+                    guest_name: guest_name || null,
+                    guest_email: guest_email || null,
+                    guest_phone: guest_phone || null,
+                    total_amount: subTotal,
+                    status: 'en_attente',
+                    payment_method,
+                    address_id,
+                    items_count: groupItems.length,
+                    payment_status: 'en_attente',
+                    supplier_id: sId === 'admin' ? null : sId,
+                    parent_id: masterOrder.id,
+                    is_parent: false
+                });
+
+                // Insert items for this sub-order
+                const itemsPayload = groupItems.map(it => ({
                     product_id: it.product_id,
                     variant_id: it.variant_id || null,
                     quantity: it.quantity || 1,
                     price: it.price || 0,
-                    order_id: order.id
-                };
-            });
-            await OrderItem.bulkCreate(itemsPayload);
-            console.log(`[createOrder] Item insertion successful`);
+                    order_id: subOrder.id
+                }));
+                await OrderItem.bulkCreate(itemsPayload);
+            }
         }
 
-        // Clear Cart only for registered users
-        if (userId) {
-            console.log(`[createOrder] Clearing cart for user ${userId}...`);
-            await Cart.destroy({ where: { user_id: userId } });
-        }
+        if (userId) await Cart.destroy({ where: { user_id: userId } });
 
-        console.log(`[createOrder] Success: Order ${order.id}`);
-
-        // Notify admin (background)
-        sendOrderNotificationToAdmin(order).catch(e => console.error('Admin notify fail:', e));
-
-        res.status(201).json(order);
+        sendOrderNotificationToAdmin(masterOrder).catch(e => console.error('Admin notify fail:', e));
+        res.status(201).json(masterOrder);
     } catch (error) {
         console.error('CRITICAL createOrder error:', error);
-        res.status(500).json({
-            error: 'Erreur lors de la création de la commande',
-            details: error.message,
-            stack: error.stack
-        });
+        res.status(500).json({ error: 'Erreur lors de la création de la commande', details: error.message });
     }
 };
 
@@ -318,5 +327,40 @@ exports.assignSupplier = async (req, res) => {
         res.json({ message: 'Fournisseur assigné' });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de l’assignation' });
+    }
+};
+
+exports.getSuggestedLivreurs = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.findByPk(id, {
+            include: [{ model: Address, as: 'address' }]
+        });
+
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+
+        const livreurs = await DeliveryPerson.findAll({
+            where: { status: 'disponible', is_active: true },
+            include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone', 'avatar_url'] }]
+        });
+
+        const addr = order.address || {};
+        const scored = livreurs.map(l => {
+            let score = 0;
+            const zones = l.service_zones || [];
+            
+            // Check if client address in zones
+            if (addr.commune_label && zones.includes(addr.commune_label)) score += 10;
+            if (addr.departement_label && zones.includes(addr.departement_label)) score += 5;
+
+            const data = l.toJSON();
+            data.matchScore = score;
+            return data;
+        });
+
+        res.json(scored.sort((a, b) => b.matchScore - a.matchScore));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erreur suggestion livreurs' });
     }
 };

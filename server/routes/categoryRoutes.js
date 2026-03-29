@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
 
-const { requireAuth, requireAdmin } = require('../middleware/clerkMiddleware');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 router.get('/', categoryController.getAllCategories);
 router.post('/', requireAuth, requireAdmin, categoryController.createCategory);

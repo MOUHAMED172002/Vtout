@@ -209,7 +209,7 @@ exports.createProduct = async (req, res) => {
             const supplierProfile = await Supplier.findOne({ where: { user_id: req.auth.userId } });
             if (supplierProfile) {
                 finalSupplierId = supplierProfile.id;
-                finalStatus = 'pending'; // Force pending for suppliers
+                finalStatus = '  En attente'; // Force   En attente for suppliers
             }
         }
 
@@ -336,7 +336,7 @@ exports.updateProduct = async (req, res) => {
 
         let finalStatus = approval_status;
         if (isSupplier && !isAdmin) {
-            finalStatus = 'pending'; // Reset to pending if supplier edits
+            finalStatus = '  En attente'; // Reset to   En attente if supplier edits
         }
 
         // 1. Update base product

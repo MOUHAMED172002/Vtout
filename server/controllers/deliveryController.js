@@ -359,14 +359,6 @@ exports.verifyLivreur = async (req, res) => {
         const profile = await Profile.findByPk(deliveryPerson.user_id);
         if (profile) {
             await profile.update({ role: newRole });
-            try {
-                if (profile.clerk_id) {
-                    const { clerkClient } = require('@clerk/clerk-sdk-node');
-                    await clerkClient.users.updateUserMetadata(profile.clerk_id, {
-                        publicMetadata: { role: newRole }
-                    });
-                }
-            } catch (err) { console.error("Clerk sync error:", err); }
         }
 
         res.json({ message: 'Statut mis à jour et rôle synchronisé' });

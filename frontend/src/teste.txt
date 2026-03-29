@@ -609,7 +609,7 @@ function FavoritesSection() {
     fetchFavorites();
   }, []);
 
-  // Add product to cart (server) or redirect to auth and save pending action
+  // Add product to cart (server) or redirect to auth and save   En attente action
   const handleAddToCart = async (prod, favRowId) => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();

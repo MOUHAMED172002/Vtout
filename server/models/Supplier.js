@@ -35,8 +35,8 @@ const Supplier = sequelize.define('Supplier', {
         type: DataTypes.STRING
     },
     status: {
-        type: DataTypes.ENUM('pending', 'active', 'suspended'),
-        defaultValue: 'pending'
+        type: DataTypes.ENUM('  En attente', 'active', 'suspended'),
+        defaultValue: '  En attente'
     },
     terms_accepted: {
         type: DataTypes.BOOLEAN,

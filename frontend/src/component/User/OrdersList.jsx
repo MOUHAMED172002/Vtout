@@ -278,7 +278,7 @@ export default function OrdersList() {
                       </Link>
                     )}
 
-                    {/* Facture */}
+                    {/* Reçus */}
                     <button
                       onClick={() => toast.success("Génération de la facture...")}
                       title="Télécharger la facture"

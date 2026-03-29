@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const profileController = require('../controllers/profileController');
-const { requireAuth, requireAdmin } = require('../middleware/clerkMiddleware');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 router.post('/sync', requireAuth, profileController.syncProfile);
 router.get('/me', requireAuth, profileController.getMe);

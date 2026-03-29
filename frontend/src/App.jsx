@@ -25,6 +25,7 @@ import Footer from './component/Footer/Footer';
 import ProductGrid from './component/Products/ProductGrid';
 import Login from './component/Auth/Login';
 import Register from './component/Auth/Register';
+import ResetPassword from './component/Auth/ResetPassword';
 import ProfileSync from './component/Auth/ProfileSync';
 import SEO from './component/Shared/SEO';
 import FlashSaleSection from './component/Home/FlashSaleSection';
@@ -155,6 +156,7 @@ const AppContent = ({ products }) => {
           {/* Auth Routes */}
           <Route path="/auth/inscription/*" element={<PageWrapper><><Navbar /><Register /><Footer /></></PageWrapper>} />
           <Route path="/auth/connexion/*" element={<PageWrapper><><Navbar /><Login /><Footer /></></PageWrapper>} />
+          <Route path="/reset-password" element={<PageWrapper><><Navbar /><ResetPassword /><Footer /></></PageWrapper>} />
 
           {/* User Dashboard - Restricted for Livreur */}
           <Route path="/user/dashboard/*" element={

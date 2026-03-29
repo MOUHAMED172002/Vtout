@@ -8,7 +8,7 @@ export default function LivreurManager() {
     const { getToken } = useAuth();
     const [livreurs, setLivreurs] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [filter, setFilter] = useState("all"); // pending, verified, all
+    const [filter, setFilter] = useState("all"); //   En attente, verified, all
     const [search, setSearch] = useState("");
     const [zoneFilter, setZoneFilter] = useState("");
 
@@ -53,7 +53,7 @@ export default function LivreurManager() {
         const matchesZone = !zoneFilter || zones.some(z => String(z).toLowerCase().includes(zoneFilter.toLowerCase()));
         const isOnline = l.status !== 'hors_ligne';
 
-        if (filter === "pending") return !l.is_verified && matchesSearch && matchesZone;
+        if (filter === "  En attente") return !l.is_verified && matchesSearch && matchesZone;
         if (filter === "verified") return l.is_verified && matchesSearch && matchesZone;
         if (filter === "available") return l.is_verified && isOnline && matchesSearch && matchesZone;
 
@@ -61,7 +61,7 @@ export default function LivreurManager() {
     });
 
     const stats = {
-        pending: livreurs.filter(l => !l.is_verified).length,
+        'En attente': livreurs.filter(l => !l.is_verified).length,
         verified: livreurs.filter(l => l.is_verified).length,
         total: livreurs.length
     };
@@ -111,10 +111,10 @@ export default function LivreurManager() {
                     Tous ({stats.total})
                 </button>
                 <button
-                    onClick={() => setFilter("pending")}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "pending" ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    onClick={() => setFilter("  En attente")}
+                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "  En attente" ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
                 >
-                    <Clock size={16} /> Candidatures ({stats.pending})
+                    <Clock size={16} /> Candidatures ({stats['En attente']})
                 </button>
                 <button
                     onClick={() => setFilter("available")}

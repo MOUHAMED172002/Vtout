@@ -18,7 +18,7 @@ async function migrate() {
             { name: 'address_line', type: 'VARCHAR(255)' },
             { name: 'whatsapp', type: 'VARCHAR(255)' },
             { name: 'momo_number', type: 'VARCHAR(255)' },
-            { name: 'status', type: "ENUM('pending', 'active', 'suspended') DEFAULT 'pending'" },
+            { name: 'status', type: "ENUM('  En attente', 'active', 'suspended') DEFAULT '  En attente'" },
             { name: 'terms_accepted', type: 'TINYINT(1) DEFAULT 0' },
             { name: 'electronic_signature', type: 'VARCHAR(255)' },
             { name: 'departement_id', type: 'INT' },

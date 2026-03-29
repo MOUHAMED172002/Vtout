@@ -12,10 +12,10 @@ const generalLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// Strict Rate Limiter for sensitive operations: 10 requests per 15 minutes
+// Strict Rate Limiter for sensitive operations: 500 requests per 15 minutes (adapté pour dev et get-session)
 const strictLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 500,
     message: { error: "Action suspecte. Tentatives trop fréquentes." },
     standardHeaders: true,
     legacyHeaders: false,

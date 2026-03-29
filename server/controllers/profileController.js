@@ -1,54 +1,14 @@
 const { Profile } = require('../models');
 const crypto = require('crypto');
-const { clerkClient } = require('@clerk/clerk-sdk-node');
 
 exports.syncProfile = async (req, res) => {
     try {
-        const { clerkId } = req.auth;
-        if (!clerkId) {
+        const { userId } = req.auth;
+        if (!userId) {
             return res.status(401).json({ error: 'Non authentifié' });
         }
-
-        // Fetch full user from Clerk to get metadata
-        const clerkUser = await clerkClient.users.getUser(clerkId);
-
-        const { email, firstName, lastName, imageUrl } = req.body;
-        const fullname = [firstName, lastName].filter(Boolean).join(' ');
-
-        // Initial role logic: Clerk metadata priority, then admin email check
-        let role = clerkUser.publicMetadata?.role;
-        if (!role) {
-            const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
-            role = adminEmails.includes(email?.toLowerCase()) ? "admin" : "user";
-        }
-
-        let profile = await Profile.findOne({ where: { clerk_id: clerkId } });
-
-        if (!profile) {
-            profile = await Profile.create({
-                id: crypto.randomUUID(),
-                clerk_id: clerkId,
-                email: email || '',
-                first_name: firstName || '',
-                last_name: lastName || '',
-                fullname: fullname,
-                avatar_url: imageUrl || '',
-                role: role
-            });
-        } else {
-            // Update role if Clerk has a more authoritative role or if admin email is found
-            // But don't downgrade 'livreur' unless it's explicitly 'user' in Clerk
-            if (clerkUser.publicMetadata?.role) {
-                if (profile.role !== clerkUser.publicMetadata.role) {
-                    profile.role = clerkUser.publicMetadata.role;
-                    await profile.save();
-                }
-            } else if (role === "admin" && profile.role !== "admin") {
-                profile.role = "admin";
-                await profile.save();
-            }
-        }
-
+        let profile = await Profile.findByPk(userId);
+        if (!profile) return res.status(404).json({ error: 'Profil introuvable' });
         res.json(profile);
     } catch (error) {
         console.error('Sync error:', error);

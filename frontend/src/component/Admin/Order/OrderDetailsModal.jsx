@@ -104,7 +104,8 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
     const targetCommune = addr?.commune_label || addr?.commune;
     const targetDept = addr?.departement_label || addr?.departement;
 
-    return [...availableLivreurs]
+    const safeLivreurs = Array.isArray(availableLivreurs) ? availableLivreurs : [];
+    return [...safeLivreurs]
       .map(l => {
         let score = 0;
         const zones = l.service_zones || [];

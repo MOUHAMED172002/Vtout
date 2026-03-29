@@ -11,7 +11,7 @@ export default function InvoiceButton({ order }) {
     setDownloading(true);
     try {
       await generateInvoicePDF(order);
-      toast.success("Facture PDF générée");
+      toast.success("Reçus PDF générée");
     } catch (err) {
       console.error(err);
       toast.error("Erreur de génération");
@@ -31,7 +31,7 @@ export default function InvoiceButton({ order }) {
       ) : (
         <Download size={14} className="text-primary" />
       )}
-      Facture
+      Reçus
     </button>
   );
 }

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const attributeController = require('../controllers/attributeController');
-const { requireAuth, requireAdmin } = require('../middleware/clerkMiddleware');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 router.get('/', attributeController.getAllAttributes);
 router.post('/', requireAuth, requireAdmin, attributeController.createAttribute);
