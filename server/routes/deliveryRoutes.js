@@ -17,6 +17,7 @@ router.post('/assign', requireAuth, requireLivreur, deliveryController.assignToM
 router.post('/release', requireAuth, requireLivreur, deliveryController.releaseOrder);
 router.post('/status', requireAuth, requireLivreur, deliveryController.updateDeliveryStatus);
 router.post('/toggle-status', requireAuth, requireLivreur, deliveryController.toggleStatus);
+router.put('/location', requireAuth, requireLivreur, deliveryController.updateLocation);
 router.post('/update-zones', requireAuth, requireLivreur, deliveryController.updateServiceZones);
 
 // Admin routes

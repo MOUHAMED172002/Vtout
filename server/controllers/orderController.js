@@ -5,20 +5,14 @@ const { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustome
 exports.getMyOrders = async (req, res) => {
     try {
         const userId = req.auth?.userId;
-        console.log('[getMyOrders] Fetching orders for userId:', userId);
-        if (!userId) {
-            console.warn('[getMyOrders] No userId found in req.auth');
-            return res.status(401).json({ error: 'Profil utilisateur non trouvé. Veuillez vous reconnecter.' });
-        }
+        if (!userId) return res.status(401).json({ error: 'Profil utilisateur non trouvé. Veuillez vous reconnecter.' });
 
         const orders = await Order.findAll({
             where: { user_id: userId },
             order: [['created_at', 'DESC']]
         });
-        console.log(`[getMyOrders] Found ${orders.length} orders for user ${userId}`);
         res.json(orders);
     } catch (error) {
-        console.error('getMyOrders error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des commandes', details: error.message });
     }
 };
@@ -36,10 +30,8 @@ exports.getMySupplierOrders = async (req, res) => {
             order: [['created_at', 'DESC']],
             include: [{ model: Address, as: 'address' }]
         });
-
         res.json(orders);
     } catch (error) {
-        console.error('getMySupplierOrders error:', error);
         res.status(500).json({ error: 'Erreur Serveur' });
     }
 };
@@ -48,319 +40,160 @@ exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
             order: [['created_at', 'DESC']],
-            include: [{ model: Address, as: 'address' }]
+            include: [
+                { model: Profile, as: 'user', attributes: ['fullname', 'email'] },
+                { model: Address, as: 'address' },
+                { model: DeliveryPerson, as: 'deliveryPerson', include: [{ model: Profile, as: 'profile', attributes: ['fullname'] }] }
+            ]
         });
         res.json(orders);
     } catch (error) {
-        console.error('getAllOrders error:', error);
-        res.status(500).json({ error: 'Erreur serveur', details: error.message });
+        res.status(500).json({ error: 'Erreur Serveur', details: error.message });
     }
 };
 
 exports.getOrderById = async (req, res) => {
     try {
-        const userId = req.auth?.userId;
-        if (!userId) return res.status(401).json({ error: 'Profil utilisateur non trouvé.' });
-
-        const order = await Order.findOne({
-            where: { id: req.params.id },
+        const { id } = req.params;
+        const order = await Order.findByPk(id, {
             include: [
                 {
                     model: OrderItem,
                     as: 'items',
                     include: [
-                        {
-                            model: Product,
-                            as: 'product',
-                            include: [{ model: ProductImage, as: 'images' }]
-                        },
-                        {
-                            model: ProductVariant,
-                            as: 'variant',
-                            include: [{ model: ProductVariantPrice, as: 'priceRows' }]
-                        }
+                        { model: Product, as: 'product', include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }] },
+                        { model: ProductVariant, as: 'variant' }
                     ]
                 },
                 { model: Address, as: 'address' },
-                {
-                    model: DeliveryPerson,
-                    as: 'deliveryPerson',
-                    include: [{
-                        model: Profile,
-                        as: 'profile',
-                        attributes: ['id', 'fullname', 'phone', 'avatar_url']
-                    }]
-                },
-                {
-                    model: Supplier,
-                    as: 'supplier'
-                }
+                { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
+                { model: Supplier, as: 'supplier', attributes: ['name', 'address', 'phone'] },
+                { model: DeliveryPerson, as: 'deliveryPerson', include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone'] }] }
             ]
         });
-
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
         res.json(order);
     } catch (error) {
-        console.error('getOrderById error:', error);
-        res.status(500).json({ error: 'Erreur lors de la récupération de la commande', details: error.message });
-    }
-};
-
-exports.updateOrderStatus = async (req, res) => {
-    try {
-        const { status, payment_id, payment_status, supplier_id } = req.body;
-        const updateData = { status };
-        if (payment_id) updateData.payment_id = payment_id;
-        if (payment_status) updateData.payment_status = payment_status;
-        if (supplier_id) updateData.supplier_id = supplier_id;
-
-        // Auto-record delivery date if status changes to 'livree'
-        if (status === 'livree') {
-            updateData.delivered_at = new Date();
-        }
-
-        await Order.update(updateData, { where: { id: req.params.id } });
-
-        // Conditional Email Invoice Logic
-        const triggerEmail = async () => {
-            try {
-                const order = await Order.findOne({
-                    where: { id: req.params.id },
-                    include: [{
-                        model: OrderItem,
-                        as: 'items',
-                        include: [{ model: Product, as: 'product' }]
-                    }]
-                });
-
-                if (!order || order.invoice_sent) return;
-
-                const shouldSend =
-                    (order.payment_status === 'payé') ||
-                    (order.status === 'livree' && order.payment_method === 'delivery');
-
-                if (shouldSend) {
-                    let recipientEmail = order.guest_email;
-                    let recipientName = order.guest_name;
-
-                    if (order.user_id && !recipientEmail) {
-                        const profile = await Profile.findByPk(order.user_id);
-                        recipientEmail = profile?.email;
-                        recipientName = profile?.fullname;
-                    }
-
-                    if (recipientEmail) {
-                        const mailResult = await sendInvoiceEmail({
-                            ...order.toJSON(),
-                            guest_email: recipientEmail,
-                            guest_name: recipientName || 'Client'
-                        }, order.items);
-
-                        if (mailResult?.success) {
-                            await Order.update({ invoice_sent: true }, { where: { id: order.id } });
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Error in conditional email trigger:', err);
-            }
-        };
-
-        if (status) {
-            const order = await Order.findByPk(req.params.id);
-            if (order) {
-                const statusLabels = {
-                    'en_attente': 'En attente',
-                    'confirmee': 'Confirmée',
-                    'en_cours': 'En cours de préparation',
-                    'expediee': 'Expédiée / En livraison',
-                    'livree': 'Livrée',
-                    'annulee': 'Annulée'
-                };
-                sendOrderUpdateToCustomer(order, statusLabels[status] || status);
-            }
-        }
-
-        triggerEmail(); // Run in background
-
-        res.json({ message: 'Commande mise à jour avec succès' });
-    } catch (error) {
-        console.error('UpdateOrderStatus error:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        res.status(500).json({ error: 'Erreur Serveur', details: error.message });
     }
 };
 
 exports.createOrder = async (req, res) => {
     try {
-        const userId = req.auth?.userId || null;
-        const { total_amount, status, payment_method, address_id, items, guest_name, guest_email, guest_phone } = req.body;
+        const userId = req.auth?.userId;
+        if (!userId) return res.status(401).json({ error: 'Non autorisé' });
 
-        if (!userId && !guest_email) {
-            return res.status(400).json({ error: 'Informations de contact requises pour les invités' });
+        const { items, address_id, payment_method, notes, delivery_fee } = req.body;
+        if (!items || items.length === 0) return res.status(400).json({ error: 'Le panier est vide' });
+
+        let subtotal = 0;
+        const enrichedItems = [];
+
+        for (const item of items) {
+            const product = await Product.findByPk(item.product_id);
+            if (!product) return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
+
+            let unitPrice = parseFloat(product.price || 0);
+            let variantData = null;
+
+            if (item.variant_price_id) {
+                const variantPrice = await ProductVariantPrice.findByPk(item.variant_price_id, {
+                    include: [{ model: ProductVariant, as: 'variant' }]
+                });
+                if (variantPrice) {
+                    unitPrice = parseFloat(variantPrice.price || unitPrice);
+                    variantData = variantPrice;
+                }
+            }
+
+            subtotal += unitPrice * item.quantity;
+            enrichedItems.push({ product, item, unitPrice, variantData });
         }
 
-        const orderId = crypto.randomUUID();
-        const itemsCount = items ? items.reduce((acc, it) => acc + (it.quantity || 1), 0) : 0;
+        const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
+        const totalAmount = subtotal + parseFloat(delivery_fee || 0);
 
-        // 1. Create the Master Order
-        const masterOrder = await Order.create({
-            id: orderId,
+        // Trouver le fournisseur le plus proche (1er item)
+        let supplierId = null;
+        const firstProduct = enrichedItems[0]?.product;
+        if (firstProduct) {
+            const sp = await SupplierProduct.findOne({ where: { product_id: firstProduct.id } });
+            if (sp) supplierId = sp.supplier_id;
+        }
+
+        const order = await Order.create({
             user_id: userId,
-            guest_name: guest_name || null,
-            guest_email: guest_email || null,
-            guest_phone: guest_phone || null,
-            total_amount,
-            status: status || 'en_attente',
-            payment_method,
             address_id,
-            items_count: itemsCount,
-            payment_status: 'en_attente',
-            is_parent: true
+            payment_method: payment_method || 'delivery',
+            payment_status: payment_method === 'card' ? 'payé' : 'en_attente',
+            status: 'en_attente',
+            total_amount: totalAmount,
+            delivery_fee: delivery_fee || 0,
+            notes,
+            delivery_code: deliveryCode,
+            supplier_id: supplierId
         });
 
-        // 2. Fetch all products to group by supplier
-        if (items && items.length > 0) {
-            const productIds = items.map(it => it.product_id);
-            const products = await Product.findAll({ where: { id: productIds } });
-            
-            // Map supplier_id to items
-            const supplierGroups = {};
-            items.forEach(it => {
-                const prod = products.find(p => p.id === it.product_id);
-                const sId = prod?.supplier_id || 'admin';
-                if (!supplierGroups[sId]) supplierGroups[sId] = [];
-                supplierGroups[sId].push(it);
+        for (const { product, item, unitPrice, variantData } of enrichedItems) {
+            await OrderItem.create({
+                order_id: order.id,
+                product_id: product.id,
+                variant_id: variantData?.variant_id || null,
+                variant_price_id: variantData?.id || null,
+                quantity: item.quantity,
+                unit_price: unitPrice,
+                subtotal: unitPrice * item.quantity
             });
-
-            // 3. Create Sub-Orders for EACH supplier
-            for (const [sId, groupItems] of Object.entries(supplierGroups)) {
-                const subOrderId = crypto.randomUUID();
-                const subTotal = groupItems.reduce((acc, it) => acc + (it.price * it.quantity), 0);
-                
-                const subOrder = await Order.create({
-                    id: subOrderId,
-                    user_id: userId,
-                    guest_name: guest_name || null,
-                    guest_email: guest_email || null,
-                    guest_phone: guest_phone || null,
-                    total_amount: subTotal,
-                    status: 'en_attente',
-                    payment_method,
-                    address_id,
-                    items_count: groupItems.length,
-                    payment_status: 'en_attente',
-                    supplier_id: sId === 'admin' ? null : sId,
-                    parent_id: masterOrder.id,
-                    is_parent: false
-                });
-
-                // Insert items for this sub-order
-                const itemsPayload = groupItems.map(it => ({
-                    product_id: it.product_id,
-                    variant_id: it.variant_id || null,
-                    quantity: it.quantity || 1,
-                    price: it.price || 0,
-                    order_id: subOrder.id
-                }));
-                await OrderItem.bulkCreate(itemsPayload);
-            }
         }
 
-        if (userId) await Cart.destroy({ where: { user_id: userId } });
+        await Cart.destroy({ where: { user_id: userId } });
 
-        sendOrderNotificationToAdmin(masterOrder).catch(e => console.error('Admin notify fail:', e));
-        res.status(201).json(masterOrder);
+        try {
+            await sendOrderNotificationToAdmin(order, enrichedItems.map(e => e.product));
+        } catch (_) {}
+        try {
+            await sendInvoiceEmail(order, enrichedItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice })));
+        } catch (_) {}
+
+        res.status(201).json({ message: 'Commande créée', order, delivery_code: deliveryCode });
     } catch (error) {
-        console.error('CRITICAL createOrder error:', error);
         res.status(500).json({ error: 'Erreur lors de la création de la commande', details: error.message });
     }
 };
 
-exports.getSuggestedSuppliers = async (req, res) => {
+exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const order = await Order.findByPk(id, {
-            include: [
-                { model: OrderItem, as: 'items' },
-                { model: Address, as: 'address' }
-            ]
-        });
+        const { status } = req.body;
 
+        const order = await Order.findByPk(id);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
 
-        const productIds = order.items.map(it => it.product_id);
-        const suppliers = await Supplier.findAll({
-            include: [{
-                model: SupplierProduct,
-                as: 'suppliedProducts',
-                where: { product_id: productIds },
-                required: true
-            }]
-        });
+        await order.update({ status });
 
-        // Geolocation sorting
-        const addr = order.address || {};
-        const scoredSuppliers = suppliers.map(s => {
-            let score = 0;
-            if (s.quartier_id === addr.quartier_id) score += 10;
-            else if (s.commune_id === addr.commune_id) score += 5; // else if to avoid double counting if string format differs, but typically IDs match exactly. Let's just do independent.
-            else if (s.departement_id === addr.departement_id) score += 2;
+        try {
+            const userProfile = await Profile.findByPk(order.user_id);
+            if (userProfile?.email) {
+                await sendOrderUpdateToCustomer(order, userProfile.email, status);
+            }
+        } catch (_) {}
 
-            const data = s.toJSON();
-            data.matchScore = score;
-            return data;
-        });
-
-        const sorted = scoredSuppliers.sort((a, b) => b.matchScore - a.matchScore);
-        res.json(sorted);
+        res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erreur lors de la recherche des fournisseurs' });
+        res.status(500).json({ error: 'Erreur lors de la mise à jour', details: error.message });
     }
 };
 
-exports.assignSupplier = async (req, res) => {
+exports.getOrderDeliveryCode = async (req, res) => {
     try {
+        const userId = req.auth?.userId;
         const { id } = req.params;
-        const { supplier_id } = req.body;
-        await Order.update({ supplier_id }, { where: { id } });
-        res.json({ message: 'Fournisseur assigné' });
-    } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de l’assignation' });
-    }
-};
 
-exports.getSuggestedLivreurs = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const order = await Order.findByPk(id, {
-            include: [{ model: Address, as: 'address' }]
-        });
-
+        const order = await Order.findOne({ where: { id, user_id: userId } });
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
 
-        const livreurs = await DeliveryPerson.findAll({
-            where: { status: 'disponible', is_active: true },
-            include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone', 'avatar_url'] }]
-        });
-
-        const addr = order.address || {};
-        const scored = livreurs.map(l => {
-            let score = 0;
-            const zones = l.service_zones || [];
-            
-            // Check if client address in zones
-            if (addr.commune_label && zones.includes(addr.commune_label)) score += 10;
-            if (addr.departement_label && zones.includes(addr.departement_label)) score += 5;
-
-            const data = l.toJSON();
-            data.matchScore = score;
-            return data;
-        });
-
-        res.json(scored.sort((a, b) => b.matchScore - a.matchScore));
+        res.json({ delivery_code: order.delivery_code });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erreur suggestion livreurs' });
+        res.status(500).json({ error: 'Erreur serveur' });
     }
 };

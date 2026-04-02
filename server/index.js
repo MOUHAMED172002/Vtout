@@ -1,27 +1,23 @@
-console.log("Loading environment...");
+require("dotenv").config({ override: true });
+
 process.on('uncaughtException', (err) => {
-    console.error('CRITICAL STARTUP ERROR - Uncaught Exception:', err);
+    console.error('[FATAL] Uncaught Exception:', err.message);
     process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('CRITICAL STARTUP ERROR - Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason) => {
+    console.error('[FATAL] Unhandled Rejection:', reason);
     process.exit(1);
 });
-require("dotenv").config({ override: true });
-console.log("Loading express and cors...");
+
 const express = require("express");
 const cors = require("cors");
-console.log("Loading better-auth middleware...");
 const { authMiddleware, betterAuthMiddleware } = require("./middleware/authMiddleware");
 const { applySecurity } = require("./middleware/securityMiddleware");
-console.log("Loading models...");
 const { sequelize } = require("./models");
-console.log("Loading routes...");
 
 const app = express();
 
-// Middlewares & Security
 const corsOptions = {
     origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -31,33 +27,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 applySecurity(app);
 
-// IMPORTANT : Le middleware Better Auth DOIT être avant express.json()
-// car Better Auth lit le stream natif de la requête. S'il est consommé par express.json,
-// Better Auth reçoit un body vide et rejette avec 403 Forbidden !
+// Better Auth doit être AVANT express.json() pour lire le body natif
 app.use("/api/auth", betterAuthMiddleware);
+app.use(express.json({ limit: '10kb' }));
+app.use(authMiddleware);
 
-app.use(express.json({ limit: '10kb' })); // Limit body size to prevent DoS
-
-// Request logger
-app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-        const duration = Date.now() - start;
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl || req.url} - ${res.statusCode} (${duration}ms)`);
-    });
-    if (req.headers.authorization) {
-        console.log(`  Auth: ${req.headers.authorization.substring(0, 20)}...`);
-    } else {
-        console.log("  Auth: Missing");
-    }
-    next();
-});
-
-// (Le middleware d'auth a été déplacé au-dessus de express.json)
-app.use(authMiddleware); // Injecte req.auth sur toutes les routes
-
-console.log("Loading routes...");
-// Import routes
+// Routes
 const createFedapay = require("./api/create-fedapay");
 const fedapayWebhook = require("./api/fedapay-webhook");
 const productRoutes = require("./routes/productRoutes");
@@ -76,11 +51,8 @@ const deliveryRoutes = require("./routes/deliveryRoutes");
 const contentRoutes = require("./routes/contentRoutes");
 const policyRoutes = require("./routes/policyRoutes");
 const configRoutes = require("./routes/configRoutes");
-console.log("All routes loaded.");
+const supportRoutes = require("./routes/supportRoutes");
 
-app.get("/api/test-direct", (req, res) => res.json({ message: "Direct test works" }));
-
-// routes
 app.use("/api/create-fedapay", createFedapay);
 app.use("/api/fedapay-webhook", fedapayWebhook);
 app.use("/api/products", productRoutes);
@@ -99,46 +71,68 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/configs", configRoutes);
+app.use("/api/support", supportRoutes);
 
-// Catch-all for undefined routes
+app.get("/", (req, res) => res.send("Vtout API — Online"));
+
+// 404 handler
 app.use("/api", (req, res) => {
-    console.log(`[404 NOT FOUND] ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} not found` });
+    res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} non trouvée` });
 });
 
-
-
-
-
-// ping
-app.get("/", (req, res) => res.send("API running with Better Auth & Sequelize"));
+// Global error handler
+app.use((err, req, res, next) => {
+    const fs = require('fs');
+    const path = require('path');
+    const logMsg = `[${new Date().toISOString()}] ${err.message}\n${err.stack}\n`;
+    fs.appendFileSync(path.join(__dirname, 'error.log'), logMsg);
+    res.status(500).json({ error: "Erreur interne du serveur", details: err.message });
+});
 
 const PORT = process.env.PORT || 3000;
 
-// Sync DB then starts server
-console.log("Starting database sync...");
 sequelize.sync().then(() => {
-    console.log("Database sync complete. Starting server...");
-    const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server listening on http://localhost:${PORT}`));
+    const http = require('http');
+    const { Server } = require('socket.io');
 
-    // Keep process alive explicitly for debugging
-    setInterval(() => {
-        // console.log('Heartbeat...');
-    }, 10000);
+    const server = http.createServer(app);
+    const io = new Server(server, { cors: corsOptions });
+
+    io.on('connection', (socket) => {
+        socket.on('join', (userId) => {
+            socket.join(userId);
+        });
+
+        socket.on('driver_location', (data) => {
+            if (data.orderId) {
+                io.emit(`order_update_${data.orderId}`, data);
+            }
+            io.emit('admin_driver_update', data);
+        });
+
+        socket.on('send_message', async (message) => {
+            const { SupportMessage } = require('./models');
+            try {
+                const msg = await SupportMessage.create(message);
+                if (message.receiver_id) {
+                    io.to(message.receiver_id).emit('new_message', msg);
+                } else {
+                    io.to('admins').emit('new_message', msg);
+                }
+                socket.emit('message_sent', msg);
+            } catch (err) {
+                // silently ignore socket chat errors
+            }
+        });
+
+        socket.on('disconnect', () => {});
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`✅ Vtout API running on http://localhost:${PORT}`);
+    });
 
 }).catch(err => {
-    console.error("Failed to sync DB:", err);
+    console.error('[FATAL] DB sync failed:', err.message);
+    process.exit(1);
 });
-
-// Final Error Handler
-app.use((err, req, res, next) => {
-    console.error("GLOBAL ERROR:", err);
-    const fs = require('fs');
-    const path = require('path');
-    const logFile = path.join(__dirname, 'error.log');
-    const logMsg = `[${new Date().toISOString()}] GLOBAL ERROR: ${err.message}\n${err.stack}\n`;
-    fs.appendFileSync(logFile, logMsg);
-    res.status(500).json({ error: "Internal Server Error", details: err.message });
-});
-
-// End of file

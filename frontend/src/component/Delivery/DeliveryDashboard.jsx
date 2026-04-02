@@ -102,6 +102,44 @@ export default function DeliveryDashboard() {
         }
     }
 
+    // --- REAL-TIME BEACON ---
+    const { initSocket, sendLocation } = require("../../services/socketService");
+
+    useEffect(() => {
+        let interval;
+        if (isOnline && activeOrders.length > 0) {
+            const socket = initSocket(clerkUser?.id);
+            
+            interval = setInterval(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        // For simplicity, we send for each active order
+                        activeOrders.forEach(o => {
+                            sendLocation({
+                                driverId: myself?.id,
+                                lat: latitude,
+                                lng: longitude,
+                                orderId: o.id
+                            });
+                        });
+                        // Update backend too for persistence
+                        getToken().then(token => {
+                            fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/delivery/location`, {
+                                method: 'PUT',
+                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ lat: latitude, lng: longitude })
+                            }).catch(console.error);
+                        });
+                    }, (err) => console.warn("GPS error:", err), { enableHighAccuracy: true });
+                }
+            }, 5000); // Every 5 seconds
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isOnline, activeOrders.length, myself?.id, clerkUser?.id, getToken]);
+
     const handleToggleOnline = async () => {
         try {
             const token = await getToken();
@@ -137,13 +175,23 @@ export default function DeliveryDashboard() {
     };
 
     const handleStatusUpdate = async (orderId, status) => {
+        let delivery_code = null;
+        if (status === 'livree') {
+            delivery_code = window.prompt("Veuillez saisir le code confidentiel de livraison du client (4 chiffres) :");
+            if (!delivery_code) return; // Cancel if no code provided
+        }
+
         try {
             const token = await getToken();
-            await updateDeliveryStatus(token, orderId, status);
+            const res = await updateDeliveryStatus(token, orderId, status, delivery_code);
+            if (res.error) {
+                toast.error(res.error);
+                return;
+            }
             toast.success("Statut mis à jour");
             loadData();
         } catch (err) {
-            toast.error("Erreur de mise à jour");
+            toast.error(err.message || "Erreur de mise à jour");
         }
     };
 

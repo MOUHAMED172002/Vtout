@@ -95,6 +95,18 @@ const Order = sequelize.define('Order', {
     parent_id: {
         type: DataTypes.CHAR(36),
         allowNull: true
+    },
+    delivery_fee: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00
+    },
+    distance: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true // km
+    },
+    delivery_code: {
+        type: DataTypes.STRING(20),
+        allowNull: true
     }
 }, {
     tableName: 'orders',

@@ -31,8 +31,8 @@ export const releaseOrder = async (token, orderId) => {
     return res.data;
 };
 
-export const updateDeliveryStatus = async (token, orderId, status) => {
-    const res = await api.post("/delivery/status", { orderId, status });
+export const updateDeliveryStatus = async (token, orderId, status, delivery_code = null) => {
+    const res = await api.post("/delivery/status", { orderId, status, delivery_code });
     return res.data;
 };
 

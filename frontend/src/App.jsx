@@ -31,6 +31,7 @@ import SEO from './component/Shared/SEO';
 import FlashSaleSection from './component/Home/FlashSaleSection';
 import ScrollToTop from './component/Shared/ScrollToTop';
 import CookieConsent from './component/Shared/CookieConsent';
+import SupportChat from './component/Shared/SupportChat';
 
 // --- Pages/Routes ---
 import ProductsList from './component/Products/ProductsList';
@@ -267,6 +268,7 @@ const App = () => {
       <ConfigProvider>
         <ScrollToTop />
         <AppContent products={products} />
+        <SupportChat />
       </ConfigProvider>
     </Router>
   );

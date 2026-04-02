@@ -30,6 +30,7 @@
     "mysql2": "^3.17.1",
     "resend": "^6.9.4",
     "sequelize": "^6.37.7",
+    "socket.io": "^4.8.3",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {

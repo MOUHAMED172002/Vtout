@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import LiveDeliveryMap from "../Shared/LiveDeliveryMap";
 
 /* ── Timeline progression ──────────────────────────────────────────────────── */
 const STEPS = [
@@ -334,6 +335,31 @@ export default function OrderDetail() {
               <p className="font-black text-rose-700 text-sm uppercase tracking-widest">Commande annulée</p>
               <p className="text-xs text-rose-400 font-bold">Cette commande ne sera pas traitée.</p>
             </div>
+          </div>
+        )}
+
+        {/* ── LIVE TRACKING (New) ── */}
+        {normalizedStatus === 'expediee' && (
+          <div className="px-10 md:px-14 py-10 bg-blue-50/30 border-b border-blue-100/50 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Suivi en Direct.</h3>
+                <p className="text-xs font-bold text-slate-400">Votre livreur est en mouvement vers votre adresse.</p>
+              </div>
+              <div className="bg-white px-6 py-3 rounded-2xl border-2 border-primary/20 shadow-xl shadow-primary/5 text-center">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Code de confirmation</p>
+                <p className="text-3xl font-black text-primary tracking-[0.2em]">{order.delivery_code || '----'}</p>
+                <p className="text-[9px] font-bold text-slate-400 max-w-[150px] mx-auto mt-2 leading-tight">Veuillez donner ce code au livreur à son arrivée.</p>
+              </div>
+            </div>
+            
+            <LiveDeliveryMap 
+              orderId={order.id} 
+              clientLat={order.address?.lat} 
+              clientLng={order.address?.lng}
+              supplierLat={order.supplier?.lat}
+              supplierLng={order.supplier?.lng}
+            />
           </div>
         )}
 

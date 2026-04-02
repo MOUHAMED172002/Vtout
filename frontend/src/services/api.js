@@ -5,6 +5,4 @@ const api = axios.create({
     withCredentials: true,
 });
 
-console.log("API Service initialized with baseURL:", api.defaults.baseURL);
-
 export default api;

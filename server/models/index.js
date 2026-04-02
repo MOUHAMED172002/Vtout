@@ -38,6 +38,7 @@ const FailedSearch = require('./FailedSearch');
 const Faq = require('./Faq');
 const Policy = require('./Policy');
 const Config = require('./Config');
+const SupportMessage = require('./SupportMessage');
 console.log("  All models loaded. Setting up associations...");
 
 // --- Relations ---
@@ -159,6 +160,12 @@ SupplierProduct.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 ProductVariant.hasMany(SupplierProduct, { foreignKey: 'variant_id', as: 'supplierLink' });
 SupplierProduct.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
 
+// Support Messages
+SupportMessage.belongsTo(Profile, { foreignKey: 'sender_id', as: 'sender' });
+SupportMessage.belongsTo(Profile, { foreignKey: 'receiver_id', as: 'receiver' });
+Profile.hasMany(SupportMessage, { foreignKey: 'sender_id', as: 'sentMessages' });
+Profile.hasMany(SupportMessage, { foreignKey: 'receiver_id', as: 'receivedMessages' });
+
 
 // --- Export Everything ---
 module.exports = {
@@ -185,5 +192,6 @@ module.exports = {
     FailedSearch,
     Faq,
     Policy,
-    Config
+    Config,
+    SupportMessage
 };

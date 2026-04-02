@@ -9,7 +9,7 @@ import InventoryAlerts from "../Dashboard/InventoryAlerts";
 import TopCustomers from "../Dashboard/TopCustomers";
 import CategoryDistribution from "../Dashboard/CategoryDistribution";
 import FulfillmentQueue from "../Dashboard/FulfillmentQueue";
-import { LayoutDashboard, Download, RefreshCcw, TrendingUp, Package, Users, AlertCircle, PieChart, Star, UserCheck, Check, CheckCircle, Clock, DollarSign, Truck, UserPlus } from "lucide-react";
+import { LayoutDashboard, Download, RefreshCcw, TrendingUp, Package, Users, AlertCircle, PieChart, Star, UserCheck, Check, CheckCircle, Clock, DollarSign, Truck, UserPlus, MessageCircle, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -401,6 +401,44 @@ export default function Dashboard() {
                   Aucune livraison terminée aujourd'hui
                 </div>
               )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* --- NEW: LIVE SUPPORT & LOGISTIQUE --- */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="xl:col-span-8 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl"
+          >
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+                Derniers Messages Support <MessageCircle className="text-primary" size={24} />
+              </h2>
+              <button className="text-xs font-black text-primary uppercase tracking-widest">Ouvrir le Chat</button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 italic text-slate-400 text-xs font-bold text-center py-10">
+                Consultez l'onglet "Messages Support" pour répondre aux clients.
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="xl:col-span-4 bg-slate-900 text-white rounded-[2.5rem] p-10 shadow-xl"
+          >
+            <h2 className="text-2xl font-black flex items-center gap-3 tracking-tighter mb-6">
+              Live Map <Activity className="text-primary" size={24} />
+            </h2>
+            <div className="bg-slate-800 rounded-3xl p-8 text-center space-y-4">
+              <p className="text-xs font-bold text-slate-400">Suivez les livreurs en mouvement sur la Tour de Contrôle.</p>
+              <button className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
+                Accéder à la carte
+              </button>
             </div>
           </motion.div>
         </div>

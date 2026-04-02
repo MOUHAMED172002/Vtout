@@ -55,6 +55,18 @@ const DeliveryPerson = sequelize.define('DeliveryPerson', {
     service_zones: {
         type: DataTypes.JSON,
         defaultValue: [] // Array of communes/zones
+    },
+    lat: {
+        type: DataTypes.DECIMAL(10, 8),
+        allowNull: true
+    },
+    lng: {
+        type: DataTypes.DECIMAL(11, 8),
+        allowNull: true
+    },
+    last_location_update: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'delivery_persons',

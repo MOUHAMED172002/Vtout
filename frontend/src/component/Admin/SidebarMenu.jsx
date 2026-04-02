@@ -9,6 +9,7 @@ export default function SidebarMenu() {
     { name: "Produits", path: "/admin/products", icon: "📦" },
     { name: "Commandes", path: "/admin/orders", icon: "🛒" },
     { name: "Livreurs", path: "/admin/livreurs", icon: "🛵" },
+    { name: "Tour de Contrôle", path: "/admin/control-tower", icon: "📡" },
     { name: "Utilisateurs", path: "/admin/users", icon: "👥" },
     { name: "Paramètres", path: "/admin/settings", icon: "⚙️" },
   ];

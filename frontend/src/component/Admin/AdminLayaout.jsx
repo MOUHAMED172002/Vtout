@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useClerk } from "@clerk/clerk-react";
+import { useProfile } from "../context/useProfile";
 import {
   Home,
   ShoppingBag,
@@ -21,7 +22,9 @@ import {
   ShieldCheck,
   DollarSign,
   BarChart3,
-  Store
+  Store,
+  Activity,
+  MessageCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -69,10 +72,13 @@ import PolicyManager from "./PolicyManager";
 import LivreurManager from "./AdminDelivery/LivreurManager";
 import CashControl from "./AdminDelivery/CashControl";
 import DailyStats from "./AdminDelivery/DailyStats";
+import AdminControlTower from "./AdminDelivery/AdminControlTower";
+import SupportAdmin from "./Support/SupportAdmin";
 
 
 export default function AdminLayout() {
-  const { user } = useUser();
+  const { signOut } = useClerk();
+  const { user } = useProfile();
   const [openMenu, setOpenMenu] = useState("Dashboard");
   const [selectedMenu, setSelectedMenu] = useState("Dashboard");
   const [selectedSub, setSelectedSub] = useState("overview");
@@ -119,6 +125,7 @@ export default function AdminLayout() {
       icon: <Truck size={18} />,
       subItems: [
         { key: "livreurs", name: "Validation Livreurs", icon: <Users size={16} /> },
+        { key: "controlTower", name: "Tour de Contrôle", icon: <Activity size={16} /> },
         { key: "cashControl", name: "Contrôle Cash", icon: <DollarSign size={16} /> },
         { key: "dailyStats", name: "Stats Journalières", icon: <BarChart3 size={16} /> },
       ],
@@ -137,6 +144,7 @@ export default function AdminLayout() {
       subItems: [
         { key: 'faq', name: 'FAQ', icon: <FileText size={16} /> },
         { key: 'policy', name: 'Politique de confidentialité', icon: <FileText size={16} /> },
+        { key: 'supportMessages', name: 'Messages Support', icon: <MessageCircle size={16} /> },
       ],
     },
   ];
@@ -181,6 +189,7 @@ export default function AdminLayout() {
       case "Logistique":
         switch (selectedSub) {
           case "livreurs": return <LivreurManager />;
+          case "controlTower": return <AdminControlTower />;
           case "cashControl": return <CashControl />;
           case "dailyStats": return <DailyStats />;
           default: return <LivreurManager />;
@@ -202,6 +211,7 @@ export default function AdminLayout() {
           case "notifications": return <NotificationsSettings />;
           case "faq": return <FaqManager />;
           case "policy": return <PolicyManager />;
+          case "supportMessages": return <SupportAdmin />;
           default: return <SettingsAdmin />;
         }
       default: return <DashboardPage />;
@@ -309,11 +319,11 @@ export default function AdminLayout() {
 
             <div className="flex items-center gap-5">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900">{user?.fullName}</p>
+                <p className="text-sm font-black text-slate-900">{user?.fullname || 'Admin'}</p>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Super Admin</p>
               </div>
               <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-xl shadow-slate-200">
-                <img src={user?.imageUrl || "https://ui-avatars.com/api/?name=Admin"} className="w-full h-full object-cover" alt="avatar" />
+                <img src={user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullname || 'Admin')}&background=6366f1&color=fff`} className="w-full h-full object-cover" alt="avatar" />
               </div>
             </div>
           </div>
@@ -386,7 +396,10 @@ export default function AdminLayout() {
               </nav>
 
               <div className="mt-12 pt-12 border-t border-slate-800">
-                <button className="flex items-center gap-4 px-6 py-4 w-full rounded-2xl font-bold text-red-400">
+                <button 
+                  onClick={() => signOut({ redirectUrl: '/' })}
+                  className="flex items-center gap-4 px-6 py-4 w-full rounded-2xl font-bold text-red-400 hover:bg-red-500/10 transition-all"
+                >
                   <LogOut size={20} />
                   <span>Se déconnecter</span>
                 </button>
