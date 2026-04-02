@@ -223,7 +223,12 @@ export default function CartPage() {
                 <div className="bg-white p-8 rounded-3xl border border-gray-100 space-y-4 shadow-sm">
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Besoin d'aide ?</p>
                   <p className="text-sm font-bold text-gray-600">Nos experts sont disponibles 24/7 pour vous accompagner dans votre achat.</p>
-                  <button className="text-primary font-black text-sm hover:underline">Contacter le support</button>
+                  <button
+                    onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                    className="text-primary font-black text-sm hover:underline"
+                  >
+                    Contacter le support
+                  </button>
                 </div>
               </div>
             </div>

@@ -96,7 +96,10 @@ export default function PolicyPage() {
             <div className="mt-8 p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 space-y-4">
               <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest">Une question spécifique ?</h4>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">Si une clause vous semble obscure, notre service client est à votre disposition.</p>
-              <button className="w-full py-4 bg-white border border-primary text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+              <button
+                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                className="w-full py-4 bg-white border border-primary text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+              >
                 Nous écrire
               </button>
             </div>

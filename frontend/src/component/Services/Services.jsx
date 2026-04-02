@@ -39,11 +39,14 @@ const Services = () => {
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 gap-y-8'>
                 {
                     ServiceData.map((data)=>(
-                        <div key={data.id} className='flex flex-col items-start truncate sm:flex-row gap-4' >
-                            
+                        <div
+                          key={data.id}
+                          className={`flex flex-col items-start truncate sm:flex-row gap-4 ${data.id === 3 ? 'cursor-pointer group' : ''}`}
+                          onClick={data.id === 3 ? () => window.dispatchEvent(new Event('open-support-chat')) : undefined}
+                        >
                             {data.icon}
-                            <div  >
-                                <h1 className='lg:text-xl text-gray-500 font-bold'>{data.title}</h1>
+                            <div>
+                                <h1 className={`lg:text-xl text-gray-500 font-bold ${data.id === 3 ? 'group-hover:text-primary transition-colors' : ''}`}>{data.title}</h1>
                                 <h1 className='text-gray-400 text-sm'>{data.description}</h1>
                             </div>
                         </div>

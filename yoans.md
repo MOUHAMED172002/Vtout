@@ -273,3 +273,6 @@ Lors d'une commande, le système sélectionne automatiquement :
 | Socket.io `ERR_CONNECTION_REFUSED` | Le serveur backend est arrêté — relancer `npm run dev` dans `server/` |
 | Auth 401 Unauthorized | Vérifier que `BETTER_AUTH_SECRET` est identique côté client et serveur |
 | Upload échoue | Vérifier les credentials Cloudinary dans `server/.env` |
+
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK9QgH1C61SxPYk5F70Qc66dMf0CZJkHyh93gNN4d20o vtout_github
+

@@ -85,10 +85,20 @@ const Footer = () => {
                         <ul className="space-y-4">
                             {FooterNav.map((data, index) => (
                                 <li key={index}>
-                                    <Link to={data.link} className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
-                                        <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                                        {data.title}
-                                    </Link>
+                                    {data.title === "Supports" ? (
+                                        <button
+                                            onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                                            className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group"
+                                        >
+                                            <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                                            {data.title}
+                                        </button>
+                                    ) : (
+                                        <Link to={data.link} className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                            <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                                            {data.title}
+                                        </Link>
+                                    )}
                                 </li>
                             ))}
                         </ul>

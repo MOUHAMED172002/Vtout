@@ -112,8 +112,11 @@ export default function FaqList() {
             <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">Vous avez toujours des questions ?</h3>
             <p className="text-slate-400 font-bold max-w-md mx-auto">Notre service client est disponible pour répondre à tous vos besoins spécifiques.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <button className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-primary/20">
-                Nous contacter
+              <button
+                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+              >
+                <MessageCircle size={16} /> Nous contacter
               </button>
             </div>
           </div>

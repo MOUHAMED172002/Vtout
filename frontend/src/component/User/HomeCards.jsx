@@ -393,9 +393,12 @@ export default function HomeCards() {
               </p>
             </div>
 
-            <Link to="/user/dashboard/support" className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-2xl shadow-primary/30 border-none relative z-10">
-              Ouvrir un ticket
-            </Link>
+            <button
+              onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+              className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-2xl shadow-primary/30 border-none relative z-10"
+            >
+              Parler à un agent
+            </button>
           </div>
         </div>
       </div>

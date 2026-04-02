@@ -12,6 +12,17 @@ export default function SupportChat() {
     const { user, isAuthenticated } = useProfile();
     const scrollRef = useRef(null);
 
+    // Exposer une fonction globale + écouter l'événement custom pour ouvrir le chat
+    useEffect(() => {
+        const handleOpenChat = () => setIsOpen(true);
+        window.openSupportChat = handleOpenChat;
+        window.addEventListener('open-support-chat', handleOpenChat);
+        return () => {
+            delete window.openSupportChat;
+            window.removeEventListener('open-support-chat', handleOpenChat);
+        };
+    }, []);
+
     useEffect(() => {
         if (isOpen && user) {
             loadMessages();
@@ -50,8 +61,7 @@ export default function SupportChat() {
         setInput("");
     };
 
-    // Ne pas afficher si l'utilisateur n'est pas connecté
-    if (!isAuthenticated || !user) return null;
+    const isLoggedIn = isAuthenticated && user;
 
     return (
         <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[1000]">
@@ -86,49 +96,68 @@ export default function SupportChat() {
                             </button>
                         </div>
 
-                        {/* Messages */}
-                        <div
-                            ref={scrollRef}
-                            className="flex-1 p-5 sm:p-8 overflow-y-auto space-y-4 bg-gradient-to-b from-slate-50/50 to-white/50 custom-scrollbar"
-                        >
-                            {messages.length === 0 && (
-                                <div className="py-10 text-center space-y-3 opacity-40">
-                                    <MessageCircle size={32} className="mx-auto" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Commencez la discussion</p>
+                        {/* Messages or Login Prompt */}
+                        {!isLoggedIn ? (
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 bg-gradient-to-b from-slate-50/50 to-white/50">
+                                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center">
+                                    <MessageCircle size={36} className="text-primary" />
                                 </div>
-                            )}
+                                <div className="space-y-2">
+                                    <h4 className="font-black text-slate-900 text-lg tracking-tight">Bienvenue sur le Support</h4>
+                                    <p className="text-slate-500 text-sm font-medium max-w-xs">Connectez-vous pour discuter avec notre équipe de support et obtenir de l'aide rapidement.</p>
+                                </div>
+                                <a
+                                    href="/auth/connexion"
+                                    className="btn btn-primary rounded-2xl px-8 h-12 font-black text-sm w-full max-w-xs"
+                                >
+                                    Se connecter
+                                </a>
+                            </div>
+                        ) : (
+                            <div
+                                ref={scrollRef}
+                                className="flex-1 p-5 sm:p-8 overflow-y-auto space-y-4 bg-gradient-to-b from-slate-50/50 to-white/50 custom-scrollbar"
+                            >
+                                {messages.length === 0 && (
+                                    <div className="py-10 text-center space-y-3 opacity-40">
+                                        <MessageCircle size={32} className="mx-auto" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Commencez la discussion</p>
+                                    </div>
+                                )}
 
-                            {messages.map((msg, i) => {
-                                const isMe = msg.sender_id === user.id;
-                                return (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, x: isMe ? 10 : -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                                    >
-                                        <div className={`max-w-[85%] px-4 py-3 sm:px-5 sm:py-4 rounded-[1.5rem] shadow-sm ${
-                                            isMe
-                                                ? 'bg-slate-900 text-white rounded-br-none'
-                                                : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
-                                        }`}>
-                                            {!isMe && msg.sender?.role === 'admin' && (
-                                                <div className="flex items-center gap-1 mb-2">
-                                                    <Shield size={10} className="text-primary" />
-                                                    <p className="text-[9px] uppercase font-black text-primary tracking-widest">Support Admin</p>
-                                                </div>
-                                            )}
-                                            <p className="text-[12px] leading-relaxed font-semibold">{msg.content}</p>
-                                            <p className={`text-[8px] mt-2 font-bold uppercase opacity-40 ${isMe ? 'text-right' : 'text-left'}`}>
-                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
+                                {messages.map((msg, i) => {
+                                    const isMe = msg.sender_id === user.id;
+                                    return (
+                                        <motion.div
+                                            key={i}
+                                            initial={{ opacity: 0, x: isMe ? 10 : -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                                        >
+                                            <div className={`max-w-[85%] px-4 py-3 sm:px-5 sm:py-4 rounded-[1.5rem] shadow-sm ${
+                                                isMe
+                                                    ? 'bg-slate-900 text-white rounded-br-none'
+                                                    : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+                                            }`}>
+                                                {!isMe && msg.sender?.role === 'admin' && (
+                                                    <div className="flex items-center gap-1 mb-2">
+                                                        <Shield size={10} className="text-primary" />
+                                                        <p className="text-[9px] uppercase font-black text-primary tracking-widest">Support Admin</p>
+                                                    </div>
+                                                )}
+                                                <p className="text-[12px] leading-relaxed font-semibold">{msg.content}</p>
+                                                <p className={`text-[8px] mt-2 font-bold uppercase opacity-40 ${isMe ? 'text-right' : 'text-left'}`}>
+                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        )}
 
-                        {/* Input */}
+                        {/* Input — only for logged-in users */}
+                        {isLoggedIn && (
                         <div className="p-4 sm:p-6 bg-white shrink-0 border-t border-slate-50">
                             <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-[2rem] border border-slate-100 focus-within:border-primary/30 transition-all focus-within:ring-4 focus-within:ring-primary/5">
                                 <input
@@ -147,6 +176,7 @@ export default function SupportChat() {
                                 </button>
                             </div>
                         </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

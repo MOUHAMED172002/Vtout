@@ -39,7 +39,12 @@ export default function About({
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <button className="btn btn-primary rounded-2xl px-10 h-16 font-black text-lg shadow-xl shadow-primary/20">Explorer la collection</button>
-                <button className="btn btn-ghost rounded-2xl px-10 h-16 font-black text-lg border-2 border-slate-100">Contactez-nous</button>
+                <button
+                  onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                  className="btn btn-ghost rounded-2xl px-10 h-16 font-black text-lg border-2 border-slate-100"
+                >
+                  Contactez-nous
+                </button>
               </div>
             </div>
 
@@ -127,8 +132,18 @@ export default function About({
               Rejoignez la révolution du commerce premium
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
-              <button className="btn bg-white text-primary border-none rounded-2xl px-12 h-16 font-black text-xl hover:bg-slate-50 shadow-xl">Commencer mon shopping</button>
-              <button className="btn btn-ghost text-slate-900 rounded-2xl px-12 h-16 font-black text-xl border-2 border-white/30">Voir nos avis</button>
+              <button
+                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                className="btn bg-white text-primary border-none rounded-2xl px-12 h-16 font-black text-xl hover:bg-slate-50 shadow-xl"
+              >
+                Commencer mon shopping
+              </button>
+              <button
+                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                className="btn btn-ghost text-slate-900 rounded-2xl px-12 h-16 font-black text-xl border-2 border-white/30"
+              >
+                Voir nos avis
+              </button>
             </div>
           </div>
         </div>
