@@ -1,10 +1,49 @@
+# Dependencies
 node_modules/
 dist/
+build/
+
+# IDE / OS
 .DS_Store
+.vscode/
+.idea/
+.qodo/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Logs and Temporary files
 *.log
+*.txt
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.vscode/
-.qodo/
 tmp/
+
+# Server specific junk
+server/*.log
+server/*.txt
+server/out.txt
+server/backend_logs.txt
+server/current_server.log
+server/debug_server.log
+server/server_node.log
+server/startup_err.log
+server/startup.log
+server/startup_debug.log
+server/sync_output.txt
+server/test_start.log
+server/test_3001.log
+server/server_debug.log
+server/server_node_direct.log
+server/server_node_error.log
+server/server_start.log
+server/query_error.txt
+server/migration.txt
+server/dynamic_log.txt
+server/err.txt
+server/error_trace.log
+server/new_error.log
+server/server.log
