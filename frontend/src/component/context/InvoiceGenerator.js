@@ -68,10 +68,10 @@ export async function generateInvoicePDF(order) {
             { op: 'h', c: [] }
         ]).fill();
         doc.setTextColor(...ColorWhite);
-        doc.setFontSize(22);
-        doc.text("FACTURE", W - MX, 19, { align: "right" });
-        doc.setFontSize(10);
-        doc.text(`N° ${(order.id || "").slice(0, 8).toUpperCase()}`, W - MX, 26, { align: "right" });
+        doc.setFontSize(18);
+        doc.text("FACTURE CLIENT", W - MX, 19, { align: "right" });
+        doc.setFontSize(8);
+        doc.text(`ID FOURNISSEUR: ${(order.supplier_id || "INTERNE").slice(0, 13).toUpperCase()}`, W - MX, 26, { align: "right" });
 
         // ── 2. INFO SECTION ──
         let currentY = 55;
@@ -160,7 +160,8 @@ export async function generateInvoicePDF(order) {
         doc.text(pm, MX, currentY + 7);
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(7);
-        doc.text("Cette facture est générée numériquement.", MX, currentY + 12);
+        doc.text(`Réf Fournisseur: ${order.supplier_id || 'VT-001'}`, MX, currentY + 12);
+        doc.text("Cette facture est générée numériquement.", MX, currentY + 17);
 
         // Right Column (Calculations)
         const totalX = W - MX;

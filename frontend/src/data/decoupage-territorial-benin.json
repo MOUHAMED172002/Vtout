@@ -3639,9 +3639,6 @@
       }
     ]
   },
-  
-  
-  
   {
     "id_dep": 8,
     "lib_dep": "LITTORAL",
@@ -3652,7 +3649,7 @@
         "arrondissements": [
           {
             "id_arrond": 342,
-            "lib_arrond": "1ER ARRONDISSEMENT",
+            "lib_arrond": "APKAPKA",
             "quartiers": [
               {
                 "id_quart": 3361,
@@ -3710,7 +3707,7 @@
           },
           {
             "id_arrond": 343,
-            "lib_arrond": "2EME ARRONDISSEMENT",
+            "lib_arrond": "APKAPKA",
             "quartiers": [
               {
                 "id_quart": 3374,
@@ -3768,7 +3765,7 @@
           },
           {
             "id_arrond": 344,
-            "lib_arrond": "3EME ARRONDISSEMENT",
+            "lib_arrond": "APKAPKA",
             "quartiers": [
               {
                 "id_quart": 3387,
@@ -4396,12 +4393,10 @@
       }
     ]
   },
- 
   {
     "id_dep": 10,
     "lib_dep": "OUEME",
     "communes": [
-      
       {
         "id_com": 62,
         "lib_com": "PORTO-NOVO",
@@ -5102,5 +5097,4 @@
       }
     ]
   }
-  
 ]

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../components/clerk-shim';
 import { getMySupplierProfile } from '../services/supplierService';
 import SupplierProductForm from '../components/Product/SupplierProductForm';
 import { Loader2, ShieldAlert } from 'lucide-react';
@@ -15,15 +15,12 @@ const AddProductSupplier = () => {
         const checkStatus = async () => {
             try {
                 const token = await getToken();
-                if (token) {
-                    const profile = await getMySupplierProfile(token);
-                    setSupplierStatus(profile.status);
-                    if (profile.status !== 'active') {
-                        // Optional toast or direct return block
-                    }
-                }
+                if (!token) return;
+
+                const profile = await getMySupplierProfile(token);
+                setSupplierStatus(profile.status);
             } catch (err) {
-                console.error(err);
+                console.error('Check status error:', err);
                 navigate('/dashboard');
             } finally {
                 setLoading(false);

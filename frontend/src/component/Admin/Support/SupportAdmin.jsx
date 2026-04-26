@@ -158,7 +158,7 @@ export default function SupportAdmin() {
                                             )}
                                             <p className="text-[13px] leading-relaxed font-semibold">{msg.content}</p>
                                             <p className="text-[8px] mt-2 font-black uppercase opacity-40">
-                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(msg.createdAt || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
                                     </div>

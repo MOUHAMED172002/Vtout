@@ -1,6 +1,8 @@
-const { Config } = require('../models');
+import { Config } from '../models/index.js';
+import { sendTestEmail } from '../services/mailService.js';
 
-exports.getAllConfigs = async (req, res) => {
+
+export const getAllConfigs = async (req, res) => {
     try {
         const configs = await Config.findAll();
         res.json(configs);
@@ -9,7 +11,7 @@ exports.getAllConfigs = async (req, res) => {
     }
 };
 
-exports.getConfigsByGroup = async (req, res) => {
+export const getConfigsByGroup = async (req, res) => {
     try {
         const { group } = req.params;
         const configs = await Config.findAll({ where: { group } });
@@ -19,7 +21,7 @@ exports.getConfigsByGroup = async (req, res) => {
     }
 };
 
-exports.getConfigByKey = async (req, res) => {
+export const getConfigByKey = async (req, res) => {
     try {
         const { key } = req.params;
         const config = await Config.findOne({ where: { key } });
@@ -29,7 +31,7 @@ exports.getConfigByKey = async (req, res) => {
     }
 };
 
-exports.upsertConfig = async (req, res) => {
+export const upsertConfig = async (req, res) => {
     try {
         const { key, value, group, description } = req.body;
         const [config, created] = await Config.findOrCreate({ where: { key }, defaults: { value, group, description } });
@@ -42,11 +44,26 @@ exports.upsertConfig = async (req, res) => {
     }
 };
 
-exports.deleteConfig = async (req, res) => {
+export const deleteConfig = async (req, res) => {
     try {
         const { key } = req.params;
         await Config.destroy({ where: { key } });
         res.json({ message: 'Config deleted' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const testEmailConfig = async (req, res) => {
+    try {
+        const { to } = req.body;
+        if (!to) return res.status(400).json({ error: 'Email destinataire requis' });
+        const result = await sendTestEmail(to);
+        if (result.success) {
+            res.json({ success: true, message: `Email de test envoyé à ${to}` });
+        } else {
+            res.status(500).json({ success: false, error: String(result.error) });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

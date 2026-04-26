@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "../../lib/clerk-shim";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import SimilarProducts from "./SimilarProducts";
 import ProductReviews from "./ProductReviews";
-import CountdownTimer from "../Shared/CountdownTimer";
+
 import { toast } from "react-hot-toast";
 import { uniq } from "lodash";
 import { getProductById } from "../../services/productService";
@@ -130,8 +130,7 @@ export default function ProductPages() {
   }, [variants]);
 
   const isSaleActive = useMemo(() => {
-    if (!product?.flash_sale_end) return false;
-    return new Date(product.flash_sale_end) > new Date();
+    return product?.old_price > product?.price;
   }, [product]);
 
   const matchedVariant = useMemo(() => {
@@ -144,15 +143,20 @@ export default function ProductPages() {
   }, [variants, selectedAttributes]);
 
   const displayPrice = useMemo(() => {
-    let basePrice = matchedVariant?.priceRows?.[0]?.price || product?.price || 0;
-    let oldPrice = product?.old_price || 0;
+    // Ensure we work with numbers for calculation and formatting
+    const matchedP = matchedVariant?.priceRows?.[0];
+    const vPrice = Number(matchedP?.price);
+    const vOldPrice = Number(matchedP?.old_price);
 
-    if (product?.flash_sale_end && !isSaleActive) {
-      // If sale ended, use old_price if it's higher
-      return Math.max(basePrice, oldPrice);
-    }
-    return basePrice;
-  }, [matchedVariant, product, isSaleActive]);
+    const fallbackPrice = Number(product?.price) > 0 ? Number(product.price) : Number(product?.supplier_price || 0);
+    const fallbackOldPrice = Number(product?.old_price) || 0;
+    
+    // Priority: Matched Variant Price > Product Global Price > Supplier Price
+    return {
+      current: vPrice > 0 ? vPrice : fallbackPrice,
+      old: vOldPrice > 0 ? vOldPrice : fallbackOldPrice
+    };
+  }, [matchedVariant, product]);
 
   // Update image when selection or matchedVariant changes
   useEffect(() => {
@@ -183,7 +187,7 @@ export default function ProductPages() {
       ...product,
       product_id: product.id,
       variant_id: matchedVariant?.id || null,
-      price_snapshot: displayPrice,
+      price_snapshot: displayPrice.current,
       image_url: activeMainImage || product.image_url,
       selected_attributes: selectedAttributes,
     };
@@ -241,7 +245,7 @@ export default function ProductPages() {
               />
               <button
                 onClick={toggleFav}
-                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all ${isFav ? 'bg-red-500 text-slate-900 shadow-xl shadow-red-200' : 'bg-white/80 text-gray-800 hover:bg-white'}`}
+                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all ${isFav ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white/80 text-gray-800 hover:bg-white'}`}
               >
                 {isFav ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
               </button>
@@ -284,12 +288,7 @@ export default function ProductPages() {
                     <Star size={14} fill="currentColor" /> {Number(product.average_rating).toFixed(1)} • {product.review_count} Avis clients
                   </div>
                 )}
-                {isSaleActive && (
-                  <div className="flex items-center gap-3 bg-rose-50 px-3 md:px-4 py-1.5 md:py-2 rounded-2xl border border-rose-100">
-                    <Zap size={14} className="text-rose-500 fill-rose-500" />
-                    <CountdownTimer targetDate={product.flash_sale_end} />
-                  </div>
-                )}
+
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight">{product.name}</h1>
               <div className="flex items-baseline gap-4">
@@ -299,10 +298,10 @@ export default function ProductPages() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-3xl md:text-4xl font-black text-primary"
                 >
-                  {displayPrice.toLocaleString()} F
+                  {displayPrice.current.toLocaleString()} F
                 </motion.span>
-                {product.old_price > product.price && isSaleActive && (
-                  <span className="text-lg md:text-xl text-gray-400 line-through decoration-red-400/40">{product.old_price.toLocaleString()} F</span>
+                {displayPrice.old > displayPrice.current && (
+                  <span className="text-lg md:text-xl text-gray-400 line-through decoration-red-400/40">{displayPrice.old.toLocaleString()} F</span>
                 )}
               </div>
             </div>
@@ -453,7 +452,8 @@ export default function ProductPages() {
           </div>
         </div>
 
-        {product.review_count > 0 && <ProductReviews productId={product.id} />}
+        {/* Reviews Section - Always visible to allow "Be the first to review" message */}
+        <ProductReviews productId={product.id} />
 
         {/* Similar Products with spacing */}
         <div className="mt-16 md:mt-24 mb-8 md:mb-0">

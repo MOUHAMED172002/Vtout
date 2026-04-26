@@ -3,8 +3,10 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { initSocket, getSocket } from "../../../services/socketService";
-import { Truck, MapPin, Package, Activity } from "lucide-react";
+import { Truck, MapPin, Package, Activity, RefreshCcw, ShieldCheck } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
+import api from "../../../services/api";
+import { toast } from "react-hot-toast";
 
 const createIcon = (IconComponent, color) => {
     const iconHtml = renderToStaticMarkup(
@@ -22,6 +24,22 @@ const createIcon = (IconComponent, color) => {
 
 export default function AdminControlTower() {
     const [activeDrivers, setActiveDrivers] = useState({});
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const handleSyncFinancials = async () => {
+        if (!window.confirm("Voulez-vous synchroniser tous les gains ? Cela corrigera les portefeuilles des livreurs et fournisseurs.")) return;
+        
+        setIsSyncing(true);
+        try {
+            const res = await api.post('/admin/sync-financials');
+            toast.success(`Synchronisation terminée ! ${res.data.details.transactionsGenerated} nouvelles transactions créées.`);
+        } catch (error) {
+            console.error("Sync error:", error);
+            toast.error("Échec de la synchronisation");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     useEffect(() => {
         let socket = getSocket();
@@ -45,14 +63,30 @@ export default function AdminControlTower() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
                 <div>
                     <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Tour de Contrôle.</h2>
                     <p className="text-slate-400 font-bold">Suivi en direct de toute la flotte logistique ({driversArray.length} actifs)</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-500 rounded-2xl animate-pulse">
-                    <Activity size={16} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Temps Réel</span>
+                
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={handleSyncFinancials}
+                        disabled={isSyncing}
+                        className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
+                            isSyncing 
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                        }`}
+                    >
+                        <RefreshCcw size={16} className={isSyncing ? 'animate-spin' : ''} />
+                        {isSyncing ? 'Synchronisation...' : 'Régulariser Portefeuilles'}
+                    </button>
+
+                    <div className="flex items-center gap-2 px-6 py-4 bg-emerald-50 text-emerald-500 rounded-2xl border border-emerald-100 shadow-sm">
+                        <Activity size={16} className="animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Live</span>
+                    </div>
                 </div>
             </div>
 

@@ -1,14 +1,15 @@
-const express = require('express');
+import express from 'express';
+import { getAllProducts, getProductById, searchProducts, getRelatedProducts, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
+import { requireAdmin, requireFournisseur, requireAuth } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const productController = require('../controllers/productController');
-const { requireAdmin, requireFournisseur, requireAuth } = require('../middleware/authMiddleware');
 
-router.get('/', productController.getAllProducts);
-router.get('/search', productController.searchProducts);
-router.get('/:id', productController.getProductById);
-router.get('/:id/related', productController.getRelatedProducts);
-router.post('/', requireFournisseur, productController.createProduct);
-router.put('/:id', requireFournisseur, productController.updateProduct);
-router.delete('/:id', requireFournisseur, productController.deleteProduct);
+router.get('/', getAllProducts);
+router.get('/search', searchProducts);
+router.get('/:id', getProductById);
+router.get('/:id/related', getRelatedProducts);
+router.post('/', requireFournisseur, createProduct);
+router.put('/:id', requireFournisseur, updateProduct);
+router.delete('/:id', requireFournisseur, deleteProduct);
 
-module.exports = router;
+export default router;

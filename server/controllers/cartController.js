@@ -1,6 +1,7 @@
-const { Cart, Product, ProductImage } = require('../models');
+import { Cart, Product, ProductImage } from '../models/index.js';
 
-exports.getMyCart = async (req, res) => {
+
+export const getMyCart = async (req, res) => {
     try {
         const { userId } = req.auth;
         const cartItems = await Cart.findAll({
@@ -18,7 +19,7 @@ exports.getMyCart = async (req, res) => {
     }
 };
 
-exports.addToCart = async (req, res) => {
+export const addToCart = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { product_id, variant_id = null, quantity = 1, price_snapshot, image_url, selected_attributes = {} } = req.body;
@@ -48,7 +49,7 @@ exports.addToCart = async (req, res) => {
     }
 };
 
-exports.removeFromCart = async (req, res) => {
+export const removeFromCart = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { id } = req.params;
@@ -64,7 +65,7 @@ exports.removeFromCart = async (req, res) => {
     }
 };
 
-exports.updateCartItemQuantity = async (req, res) => {
+export const updateCartItemQuantity = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { id } = req.params;

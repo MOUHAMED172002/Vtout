@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Category = sequelize.define('Category', {
     id: {
@@ -24,4 +24,4 @@ const Category = sequelize.define('Category', {
     timestamps: false // Le schéma SQL n'a que created_at
 });
 
-module.exports = Category;
+export default Category;

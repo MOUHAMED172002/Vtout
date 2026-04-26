@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/clerk-react";
+import { SignIn, SignUp } from "../../lib/clerk-shim";
 
 export default function Login() {
     return (

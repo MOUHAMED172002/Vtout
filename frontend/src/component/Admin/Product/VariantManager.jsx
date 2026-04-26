@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   getAttributes,
   getAttributeValues,
@@ -9,7 +9,7 @@ import {
   updateAttributeValue,
   deleteAttributeValue
 } from "../../../services/productService";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import toast from "react-hot-toast";
 import {
   Plus,

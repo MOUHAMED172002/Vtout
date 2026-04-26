@@ -1,55 +1,51 @@
-console.log("  Loading sequelize config...");
-const sequelize = require('../config/database');
-console.log("  Sequelize config loaded.");
-console.log("  Loading Profile model...");
-const Profile = require('./Profile');
-console.log("  Loading Category model...");
-const Category = require('./Category');
-console.log("  Loading Product model...");
-const Product = require('./Product');
-console.log("  Loading ProductImage model...");
-const ProductImage = require('./ProductImage');
-console.log("  Loading Order model...");
-const Order = require('./Order');
-console.log("  Loading OrderItem model...");
-const OrderItem = require('./OrderItem');
-console.log("  Loading Favorite model...");
-const Favorite = require('./Favorite');
-console.log("  Loading Address model...");
-const Address = require('./Address');
-console.log("  Loading Review model...");
-const Review = require('./Review');
-console.log("  Loading ProductAttribute model...");
-const ProductAttribute = require('./ProductAttribute');
-console.log("  Loading AttributeValue model...");
-const AttributeValue = require('./AttributeValue');
-console.log("  Loading CategoryAttribute model...");
-const CategoryAttribute = require('./CategoryAttribute');
-console.log("  Loading Cart model...");
-const Cart = require('./Cart');
-const ProductVariant = require('./ProductVariant');
-const ProductVariantPrice = require('./ProductVariantPrice');
-const Supplier = require('./Supplier');
-const SupplierProduct = require('./SupplierProduct');
-const CategoryAttributeValue = require('./CategoryAttributeValue');
-const DeliveryPerson = require('./DeliveryPerson');
-console.log("  Loading FailedSearch model...");
-const FailedSearch = require('./FailedSearch');
-const Faq = require('./Faq');
-const Policy = require('./Policy');
-const Config = require('./Config');
-const SupportMessage = require('./SupportMessage');
-console.log("  All models loaded. Setting up associations...");
+import sequelize from '../config/database.js';
+import Profile from './Profile.js';
+import Category from './Category.js';
+import Product from './Product.js';
+import ProductImage from './ProductImage.js';
+import Order from './Order.js';
+import OrderItem from './OrderItem.js';
+import Favorite from './Favorite.js';
+import Address from './Address.js';
+import Review from './Review.js';
+import ProductAttribute from './ProductAttribute.js';
+import AttributeValue from './AttributeValue.js';
+import CategoryAttribute from './CategoryAttribute.js';
+import Cart from './Cart.js';
+import ProductVariant from './ProductVariant.js';
+import ProductVariantPrice from './ProductVariantPrice.js';
+import Supplier from './Supplier.js';
+import SupplierProduct from './SupplierProduct.js';
+import CategoryAttributeValue from './CategoryAttributeValue.js';
+import DeliveryPerson from './DeliveryPerson.js';
+import FailedSearch from './FailedSearch.js';
+import SupportMessage from './SupportMessage.js';
+import Boutique from './Boutique.js';
+import PlatformReview from './PlatformReview.js';
+import Faq from './Faq.js';
+import Policy from './Policy.js';
+import Config from './Config.js';
+import FinancialTransaction from './FinancialTransaction.js';
+import PayoutRequest from './PayoutRequest.js';
+import Coupon from './Coupon.js';
+import Dispute from './Dispute.js';
+import Department from './Department.js';
+import Commune from './Commune.js';
+import Arrondissement from './Arrondissement.js';
+import Quartier from './Quartier.js';
+import Notification from './Notification.js';
 
 // --- Relations ---
 
-// Product <-> Review
-Product.hasMany(Review, { foreignKey: 'product_id', as: 'reviews' });
-Review.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+// Geography
+Department.hasMany(Commune, { foreignKey: 'department_id', as: 'communes' });
+Commune.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
 
-// Profile <-> Review
-Profile.hasMany(Review, { foreignKey: 'user_id', as: 'reviews' });
-Review.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+Commune.hasMany(Arrondissement, { foreignKey: 'commune_id', as: 'arrondissements' });
+Arrondissement.belongsTo(Commune, { foreignKey: 'commune_id', as: 'commune' });
+
+Arrondissement.hasMany(Quartier, { foreignKey: 'arrondissement_id', as: 'quartiers' });
+Quartier.belongsTo(Arrondissement, { foreignKey: 'arrondissement_id', as: 'arrondissement' });
 
 // Product <-> Category
 Category.hasMany(Product, { foreignKey: 'category_id', as: 'products' });
@@ -109,6 +105,14 @@ Order.belongsTo(DeliveryPerson, { foreignKey: 'delivery_person_id', as: 'deliver
 Supplier.hasMany(Order, { foreignKey: 'supplier_id', as: 'orders' });
 Order.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 
+// Supplier <-> Boutique
+Supplier.hasMany(Boutique, { foreignKey: 'supplier_id', as: 'boutiques' });
+Boutique.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
+
+// Boutique <-> Product
+Boutique.hasMany(Product, { foreignKey: 'boutique_id', as: 'products' });
+Product.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
+
 // Order <-> OrderItem
 Order.hasMany(OrderItem, { foreignKey: 'order_id', as: 'items' });
 OrderItem.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
@@ -166,9 +170,37 @@ SupportMessage.belongsTo(Profile, { foreignKey: 'receiver_id', as: 'receiver' })
 Profile.hasMany(SupportMessage, { foreignKey: 'sender_id', as: 'sentMessages' });
 Profile.hasMany(SupportMessage, { foreignKey: 'receiver_id', as: 'receivedMessages' });
 
+// Reviews
+Review.belongsTo(Profile, { foreignKey: 'user_id', as: 'author' });
+Profile.hasMany(Review, { foreignKey: 'user_id', as: 'reviews' });
+Review.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+Product.hasMany(Review, { foreignKey: 'product_id', as: 'reviews' });
 
-// --- Export Everything ---
-module.exports = {
+// Platform Reviews
+PlatformReview.belongsTo(Profile, { foreignKey: 'user_id', as: 'author' });
+Profile.hasMany(PlatformReview, { foreignKey: 'user_id', as: 'platformReviews' });
+
+// Financials
+Profile.hasMany(FinancialTransaction, { foreignKey: 'user_id', as: 'transactions' });
+FinancialTransaction.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+
+Profile.hasMany(PayoutRequest, { foreignKey: 'user_id', as: 'payoutRequests' });
+PayoutRequest.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+
+// Disputes
+Profile.hasMany(Dispute, { foreignKey: 'user_id', as: 'disputes' });
+Dispute.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+
+Supplier.hasMany(Dispute, { foreignKey: 'supplier_id', as: 'disputes' });
+Dispute.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
+
+Order.hasMany(Dispute, { foreignKey: 'order_id', as: 'disputes' });
+Dispute.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
+
+// --- Final Consolidations ---
+// (Avoiding duplicates that caused 'alias user' errors)
+
+export {
     sequelize,
     Profile,
     Category,
@@ -193,5 +225,16 @@ module.exports = {
     Faq,
     Policy,
     Config,
-    SupportMessage
+    SupportMessage,
+    Boutique,
+    PlatformReview,
+    FinancialTransaction,
+    PayoutRequest,
+    Coupon,
+    Dispute,
+    Department,
+    Commune,
+    Arrondissement,
+    Quartier,
+    Notification
 };

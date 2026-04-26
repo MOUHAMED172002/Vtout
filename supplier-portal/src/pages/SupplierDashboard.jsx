@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
-import { Package, Plus, Clock, CheckCircle, XCircle, ChevronRight, BarChart3, Store } from 'lucide-react';
+import { useAuth, useUser } from '../components/clerk-shim';
+import { Package, Plus, Clock, CheckCircle, XCircle, ChevronRight, BarChart3, Store, Banknote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getMySupplierProducts, getMySupplierProfile } from '../services/supplierService';
 import { getMySupplierOrders } from '../services/orderService';
 import SupplierWelcome from '../components/SupplierWelcome';
+import BoutiqueModal from '../components/BoutiqueModal';
 
 const SupplierDashboard = () => {
     const { user } = useUser();
@@ -16,43 +17,61 @@ const SupplierDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [isNotSupplier, setIsNotSupplier] = useState(false);
     const [supplierProfile, setSupplierProfile] = useState(null);
+    const [boutiques, setBoutiques] = useState([]);
+    const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('all');
+    const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
+    const [balance, setBalance] = useState(0);
+
+    const fetchSupplierProducts = async () => {
+        try {
+            const token = await getToken();
+            if (!token) return;
+
+            // Check if supplier profile exists
+            const profile = await getMySupplierProfile(token);
+            setSupplierProfile(profile);
+
+            if (!profile) {
+                setIsNotSupplier(true);
+                setLoading(false);
+                return;
+            }
+
+            const [productsData, ordersData, boutiquesData, financialData] = await Promise.all([
+                getMySupplierProducts(token),
+                getMySupplierOrders(token),
+                import('../services/supplierService').then(s => s.getMyBoutiques(token)),
+                import('../services/api').then(m => m.default.get('/financials/my-status', { headers: { Authorization: `Bearer ${token}` } }))
+            ]);
+            setProducts(productsData || []);
+            setOrders(ordersData || []);
+            setBoutiques(boutiquesData || []);
+            setBalance(financialData?.data?.balance || 0);
+        } catch (profileError) {
+            setIsNotSupplier(true);
+            setLoading(false);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchSupplierProducts = async () => {
-            try {
-                const token = await getToken();
-                if (token) {
-                    try {
-                        // Check if supplier profile exists
-                        const profile = await getMySupplierProfile(token);
-                        setSupplierProfile(profile);
-                    } catch (profileError) {
-                        // Not a supplier yet
-                        setIsNotSupplier(true);
-                        setLoading(false);
-                        return;
-                    }
-
-                    const [productsData, ordersData] = await Promise.all([
-                        getMySupplierProducts(token),
-                        getMySupplierOrders(token)
-                    ]);
-                    setProducts(productsData || []);
-                    setOrders(ordersData || []);
-                }
-            } catch (error) {
-                console.error('Fetch dashboard error:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchSupplierProducts();
     }, [getToken]);
 
+    const filteredProducts = selectedBoutiqueId === 'all' 
+        ? products 
+        : products.filter(p => p.boutique_id === selectedBoutiqueId);
+
+    const filteredOrders = selectedBoutiqueId === 'all'
+        ? orders
+        : orders.filter(o => o.boutique_id === selectedBoutiqueId);
+
     const stats = [
-        { label: 'Produits en ligne', value: products.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
-        { label: 'En attente', value: products.filter(p => p.approval_status === '  En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
-        { label: 'Total Commandes', value: orders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
+        { label: 'Solde Portefeuille', value: `${balance.toLocaleString()} F`, icon: <Banknote className="text-primary" />, color: 'bg-indigo-50' },
+        { label: 'Produits en ligne', value: filteredProducts.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
+        { label: 'En attente', value: filteredProducts.filter(p => p.approval_status === 'En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
+        { label: 'Total Commandes', value: filteredOrders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
     ];
 
     if (loading) return <div className="min-h-screen flex items-center justify-center font-black text-slate-300 uppercase tracking-widest animate-pulse">Chargement de votre espace...</div>;
@@ -62,7 +81,7 @@ const SupplierDashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-12 space-y-12">
             {/* Approval Notice */}
-            {supplierProfile?.status === '  En attente' && (
+            {supplierProfile?.status === 'en_attente' && (
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -96,6 +115,33 @@ const SupplierDashboard = () => {
                 </button>
             </div>
 
+            {/* Boutique Context Switcher */}
+            {boutiques.length > 0 && (
+                <div className="flex items-center gap-4 bg-white p-2 rounded-full border border-slate-100 shadow-sm w-fit">
+                    <button 
+                        onClick={() => setSelectedBoutiqueId('all')}
+                        className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${selectedBoutiqueId === 'all' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        Toutes les boutiques
+                    </button>
+                    {boutiques.map(b => (
+                        <button 
+                            key={b.id}
+                            onClick={() => setSelectedBoutiqueId(b.id)}
+                            className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${selectedBoutiqueId === b.id ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {b.name}
+                        </button>
+                    ))}
+                    <button 
+                        onClick={() => setShowBoutiqueModal(true)}
+                        className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center border border-dashed border-slate-200"
+                    >
+                        <Plus size={16} />
+                    </button>
+                </div>
+            )}
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {stats.map((stat, idx) => (
@@ -123,19 +169,33 @@ const SupplierDashboard = () => {
                 <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-8">
                         <h3 className="text-xl font-black tracking-tighter">Mes Produits Récents</h3>
-                        <button className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline">Voir tout</button>
+                        <button 
+                            onClick={() => navigate('/mes-produits')}
+                            className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline"
+                        >
+                            Voir tout
+                        </button>
                     </div>
 
                     <div className="space-y-6">
-                        {products.map((product) => (
-                            <div key={product.id} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 transition-colors group cursor-pointer">
+                        {filteredProducts.slice(0, 5).map((product) => (
+                            <div 
+                                key={product.id} 
+                                onClick={() => navigate('/mes-produits')}
+                                className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 transition-colors group cursor-pointer"
+                            >
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 bg-white rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <img src={product.images?.[0]?.image_url} alt="" className="object-cover w-full h-full" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-black text-slate-900">{product.name}</p>
-                                        <p className="text-xs font-bold text-slate-400">{product.supplier_price} FCFA (Gros)</p>
+                                        <div className="flex items-center gap-3">
+                                            <p className="text-[10px] font-bold text-slate-400">{(parseFloat(product.price) * 0.9).toLocaleString()} F (Gain Net)</p>
+                                            {product.approval_status === 'approved' && (
+                                                <p className="text-[10px] font-black text-primary">Vente: {product.price} F</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -158,27 +218,33 @@ const SupplierDashboard = () => {
                     <div className="relative z-10">
                         <h3 className="text-xl font-black tracking-tighter mb-8">Commandes à Préparer</h3>
                         <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
-                            {orders.length === 0 ? (
+                             {filteredOrders.length === 0 ? (
                                 <>
                                     <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center text-white/20">
                                         <Package size={40} />
                                     </div>
                                     <p className="text-white/40 font-bold text-xs uppercase tracking-widest leading-loose">
-                                        Aucune commande <br /> en attente de préparation
+                                        Aucune commande <br /> dans cette boutique
                                     </p>
                                 </>
                             ) : (
                                 <div className="space-y-4 w-full text-left">
-                                    {orders.slice(0, 3).map((ord) => (
-                                        <div key={ord.id} className="p-4 bg-white/10 rounded-2xl">
-                                            <p className="font-bold text-sm">Commande #{ord.id.substring(0, 8)}</p>
-                                            <p className="text-xs text-white/60">{new Date(ord.created_at).toLocaleDateString()}</p>
+                                    {filteredOrders.slice(0, 3).map((ord) => (
+                                        <div key={ord.id} onClick={() => navigate('/mes-commandes')} className="p-4 bg-white/10 hover:bg-white/20 transition-colors cursor-pointer rounded-2xl flex justify-between items-center group">
+                                            <div>
+                                                <p className="font-bold text-sm flex items-center gap-2">
+                                                    Commande #{ord.id.substring(0, 8)} 
+                                                    {['en_attente', 'confirmée', 'confirmee'].includes(ord.status) && <span className="bg-amber-500/20 text-amber-300 text-[8px] px-2 py-0.5 rounded-full uppercase tracking-widest">Nouv.</span>}
+                                                </p>
+                                                <p className="text-xs text-white/50 mt-1">{new Date(ord.created_at || ord.createdAt).toLocaleDateString()} • {ord.items_count} article(s)</p>
+                                            </div>
+                                            <ChevronRight size={16} className="text-white/30 group-hover:text-white transition-colors" />
                                         </div>
                                     ))}
                                 </div>
                             )}
-                            <button className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                Actualiser
+                            <button onClick={() => navigate('/mes-commandes')} className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all w-full md:w-auto">
+                                Voir toutes les commandes
                             </button>
                         </div>
                     </div>
@@ -186,6 +252,16 @@ const SupplierDashboard = () => {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
                 </div>
             </div>
+            
+            <BoutiqueModal 
+                isOpen={showBoutiqueModal} 
+                onClose={() => setShowBoutiqueModal(false)} 
+                onSuccess={async () => {
+                    const token = await getToken();
+                    const boutiquesData = await import('../services/supplierService').then(s => s.getMyBoutiques(token));
+                    setBoutiques(boutiquesData || []);
+                }} 
+            />
         </div>
     );
 };

@@ -6,7 +6,10 @@ const SOCKET_URL = API_URL.endsWith("/api") ? API_URL.slice(0, -4) : API_URL;
 let socket;
 
 export const initSocket = (userId) => {
-    socket = io(SOCKET_URL);
+    socket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true
+    });
     
     if (userId) {
         socket.emit('join', userId);

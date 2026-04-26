@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, updateProduct } from '../../../services/productService';
-import { useAuth } from '@clerk/clerk-react';
+import { getProducts, updateProduct, mergeProducts, searchProducts } from '../../../services/productService';
+import { useAuth } from '../../../lib/clerk-shim';
 import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const SupplierProductsApproval = () => {
     const [products, setProducts] = useState([]);
@@ -10,13 +11,15 @@ const SupplierProductsApproval = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [feedback, setFeedback] = useState('');
     const [retailPrice, setRetailPrice] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
     const { getToken } = useAuth();
 
     const fetchPendingProducts = async () => {
         try {
             setLoading(true);
-            // On récupère tous les produits avec le status   En attente
-            const data = await getProducts({ approval_status: '  En attente' });
+            // On récupère tous les produits avec le status En attente (en précisant qu'on est admin)
+            const data = await getProducts({ approval_status: 'En attente', isAdmin: 'true' });
             setProducts(data);
         } catch (error) {
             console.error('Erreur chargement produits:', error);
@@ -30,28 +33,28 @@ const SupplierProductsApproval = () => {
     }, []);
 
     const handleApprove = async (product) => {
-        if (!retailPrice || isNaN(retailPrice)) {
-            alert('Veuillez fixer un prix de vente valide avant d\'approuver.');
-            return;
-        }
-
         try {
             const token = await getToken();
+            const finalPrice = product.supplier_price || 0;
+            
             await updateProduct(product.id, {
                 approval_status: 'approved',
-                price: retailPrice,
-                admin_feedback: 'Produit approuvé par l\'administrateur.'
+                price: finalPrice, 
+                admin_feedback: feedback || 'Produit approuvé.',
+                isAdmin: 'true' // Explicitly pass admin flag
             }, token);
             setSelectedProduct(null);
             fetchPendingProducts();
+            toast.success('Produit approuvé !');
         } catch (error) {
             console.error('Erreur approbation:', error);
+            toast.error('Erreur lors de l\'approbation');
         }
     };
 
     const handleReject = async (product) => {
         if (!feedback) {
-            alert('Veuillez fournir un motif de rejet dans le champ feedback.');
+            toast.error('Veuillez fournir un motif de rejet.');
             return;
         }
 
@@ -59,12 +62,16 @@ const SupplierProductsApproval = () => {
             const token = await getToken();
             await updateProduct(product.id, {
                 approval_status: 'rejected',
-                admin_feedback: feedback
+                admin_feedback: feedback,
+                isAdmin: 'true' // Explicitly pass admin flag
             }, token);
             setSelectedProduct(null);
+            setFeedback('');
             fetchPendingProducts();
+            toast.success('Produit rejeté');
         } catch (error) {
             console.error('Erreur rejet:', error);
+            toast.error('Erreur lors du rejet');
         }
     };
 
@@ -103,8 +110,8 @@ const SupplierProductsApproval = () => {
                                             className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-indigo-50/30' : ''}`}
                                             onClick={() => {
                                                 setSelectedProduct(product);
-                                                setRetailPrice(product.price || '');
                                                 setFeedback(product.admin_feedback || '');
+                                                setRetailPrice('');
                                             }}
                                         >
                                             <td className="px-8 py-6">
@@ -157,36 +164,29 @@ const SupplierProductsApproval = () => {
                             >
                                 <div className="border-b border-slate-100 pb-8">
                                     <h3 className="text-2xl font-black tracking-tighter mb-1">Examen du Produit</h3>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Configuration des prix et statut</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Validation de l'offre</p>
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Prix Fournisseur</span>
-                                            <span className="text-lg font-black text-slate-900">{selectedProduct.supplier_price} FCFA</span>
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-[10px] font-black uppercase text-indigo-500 tracking-widest">Prix de Vente Fixé (Public)</label>
-                                            <input
-                                                type="number"
-                                                value={retailPrice}
-                                                onChange={(e) => setRetailPrice(e.target.value)}
-                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl px-5 py-4 text-sm font-black focus:border-primary focus:ring-0 transition-all text-slate-900"
-                                                placeholder="Entrez le prix client..."
-                                            />
-                                            <p className="text-[10px] font-bold text-slate-400 italic">Marge suggérée: +15-20%</p>
-                                        </div>
+                                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col gap-2">
+                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Prix Fournisseur</span>
+                                        <span className="text-xl font-black text-slate-900">{selectedProduct.supplier_price} <span className="text-sm text-slate-400">FCFA</span></span>
+                                    </div>
+
+                                    <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100 flex flex-col gap-2">
+                                        <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Prix Final (Public)</span>
+                                        <span className="text-xl font-black text-indigo-600">{selectedProduct.supplier_price} <span className="text-sm text-indigo-300">FCFA</span></span>
+                                        <p className="text-[9px] font-bold text-indigo-300 uppercase tracking-[0.1em] italic mt-1">Conformément au prix fournisseur.</p>
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Feedback Administrateur</label>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Message au fournisseur</label>
                                         <textarea
                                             value={feedback}
                                             onChange={(e) => setFeedback(e.target.value)}
-                                            rows="4"
+                                            rows="3"
                                             className="w-full bg-slate-50 border-none rounded-3xl px-6 py-5 text-sm font-bold placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 transition-all text-slate-900"
-                                            placeholder="Ex: Prix trop élevé, photos de mauvaise qualité..."
+                                            placeholder="Ex: Photos de mauvaise qualité..."
                                         />
                                     </div>
 

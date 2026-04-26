@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "../../lib/clerk-shim";
 import AddressSelector from "./AddressSelector";
 import { useCart } from "./CartContext";
 import { createOrder, updateOrderStatus } from "../../services/orderService";
 import { createAddress } from "../../services/addressService";
+import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
 import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +24,21 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshCart } = useCart();
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+
+  // Update delivery fee when address changes
+  useEffect(() => {
+    if (address && address.is_valid) {
+      // Frais de livraison figés à 1000 F par ligne de produit
+      setDeliveryFee(1000 * itemsFromCart.length);
+    } else {
+      setDeliveryFee(0);
+    }
+  }, [address]);
 
   const incoming = location?.state || {};
   const itemsFromCart = incoming.items || [];
@@ -48,8 +64,30 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  async function createOrderFlow({ addressObj, items, total, paymentMethod = "delivery" }) {
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      setIsValidating(true);
+      const res = await validateCoupon(couponCode, totalFromCart);
+      setAppliedCoupon(res);
+      setDiscount(res.discount);
+      toast.success("Code promo appliqué !");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Code promo invalide");
+      setAppliedCoupon(null);
+      setDiscount(0);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const finalTotal = Math.max(0, totalFromCart - discount + deliveryFee);
+
+  async function createOrderFlow({ addressObj, items, total, paymentMethod = "delivery", coupon }) {
+    console.log("[CheckoutPage] Starting createOrderFlow...", { paymentMethod, itemsCount: items.length });
     const token = isGuest ? null : await getToken();
+    
+    console.log("[CheckoutPage] Creating address...");
     const addrRow = await createAddress({
       label: addressObj.label || "Adresse de livraison",
       departement_id: addressObj.departement_id,
@@ -62,8 +100,10 @@ export default function CheckoutPage() {
       phone: addressObj.phone || guestInfo.phone || "",
       is_default: !isGuest,
     }, token);
+    console.log("[CheckoutPage] Address created with ID:", addrRow?.id);
 
-    const orderRow = await createOrder({
+    console.log("[CheckoutPage] Creating order...");
+    const response = await createOrder({
       total_amount: total,
       status: paymentMethod === "fedapay" ? "pending_payment" : "en_attente",
       payment_method: paymentMethod,
@@ -73,13 +113,16 @@ export default function CheckoutPage() {
       guest_phone: isGuest ? guestInfo.phone : undefined,
       items: items.map(it => ({
         product_id: it.product_id || it.id,
-        variant_id: it.variant_id || null, // Important: pass variant_id if it exists
+        variant_id: it.variant_id || null,
         quantity: Number(it.quantity) || 1,
         price: Number(it.price_snapshot || it.price) || 0,
-      }))
+      })),
+      coupon_code: coupon || undefined
     }, token);
 
-    return orderRow;
+    console.log("[CheckoutPage] Order response received:", response);
+    // Return the FULL response to capture payment_url, not just order.
+    return response;
   }
 
   const handleConfirmOrder = async () => {
@@ -88,63 +131,43 @@ export default function CheckoutPage() {
       setLoading(true);
 
       if (paymentMethod === "fedapay") {
-        if (!fedapayReady) return toast.error("FedaPay n’est pas encore chargé !");
-
-        const order = await createOrderFlow({
+        const createResponse = await createOrderFlow({
           addressObj: address,
           items: itemsFromCart,
-          total: totalFromCart,
+          total: finalTotal,
           paymentMethod: "fedapay",
+          coupon: appliedCoupon?.code
         });
 
-        setShowFedaPayModal(true);
-        window.FedaPay.init({
-          public_key: import.meta.env.VITE_FEDAPAY_PUBLIC_KEY,
-          transaction: { amount: totalFromCart, description: `Paiement commande #${order.id.slice(0, 8)}` },
-          customer: {
-            email: isGuest ? guestInfo.email : (user?.primaryEmailAddress?.emailAddress || ""),
-            lastname: isGuest ? guestInfo.name : (user?.lastName || "Client")
-          },
-          currency: { iso: "XOF" },
-          container: "#fedapay-embed",
-          onComplete: async (resp) => {
-            setShowFedaPayModal(false);
-            const freshToken = isGuest ? null : await getToken();
-            if (resp.status === "approved") {
-              await updateOrderStatus(order.id, {
-                status: "confirmee",
-                payment_id: resp.transaction.id,
-                payment_status: "payé"
-              }, freshToken);
-
-              toast.success("✅ Paiement réussi !");
-              await refreshCart();
-              setStep(4);
-              setTimeout(() => {
-                navigate(isGuest ? `/order-confirmation/${order.id}` : `/user/dashboard/orders/${order.id}`);
-              }, 2000);
-            } else {
-              try {
-                await updateOrderStatus(order.id, {
-                  status: "en_attente",
-                  payment_status: "non_payé"
-                }, freshToken);
-              } catch (e) { console.error(e); }
-              toast.error("❌ Échec du paiement");
-            }
-          },
-        });
+        if (createResponse.token && window.FedaPay) {
+            setShowFedaPayModal(true);
+            window.FedaPay.init({
+                public_key: import.meta.env.VITE_FEDAPAY_PUBLIC_KEY || 'pk_sandbox_66S78_P3mXhL-N5X-J_N2xW0',
+                transaction: {
+                    id: createResponse.transaction_id,
+                    amount: Math.round(finalTotal)
+                },
+                container: '#fedapay-embed'
+            });
+            return;
+        } else if (createResponse.payment_url) {
+            window.location.href = createResponse.payment_url;
+            return;
+        } else {
+            toast.error("Erreur de génération du lien de paiement");
+        }
       } else {
-        const order = await createOrderFlow({
+        const createResponse = await createOrderFlow({
           addressObj: address,
           items: itemsFromCart,
-          total: totalFromCart,
+          total: finalTotal,
           paymentMethod: "delivery",
+          coupon: appliedCoupon?.code
         });
         await refreshCart();
         setStep(4);
         toast.success("Commande enregistrée !");
-        const nextPath = isGuest ? `/order-confirmation/${order.id}` : `/user/dashboard/orders/${order.id}`;
+        const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);
       }
     } catch (err) {
@@ -156,20 +179,29 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-12 pb-24">
+    <div className="bg-base-200/50 min-h-screen pt-12 pb-24 font-sans selection:bg-primary/10 selection:text-primary transition-colors duration-500">
       <div className="max-w-[1200px] mx-auto px-6">
 
         {/* Header Area */}
-        <div className="text-center mb-16 space-y-4">
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Finalisation</h1>
-          <div className="flex items-center justify-center gap-4">
+        <div className="text-center mb-20 space-y-6">
+          <h1 className="text-6xl font-black text-slate-900 tracking-tightest">
+            Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
+          </h1>
+          <div className="flex items-center justify-center gap-6">
             {[1, 2, 3, 4].map((s) => (
               <React.Fragment key={s}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black transition-all ${step >= s || (s === 1 && !isGuest) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-200 text-gray-400'
-                  }`}>
-                  {(step > s || (s === 1 && !isGuest)) ? <Check size={20} /> : s}
+                <div className="flex flex-col items-center gap-2">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-500 ${
+                        step >= s || (s === 1 && !isGuest) 
+                        ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' 
+                        : 'bg-white border-2 border-slate-100 text-slate-300'
+                    }`}>
+                        {(step > s || (s === 1 && !isGuest)) ? <Check size={24} strokeWidth={3} /> : s}
+                    </div>
                 </div>
-                {s < 4 && <div className={`h-1 w-12 rounded-full ${(step > s || (s === 1 && !isGuest)) ? 'bg-primary' : 'bg-gray-200'}`}></div>}
+                {s < 4 && <div className={`h-1 w-16 rounded-full transition-all duration-700 ${
+                    (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-slate-100'
+                }`}></div>}
               </React.Fragment>
             ))}
           </div>
@@ -183,18 +215,19 @@ export default function CheckoutPage() {
               {/* STEP 1 — Guest Info (only for unauthenticated users) */}
               {step === 1 && isGuest && (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 space-y-8"
+                  key="step1"
+                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
+                  className="bg-base-100 p-12 rounded-[3.5rem] border border-base-content/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-violet-50 text-violet-600 rounded-2xl">
-                      <ShieldCheck size={24} />
+                  <div className="flex items-center gap-6">
+                    <div className="p-5 bg-violet-50 text-violet-600 rounded-3xl shadow-sm">
+                      <ShieldCheck size={28} />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black text-gray-900">Vos coordonnées</h2>
-                      <p className="text-sm text-gray-400 font-medium">Achat en tant qu'invité · aucun compte requis</p>
+                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">Vos coordonnées</h2>
+                      <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Achat rapide · Invité</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -233,14 +266,18 @@ export default function CheckoutPage() {
 
               {step === 2 && (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 space-y-8"
+                  key="step2"
+                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
+                  className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><MapPin size={24} /></div>
-                    <h2 className="text-2xl font-black text-gray-900">Où devons-nous livrer ?</h2>
+                  <div className="flex items-center gap-6">
+                    <div className="p-5 bg-blue-50 text-blue-600 rounded-3xl shadow-sm"><MapPin size={28} /></div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Où livrer ?</h2>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Sélectionnez votre quartier</p>
+                    </div>
                   </div>
                   <AddressSelector onChange={setAddress} requirePhone={true} requireQuartier={true} />
                   <div className="pt-4 flex justify-between">
@@ -258,14 +295,18 @@ export default function CheckoutPage() {
 
               {step === 3 && (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-slate-200/50 space-y-8"
+                  key="step3"
+                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
+                  className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl"><CreditCard size={24} /></div>
-                    <h2 className="text-2xl font-black text-gray-900">Mode de paiement</h2>
+                  <div className="flex items-center gap-6">
+                    <div className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl shadow-sm"><CreditCard size={28} /></div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Paiement</h2>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Choisissez votre méthode</p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -284,14 +325,15 @@ export default function CheckoutPage() {
 
                     <button
                       onClick={() => setPaymentMethod('fedapay')}
-                      className={`p-8 rounded-3xl border-2 transition-all text-left space-y-4 ${paymentMethod === 'fedapay' ? 'border-primary bg-orange-50/50 ring-4 ring-primary/5' : 'border-gray-100 hover:border-gray-200'}`}
+                      className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'fedapay' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-primary/30 hover:bg-base-200/50'}`}
                     >
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === 'fedapay' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-                        <CreditCard size={24} />
+                      {paymentMethod === 'fedapay' && <div className="absolute -top-6 -right-6 w-20 h-20 bg-primary/10 rounded-full blur-2xl"></div>}
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'fedapay' ? 'bg-primary text-primary-content rotate-6' : 'bg-base-200 text-base-content/40'}`}>
+                        <CreditCard size={28} />
                       </div>
                       <div>
-                        <p className="font-black text-lg text-gray-900">En ligne</p>
-                        <p className="text-sm text-gray-500 font-medium">MTN, Moov, Carte bancaire</p>
+                        <p className="font-black text-xl text-base-content">Paiement en ligne</p>
+                        <p className="text-sm text-base-content/60 font-bold mt-1">MTN, Moov, Carte bancaire</p>
                       </div>
                     </button>
                   </div>
@@ -311,6 +353,7 @@ export default function CheckoutPage() {
 
               {((step === 3 && !isGuest) || step === 4) ? (
                 <motion.div
+                  key="step4"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-white p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
@@ -330,33 +373,87 @@ export default function CheckoutPage() {
 
           {/* Sidebar Summary */}
           <div className="lg:col-span-4">
-            <div className="sticky top-24 bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
+            <div className="sticky top-24 bg-base-100 p-12 rounded-[3.5rem] border border-base-content/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] space-y-10 relative overflow-hidden group">
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700"></div>
+              <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
 
-              <h3 className="text-2xl font-black flex items-center gap-3 relative z-10">
-                Votre Commande <ReceiptText size={20} className="text-primary" />
+              <h3 className="text-3xl font-black flex items-center gap-4 relative z-10 text-base-content tracking-tight">
+                Résumé <span className="p-2 bg-base-200 border border-base-content/5 rounded-xl"><ReceiptText size={22} className="text-primary" /></span>
               </h3>
 
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
+              <div className="space-y-6 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar relative z-10">
                 {itemsFromCart.map((it, idx) => (
-                  <div key={idx} className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <p className="font-bold text-sm leading-tight text-slate-900 mb-1 line-clamp-1">{it.name || "Produit"}</p>
-                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">{it.quantity} Unité{it.quantity > 1 ? 's' : ''}</p>
+                  <div key={idx} className="flex justify-between items-center gap-4 group/item">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-sm leading-tight text-slate-900 mb-1 truncate group-hover/item:text-primary transition-colors">{it.name || "Produit"}</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
                     </div>
-                    <span className="font-black text-slate-300 text-sm">{(it.price_snapshot || it.price).toLocaleString()} F</span>
+                    <span className="font-black text-slate-900 text-sm bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 italic transition-transform group-hover/item:-translate-x-1">
+                      {((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F
+                    </span>
                   </div>
                 ))}
               </div>
 
               <div className="space-y-4 pt-8 border-t border-slate-800 relative z-10">
-                <div className="flex justify-between text-slate-400 font-bold">
-                  <span>Livraison</span>
-                  <span className="text-emerald-400">Gratuit</span>
+                {/* Coupon Input */}
+                <div className="space-y-3 p-6 bg-slate-50 border border-slate-100 rounded-3xl relative">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Coupon de réduction</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="ENTRER LE CODE"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 bg-white border-2 border-slate-100 rounded-2xl h-12 px-4 text-xs font-black tracking-widest focus:border-primary outline-none transition-all placeholder:text-slate-300"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={isValidating || !couponCode}
+                      className="bg-primary text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
+                    >
+                      {isValidating ? <span className="loading loading-spinner loading-xs"></span> : <Check size={18} strokeWidth={3} />}
+                    </button>
+                  </div>
+                  {discount > 0 && <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 animate-bounce">ACTIF</span>}
                 </div>
-                <div className="flex justify-between items-end pt-4">
-                  <span className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Total Final</span>
-                  <span className="text-4xl font-black text-primary">{totalFromCart.toLocaleString()} F</span>
+
+                <div className="space-y-4 pt-2">
+                    <div className="flex justify-between text-slate-400 font-bold text-sm">
+                        <span>Sous-total</span>
+                        <span>{totalFromCart.toLocaleString()} F</span>
+                    </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-emerald-500 font-bold text-sm bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                            <span className="flex items-center gap-2"><Zap size={14} /> Réduction</span>
+                            <span>-{discount.toLocaleString()} F</span>
+                        </div>
+                    )}
+                    <div className="flex justify-between text-slate-400 font-bold text-sm">
+                        <span>Livraison</span>
+                        {address?.is_valid ? (
+                            <span className="text-primary font-black">{deliveryFee.toLocaleString()} F</span>
+                        ) : (
+                            <span className="text-[10px] font-black uppercase text-slate-300 italic">Attente adresse</span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-50">
+                    <div className="flex justify-between items-end">
+                        <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-1">À PAYER</span>
+                        <div className="text-right">
+                           {discount > 0 && <span className="block text-sm font-bold text-slate-300 line-through mb-[-4px]">{totalFromCart.toLocaleString()} F</span>}
+                           {address?.is_valid ? (
+                               <span className="text-5xl font-black text-slate-900 tracking-tightest">{finalTotal.toLocaleString()} <span className="text-lg text-primary relative -top-4 ml-1">F</span></span>
+                           ) : (
+                               <div className="flex flex-col items-end">
+                                   <span className="text-3xl font-black text-slate-200 tracking-tighter">-- --- F</span>
+                                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Calculé après l'adresse</span>
+                               </div>
+                           )}
+                        </div>
+                    </div>
                 </div>
               </div>
 

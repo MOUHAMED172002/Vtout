@@ -1,8 +1,9 @@
-const { SupportMessage, Profile, sequelize } = require('../models');
-const { Op } = require('sequelize');
+import { SupportMessage, Profile, sequelize } from '../models/index.js';
+import { Op } from 'sequelize';
+
 
 // Send message
-exports.sendMessage = async (req, res) => {
+export const sendMessage = async (req, res) => {
     try {
         const { receiver_id, content, conversation_id, attachment_url } = req.body;
         const sender_id = req.auth.userId;
@@ -22,9 +23,10 @@ exports.sendMessage = async (req, res) => {
 };
 
 // Get messages
-exports.getMessages = async (req, res) => {
+export const getMessages = async (req, res) => {
     try {
         const userId = req.auth.userId;
+        console.log(`[SupportController] Fetching messages for user: ${userId}`);
         const { conversation_id } = req.query;
 
         const where = {
@@ -35,7 +37,7 @@ exports.getMessages = async (req, res) => {
         };
 
         // If admin, we can see any conversation
-        const userProfile = await Profile.findOne({ where: { user_id: userId } });
+        const userProfile = await Profile.findOne({ where: { id: userId } });
         
         if (userProfile && userProfile.role === 'admin') {
             // Admin can access any message if they provide a conversation_id
@@ -54,7 +56,7 @@ exports.getMessages = async (req, res) => {
                 as: 'sender',
                 attributes: ['fullname', 'avatar_url', 'role']
             }],
-            order: [['created_at', 'ASC']]
+            order: [['createdAt', 'ASC']]
         });
         res.json(messages);
     } catch (error) {
@@ -64,7 +66,7 @@ exports.getMessages = async (req, res) => {
 };
 
 // Get all conversations (Admin only)
-exports.getAllConversations = async (req, res) => {
+export const getAllConversations = async (req, res) => {
     try {
         // Obtenir la dernière date pour chaque conversation
         const lastMessages = await SupportMessage.findAll({

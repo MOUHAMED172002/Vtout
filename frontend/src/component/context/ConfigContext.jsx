@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getAllConfigs } from "../../services/configService";
 
-const ConfigContext = createContext();
+const ConfigContext = createContext({
+    configs: {},
+    getConfig: (key, def) => def,
+    refreshConfigs: async () => {},
+    loading: true
+});
 
 export function ConfigProvider({ children }) {
     const [configs, setConfigs] = useState({});
@@ -35,4 +40,10 @@ export function ConfigProvider({ children }) {
     );
 }
 
-export const useAppConfig = () => useContext(ConfigContext);
+export const useAppConfig = () => {
+    const context = useContext(ConfigContext);
+    if (context === undefined) {
+        throw new Error("useAppConfig must be used within a ConfigProvider");
+    }
+    return context;
+};

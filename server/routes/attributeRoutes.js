@@ -1,7 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
+import * as attributeController from '../controllers/attributeController.js';
+
 const router = express.Router();
-const attributeController = require('../controllers/attributeController');
-const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
+
+
 
 router.get('/', attributeController.getAllAttributes);
 router.post('/', requireAuth, requireAdmin, attributeController.createAttribute);
@@ -14,5 +17,4 @@ router.post('/values', requireAuth, requireAdmin, attributeController.addAttribu
 router.patch('/values/:id', requireAuth, requireAdmin, attributeController.updateAttributeValue);
 router.delete('/values/:id', requireAuth, requireAdmin, attributeController.deleteAttributeValue);
 
-module.exports = router;
-
+export default router;

@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useUser, useAuth } from "@clerk/clerk-react";
+import { useUser, useAuth } from "../../lib/clerk-shim";
 import { getMyProfile } from "../../services/userService";
 import { getMyOrders } from "../../services/orderService";
 import { getUserFavorites } from "../../services/favoriteService";
@@ -156,7 +156,7 @@ export default function HomeCards() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2 rounded-full backdrop-blur-md">
               <Crown size={16} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège EShop</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège Vtout</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">

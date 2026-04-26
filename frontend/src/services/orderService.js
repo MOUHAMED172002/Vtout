@@ -29,9 +29,14 @@ export const getOrderById = async (id, token) => {
 };
 
 export const createOrder = async (orderData, token = null) => {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const { data } = await api.post('/orders', orderData, { headers });
-    return data;
+    try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const { data } = await api.post('/orders', orderData, { headers });
+        return data;
+    } catch (error) {
+        console.error("Server responded with 500:", JSON.stringify(error.response?.data));
+        throw error;
+    }
 };
 
 export const updateOrderStatus = async (orderId, statusData, token = null) => {

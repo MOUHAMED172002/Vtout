@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth } from '../clerk-shim';
 import api from '../../services/api';
 
 export default function ProfileSync() {
@@ -11,6 +11,8 @@ export default function ProfileSync() {
             if (isSignedIn && user) {
                 try {
                     const token = await getToken();
+                    if (!token) return;
+
                     await api.post('/profiles/sync', {
                         email: user.primaryEmailAddress?.emailAddress,
                         firstName: user.firstName,
@@ -26,7 +28,7 @@ export default function ProfileSync() {
         };
         sync();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSignedIn, user?.id]); // getToken intentionally excluded — stable but causes re-renders
+    }, [isSignedIn, user?.id, getToken]); // getToken is now stable with useCallback
 
     return null;
 }

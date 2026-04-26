@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getOrderById, updateOrderStatus as updateOrder, getSuggestedSuppliers, assignSupplier } from "../../../services/orderService";
 import { getLivreursList, adminAssignOrder } from "../../../services/deliveryService";
 import OrderStatusBadge from "../Order/OrderStatusBadge";
@@ -97,27 +97,42 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
     }
   }
 
+  const order = orderDetails || initialOrder || {};
+
   // --- Intelligenly sort Livreurs ---
   const sortedLivreurs = useMemo(() => {
-    if (!availableLivreurs || !initialOrder?.address) return availableLivreurs;
-    const addr = orderDetails?.address || initialOrder.address;
-    const targetCommune = addr?.commune_label || addr?.commune;
-    const targetDept = addr?.departement_label || addr?.departement;
-
+    if (!availableLivreurs) return [];
+    
+    // We prioritize the supplier's location for pickup efficiency
+    const pickupCommune = order?.supplier?.commune_label || order?.supplier?.commune;
+    
     const safeLivreurs = Array.isArray(availableLivreurs) ? availableLivreurs : [];
     return [...safeLivreurs]
       .map(l => {
         let score = 0;
-        const zones = l.service_zones || [];
-        if (targetCommune && zones.includes(targetCommune)) score = 10;
-        else if (targetDept && zones.includes(targetDept)) score = 5;
+        
+        let parsedZones = [];
+        if (typeof l.service_zones === 'string') {
+           try { parsedZones = JSON.parse(l.service_zones); } catch(e) {}
+        } else if (Array.isArray(l.service_zones)) {
+           parsedZones = l.service_zones;
+        }
+
+        const zones = parsedZones.map(z => z.toLowerCase());
+        
+        if (pickupCommune && zones.includes(pickupCommune.toLowerCase())) {
+          score += 100;
+        }
+
+        // Potential for grouping: if livreur already has an order for this user (simulated check or add a small indicator)
+        // For simplicity, we can't search all orders here without extra API, so we'll focus on the Pickup Proximity
+        
         return { ...l, matchScore: score };
       })
       .sort((a, b) => b.matchScore - a.matchScore);
-  }, [availableLivreurs, initialOrder, orderDetails]);
+  }, [availableLivreurs, order?.supplier]);
 
   if (!isOpen || !initialOrder) return null;
-  const order = orderDetails || initialOrder;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -205,9 +220,47 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                     ))}
                   </div>
 
-                  <div className="mt-10 pt-8 border-t border-dashed border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-400">Total de la commande</span>
-                    <span className="text-3xl font-black text-primary tracking-tighter">{(order.total_amount || 0).toLocaleString()} F</span>
+                  <div className="mt-10 pt-8 border-t border-dashed border-slate-100 flex items-center justify-between gap-8 flex-wrap">
+                    <div className="flex-1 min-w-[200px]">
+                      <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Nombre de colis à récupérer</span>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={async () => {
+                            const newCount = Math.max(1, (order.colis_count || 1) - 1);
+                            const token = await getToken();
+                            await updateOrder(order.id, { colis_count: newCount }, token);
+                            fetchDetails();
+                          }}
+                          className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200 transition-colors"
+                        > - </button>
+                        <span className="text-xl font-black">{order.colis_count || 1}</span>
+                        <button 
+                          onClick={async () => {
+                            const newCount = (order.colis_count || 1) + 1;
+                            const token = await getToken();
+                            await updateOrder(order.id, { colis_count: newCount }, token);
+                            fetchDetails();
+                          }}
+                          className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200 transition-colors"
+                        > + </button>
+                      </div>
+                    </div>
+                    <div className="text-right space-y-4">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Somme Articles</span>
+                        <span className="font-bold text-slate-900">{(Number(order.total_amount) + Number(order.discount_amount || 0) - Number(order.delivery_fee || 0)).toLocaleString()} F</span>
+                      </div>
+                      {order.discount_amount > 0 && (
+                        <div className="flex flex-col items-end text-emerald-500">
+                          <span className="text-[10px] font-black uppercase tracking-widest">Réduction {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
+                          <span className="font-bold">-{Number(order.discount_amount).toLocaleString()} F</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-1">Total à payer</span>
+                        <span className="text-3xl font-black text-primary tracking-tighter">{(order.total_amount || 0).toLocaleString()} F</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -360,9 +413,15 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                                     {s.name}
                                   </p>
                                   <div className="flex items-center gap-2">
-                                    <p className="text-[9px] text-slate-500">{s.commune} · {s.quartier || 'Localisation inconnue'}</p>
-                                    {s.matchScore >= 5 && (
-                                      <span className="text-[8px] font-black uppercase text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-full">Proche</span>
+                                    <p className="text-[9px] text-slate-500">{s.commune} · {s.arrondissement || s.quartier || 'Localisation inconnue'}</p>
+                                    {s.proximityScore === 3 && (
+                                      <span className="text-[8px] font-black uppercase text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-full">Arrondissement</span>
+                                    )}
+                                    {s.proximityScore === 2 && (
+                                      <span className="text-[8px] font-black uppercase text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">Commune</span>
+                                    )}
+                                    {s.proximityScore === 1 && (
+                                      <span className="text-[8px] font-black uppercase text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-full">Département</span>
                                     )}
                                   </div>
                                 </div>

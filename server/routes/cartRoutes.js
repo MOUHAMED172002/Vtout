@@ -1,11 +1,14 @@
-const express = require('express');
+import express from 'express';
+import { requireAuth } from '../middleware/authMiddleware.js';
+import * as cartController from '../controllers/cartController.js';
+
 const router = express.Router();
-const cartController = require('../controllers/cartController');
-const { requireAuth } = require('../middleware/authMiddleware');
+
+
 
 router.get('/', requireAuth, cartController.getMyCart);
 router.post('/', requireAuth, cartController.addToCart);
 router.patch('/:id', requireAuth, cartController.updateCartItemQuantity);
 router.delete('/:id', requireAuth, cartController.removeFromCart);
 
-module.exports = router;
+export default router;

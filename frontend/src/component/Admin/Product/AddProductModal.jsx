@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../../../lib/clerk-shim';
 
 import {
   getCategories,
@@ -20,6 +20,8 @@ import {
 } from '../../../services/productService';
 import { getSuppliers, createSupplier } from '../../../services/supplierService';
 import { uploadSingleImage } from '../../../services/uploadService';
+import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 import CategorySearchModal from '../../Shared/CategorySearchModal';
 
 const baseSteps = [
@@ -72,13 +74,12 @@ const InlineAdder = ({ label, onAdd, loading }) => {
 
 export default function AddProductModal({ onClose, onCreate, isSupplier = false, layout = 'modal' }) {
   const steps = useMemo(() => {
-    return isSupplier
-      ? [
-        { id: 'info', title: 'Informations', icon: Info },
-        { id: 'images', title: 'Images', icon: ImageIcon },
-        { id: 'suppliers', title: 'Prix & Stock', icon: Truck },
-      ]
-      : baseSteps;
+    const updatedSteps = [...baseSteps];
+    if (isSupplier) {
+      const supplierStep = updatedSteps.find(s => s.id === 'suppliers');
+      if (supplierStep) supplierStep.title = 'Prix & Stock';
+    }
+    return updatedSteps;
   }, [isSupplier]);
 
   const { getToken } = useAuth();
@@ -110,6 +111,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     commune_label: "",
     quartier_label: ""
   });
+  const [commissionRate, setCommissionRate] = useState(10);
+  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
@@ -138,6 +141,38 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     return () => clearTimeout(timer);
   }, [productName, catId]);
 
+  const watchPrice = watch('price');
+
+  // Sync: price change -> update globalSupplierPrice (Deductive logic)
+  useEffect(() => {
+    if (isInternalPriceChange) {
+      setIsInternalPriceChange(false);
+      return;
+    }
+    if (watchPrice && commissionRate) {
+      const calculated = Math.round(parseFloat(watchPrice) * (1 - commissionRate / 100));
+      if (calculated !== parseFloat(globalSupplierPrice)) {
+        setIsInternalPriceChange(true);
+        setGlobalSupplierPrice(calculated.toString());
+      }
+    }
+  }, [watchPrice, commissionRate]);
+
+  // Sync: globalSupplierPrice change -> update price (Reverse calculation)
+  useEffect(() => {
+    if (isInternalPriceChange) {
+      setIsInternalPriceChange(false);
+      return;
+    }
+    if (globalSupplierPrice && commissionRate) {
+      const calculated = Math.round(parseFloat(globalSupplierPrice) / (1 - commissionRate / 100));
+      if (calculated !== parseFloat(watchPrice)) {
+        setIsInternalPriceChange(true);
+        setValue('price', calculated);
+      }
+    }
+  }, [globalSupplierPrice, commissionRate]);
+
   const checkExisting = async (name, cid) => {
     setCheckingExisting(true);
     try {
@@ -160,20 +195,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const variants = watch('variants');
 
   useEffect(() => {
-    if (selectedCategoryId) {
-      const fetchCategoryAttrs = async () => {
-        try {
-          const catAttrs = await getAttributesByCategory(selectedCategoryId);
-          setAvailableAttributes(catAttrs);
-        } catch (err) {
-          console.error("Error fetching category attributes:", err);
-        }
-      };
-      fetchCategoryAttrs();
-    } else {
-      setAvailableAttributes([]);
-    }
-  }, [selectedCategoryId]);
+    const fetchAllAttrs = async () => {
+      try {
+        const allAttrs = await getAttributes();
+        setAvailableAttributes(allAttrs || []);
+      } catch (err) {
+        console.error("Error fetching attributes:", err);
+      }
+    };
+    fetchAllAttrs();
+  }, []);
 
   const selectedCategory = useMemo(() => {
     return categories.find(c => String(c.id) === String(selectedCategoryId));
@@ -205,13 +236,18 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
     try {
       const token = await getToken();
-      if (token) {
+      if (token && !isSupplier) {
         const sups = await getSuppliers(token);
         setSuppliers(sups || []);
       }
     } catch (err) {
       console.error("Erreur getSuppliers:", err);
     }
+
+    try {
+      const { data } = await axios.get(`${API_URL}/configs/key/commission_rate`, { withCredentials: true });
+      if (data && data.value) setCommissionRate(parseFloat(data.value));
+    } catch (e) { console.error("Commission rate not found, using 10%"); }
   };
 
   useEffect(() => {
@@ -420,7 +456,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       const payload = {
         name: data.name,
         description: data.description || null,
-        price: !isSupplier ? parseFloat(data.price) : 0,
+        price: isSupplier ? (parseFloat(globalSupplierPrice) || 0) : parseFloat(data.price),
         old_price: !isSupplier && data.old_price ? parseFloat(data.old_price) : null,
         stock: parseInt(data.stock) || 0,
         category_id: parseInt(data.category_id),
@@ -430,7 +466,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         supplier_note: data.supplier_note || null,
         variants: (data.variants || []).map(v => ({
           ...v,
-          price: !isSupplier ? (parseFloat(v.price) || parseFloat(data.price) || 0) : 0,
+          price: isSupplier ? (parseFloat(globalSupplierPrice) || 0) : (parseFloat(v.price) || parseFloat(data.price) || 0),
           old_price: !isSupplier ? (v.old_price ? parseFloat(v.old_price) : (data.old_price ? parseFloat(data.old_price) : null)) : null,
           stock: parseInt(v.stock) || 0,
           image_url: v.image_url || mainImageUrl,
@@ -439,7 +475,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             supplier_price: parseFloat(link.supplier_price) || 0
           }))
         })),
-        supplier_price: isSupplier ? parseFloat(globalSupplierPrice) || 0 : null
+        supplier_price: parseFloat(globalSupplierPrice) || 0
       };
 
       if (onCreate) {
@@ -489,87 +525,119 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   };
 
   return (
-    <motion.div
-      initial={layout === 'modal' ? { opacity: 0, scale: 0.95, y: 30 } : { opacity: 1 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      className={`${layout === 'modal'
-        ? "bg-white w-full max-w-5xl max-h-[92vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-slate-100 z-50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-        : "bg-white w-full min-h-screen flex flex-col"
-        }`}
-    >
-      <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-white relative">
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-indigo-600 rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-primary/20">
-            <Package className="w-8 h-8 text-white" />
+    <div className={layout === 'modal' ? "fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/40 backdrop-blur-sm" : ""}>
+      <motion.div
+        initial={layout === 'modal' ? { opacity: 0, scale: 0.95, y: 30 } : { opacity: 1 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className={`${layout === 'modal'
+          ? "bg-white w-full md:max-w-5xl h-full md:h-auto md:max-h-[92vh] md:rounded-[2.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden border border-slate-100 relative"
+          : "bg-white w-full min-h-screen flex flex-col"
+          }`}
+      >
+      <div className="p-6 md:p-10 border-b border-slate-50 flex items-center justify-between bg-white relative">
+        <div className="flex items-center gap-4 md:gap-6 relative z-10">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-primary/20">
+            <Package className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Nouveau <span className="text-slate-400">Produit.</span></h2>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-1">Etape {currentStep + 1} • {steps[currentStep].title}</p>
+            <h2 className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter">Nouveau <span className="text-slate-400">Produit.</span></h2>
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-0.5 md:mt-1">Etape {currentStep + 1} • {steps[currentStep].title}</p>
           </div>
         </div>
-        <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
-          <X className="w-6 h-6" />
+        <button onClick={onClose} className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+          <X className="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
 
-      <div className="px-10 py-6 bg-slate-50/30 flex justify-between items-center gap-4 overflow-x-auto border-b border-slate-50">
+      <div className="px-6 md:px-10 py-4 md:py-6 bg-slate-50/30 flex justify-start md:justify-between items-center gap-4 overflow-x-auto border-b border-slate-50 no-scrollbar">
         {steps.map((step, idx) => (
           <React.Fragment key={step.id}>
             <button
               type="button"
               onClick={() => currentStep > idx && setCurrentStep(idx)}
-              className={`flex items-center gap-4 group transition-all ${idx <= currentStep ? 'text-primary' : 'text-slate-300'}`}
+              className={`flex items-center gap-3 md:gap-4 group shrink-0 transition-all ${idx <= currentStep ? 'text-primary' : 'text-slate-300'}`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-primary text-white shadow-lg' : idx < currentStep ? 'bg-emerald-50 text-emerald-500' : 'bg-white border border-slate-100'}`}>
-                {idx < currentStep ? <Check size={18} /> : <step.icon size={18} />}
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-primary text-white shadow-lg' : idx < currentStep ? 'bg-emerald-50 text-emerald-500' : 'bg-white border border-slate-100'}`}>
+                {idx < currentStep ? <Check size={14} /> : <step.icon size={14} />}
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${idx === currentStep ? 'text-slate-900' : 'text-slate-400'}`}>{step.title}</span>
+              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${idx === currentStep ? 'text-slate-900' : 'text-slate-400'}`}>{step.title}</span>
             </button>
-            {idx < steps.length - 1 && <div className={`h-px w-8 ${idx < currentStep ? 'bg-emerald-200' : 'bg-slate-100'}`} />}
+            {idx < steps.length - 1 && <div className={`h-px w-4 md:w-8 shrink-0 ${idx < currentStep ? 'bg-emerald-200' : 'bg-slate-100'}`} />}
           </React.Fragment>
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-10 md:p-14 space-y-12 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-6 md:p-14 space-y-8 md:space-y-12 custom-scrollbar">
         <AnimatePresence mode="wait">
           {steps[currentStep].id === 'info' && (
-            <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              <div className="md:col-span-2 space-y-3">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">Nom de l'article</label>
-                <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-5 text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all" />
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Catégorie</label>
-                  <InlineAdder label="catégorie" onAdd={handleAddCategory} loading={inlineLoading} />
+            <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+              
+              {/* Product Identity Section */}
+              <div className="p-6 md:p-10 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 space-y-8">
+                <div className="flex items-center gap-3 text-primary">
+                  <Info size={20} />
+                  <h4 className="text-[11px] font-black uppercase tracking-widest">Identité du Produit</h4>
                 </div>
-                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm">
-                  <div className="flex flex-col">
-                    <span className={`text-sm font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>{selectedCategory ? selectedCategory.name : "Sélectionner une catégorie"}</span>
-                    {categoryPath && <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest line-clamp-1">{categoryPath}</span>}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
+                    <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-lg md:text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all" placeholder="Ex: iPhone 15 Pro Max..." />
                   </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-primary transition-colors" />
-                </button>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between px-4">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Catégorie</label>
+                      <InlineAdder label="catégorie" onAdd={handleAddCategory} loading={inlineLoading} />
+                    </div>
+                    <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm">
+                      <div className="flex flex-col">
+                        <span className={`text-sm font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>{selectedCategory ? selectedCategory.name : "Sélectionner une catégorie"}</span>
+                        {categoryPath && <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest line-clamp-1">{categoryPath}</span>}
+                      </div>
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-primary transition-colors" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {isSupplier && (
-                <div className="md:col-span-2 space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Note pour l'admin (Privé)</label>
-                  <textarea {...register("supplier_note")} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-600 outline-none" placeholder="Infos utiles pour l'admin..." rows={3} />
+              {/* Description Section */}
+              <div className="p-6 md:p-10 bg-white rounded-[2.5rem] border border-slate-100 space-y-6">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description complète</label>
+                <textarea {...register("description")} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Décrivez les points forts du produit..." rows={4} />
+              </div>
+
+              {/* Pricing Section (if Admin) */}
+              {!isSupplier && (
+                <div className="p-6 md:p-10 bg-indigo-50/30 rounded-[2.5rem] border border-indigo-100/50 space-y-8">
+                  <div className="flex items-center gap-3 text-indigo-500">
+                    <Hash size={20} />
+                    <h4 className="text-[11px] font-black uppercase tracking-widest">Fixation des Prix</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Prix de vente base (FCFA)</label>
+                      <div className="relative">
+                        <input type="number" {...register("price", { required: !isSupplier })} className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-xl font-black text-primary shadow-sm" />
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-primary/30">FCFA</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ancien Prix (FCFA)</label>
+                      <div className="relative">
+                        <input type="number" {...register("old_price")} className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-xl font-black text-slate-400 line-through opacity-60" />
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-200">FCFA</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {!isSupplier && (
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Prix de vente base (FCFA)</label>
-                    <input type="number" {...register("price", { required: !isSupplier })} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-primary" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Ancien Prix (FCFA)</label>
-                    <input type="number" {...register("old_price")} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-400 line-through" />
-                  </div>
+              {isSupplier && (
+                <div className="p-6 md:p-10 bg-amber-50/30 rounded-[2.5rem] border border-amber-100/50 space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 ml-4">Note pour l'admin (Privé)</label>
+                  <textarea {...register("supplier_note")} className="w-full bg-white border border-amber-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-600 outline-none" placeholder="Infos utiles pour l'admin..." rows={3} />
                 </div>
               )}
             </motion.div>
@@ -604,9 +672,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 <div className="space-y-6">
                   <h3 className="text-2xl font-black">Générateur <span className="text-primary">Intelligent.</span></h3>
                   <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                      <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
+                      </div>
+                      {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (
+                        <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-8 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] whitespace-nowrap shadow-xl shadow-primary/20">
+                          {inlineLoading ? "Création..." : "+ Créer Attribut"}
+                        </button>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {availableAttributes.filter(a => a.name.toLowerCase().includes(attrSearchQuery.toLowerCase())).map(attr => (
@@ -636,6 +711,9 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                               {v.value}
                             </button>
                           ))}
+                          <div className="ml-2 flex items-center">
+                            <InlineAdder label="valeur" onAdd={(val) => addAttributeValueLocal(attr.id, val)} loading={inlineLoading} />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -746,17 +824,17 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         </AnimatePresence>
       </div>
 
-      <div className="p-10 border-t border-slate-50 flex justify-between bg-white relative z-10">
-        <button type="button" onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-slate-50 rounded-2xl font-black text-xs uppercase text-slate-400 hover:text-slate-900 flex items-center gap-2">
+      <div className="p-6 md:p-10 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 bg-white relative z-10 mt-auto">
+        <button type="button" onClick={prevStep} disabled={currentStep === 0} className="w-full md:w-auto px-8 py-4 bg-slate-50 rounded-2xl font-black text-xs uppercase text-slate-400 hover:text-slate-900 flex items-center justify-center gap-2 disabled:opacity-50">
           <ChevronLeft size={18} /> Précédent
         </button>
-        <div className="flex gap-4">
+        <div className="flex w-full md:w-auto gap-4">
           {currentStep < steps.length - 1 ? (
-            <button type="button" onClick={nextStep} className="px-12 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center gap-2">
+            <button type="button" onClick={nextStep} className="w-full md:w-auto px-12 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
               Continuer <ChevronRight size={18} />
             </button>
           ) : (
-            <button type="submit" onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center gap-2">
+            <button type="submit" onClick={handleSubmit(onSubmit)} disabled={loading} className="w-full md:w-auto px-16 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
               {loading ? 'Publication...' : 'Finaliser'} <Check size={18} />
             </button>
           )}
@@ -775,6 +853,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
           />
         )}
       </AnimatePresence>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

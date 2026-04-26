@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search } from "lucide-react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser, SignIn, SignUp } from "../../lib/clerk-shim";
+import { useProfile } from "../context/useProfile";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -13,9 +14,19 @@ import { getCommunesParDepartement } from "../../utils/communes";
 export default function DevenirLivreur() {
     const { getToken, signOut } = useAuth();
     const { isSignedIn, user } = useUser();
+    const { user: profileUser, refreshProfile } = useProfile();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState(isSignedIn ? 0 : 1);
+    const [step, setStep] = useState(1);
+    const [authMode, setAuthMode] = useState('signUp');
+    
+    // Redirect active livreurs
+    React.useEffect(() => {
+        if (isSignedIn && profileUser?.role === 'livreur') {
+            navigate('/delivery-rider');
+        }
+    }, [isSignedIn, profileUser, navigate]);
+    const [accountConfirmed, setAccountConfirmed] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -78,11 +89,17 @@ export default function DevenirLivreur() {
         try {
             const token = await getToken();
             await registerLivreur(token, form);
+            await refreshProfile();
             setStep(3);
             toast.success("Demande envoyée !");
         } catch (err) {
             console.error(err);
-            toast.error("Erreur lors de l'inscription");
+            let msg = "Erreur lors de l'inscription";
+            try {
+                const parsed = JSON.parse(err.message);
+                if (parsed.error) msg = parsed.error;
+            } catch(e) {}
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -101,64 +118,89 @@ export default function DevenirLivreur() {
 
                 <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-gray-100 p-10 md:p-16 relative overflow-hidden">
                     <AnimatePresence mode="wait">
-                        {step === 0 && isSignedIn && (
-                            <motion.div
-                                key="confirm"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="text-center space-y-8"
-                            >
-                                <div className="w-24 h-24 bg-primary/10 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
-                                    <ShieldCheck size={48} />
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-2xl font-black text-slate-900">Confirmation de Compte</h3>
-                                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest leading-relaxed">
-                                        Vous êtes connecté en tant que <br />
-                                        <span className="text-primary font-black mt-1 inline-block">{user.primaryEmailAddress.emailAddress}</span>
-                                    </p>
-                                </div>
-
-                                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center gap-4 text-left">
-                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shrink-0 shadow-sm">
-                                        <AlertCircle size={20} />
+                        {step === 1 && !isSignedIn && (
+                             <motion.div
+                                 key="auth"
+                                 initial={{ opacity: 0, x: -20 }}
+                                 animate={{ opacity: 1, x: 0 }}
+                                 exit={{ opacity: 0, x: 20 }}
+                                 className="space-y-8"
+                             >
+                                <div className="flex justify-center gap-4 mb-4">
+                                        <button 
+                                            onClick={() => setAuthMode('signUp')}
+                                            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}
+                                        >
+                                            S'inscrire
+                                        </button>
+                                        <button 
+                                            onClick={() => setAuthMode('signIn')}
+                                            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}
+                                        >
+                                            Se Connecter
+                                        </button>
                                     </div>
-                                    <p className="text-xs font-bold text-slate-600 leading-tight">
-                                        Voulez-vous continuer l'inscription avec ce compte ?
-                                    </p>
-                                </div>
 
-                                <div className="grid grid-cols-2 gap-4 pt-4">
-                                    <button
-                                        onClick={async () => {
-                                            await signOut();
-                                            window.location.href = "/auth/connexion?redirect=/devenir-livreur";
-                                        }}
-                                        className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
-                                    >
-                                        Changer
-                                    </button>
-                                    <button
-                                        onClick={() => setStep(1)}
-                                        className="py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-105 transition-all"
-                                    >
-                                        Continuer
-                                    </button>
+                                    <div className="text-center">
+                                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">
+                                            {authMode === 'signUp' ? 'Devenir Livreur' : 'Bon retour !'}
+                                        </h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+                                            {authMode === 'signUp' ? 'Étape 1 : Créez votre compte d\'accès' : 'Connectez-vous à votre espace livreur'}
+                                        </p>
+                                    </div>
+                                    
+                                    {authMode === 'signUp' ? <SignUp /> : <SignIn />}
+                             </motion.div>
+                        )}
+
+                        {step === 1 && isSignedIn && !accountConfirmed && (
+                            <motion.div
+                                key="confirm-account"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="space-y-8 py-6"
+                            >
+                                <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 flex flex-col items-center text-center space-y-6">
+                                    <div className="w-24 h-24 bg-white rounded-full p-1 shadow-xl border border-primary/20">
+                                        <img src={user?.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Bienvenue, {user?.fullName} !</h2>
+                                        <p className="text-slate-500 font-bold text-sm max-w-xs mx-auto">Voulez-vous utiliser ce compte existant pour devenir livreur sur Vtout ?</p>
+                                    </div>
+                                    <div className="flex flex-col w-full gap-3 pt-4">
+                                        <button 
+                                            onClick={() => setAccountConfirmed(true)} 
+                                            className="w-full py-5 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-sm"
+                                        >
+                                            Oui, continuer avec ce compte
+                                        </button>
+                                        <button 
+                                            onClick={() => signOut()} 
+                                            className="text-xs font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest py-3"
+                                        >
+                                            Non, utiliser un autre compte
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
 
-                        {step === 1 && (
+                        {step === 1 && isSignedIn && accountConfirmed && (
                             <motion.div
                                 key="terms"
-                                initial={{ opacity: 0, x: -20 }}
+                                initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
+                                exit={{ opacity: 0, x: -20 }}
                                 className="space-y-8"
                             >
                                 <div className="space-y-6">
-                                    <h2 className="text-2xl font-black text-gray-900 border-l-4 border-primary pl-4">Conditions d'admission</h2>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-2xl font-black text-gray-900 border-l-4 border-primary pl-4 uppercase tracking-tighter">Conditions d'admission</h2>
+                                        <button onClick={() => setAccountConfirmed(false)} className="text-[10px] font-black text-slate-400 uppercase hover:text-primary">Retour</button>
+                                    </div>
                                     <div className="grid gap-4">
                                         {policies.length > 0 ? (
                                             policies.map((p, i) => (
@@ -195,18 +237,18 @@ export default function DevenirLivreur() {
                                     <label className="flex items-center gap-4 cursor-pointer group">
                                         <input
                                             type="checkbox"
-                                            className="checkbox checkbox-primary rounded-lg w-6 h-6"
+                                            className="checkbox checkbox-primary rounded-lg w-6 h-6 border-slate-300"
                                             checked={acceptedTerms}
                                             onChange={(e) => setAcceptedTerms(e.target.checked)}
                                         />
-                                        <span className="text-gray-600 font-bold group-hover:text-gray-900">J'accepte les conditions de partenariat d'EShop</span>
+                                        <span className="text-gray-600 font-bold group-hover:text-gray-900 font-sm">J'accepte les conditions de partenariat d'Vtout</span>
                                     </label>
                                     <button
                                         disabled={!acceptedTerms}
                                         onClick={() => setStep(2)}
-                                        className="btn btn-primary h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/20 gap-3"
+                                        className="btn btn-primary h-16 rounded-[1.5rem] font-black text-lg shadow-xl shadow-primary/20 gap-3 uppercase tracking-widest"
                                     >
-                                        Continuer <ChevronRight />
+                                        Accepter et continuer <ChevronRight />
                                     </button>
                                 </div>
                             </motion.div>

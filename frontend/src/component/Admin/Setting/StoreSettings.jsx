@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@clerk/clerk-react";
+﻿import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getConfigsByGroup, upsertConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
-import { Settings, Globe, Share2, Shield, Save, Loader2, Link2 } from "lucide-react";
+import { Settings, Globe, Share2, Shield, Save, Loader2, Link2, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import AddressSelector from "../../context/AddressSelector";
 
 export default function StoreSettings() {
   const { getToken } = useAuth();
@@ -12,8 +13,14 @@ export default function StoreSettings() {
   const [saving, setSaving] = useState(false);
 
   // Grouped inputs
-  const [branding, setBranding] = useState({ APP_NAME: "EShop", LOGO_URL: "" });
+  const [branding, setBranding] = useState({ APP_NAME: "Vtout", LOGO_URL: "" });
   const [socials, setSocials] = useState({ FACEBOOK: "", INSTAGRAM: "", WHATSAPP: "", TWITTER: "" });
+  const [location, setLocation] = useState({
+    STORE_DEPT_ID: "", STORE_DEPT_LABEL: "",
+    STORE_COMMUNE_ID: "", STORE_COMMUNE_LABEL: "",
+    STORE_QUARTIER_ID: "", STORE_QUARTIER_LABEL: "",
+    STORE_ADDRESS: "", STORE_LAT: "", STORE_LNG: "", STORE_PHONE: ""
+  });
 
   useEffect(() => {
     fetchConfigs();
@@ -23,6 +30,7 @@ export default function StoreSettings() {
     try {
       const data = await getConfigsByGroup('branding');
       const soc = await getConfigsByGroup('social');
+      const loc = await getConfigsByGroup('location');
 
       const brandingMap = {};
       data.forEach(c => brandingMap[c.key] = c.value);
@@ -31,6 +39,10 @@ export default function StoreSettings() {
       const socialMap = {};
       soc.forEach(c => socialMap[c.key] = c.value);
       setSocials(prev => ({ ...prev, ...socialMap }));
+
+      const locationMap = {};
+      loc.forEach(c => locationMap[c.key] = c.value);
+      setLocation(prev => ({ ...prev, ...locationMap }));
 
     } catch (err) {
       console.error(err);
@@ -44,7 +56,7 @@ export default function StoreSettings() {
     try {
       const token = await getToken();
       for (const key in data) {
-        await upsertConfig({ key, value: data[key], group }, token);
+        await upsertConfig({ key, value: String(data[key]), group }, token);
       }
       toast.success("Réglages mis à jour !");
     } catch (err) {
@@ -54,13 +66,13 @@ export default function StoreSettings() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center animate-pulse font-black text-slate-300">CHARGEMENT DES RÉGLAGES...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse font-black text-slate-300 uppercase tracking-widest">Initialisation du Centre de Contrôle...</div>;
 
   return (
     <div className="space-y-12 max-w-5xl mx-auto pb-20">
 
       {/* BRANDING SECTION */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8">
         <div className="flex items-center justify-between border-b border-slate-50 pb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
@@ -79,26 +91,72 @@ export default function StoreSettings() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nom de l'Application</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nom de l'Enseigne</label>
             <input
               value={branding.APP_NAME}
               onChange={(e) => setBranding({ ...branding, APP_NAME: e.target.value })}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary/40 focus:outline-none"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL du Logo (SVG ou PNG)</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL du Logo Officiel</label>
             <input
               value={branding.LOGO_URL}
               onChange={(e) => setBranding({ ...branding, LOGO_URL: e.target.value })}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary/40 focus:outline-none"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
             />
           </div>
         </div>
       </motion.div>
 
+      {/* LOCATION SECTION */}
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8">
+        <div className="flex items-center justify-between border-b border-slate-50 pb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
+              <MapPin size={24} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tighter">Siège & Localisation</h2>
+          </div>
+          <button
+            onClick={() => handleSave('location', location)}
+            disabled={saving}
+            className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-primary transition-all disabled:bg-slate-200"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Enregistrer
+          </button>
+        </div>
+
+        <div>
+            <AddressSelector 
+                initial={{
+                    departement_label: location.STORE_DEPT_LABEL,
+                    commune_label: location.STORE_COMMUNE_LABEL,
+                    quartier_label: location.STORE_QUARTIER_LABEL,
+                    address_line: location.STORE_ADDRESS,
+                    phone: location.STORE_PHONE
+                }}
+                onSave={(payload) => {
+                    handleSave('location', {
+                        STORE_DEPT_ID: payload.departement_id,
+                        STORE_DEPT_LABEL: payload.departement_label,
+                        STORE_COMMUNE_ID: payload.commune_id,
+                        STORE_COMMUNE_LABEL: payload.commune_label,
+                        STORE_QUARTIER_ID: payload.quartier_id,
+                        STORE_QUARTIER_LABEL: payload.quartier_label,
+                        STORE_ADDRESS: payload.address_line,
+                        STORE_LAT: payload.lat || 0,
+                        STORE_LNG: payload.lng || 0,
+                        STORE_PHONE: payload.phone
+                    });
+                }}
+                requirePhone={true}
+            />
+        </div>
+      </motion.div>
+
       {/* SOCIAL SECTION */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8">
         <div className="flex items-center justify-between border-b border-slate-50 pb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
@@ -125,7 +183,7 @@ export default function StoreSettings() {
                   value={socials[key]}
                   onChange={(e) => setSocials({ ...socials, [key]: e.target.value })}
                   placeholder={`https://${key.toLowerCase()}.com/votre_profil`}
-                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 font-bold text-sm focus:border-primary/40 focus:outline-none"
+                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
                 />
               </div>
             </div>

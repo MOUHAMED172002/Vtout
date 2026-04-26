@@ -21,15 +21,28 @@ export const getMySupplierProducts = async (token) => {
     return data;
 };
 
+// Alias for compatibility
+export const getSupplierProducts = getMySupplierProducts;
+
+export const getMyBoutiques = async (token) => {
+    const { data } = await api.get('/suppliers/me/boutiques', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
+export const createBoutique = async (boutiqueData, token) => {
+    const { data } = await api.post('/suppliers/me/boutiques', boutiqueData, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
 export const getSuppliers = async () => {
     const { data } = await api.get('/suppliers');
     return data;
 };
 
-export const getSupplierProducts = async () => {
-    const { data } = await api.get('/suppliers/products');
-    return data;
-};
 
 export const updateSupplierStatus = async (id, statusData, token) => {
     const { data } = await api.put(`/suppliers/${id}`, statusData, {

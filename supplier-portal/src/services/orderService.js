@@ -6,3 +6,10 @@ export const getMySupplierOrders = async (token) => {
     });
     return data;
 };
+
+export const updateOrderStatus = async (orderId, statusData, token) => {
+    const { data } = await api.put(`/orders/${orderId}/status`, statusData, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};

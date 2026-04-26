@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { authClient } from './clerk-shim';
 import { Mail, Lock, User, Github, Facebook, ArrowRight, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,7 +17,6 @@ export const AuthUI = ({ mode = 'signIn' }) => {
 
         try {
             if (isForgotPath) {
-                // Assume better auth handle forgot password
                 await authClient.forgetPassword({ email, redirectTo: window.location.origin + '/reset-password' });
                 toast.success("E-mail de réinitialisation envoyé !");
                 setIsForgotPath(false);
@@ -27,20 +25,14 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                 if (res.error) {
                     toast.error(res.error.message || "Erreur de connexion");
                 } else {
-                    toast.success("Connexion réussie !");
-                    const userRole = res.data.user.role;
-                    // Role-based redirection
-                    if (userRole === 'admin') window.location.href = '/admin/dashboard';
-                    else if (userRole === 'fournisseur' || userRole === 'vendeur') window.location.href = '/fournisseur/dashboard';
-                    else if (userRole === 'livreur') window.location.href = '/delivery-rider';
-                    else window.location.href = '/';
+                    window.location.href = '/';
                 }
             } else {
                 const res = await authClient.signUp.email({ email, password, name });
                 if (res.error) {
                     toast.error(res.error.message || "Erreur d'inscription");
                 } else {
-                    toast.success("Compte créé avec succès !");
+                    window.location.href = '/';
                 }
             }
         } catch (err) {
@@ -51,7 +43,10 @@ export const AuthUI = ({ mode = 'signIn' }) => {
     };
 
     const socialLogin = async (provider) => {
-        const res = await authClient.signIn.social({ provider });
+        const res = await authClient.signIn.social({ 
+            provider,
+            callbackURL: window.location.origin 
+        });
         if (res.error) toast.error("La connexion avec " + provider + " a échoué.");
     };
 
@@ -83,6 +78,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
+                                    autoComplete="name"
                                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                                     placeholder="Votre nom complet"
                                 />
@@ -98,6 +94,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 required
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
+                                autoComplete="email"
                                 className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                                 placeholder="Votre adresse e-mail"
                             />
@@ -113,6 +110,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     required
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
+                                    autoComplete={isSign ? "current-password" : "new-password"}
                                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                                     placeholder="Mot de passe sécurisé"
                                 />
@@ -155,21 +153,13 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     <span className="px-2 bg-white/80 dark:bg-gray-900/80 text-gray-500">Ou continuer avec</span>
                                 </div>
                             </div>
-
-                            <div className="mt-6 grid grid-cols-2 gap-3">
+                            <div className="mt-4">
                                 <button
                                     onClick={() => socialLogin('google')}
                                     className="w-full flex justify-center items-center py-2.5 px-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                                 >
                                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5 mr-2" alt="Google" />
                                     Google
-                                </button>
-                                <button
-                                    onClick={() => socialLogin('facebook')}
-                                    className="w-full flex justify-center items-center py-2.5 px-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                                >
-                                    <Facebook className="h-5 w-5 text-blue-600 mr-2" />
-                                    Facebook
                                 </button>
                             </div>
                         </div>
@@ -182,11 +172,11 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 setIsForgotPath(false);
                                 setIsSign(!isSign);
                             }}
-                            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
+                            className="text-sm font-black uppercase tracking-widest transition-all px-6 py-2 rounded-xl mt-4 inline-block text-primary hover:bg-primary/5 border border-primary/20"
                         >
                             {isForgotPath
                                 ? "Retourner à la connexion"
-                                : (isSign ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter")}
+                                : (isSign ? "Nouveau ? Créer un compte" : "Déjà un compte ? Se connecter")}
                         </button>
                     </div>
                 </div>
@@ -222,26 +212,12 @@ export const UserDropdown = () => {
                     </div>
 
                     <div className="py-2 space-y-1">
-                        <Link to="/user/dashboard/settings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <a href="/user/dashboard/settings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
                             Mon Profil
-                        </Link>
-                        {user.role === 'admin' ? (
-                            <Link to="/admin/dashboard" className="block px-4 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                Administration
-                            </Link>
-                        ) : (user.role === 'fournisseur' || user.role === 'vendeur') ? (
-                            <Link to="/fournisseur/dashboard" className="block px-4 py-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                Dashboard Boutique
-                            </Link>
-                        ) : user.role === 'livreur' ? (
-                            <Link to="/delivery-rider" className="block px-4 py-2 text-sm font-bold text-amber-600 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                Espace Livreur
-                            </Link>
-                        ) : (
-                            <Link to="/user/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                Mes Commandes
-                            </Link>
-                        )}
+                        </a>
+                        <a href="/user/dashboard" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                            Tableau de bord
+                        </a>
                     </div>
 
                     <div className="pt-2 border-t border-gray-100 dark:border-gray-800">

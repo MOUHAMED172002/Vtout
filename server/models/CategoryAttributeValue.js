@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const CategoryAttributeValue = sequelize.define('CategoryAttributeValue', {
     id: {
@@ -21,4 +21,4 @@ const CategoryAttributeValue = sequelize.define('CategoryAttributeValue', {
     timestamps: false
 });
 
-module.exports = CategoryAttributeValue;
+export default CategoryAttributeValue;

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+﻿import React, { useEffect, useState } from "react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { updateProfileStatus, getProfileById } from "../../../services/userService";
 
 export default function UserStatusToggle({ userId }) {

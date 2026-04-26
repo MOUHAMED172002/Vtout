@@ -1,8 +1,7 @@
-const { Category, Product } = require('../models');
-const fs = require('fs');
-const path = require('path');
+import { Category, Product } from '../models/index.js';
 
-exports.getAllCategories = async (req, res) => {
+
+export const getAllCategories = async (req, res) => {
     try {
         const categories = await Category.findAll({
             include: [
@@ -17,7 +16,7 @@ exports.getAllCategories = async (req, res) => {
     }
 };
 
-exports.createCategory = async (req, res) => {
+export const createCategory = async (req, res) => {
     try {
         const { name, parent_id } = req.body;
         const category = await Category.create({ name, parent_id });
@@ -27,7 +26,7 @@ exports.createCategory = async (req, res) => {
     }
 };
 
-exports.deleteCategory = async (req, res) => {
+export const deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
         await Category.destroy({ where: { id } });

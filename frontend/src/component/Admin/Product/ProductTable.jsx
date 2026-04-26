@@ -74,8 +74,10 @@ export default function ProductTable({ products = [], loading = false, onEdit = 
 
                   <td>
                     <div className="space-y-1.5">
-                      <p className="text-xs font-bold text-slate-600">{(p.supplierLink || []).length} partenaires</p>
-                      {(p.supplierLink || []).length > 0 && (
+                      <p className="text-xs font-bold text-slate-600">
+                        {Math.max((p.supplierLink || []).length, p.supplier ? 1 : 0)} partenaires
+                      </p>
+                      {((p.supplierLink || []).length > 0 || p.supplier) && (
                         <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 w-fit px-2 py-0.5 rounded-lg">
                           <Info size={10} className="stroke-[3]" />
                           <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">Actif</span>

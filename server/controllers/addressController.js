@@ -1,6 +1,7 @@
-const { Address } = require('../models');
+import { Address } from '../models/index.js';
 
-exports.getUserAddresses = async (req, res) => {
+
+export const getUserAddresses = async (req, res) => {
     try {
         const { userId } = req.params;
         const addresses = await Address.findAll({
@@ -12,7 +13,7 @@ exports.getUserAddresses = async (req, res) => {
     }
 };
 
-exports.getMyAddresses = async (req, res) => {
+export const getMyAddresses = async (req, res) => {
     try {
         const { userId } = req.auth;
         const addresses = await Address.findAll({
@@ -25,7 +26,7 @@ exports.getMyAddresses = async (req, res) => {
     }
 };
 
-exports.createAddress = async (req, res) => {
+export const createAddress = async (req, res) => {
     try {
         const userId = req.auth?.userId || null;
         const { is_default } = req.body;
@@ -45,7 +46,7 @@ exports.createAddress = async (req, res) => {
     }
 };
 
-exports.updateAddress = async (req, res) => {
+export const updateAddress = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { id } = req.params;
@@ -64,7 +65,7 @@ exports.updateAddress = async (req, res) => {
     }
 };
 
-exports.deleteAddress = async (req, res) => {
+export const deleteAddress = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { id } = req.params;

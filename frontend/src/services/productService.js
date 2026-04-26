@@ -41,6 +41,16 @@ export const deleteProduct = async (id, token) => {
     return data;
 };
 
+export const mergeProducts = async (pendingProductId, realProductId, token) => {
+    const { data } = await api.post('/products/merge', {
+        pendingProductId,
+        realProductId
+    }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};
+
 export const getCategories = async () => {
     const { data } = await api.get('/categories');
     return data;

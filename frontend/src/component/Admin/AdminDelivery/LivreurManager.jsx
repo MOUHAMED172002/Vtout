@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getLivreursList, verifyLivreur } from "../../../services/deliveryService";
 import toast from "react-hot-toast";
 import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText } from "lucide-react";
@@ -47,8 +47,23 @@ export default function LivreurManager() {
         // Robust zones parsing
         let zones = [];
         try {
-            zones = Array.isArray(l.service_zones) ? l.service_zones : (typeof l.service_zones === 'string' ? JSON.parse(l.service_zones) : []);
-        } catch (e) { zones = []; }
+            if (Array.isArray(l.service_zones)) {
+                zones = l.service_zones;
+            } else if (typeof l.service_zones === 'string') {
+                const parsed = JSON.parse(l.service_zones);
+                zones = Array.isArray(parsed) ? parsed : [parsed];
+            }
+        } catch (e) { 
+            zones = l.service_zones ? [l.service_zones] : []; 
+        }
+        
+        // Final normalization: if we have a string that looks like JSON inside an array
+        if (zones.length === 1 && typeof zones[0] === 'string' && (zones[0].startsWith('[') || zones[0].startsWith('{'))) {
+            try {
+                const inner = JSON.parse(zones[0]);
+                if (Array.isArray(inner)) zones = inner;
+            } catch(e) {}
+        }
 
         const matchesZone = !zoneFilter || zones.some(z => String(z).toLowerCase().includes(zoneFilter.toLowerCase()));
         const isOnline = l.status !== 'hors_ligne';
@@ -188,23 +203,45 @@ export default function LivreurManager() {
                                     </td>
                                     <td className="py-8">
                                         <div className="space-y-2">
-                                            <div className="flex flex-wrap gap-1">
+                                            <div className="flex flex-wrap gap-1.5 max-w-[250px]">
                                                 {(() => {
                                                     let zones = [];
                                                     try {
-                                                        zones = Array.isArray(l.service_zones) ? l.service_zones : (typeof l.service_zones === 'string' ? JSON.parse(l.service_zones) : []);
-                                                    } catch (e) { zones = []; }
+                                                        const raw = l.service_zones;
+                                                        if (Array.isArray(raw)) {
+                                                            zones = raw;
+                                                        } else if (typeof raw === 'string') {
+                                                            const parsed = JSON.parse(raw);
+                                                            zones = Array.isArray(parsed) ? parsed : [parsed];
+                                                        }
+                                                        
+                                                        // Deep parse if nested strings
+                                                        zones = zones.flatMap(z => {
+                                                            if (typeof z === 'string' && (z.startsWith('[') || z.startsWith('{'))) {
+                                                                try { return JSON.parse(z); } catch(e) { return z; }
+                                                            }
+                                                            return z;
+                                                        });
+                                                    } catch (e) { 
+                                                        zones = Array.isArray(l.service_zones) ? l.service_zones : []; 
+                                                    }
 
-                                                    return zones.map(zone => (
-                                                        <span key={zone} className="px-2 py-0.5 bg-slate-100 text-[9px] font-black text-slate-500 rounded-md uppercase tracking-tighter border border-slate-200">{zone}</span>
+                                                    // Filter out empty or non-string values and remove duplicates
+                                                    const cleanZones = [...new Set(zones.filter(z => typeof z === 'string' && z.length > 1))];
+
+                                                    if (cleanZones.length === 0) return <span className="text-[10px] font-bold text-slate-300 italic">Aucune zone spécifiée</span>;
+
+                                                    return cleanZones.map((zone, zIdx) => (
+                                                        <span key={`${l.id}-${zone}-${zIdx}`} className="px-3 py-1 bg-indigo-50 text-[9px] font-black text-indigo-600 rounded-full uppercase tracking-tighter border border-indigo-100 shadow-sm">
+                                                            {zone}
+                                                        </span>
                                                     ));
                                                 })()}
-                                                {(!l.service_zones || l.service_zones.length === 0) && <span className="text-[9px] font-bold text-slate-300 italic">Aucune zone</span>}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-2 h-2 rounded-full ${l.status === 'hors_ligne' ? 'bg-slate-300' : 'bg-emerald-500 animate-pulse'}`}></div>
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                                    {l.status === 'hors_ligne' ? 'Hors Ligne' : l.status === 'disponible' ? 'Disponible' : 'En course'}
+                                                    {l.status === 'hors_ligne' ? 'Hors Ligne' : l.status === 'disponible' ? 'En ligne / Disponible' : 'En mission'}
                                                 </span>
                                             </div>
                                         </div>

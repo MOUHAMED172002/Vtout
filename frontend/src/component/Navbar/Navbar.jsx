@@ -12,12 +12,14 @@ import {
   LogOut,
   Truck
 } from "lucide-react";
-import { useUser, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { useUser, UserButton, SignedIn, SignedOut } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
 import SearchBar from '../Shared/SearchBar';
 import CartIcon from '../context/CartIcon';
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppConfig } from "../context/ConfigContext";
+import logo from "../../assets/brand/vtout-logo.png";
+import ThemeSelector from "../context/ThemeSelector";
 
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
@@ -68,9 +70,15 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 flex items-center gap-1 group"
+            className="flex items-center group"
           >
-            <span className="text-primary group-hover:rotate-12 transition-transform">{firstLetter}</span>{restOfName}
+            <motion.img 
+              whileHover={{ scale: 1.05, rotate: -2 }}
+              whileTap={{ scale: 0.95 }}
+              src={getConfig('site_logo') || logo} 
+              alt={appName} 
+              className="h-10 md:h-14 w-auto object-contain transition-transform" 
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -78,13 +86,18 @@ export default function Navbar() {
             <ul className="flex items-center gap-8">
               {!isLivreur && MenuLinks.map((item) => (
                 <li key={item.id}>
-                  <Link
-                    to={item.link}
-                    className={`text-sm font-bold uppercase tracking-widest transition-colors ${location.pathname === item.link ? "text-primary" : "text-gray-500 hover:text-gray-900"
-                      }`}
+                  <motion.div
+                    whileHover={{ scale: 1.1, y: -2 }}
+                    whileTap={{ scale: 0.9 }}
                   >
-                    {item.name}
-                  </Link>
+                    <Link
+                      to={item.link}
+                      className={`text-sm font-bold uppercase tracking-widest transition-colors ${location.pathname === item.link ? "text-primary" : "text-gray-500 hover:text-gray-900"
+                        }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
               {isLivreur && (
@@ -97,6 +110,7 @@ export default function Navbar() {
             <div className="h-6 w-px bg-gray-200"></div>
 
             <div className="flex items-center gap-6">
+              <ThemeSelector />
               {!isLivreur && <SearchBar />}
               {!isLivreur && <CartIcon />}
               <SignedIn>
@@ -183,10 +197,13 @@ export default function Navbar() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-12">
-                <span className="text-2xl font-black tracking-tighter">{appName}</span>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-2 border rounded-full hover:bg-gray-50">
-                  <X size={24} />
-                </button>
+                <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain" />
+                  <div className="flex items-center gap-2">
+                     <ThemeSelector />
+                  </div>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 border rounded-full hover:bg-gray-50">
+                    <X size={24} />
+                  </button>
               </div>
 
               <nav className="flex-1 space-y-8">

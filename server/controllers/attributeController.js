@@ -1,6 +1,7 @@
-const { ProductAttribute, AttributeValue, CategoryAttribute, Category, CategoryAttributeValue } = require('../models');
+import { ProductAttribute, AttributeValue, CategoryAttribute, Category, CategoryAttributeValue } from '../models/index.js';
 
-exports.getAllAttributes = async (req, res) => {
+
+export const getAllAttributes = async (req, res) => {
     try {
         const attributes = await ProductAttribute.findAll({
             include: [{ model: AttributeValue, as: 'values' }]
@@ -12,7 +13,7 @@ exports.getAllAttributes = async (req, res) => {
     }
 };
 
-exports.getAttributesByCategory = async (req, res) => {
+export const getAttributesByCategory = async (req, res) => {
     try {
         const { category_id } = req.params;
 
@@ -58,7 +59,7 @@ exports.getAttributesByCategory = async (req, res) => {
     }
 };
 
-exports.getAttributeValues = async (req, res) => {
+export const getAttributeValues = async (req, res) => {
     try {
         const { attribute_id } = req.params;
         const values = await AttributeValue.findAll({
@@ -71,7 +72,7 @@ exports.getAttributeValues = async (req, res) => {
     }
 };
 
-exports.addAttributeValue = async (req, res) => {
+export const addAttributeValue = async (req, res) => {
     try {
         const { attribute_id, value, category_id } = req.body;
         if (!attribute_id || !value) {
@@ -106,7 +107,7 @@ exports.addAttributeValue = async (req, res) => {
     }
 };
 
-exports.createAttribute = async (req, res) => {
+export const createAttribute = async (req, res) => {
     try {
         const { name, categoryIds } = req.body;
         // Check if attribute already exists to avoid duplicates
@@ -137,7 +138,7 @@ exports.createAttribute = async (req, res) => {
     }
 };
 
-exports.updateAttribute = async (req, res) => {
+export const updateAttribute = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body;
@@ -148,7 +149,7 @@ exports.updateAttribute = async (req, res) => {
     }
 };
 
-exports.deleteAttribute = async (req, res) => {
+export const deleteAttribute = async (req, res) => {
     try {
         const { id } = req.params;
         // Delete values first
@@ -160,7 +161,7 @@ exports.deleteAttribute = async (req, res) => {
     }
 };
 
-exports.updateAttributeValue = async (req, res) => {
+export const updateAttributeValue = async (req, res) => {
     try {
         const { id } = req.params;
         const { value } = req.body;
@@ -171,7 +172,7 @@ exports.updateAttributeValue = async (req, res) => {
     }
 };
 
-exports.deleteAttributeValue = async (req, res) => {
+export const deleteAttributeValue = async (req, res) => {
     try {
         const { id } = req.params;
         await AttributeValue.destroy({ where: { id } });

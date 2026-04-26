@@ -1,4 +1,4 @@
-const { ProductAttribute, AttributeValue, CategoryAttribute, CategoryAttributeValue, sequelize } = require('./models');
+import { ProductAttribute, AttributeValue, CategoryAttribute, CategoryAttributeValue, sequelize } from './models/index.js';
 
 async function seed() {
     try {

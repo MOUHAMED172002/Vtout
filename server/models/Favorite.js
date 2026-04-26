@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Favorite = sequelize.define('Favorite', {
     id: {
@@ -29,4 +29,4 @@ const Favorite = sequelize.define('Favorite', {
     updatedAt: false // Le schéma SQL n'a que created_at
 });
 
-module.exports = Favorite;
+export default Favorite;

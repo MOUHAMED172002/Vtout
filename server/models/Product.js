@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Product = sequelize.define('Product', {
     id: {
@@ -49,8 +49,8 @@ const Product = sequelize.define('Product', {
         allowNull: true
     },
     approval_status: {
-        type: DataTypes.ENUM('  En attente', 'approved', 'rejected'),
-        defaultValue: 'approved'
+        type: DataTypes.ENUM('En attente', 'approved', 'rejected'),
+        defaultValue: 'En attente'
     },
     admin_feedback: {
         type: DataTypes.TEXT('long')
@@ -58,6 +58,14 @@ const Product = sequelize.define('Product', {
     in_stock_supplier: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
+    },
+    boutique_id: {
+        type: DataTypes.CHAR(36),
+        allowNull: true,
+        references: {
+            model: 'boutiques',
+            key: 'id'
+        }
     },
     supplier_note: {
         type: DataTypes.TEXT('long'),
@@ -68,4 +76,4 @@ const Product = sequelize.define('Product', {
     underscored: true
 });
 
-module.exports = Product;
+export default Product;

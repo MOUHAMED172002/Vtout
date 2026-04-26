@@ -7,33 +7,46 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  // darkMode removed as requested
+  // Enable dark mode support (class based for better control)
+  darkMode: 'class',
   theme: {
     extend: {
-      container: {
-        center: true,
-        padding: {
-          DEFAULT: '1rem',
-          sm: '2rem',
-          lg: '4rem',
-          xl: '5rem',
-          '2xl': '6rem',
-        }
+      colors: {
+        primary: {
+          DEFAULT: '#f97316',
+          focus: '#ea580c',
+        },
       },
+      // ... common extensions
     },
   },
   plugins: [daisyui],
   daisyui: {
-    styled: true,
-    // Single light theme only (no dark theme)
     themes: [
-      
+      {
+        vtout: {
+          "primary": "#f97316",
+          "secondary": "#fbbf24",
+          "accent": "#22c55e",
+          "neutral": "#1e293b",
+          "base-100": "#ffffff",
+          "info": "#3b82f6",
+          "success": "#10b981",
+          "warning": "#f59e0b",
+          "error": "#ef4444",
+        },
+      },
+      "light",
       "dark",
       "cupcake",
+      "synthwave",
+      "cyberpunk",
+      "luxury",
+      "dracula",
+      "emerald",
+      "corporate",
+      "retro",
+      "valentine"
     ],
-    base: true,
-    utils: true,
-    logs: true,
-    rtl: false,
   },
 };

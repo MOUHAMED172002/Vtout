@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import api from "../../../services/api";
 import { Search, Clock, User, Hash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -90,7 +90,7 @@ export default function SearchAnalytics() {
                                             <td className="p-8">
                                                 <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
                                                     <Clock size={14} />
-                                                    {new Date(item.created_at).toLocaleString()}
+                                                    {new Date(item.createdAt || item.created_at).toLocaleString()}
                                                 </div>
                                             </td>
                                             <td className="p-8 text-right">

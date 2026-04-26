@@ -1,15 +1,17 @@
-const crypto = require('crypto');
+import { Review, Profile, Product, ProductImage } from '../models/index.js';
+import crypto from 'crypto';
 
-exports.getProductReviews = async (req, res) => {
+
+export const getProductReviews = async (req, res) => {
     try {
-        const { Review, Profile } = require('../models');
+        
         const { productId } = req.params;
         const { limit = 20 } = req.query;
         const reviews = await Review.findAll({
             where: { product_id: productId },
-            order: [['created_at', 'DESC']],
+            order: [[sequelize.literal('created_at'), 'DESC']],
             limit: parseInt(limit),
-            include: [{ model: Profile, as: 'user', attributes: ['fullname', 'avatar_url'] }]
+            include: [{ model: Profile, as: 'author', attributes: ['fullname', 'avatar_url'] }]
         });
         res.json(reviews);
     } catch (error) {
@@ -18,9 +20,9 @@ exports.getProductReviews = async (req, res) => {
     }
 };
 
-exports.getMyReviews = async (req, res) => {
+export const getMyReviews = async (req, res) => {
     try {
-        const { Review, Product, ProductImage } = require('../models');
+        
         console.log('[getMyReviews] Start for auth:', req.auth);
         const userId = req.auth?.userId;
         if (!userId) {
@@ -28,9 +30,10 @@ exports.getMyReviews = async (req, res) => {
             return res.status(401).json({ error: 'Non authentifié' });
         }
 
+        console.log(`[getMyReviews] Querying reviews for userId: ${userId}`);
         const reviews = await Review.findAll({
             where: { user_id: userId },
-            order: [['created_at', 'DESC']],
+            order: [[sequelize.literal('created_at'), 'DESC']],
             include: [{
                 model: Product,
                 as: 'product',
@@ -38,15 +41,15 @@ exports.getMyReviews = async (req, res) => {
                 include: [{
                     model: ProductImage,
                     as: 'images',
-                    attributes: ['image_url'],
-                    limit: 1
+                    attributes: ['image_url']
                 }]
             }]
         });
         console.log(`[getMyReviews] Success: ${reviews.length} reviews found`);
         res.json(reviews);
     } catch (error) {
-        console.error('getMyReviews error detailed:', error);
+        console.error('[getMyReviews] ERROR CAUGHT:', error);
+        console.error('[getMyReviews] ERROR STACK:', error.stack);
         res.status(500).json({
             error: 'Erreur lors de la récupération de vos avis',
             details: error.message,
@@ -55,9 +58,9 @@ exports.getMyReviews = async (req, res) => {
     }
 };
 
-exports.createReview = async (req, res) => {
+export const createReview = async (req, res) => {
     try {
-        const { Review } = require('../models');
+        
         const userId = req.auth?.userId;
         const { product_id, order_id, rating, title, body, images } = req.body;
 
@@ -74,11 +77,23 @@ exports.createReview = async (req, res) => {
             return res.status(400).json({ error: 'Vous avez déjà donné votre avis sur ce produit.' });
         }
 
+        // Vérification Achat Vérifié
+        const { Order, OrderItem } = await import('../models/index.js');
+        const hasOrdered = await Order.findOne({
+            where: { user_id: userId, status: ['livree', 'livrée'] },
+            include: [{
+                model: OrderItem,
+                as: 'items',
+                where: { product_id: product_id }
+            }]
+        });
+
         const review = await Review.create({
             id: crypto.randomUUID(),
             user_id: userId,
             product_id,
-            order_id: order_id || null,
+            order_id: order_id || (hasOrdered ? hasOrdered.id : null),
+            is_verified: !!hasOrdered,
             rating,
             title: title || null,
             body: body || "",
@@ -91,9 +106,9 @@ exports.createReview = async (req, res) => {
     }
 };
 
-exports.deleteReview = async (req, res) => {
+export const deleteReview = async (req, res) => {
     try {
-        const { Review } = require('../models');
+        
         const userId = req.auth?.userId;
         const { id } = req.params;
         await Review.destroy({

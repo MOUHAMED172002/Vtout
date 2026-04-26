@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getAllOrders } from "../../../services/orderService";
 import { getLivreursList, adminAssignOrder } from "../../../services/deliveryService";
 import { Truck, MapPin, Phone, Package, ChevronDown, ChevronUp, Search, RefreshCcw, UserPlus, Store, CheckCircle } from "lucide-react";
@@ -127,37 +127,37 @@ export default function DeliveryManager() {
               className={`bg-white rounded-[2rem] border transition-all duration-300 overflow-hidden ${expandedId === o.id ? 'border-primary ring-4 ring-primary/5 shadow-2xl' : 'border-slate-50 hover:border-slate-200 shadow-sm'}`}
             >
               <div
-                className="p-8 flex flex-wrap items-center justify-between gap-6 cursor-pointer"
+                className="p-5 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 cursor-pointer"
                 onClick={() => {
                   const newExpanded = expandedId === o.id ? null : o.id;
                   setExpandedId(newExpanded);
                   if (newExpanded) fetchSuggestions(o.id);
                 }}
               >
-                <div className="flex items-center gap-6">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${expandedId === o.id ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
+                <div className="flex items-center gap-4 md:gap-6 w-full sm:w-auto">
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex-shrink-0 flex items-center justify-center ${expandedId === o.id ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
                     <Package size={24} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">#{o.id.slice(0, 8).toUpperCase()}</p>
-                    <h3 className="text-lg font-black text-slate-900">{o.address?.address_line || "Adresse non fournie"}</h3>
+                    <h3 className="text-sm md:text-lg font-black text-slate-900 truncate">{o.address?.address_line || "Adresse non fournie"}</h3>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-8">
-                  <div className="text-center sm:text-right">
+                <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-8 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-none border-slate-50">
+                  <div className="text-left sm:text-right">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1">Téléphone</p>
-                    <div className="flex items-center gap-2 font-black text-slate-700">
-                      <Phone size={14} className="text-primary" /> {o.address?.phone || "—"}
+                    <div className="flex items-center gap-2 font-black text-slate-700 text-xs md:text-sm">
+                      <Phone size={12} className="text-primary" /> {o.address?.phone || "—"}
                     </div>
                   </div>
-                  <div className="w-px h-8 bg-slate-100 hidden sm:block"></div>
-                  <div className="text-center sm:text-right pr-4">
+                  <div className="w-px h-8 bg-slate-100 hidden md:block"></div>
+                  <div className="text-center sm:text-right">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1">Statut</p>
                     <OrderStatusBadge status={o.status} />
                   </div>
-                  <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
-                    {expandedId === o.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
+                    {expandedId === o.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </div>
                 </div>
               </div>
@@ -228,36 +228,35 @@ export default function DeliveryManager() {
                             <Store size={14} /> Fournisseur (Proximité suggérée)
                           </h4>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="relative">
                             {loadingSuppliers[o.id] ? (
-                              <div className="col-span-full py-4 text-center text-xs font-bold text-slate-400">Recherche des meilleurs partenaires...</div>
-                            ) : suggestedSuppliers[o.id]?.map((s, idx) => (
-                              <div
-                                key={s.id}
-                                onClick={() => handleAssignSupplier(o.id, s.id)}
-                                className={`p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group ${o.supplier_id === s.id ? 'border-primary bg-primary/5' : 'border-slate-50 hover:border-slate-200 bg-white'}`}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${o.supplier_id === s.id ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'}`}>
-                                    <Store size={18} />
-                                  </div>
-                                  <div>
-                                    <p className="font-black text-sm text-slate-900 line-clamp-1">{s.name}</p>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-black uppercase tracking-tight text-slate-400">{s.quartier_name || 'Quartier Proche'}</span>
-                                      {idx === 0 && <span className="bg-emerald-500 text-white text-[8px] px-1.5 py-0.5 rounded-md font-black">LE PLUS PROCHE</span>}
-                                    </div>
-                                  </div>
-                                </div>
-                                {o.supplier_id === s.id && <CheckCircle size={18} className="text-primary" />}
+                              <div className="py-4 text-center text-xs font-bold text-slate-400">Recherche des meilleurs partenaires...</div>
+                            ) : (
+                              <div className="relative">
+                                <select
+                                  className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 appearance-none cursor-pointer outline-none transition-all"
+                                  defaultValue={o.supplier_id || ""}
+                                  onChange={(e) => handleAssignSupplier(o.id, e.target.value)}
+                                >
+                                  <option value="" disabled>Sélectionner le Fournisseur...</option>
+                                  {suggestedSuppliers[o.id]?.map((s, idx) => (
+                                    <option key={s.id} value={s.id} className="font-bold">
+                                      {s.proximityScore === 3 ? "📍 [MÊME ARROND.]" : 
+                                       s.proximityScore === 2 ? "🏠 [MÊME COMMUNE]" : 
+                                       s.proximityScore === 1 ? "🚚 [MÊME DÉPART.]" : "🌐 [HORS ZONE]"} 
+                                      • {s.name} • Coût: {Number(s.totalCost).toLocaleString()} F • ({s.arrondissement || s.commune})
+                                    </option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
 
                         {/* 2. Delivery Person Assignment */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
-                          <div className="space-y-1 relative z-10">
+                        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 p-6 md:p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative">
+                          <div className="space-y-1 relative z-10 w-full xl:w-1/2">
                             <h4 className="flex items-center gap-2 font-black text-xs uppercase tracking-widest text-indigo-400">
                               <UserPlus size={14} /> Assignation Livreur
                             </h4>
@@ -268,8 +267,8 @@ export default function DeliveryManager() {
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-3 w-full md:w-auto relative z-10">
-                            <div className="relative flex-1 md:w-72">
+                          <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto relative z-10">
+                            <div className="relative w-full sm:w-72">
                               <select
                                 className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-sm font-bold text-white shadow-sm focus:ring-4 focus:ring-primary/20 appearance-none cursor-pointer outline-none backdrop-blur-md"
                                 defaultValue={o.delivery_person_id || ""}
@@ -283,7 +282,6 @@ export default function DeliveryManager() {
                                   </option>
                                 ))}
                               </select>
-                              <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" size={16} />
                             </div>
                             {assigning === o.id && <span className="loading loading-spinner loading-sm text-primary" />}
                           </div>

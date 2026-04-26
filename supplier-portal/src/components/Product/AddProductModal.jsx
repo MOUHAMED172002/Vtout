@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../clerk-shim';
 
 import {
   getCategories,
@@ -16,14 +16,17 @@ import {
   createAttribute,
   addAttributeValue,
   createProduct,
-  getProducts
+  getProducts,
+  updateProduct
 } from '../../services/productService';
 import { getSuppliers } from '../../services/supplierService';
 import { uploadSingleImage } from '../../services/uploadService';
 import CategorySearchModal from './CategorySearchModal';
+import CustomSelect from '../Shared/CustomSelect';
 
 const baseSteps = [
   { id: 'info', title: 'Informations', icon: Info },
+  { id: 'attributes', title: 'Attributs', icon: Hash },
   { id: 'images', title: 'Images', icon: ImageIcon },
   { id: 'variants', title: 'Variantes', icon: Layers },
   { id: 'suppliers', title: 'Logistique', icon: Truck },
@@ -75,6 +78,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     return isSupplier
       ? [
         { id: 'info', title: 'Informations', icon: Info },
+        { id: 'attributes', title: 'Attributs', icon: Hash },
         { id: 'images', title: 'Images', icon: ImageIcon },
         { id: 'variants', title: 'Variantes', icon: Layers },
         { id: 'suppliers', title: 'Prix & Stock', icon: Truck },
@@ -130,27 +134,10 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const productName = watch('name');
   const catId = watch('category_id');
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (productName && productName.length > 3 && catId) {
-        checkExisting(productName, catId);
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [productName, catId]);
+  const productName = watch('name');
+  const catId = watch('category_id');
 
-  const checkExisting = async (name, cid) => {
-    setCheckingExisting(true);
-    try {
-      const prods = await getProducts({ category_id: cid });
-      const match = prods.find(p => p.name.toLowerCase().trim() === name.toLowerCase().trim());
-      setExistingProduct(match || null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCheckingExisting(false);
-    }
-  };
+  const variants = watch('variants');
 
   const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
     control,
@@ -161,20 +148,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const variants = watch('variants');
 
   useEffect(() => {
-    if (selectedCategoryId) {
-      const fetchCategoryAttrs = async () => {
-        try {
-          const catAttrs = await getAttributesByCategory(selectedCategoryId);
-          setAvailableAttributes(catAttrs);
-        } catch (err) {
-          console.error("Error fetching category attributes:", err);
-        }
-      };
-      fetchCategoryAttrs();
-    } else {
-      setAvailableAttributes([]);
-    }
-  }, [selectedCategoryId]);
+    const fetchAllAttrs = async () => {
+      try {
+        const allAttrs = await getAttributes();
+        setAvailableAttributes(allAttrs || []);
+      } catch (err) {
+        console.error("Error fetching attributes:", err);
+      }
+    };
+    fetchAllAttrs();
+  }, []);
 
   const selectedCategory = useMemo(() => {
     return categories.find(c => String(c.id) === String(selectedCategoryId));
@@ -416,7 +399,26 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         uploadedImages.push({ url, isMain: img.isMain });
       }
 
-      const mainImageUrl = uploadedImages.find(img => img.isMain)?.url || null;
+      const mainImageUrl = uploadedImages.find(img => img.isMain)?.url || (uploadedImages.length > 0 ? uploadedImages[0].url : null);
+
+      const processedVariants = [];
+      for (const v of (data.variants || [])) {
+        let vImageUrl = mainImageUrl;
+        if (v.image_file) {
+          vImageUrl = await uploadSingleImage(v.image_file, token);
+        }
+        processedVariants.push({
+          ...v,
+          price: !isSupplier ? (parseFloat(v.price) || parseFloat(data.price) || 0) : 0,
+          old_price: !isSupplier ? (v.old_price ? parseFloat(v.old_price) : (data.old_price ? parseFloat(data.old_price) : null)) : null,
+          stock: parseInt(v.stock) || 0,
+          image_url: vImageUrl,
+          supplierLinks: (v.supplierLinks || []).map(link => ({
+            ...link,
+            supplier_price: parseFloat(link.supplier_price) || 0
+          }))
+        });
+      }
 
       const payload = {
         name: data.name,
@@ -429,17 +431,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         is_flash_sale: data.is_flash_sale,
         flash_sale_end: data.is_flash_sale ? data.flash_sale_end : null,
         supplier_note: data.supplier_note || null,
-        variants: (data.variants || []).map(v => ({
-          ...v,
-          price: !isSupplier ? (parseFloat(v.price) || parseFloat(data.price) || 0) : 0,
-          old_price: !isSupplier ? (v.old_price ? parseFloat(v.old_price) : (data.old_price ? parseFloat(data.old_price) : null)) : null,
-          stock: parseInt(v.stock) || 0,
-          image_url: v.image_url || mainImageUrl,
-          supplierLinks: (v.supplierLinks || []).map(link => ({
-            ...link,
-            supplier_price: parseFloat(link.supplier_price) || 0
-          }))
-        })),
+        variants: processedVariants,
         supplier_price: isSupplier ? parseFloat(globalSupplierPrice) || 0 : null
       };
 
@@ -576,38 +568,23 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             </motion.div>
           )}
 
-          {steps[currentStep].id === 'images' && (
-            <motion.div key="images" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-              <div className="flex justify-between items-center">
-                <h3 className="text-3xl font-black text-slate-900">Galerie <span className="text-slate-400">Visuelle.</span></h3>
-                <label className="flex items-center gap-3 px-8 py-4 bg-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white cursor-pointer">
-                  <Upload size={14} /> Ajouter des photos
-                  <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-                </label>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {imageFiles.map((img, idx) => (
-                  <div key={idx} className={`relative aspect-square rounded-3xl overflow-hidden border-4 ${img.isMain ? 'border-primary' : 'border-white'}`}>
-                    <img src={img.preview} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity">
-                      <button type="button" onClick={() => setMainImage(idx)} className="btn btn-xs btn-primary">Cover</button>
-                      <button type="button" onClick={() => removeImage(idx)} className="btn btn-xs btn-error">Supprimer</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {steps[currentStep].id === 'variants' && (
-            <motion.div key="variants" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
+          {steps[currentStep].id === 'attributes' && (
+            <motion.div key="attributes" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
               <div className="bg-slate-900 rounded-[3rem] p-10 text-white space-y-10">
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-black">Générateur <span className="text-primary">Intelligent.</span></h3>
+                  <h3 className="text-2xl font-black">Configuration <span className="text-primary">Attributs.</span></h3>
+                  <p className="text-xs text-slate-400 font-bold">Sélectionnez les attributs disponibles pour votre produit (Couleur, Taille, etc.)</p>
                   <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                      <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
+                      </div>
+                      {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (
+                        <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-8 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] whitespace-nowrap shadow-xl shadow-primary/20">
+                          {inlineLoading ? "Création..." : "+ Créer Attribut"}
+                        </button>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {availableAttributes.filter(a => a.name.toLowerCase().includes(attrSearchQuery.toLowerCase())).map(attr => (
@@ -637,33 +614,125 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                               {v.value}
                             </button>
                           ))}
+                          <div className="ml-2 flex items-center">
+                            <InlineAdder label="valeur" onAdd={(val) => addAttributeValueLocal(attr.id, val)} loading={inlineLoading} />
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-                <button type="button" onClick={generateVariants} disabled={selectedAttributes.length === 0} className="w-full py-5 bg-primary rounded-3xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20">Générer les variantes</button>
+                <button type="button" onClick={() => { generateVariants(); nextStep(); }} disabled={selectedAttributes.length === 0} className="w-full py-5 bg-primary rounded-3xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20">Générer & Continuer</button>
               </div>
+            </motion.div>
+          )}
 
-              {variantFields.length > 0 && (
-                <div className="grid grid-cols-1 gap-6">
+          {steps[currentStep].id === 'images' && (
+            <motion.div key="images" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+              <div className="flex justify-between items-center">
+                <h3 className="text-3xl font-black text-slate-900">Galerie <span className="text-slate-400">Visuelle.</span></h3>
+                <label className="flex items-center gap-3 px-8 py-4 bg-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white cursor-pointer">
+                  <Upload size={14} /> Ajouter des photos
+                  <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {imageFiles.map((img, idx) => (
+                  <div key={idx} className={`relative aspect-square rounded-3xl overflow-hidden border-4 ${img.isMain ? 'border-primary' : 'border-white'}`}>
+                    <img src={img.preview} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity">
+                      <button type="button" onClick={() => setMainImage(idx)} className="px-4 py-2 bg-primary text-white rounded-lg text-[10px] font-black uppercase">Cover</button>
+                      <button type="button" onClick={() => removeImage(idx)} className="px-4 py-2 bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase">Supprimer</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {steps[currentStep].id === 'variants' && (
+            <motion.div key="variants" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Personnalisation des <span className="text-primary">Variantes.</span></h3>
+              
+              {variantFields.length > 0 ? (
+                <div className="grid grid-cols-1 gap-8">
                   {variantFields.map((field, index) => (
-                    <div key={field.id} className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
-                      <div className="flex justify-between items-center mb-6">
-                        <div className="flex gap-2">
-                          {field.combination && Object.entries(field.combination).map(([a, v], i) => (
-                            <span key={i} className="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded-lg uppercase">{a}: {v}</span>
-                          ))}
+                    <div key={field.id} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group">
+                      <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+                        {/* Variant Image Upload */}
+                        <div className="w-full md:w-32 aspect-square relative group/img">
+                          <div className="w-full h-full bg-slate-50 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-200 overflow-hidden relative">
+                            {watch(`variants.${index}.preview_url`) ? (
+                              <img src={watch(`variants.${index}.preview_url`)} className="w-full h-full object-cover" />
+                            ) : (
+                              <>
+                                <ImageIcon className="w-8 h-8 text-slate-300" />
+                                <span className="text-[8px] font-black uppercase text-slate-400 mt-2">Variante</span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  setValue(`variants.${index}.image_file`, file);
+                                  setValue(`variants.${index}.preview_url`, URL.createObjectURL(file));
+                                }
+                              }}
+                            />
+                          </div>
+                          {watch(`variants.${index}.preview_url`) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setValue(`variants.${index}.image_file`, null);
+                                setValue(`variants.${index}.preview_url`, null);
+                              }}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
                         </div>
-                        <button type="button" onClick={() => removeVariant(index)} className="text-slate-300 hover:text-rose-500"><Trash2 size={16} /></button>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {!isSupplier && <input type="number" {...register(`variants.${index}.price`)} className="input input-bordered rounded-xl text-xs" placeholder="Prix" />}
-                        <input type="number" {...register(`variants.${index}.stock`)} className="input input-bordered rounded-xl text-xs" placeholder="Stock" />
-                        <input type="text" {...register(`variants.${index}.sku`)} className="input input-bordered rounded-xl text-xs" placeholder="SKU" />
+
+                        <div className="flex-1 space-y-6">
+                          <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
+                              {field.combination && Object.entries(field.combination).map(([a, v], i) => (
+                                <span key={i} className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black rounded-lg uppercase tracking-wider shadow-sm">{a}: {v}</span>
+                              ))}
+                            </div>
+                            <button type="button" onClick={() => removeVariant(index)} className="w-10 h-10 rounded-xl bg-rose-50 text-rose-300 hover:text-rose-500 hover:bg-rose-100 transition-all flex items-center justify-center"><Trash2 size={18} /></button>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            {!isSupplier && (
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 px-1">Prix Vente</label>
+                                <input type="number" {...register(`variants.${index}.price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 text-xs font-black" placeholder="0" />
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-400 px-1">Stock</label>
+                              <input type="number" {...register(`variants.${index}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 text-xs font-black text-primary" placeholder="0" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-400 px-1">SKU / Réf</label>
+                              <input type="text" {...register(`variants.${index}.sku`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 text-xs font-black" placeholder="REF-" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div className="py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center gap-6 text-slate-300">
+                  <Layers size={64} strokeWidth={1} />
+                  <div className="text-center space-y-2">
+                    <p className="font-black text-slate-400 uppercase tracking-widest">Aucune variante générée</p>
+                    <button type="button" onClick={() => setCurrentStep(steps.findIndex(s => s.id === 'attributes'))} className="text-primary text-xs font-black hover:underline uppercase tracking-widest">Retourner aux attributs</button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -679,11 +748,19 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {!isSupplier ? (
-                    <select value={selectedSupplierId} onChange={e => { setSelectedSupplierId(e.target.value); setCreatingSupplier(e.target.value === 'new'); }} className="select select-bordered rounded-2xl">
-                      <option value="">Fournisseur...</option>
-                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      <option value="new">+ Nouveau</option>
-                    </select>
+                    <CustomSelect
+                      value={selectedSupplierId}
+                      onChange={val => {
+                        setSelectedSupplierId(val);
+                        setCreatingSupplier(val === 'new');
+                      }}
+                      options={[
+                        ...suppliers.map(s => ({ value: s.id, label: s.name })),
+                        { value: 'new', label: '+ Nouveau' }
+                      ]}
+                      placeholder="Fournisseur..."
+                      className="w-full"
+                    />
                   ) : (
                     <div className="p-4 bg-white rounded-2xl flex items-center gap-3">
                       <Truck className="text-primary" />

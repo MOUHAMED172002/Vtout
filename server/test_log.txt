@@ -1,0 +1,12 @@
+Starting test...
+ERROR CAUGHT:
+SequelizeConnectionError: connect ETIMEDOUT
+    at ConnectionManager.connect (C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\dialects\mysql\connection-manager.js:102:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ConnectionManager._connect (C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:222:24)
+    at async C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:174:32
+    at async ConnectionManager.getConnection (C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\dialects\abstract\connection-manager.js:197:7)
+    at async C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\sequelize.js:305:26
+    at async MySQLQueryInterface.select (C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\dialects\abstract\query-interface.js:407:12)
+    at async Review.findAll (C:\Users\Afiss\Documents\eshop\server\node_modules\sequelize\lib\model.js:1140:21)
+    at async test (file:///C:/Users/Afiss/Documents/eshop/server/test_query2.js:7:25)

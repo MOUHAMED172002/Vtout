@@ -5,7 +5,9 @@ import {
   Users,
   DollarSign,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Store,
+  Truck
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -14,38 +16,47 @@ const StatCard = ({ title, value, icon, color, trend, index }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1 }}
-    className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-100/50 flex flex-col gap-6 group hover:border-primary/20 transition-all"
+    className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-100/50 flex flex-col gap-4 group hover:border-primary/20 transition-all"
   >
     <div className="flex items-start justify-between">
-      <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center text-slate-900 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+      <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-500`}>
         {icon}
       </div>
       {trend && (
         <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${trend > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-          {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+          {trend > 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
           {Math.abs(trend)}%
         </div>
       )}
     </div>
     <div>
-      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{title}</p>
-      <p className="text-3xl font-black text-gray-900 tracking-tight">{value}</p>
+      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{title}</p>
+      <p className="text-2xl font-black text-gray-900 tracking-tight">{value}</p>
     </div>
   </motion.div>
 );
 
 const QuickStats = ({ stats = {} }) => {
-  const { revenue = 0, orders = 0, customers = 0, avg_order_value = 0 } = stats;
+  const { 
+    revenue = 0, 
+    admin_profit = 0, 
+    delivery_profits = 0, 
+    supplier_profits = 0, 
+    orders = 0, 
+    customers = 0 
+  } = stats;
 
   const config = [
-    { title: "Chiffre d'Affaire", value: `${Number(revenue).toLocaleString()} F`, icon: <TrendingUp size={24} />, color: "bg-indigo-600 shadow-indigo-100", trend: 14.5 },
-    { title: "Volume Commandes", value: orders.toLocaleString(), icon: <ShoppingBag size={24} />, color: "bg-primary shadow-orange-100", trend: 8.2 },
-    { title: "Membres Actifs", value: customers.toLocaleString(), icon: <Users size={24} />, color: "bg-emerald-600 shadow-emerald-100", trend: -2.4 },
-    { title: "Valeur Panier", value: `${Number(avg_order_value).toLocaleString()} F`, icon: <DollarSign size={24} />, color: "bg-amber-500 shadow-amber-100", trend: 3.1 },
+    { title: "Ventes Globales", value: `${Number(revenue).toLocaleString()} F`, icon: <TrendingUp size={20} />, color: "bg-slate-900 shadow-slate-200" },
+    { title: "Commission Admin", value: `${Number(admin_profit).toLocaleString()} F`, icon: <DollarSign size={20} />, color: "bg-purple-600 shadow-purple-100" },
+    { title: "Gains Livreurs", value: `${Number(delivery_profits).toLocaleString()} F`, icon: <Truck size={20} />, color: "bg-blue-600 shadow-blue-100" },
+    { title: "Gains Fournisseurs", value: `${Number(supplier_profits).toLocaleString()} F`, icon: <Store size={20} />, color: "bg-emerald-600 shadow-emerald-100" },
+    { title: "Commandes", value: orders.toLocaleString(), icon: <ShoppingBag size={20} />, color: "bg-primary shadow-orange-100" },
+    { title: "Clients", value: customers.toLocaleString(), icon: <Users size={20} />, color: "bg-amber-500 shadow-amber-100" },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
       {config.map((stat, idx) => (
         <StatCard
           key={idx}

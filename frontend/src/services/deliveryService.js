@@ -1,9 +1,16 @@
 import api from "./api";
 
 export const registerLivreur = async (token, data) => {
-    // Note: token parameter kept for backward compatibility but api handles session via cookie
-    const res = await api.post("/delivery/register", data);
-    return res.data;
+    try {
+        const res = await api.post("/delivery/register", data);
+        return res.data;
+    } catch (err) {
+        if (err.response && err.response.data) {
+            console.error("SERVER ERROR DETAIL:", err.response.data);
+            throw new Error(JSON.stringify(err.response.data));
+        }
+        throw err;
+    }
 };
 
 export const getAvailableOrders = async (token) => {
@@ -31,8 +38,8 @@ export const releaseOrder = async (token, orderId) => {
     return res.data;
 };
 
-export const updateDeliveryStatus = async (token, orderId, status, delivery_code = null) => {
-    const res = await api.post("/delivery/status", { orderId, status, delivery_code });
+export const updateDeliveryStatus = async (token, orderId, status, delivery_code = null, proof_url = null) => {
+    const res = await api.post("/delivery/status", { orderId, status, delivery_code, proof_url });
     return res.data;
 };
 

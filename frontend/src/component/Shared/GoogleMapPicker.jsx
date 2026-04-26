@@ -123,7 +123,7 @@ function MapContent({ position, onMapClick, onSearchSelect }) {
             <Map
                 defaultCenter={BENIN_CENTER}
                 defaultZoom={7}
-                mapId="eshop-map"
+                mapId="Vtout-map"
                 gestureHandling="greedy"
                 disableDefaultUI={false}
                 clickableIcons={false}

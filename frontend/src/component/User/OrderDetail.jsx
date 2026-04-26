@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../lib/clerk-shim";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
 import {
@@ -21,11 +21,11 @@ import {
   Navigation,
   PackageCheck,
   XCircle,
-  Store
+  Store,
+  User
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import LiveDeliveryMap from "../Shared/LiveDeliveryMap";
 
 /* ── Timeline progression ──────────────────────────────────────────────────── */
 const STEPS = [
@@ -102,18 +102,29 @@ export default function OrderDetail() {
 
   useEffect(() => {
     async function load() {
+      if (!id || id === "undefined") {
+        console.warn("OrderDetail: ID is missing or undefined string");
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       try {
         const token = await getToken();
         setOrder(await getOrderById(id, token));
       } catch (err) {
-        console.error("OrderDetail:", err);
-        toast.error("Impossible de charger la commande.");
+        console.error("OrderDetail error:", err);
+        // Special case: 404
+        if (err.response?.status === 404) {
+          setOrder(null);
+        } else {
+          toast.error("Impossible de charger la commande.");
+        }
       } finally {
         setLoading(false);
       }
     }
-    if (id) load();
+    load();
   }, [id, getToken]);
 
   /* ── Loading ── */
@@ -338,28 +349,23 @@ export default function OrderDetail() {
           </div>
         )}
 
-        {/* ── LIVE TRACKING (New) ── */}
-        {normalizedStatus === 'expediee' && (
-          <div className="px-10 md:px-14 py-10 bg-blue-50/30 border-b border-blue-100/50 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Suivi en Direct.</h3>
-                <p className="text-xs font-bold text-slate-400">Votre livreur est en mouvement vers votre adresse.</p>
+        {/* ── DELIVERY CODE (Updated) ── */}
+        {(normalizedStatus === 'expediee' || normalizedStatus === 'confirmee') && (
+          <div className="px-10 md:px-14 py-10 bg-slate-50 border-b border-slate-100 space-y-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-2 text-center md:text-left">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2 justify-center md:justify-start">
+                  <ShieldCheck className="text-primary" size={24} /> 
+                  Code de Confirmation.
+                </h3>
+                <p className="text-xs font-bold text-slate-400">Ce code est unique et servira à valider votre livraison.</p>
               </div>
-              <div className="bg-white px-6 py-3 rounded-2xl border-2 border-primary/20 shadow-xl shadow-primary/5 text-center">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Code de confirmation</p>
-                <p className="text-3xl font-black text-primary tracking-[0.2em]">{order.delivery_code || '----'}</p>
-                <p className="text-[9px] font-bold text-slate-400 max-w-[150px] mx-auto mt-2 leading-tight">Veuillez donner ce code au livreur à son arrivée.</p>
+              <div className="bg-white px-10 py-5 rounded-[2rem] border-2 border-primary/20 shadow-xl shadow-primary/5 text-center min-w-[200px]">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Code Confidentiel</p>
+                <p className="text-4xl font-black text-primary tracking-[0.2em]">{order.delivery_code || '----'}</p>
+                <p className="text-[9px] font-bold text-slate-400 max-w-[150px] mx-auto mt-2 leading-tight">Présentez ce code au livreur pour recevoir votre colis.</p>
               </div>
             </div>
-            
-            <LiveDeliveryMap 
-              orderId={order.id} 
-              clientLat={order.address?.lat} 
-              clientLng={order.address?.lng}
-              supplierLat={order.supplier?.lat}
-              supplierLng={order.supplier?.lng}
-            />
           </div>
         )}
 
@@ -434,15 +440,27 @@ export default function OrderDetail() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm font-bold">
                   <span className="text-slate-400 uppercase tracking-wide text-xs">Sous-total</span>
-                  <span>{Number(order.total_amount).toLocaleString()} F</span>
+                  <span>{(Number(order.total_amount) + Number(order.discount_amount || 0) - Number(order.delivery_fee || 0)).toLocaleString()} F</span>
                 </div>
+                {order.discount_amount > 0 && (
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-emerald-500 uppercase tracking-wide text-xs flex items-center gap-2">
+                      <Zap size={12} /> Réduction {order.coupon_code ? `(${order.coupon_code})` : ""}
+                    </span>
+                    <span className="text-emerald-500">-{Number(order.discount_amount).toLocaleString()} F</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-sm font-bold">
                   <span className="text-slate-400 uppercase tracking-wide text-xs">Livraison</span>
-                  <span className="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg text-xs font-black">OFFERT</span>
+                  {Number(order.delivery_fee) > 0 ? (
+                    <span>{Number(order.delivery_fee).toLocaleString()} F</span>
+                  ) : (
+                    <span className="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg text-xs font-black">OFFERT</span>
+                  )}
                 </div>
                 <div className="h-px bg-slate-100" />
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Total</span>
+                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Total Final</span>
                   <span className="text-3xl font-black text-primary tracking-tighter">
                     {Number(order.total_amount).toLocaleString()} F
                   </span>
@@ -461,7 +479,7 @@ export default function OrderDetail() {
                 <div className="space-y-1 relative z-10">
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Destinataire</p>
                   <h4 className="text-lg font-black leading-tight">
-                    {order.address?.address_line || order.guest_name || "Client EShop"}
+                    {order.address?.address_line || order.guest_name || "Client Vtout"}
                   </h4>
                 </div>
 
@@ -498,28 +516,7 @@ export default function OrderDetail() {
               </div>
             </div>
 
-            {/* Fournisseur */}
-            {order.supplier && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Vendu par.</h3>
-                <div className="p-6 bg-slate-50 rounded-[2rem] flex items-center gap-4 border border-slate-100">
-                  <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm border border-slate-100">
-                    <Store size={18} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-slate-900 leading-none">
-                      {order.supplier.name}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 line-clamp-1">
-                      {order.supplier.commune} · {order.supplier.quartier}
-                    </p>
-                    <a href={`tel:${order.supplier.phone}`} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1 mt-1">
-                      <Phone size={10} /> {order.supplier.phone}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Fournisseur info hidden from customer */}
 
             {/* Paiement */}
             <div className="space-y-4">

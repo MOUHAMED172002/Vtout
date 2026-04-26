@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { SignedIn, SignedOut } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useAuth } from './lib/clerk-shim';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,10 +28,11 @@ import Register from './component/Auth/Register';
 import ResetPassword from './component/Auth/ResetPassword';
 import ProfileSync from './component/Auth/ProfileSync';
 import SEO from './component/Shared/SEO';
-import FlashSaleSection from './component/Home/FlashSaleSection';
+
 import ScrollToTop from './component/Shared/ScrollToTop';
 import CookieConsent from './component/Shared/CookieConsent';
 import SupportChat from './component/Shared/SupportChat';
+import SupplierBlockModal from './component/Shared/SupplierBlockModal';
 
 // --- Pages/Routes ---
 import ProductsList from './component/Products/ProductsList';
@@ -46,12 +47,13 @@ import AdminLayout from './component/Admin/AdminLayaout'; // Note: maintained ty
 import FaqList from './component/Popup/Faq';
 import PolicyPage from './component/Popup/Policypage';
 import About from './component/About/About';
+import PlatformReviews from './component/Popup/PlatformReviews';
+import NotFoundPage from './component/Shared/NotFoundPage';
 
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
 import DevenirLivreur from './component/Delivery/DevenirLivreur';
 import { useProfile } from './component/context/useProfile';
-import { ConfigProvider } from './component/context/ConfigContext';
 
 // --- Supplier ---
 import SupplierRegister from './component/Supplier/SupplierRegister';
@@ -80,9 +82,29 @@ const BannerData2 = {
   bgcolor: '#2dcc6f'
 };
 
-const AppContent = ({ products }) => {
+const AppContent = ({ products, loading }) => {
   const location = useLocation();
   const { user: profileUser, loading: profileLoading } = useProfile();
+  const { signOut } = useAuth();
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+
+  useEffect(() => {
+    // Ne pas bloquer si l'utilisateur est déjà sur une route fournisseur
+    const isSupplierRoute = location.pathname.startsWith('/fournisseur');
+    if (profileUser?.role === 'fournisseur' && !isSupplierRoute) {
+      setShowSupplierModal(true);
+    }
+  }, [profileUser, location.pathname]);
+
+  const handleSupplierSignOut = async (redirectToRegister = false) => {
+    await signOut();
+    setShowSupplierModal(false);
+    if (redirectToRegister) {
+      window.location.href = '/auth/inscription';
+    } else {
+      window.location.href = '/auth/connexion';
+    }
+  };
 
   const pageVariants = {
     initial: { opacity: 0, y: 10 },
@@ -102,18 +124,23 @@ const AppContent = ({ products }) => {
     </motion.div>
   );
 
+  const SUPPLIER_PORTAL_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174';
+
   const Home = () => {
-    // Si l'utilisateur est un livreur, il n'a accès qu'à son dashboard
+    // Les livreurs n'ont accès qu'à leur dashboard
     if (profileUser?.role === 'livreur') {
       return <Navigate to="/delivery-rider" replace />;
+    }
+    // Les fournisseurs ne peuvent pas utiliser le portail client avec leur compte pro
+    if (profileUser?.role === 'fournisseur') {
+      return null; // The modal handles the UI
     }
     return (
       <>
         <Navbar />
         <Hero />
         <Category />
-        <FlashSaleSection />
-        <ProductGrid products={products} showButton={true} />
+        <ProductGrid products={products} showButton={true} loading={loading} />
         <Services />
         <Footer />
       </>
@@ -121,23 +148,27 @@ const AppContent = ({ products }) => {
   };
 
   const PublicRoute = ({ children }) => {
-    const isLivreur = profileUser?.role === 'livreur';
-    if (isLivreur && !location.pathname.startsWith('/delivery-rider')) {
+    // Livreur : uniquement son dashboard
+    if (profileUser?.role === 'livreur' && !location.pathname.startsWith('/delivery-rider')) {
       return <Navigate to="/delivery-rider" replace />;
+    }
+    // Fournisseur : doit se déconnecter pour utiliser le portail client
+    if (profileUser?.role === 'fournisseur') {
+      return null; // Modal handles this
     }
     return children;
   };
 
   if (profileLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-white">
+      <div className="h-screen w-screen flex items-center justify-center bg-base-100">
         <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:text-slate-900 duration-200 overflow-hidden">
+    <div className="bg-base-100 text-base-content transition-colors duration-300 overflow-hidden min-h-screen">
       <SEO />
       <ProfileSync />
 
@@ -153,6 +184,7 @@ const AppContent = ({ products }) => {
           <Route path="/about" element={<PublicRoute><PageWrapper><><Navbar /><About /><Footer /></></PageWrapper></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><PageWrapper><><Navbar /><CartPage /><Footer /></></PageWrapper></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><PageWrapper><><Navbar /><CheckoutPage /><Footer /></></PageWrapper></PublicRoute>} />
+          <Route path="/temoignages" element={<PageWrapper><><Navbar /><PlatformReviews /><Footer /></></PageWrapper>} />
 
           {/* Auth Routes */}
           <Route path="/auth/inscription/*" element={<PageWrapper><><Navbar /><Register /><Footer /></></PageWrapper>} />
@@ -235,10 +267,19 @@ const AppContent = ({ products }) => {
 
           <Route path="/admin/Dashboard/*" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/order-confirmation/:orderId" element={<PageWrapper><><Navbar /><GuestOrderConfirmationPage /><Footer /></></PageWrapper>} />
+          <Route path="/orders" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/orders/:id" element={<PageWrapper><OrderDetail /></PageWrapper>} />
+
+          {/* Catch-all 404 */}
+          <Route path="*" element={<PageWrapper><NotFoundPage /></PageWrapper>} />
         </Routes>
       </AnimatePresence>
       <CookieConsent />
+      <SupplierBlockModal 
+        isOpen={showSupplierModal} 
+        onClose={() => handleSupplierSignOut(false)}
+        onAction={() => handleSupplierSignOut(true)}
+      />
     </div>
   );
 };
@@ -250,27 +291,29 @@ const App = () => {
   }, []);
 
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProductsData = async () => {
       try {
+        setLoading(true);
         const data = await getProducts({ limit: 20 });
         setProducts(data);
       } catch (error) {
         console.error('Erreur produits:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProductsData();
   }, []);
 
   return (
-    <Router>
-      <ConfigProvider>
-        <ScrollToTop />
-        <AppContent products={products} />
-        <SupportChat />
-      </ConfigProvider>
-    </Router>
+    <div className="app-container">
+      <ScrollToTop />
+      <AppContent products={products} loading={loading} />
+      <SupportChat />
+    </div>
   );
 };
 

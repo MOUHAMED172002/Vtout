@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
-import { Package, Plus, Clock, CheckCircle, XCircle, ChevronRight, BarChart3, Store, MapPin, Loader2, Navigation } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { getProducts } from '../../services/productService';
+import { useAuth } from '../../lib/clerk-shim';
+import { getMySupplierProfile, updateMySupplierProfile, getMySupplierProducts } from '../../services/supplierService';
 import { getMySupplierOrders } from '../../services/orderService';
-import { getMySupplierProfile, updateMySupplierProfile } from '../../services/supplierService';
-import UnifiedLocationPicker from '../Shared/UnifiedLocationPicker';
+import AddressSelector from '../context/AddressSelector';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2 } from 'lucide-react';
 
 const SupplierDashboard = () => {
     const { user, getToken } = useAuth();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [updatingLocation, setUpdatingLocation] = useState(false);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [products, setProducts] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -24,7 +27,7 @@ const SupplierDashboard = () => {
                 const prof = await getMySupplierProfile(token);
                 setProfile(prof);
 
-                const prods = await getProducts();
+                const prods = await getMySupplierProducts(token);
                 setProducts(prods.slice(0, 5));
 
                 if (token) {
@@ -33,6 +36,9 @@ const SupplierDashboard = () => {
                 }
             } catch (error) {
                 console.error(error);
+                if (error.response?.status === 404) {
+                    navigate('/fournisseur/register');
+                }
             } finally {
                 setLoading(false);
             }
@@ -44,15 +50,26 @@ const SupplierDashboard = () => {
         setUpdatingLocation(true);
         try {
             const token = await getToken();
-            await updateMySupplierProfile({
-                lat: loc.lat,
-                lng: loc.lng,
-                address_line: loc.formattedAddress
-            }, token);
-            setProfile(prev => ({ ...prev, lat: loc.lat, lng: loc.lng, address_line: loc.formattedAddress }));
-            toast.success("Emplacement de la boutique mis à jour !");
+            const updateData = {
+                departement_label: loc.departement_label,
+                departement_id: loc.departement_id,
+                commune_label: loc.commune_label,
+                commune_id: loc.commune_id,
+                quartier_label: loc.quartier_label,
+                quartier_id: loc.quartier_id,
+                address_line: loc.address_line,
+                phone: loc.phone || profile.phone,
+                lat: loc.lat || 0,
+                lng: loc.lng || 0
+            };
+            
+            await updateMySupplierProfile(updateData, token);
+            setProfile(prev => ({ ...prev, ...updateData }));
+            toast.success("Adresse de la boutique mise à jour !");
+            setShowAddressModal(false);
         } catch (err) {
-            toast.error("Échec de la mise à jour de l'emplacement");
+            console.error(err);
+            toast.error("Échec de la mise à jour de l'adresse");
         } finally {
             setUpdatingLocation(false);
         }
@@ -60,7 +77,7 @@ const SupplierDashboard = () => {
 
     const stats = [
         { label: 'Produits en ligne', value: products.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
-        { label: 'En attente', value: products.filter(p => p.approval_status === '  En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
+        { label: 'En attente', value: products.filter(p => p.approval_status === 'En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
         { label: 'Total Commandes', value: orders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
     ];
 
@@ -69,7 +86,7 @@ const SupplierDashboard = () => {
             {/* Top Bar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.firstName}</h1>
+                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.fullName || user?.firstName}</h1>
                     <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Espace Gestion Fournisseur</p>
                 </div>
                 <button
@@ -139,37 +156,72 @@ const SupplierDashboard = () => {
                 <div className="space-y-8">
                     {/* Location Management Section */}
                     <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
-                                <MapPin size={24} />
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                                    <MapPin size={24} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-xl font-black tracking-tighter">Adresse Professionnelle</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Renseignement pour la logistique</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-black tracking-tighter">Votre Point de Retrait</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Utilisé par les livreurs pour vous trouver</p>
-                            </div>
+                            <button 
+                                onClick={() => setShowAddressModal(true)}
+                                className="p-3 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all"
+                                title="Modifier l'adresse"
+                            >
+                                <Edit2 size={18} />
+                            </button>
                         </div>
 
-                        <UnifiedLocationPicker 
-                            onLocationSelect={handleLocationUpdate}
-                            initialLat={profile?.lat}
-                            initialLng={profile?.lng}
-                            label="EMPLACEMENT DE VOTRE BOUTIQUE"
-                        />
+                        {profile ? (
+                            <div className="space-y-6">
+                                <div className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 relative group overflow-hidden">
+                                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <MapPin size={80} />
+                                     </div>
+                                     <div className="space-y-4 relative z-10">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Localité</p>
+                                            <p className="text-lg font-black text-slate-900 leading-tight">
+                                                {profile.quartier_label ? `${profile.quartier_label}, ` : ''}
+                                                {profile.commune_label}
+                                            </p>
+                                            <p className="text-[11px] font-bold text-slate-500">{profile.departement_label}</p>
+                                        </div>
 
-                        {profile?.lat && (
-                            <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Dernière adresse enregistrée</p>
-                                    <p className="text-sm font-bold text-slate-700 truncate">{profile.address_line || "Adresse non définie"}</p>
+                                        {profile.address_line && (
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Précisions</p>
+                                                <p className="text-sm font-bold text-slate-700">{profile.address_line}</p>
+                                            </div>
+                                        )}
+                                     </div>
                                 </div>
-                                <a 
-                                    href={`https://www.google.com/maps?q=${profile.lat},${profile.lng}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="w-12 h-12 bg-white border border-slate-200 text-slate-900 rounded-2xl flex items-center justify-center hover:bg-slate-50 transition-all"
+
+                                {profile.lat && profile.lng && profile.lat !== 0 && (
+                                    <div className="flex items-center gap-4">
+                                         <a 
+                                            href={`https://www.google.com/maps?q=${profile.lat},${profile.lng}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex-1 p-5 bg-white border border-slate-200 text-slate-900 rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-all font-black uppercase tracking-widest text-[10px]"
+                                        >
+                                            <Navigation size={18} /> Ouvrir sur Maps
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="py-10 text-center space-y-4">
+                                <p className="text-slate-400 font-bold text-sm italic">Aucune adresse configurée</p>
+                                <button 
+                                    onClick={() => setShowAddressModal(true)}
+                                    className="px-6 py-3 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg"
                                 >
-                                    <Navigation size={20} />
-                                </a>
+                                    Configurer maintenant
+                                </button>
                             </div>
                         )}
                     </div>
@@ -192,7 +244,7 @@ const SupplierDashboard = () => {
                                         {orders.slice(0, 3).map((ord) => (
                                             <div key={ord.id} className="p-4 bg-white/10 rounded-2xl">
                                                 <p className="font-bold text-sm">Commande #{ord.id.substring(0, 8)}</p>
-                                                <p className="text-xs text-white/60">{new Date(ord.created_at).toLocaleDateString()}</p>
+                                                <p className="text-xs text-white/60">{new Date(ord.createdAt || ord.created_at).toLocaleDateString()}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -207,6 +259,54 @@ const SupplierDashboard = () => {
                     </div>
                 </div>
             </div>
+            <AnimatePresence>
+                {showAddressModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden p-10 space-y-8"
+                        >
+                            <div className="flex justify-between items-center border-b border-slate-50 pb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                                        <MapPin size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tighter">Modifier l'adresse</h3>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Localité et précises pour les livreurs</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowAddressModal(false)}
+                                    className="p-3 bg-slate-50 hover:bg-rose-50 hover:text-rose-500 text-slate-400 rounded-2xl transition-all"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <AddressSelector 
+                                initial={{
+                                    departement_label: profile?.departement_label,
+                                    commune_label: profile?.commune_label,
+                                    quartier_label: profile?.quartier_label,
+                                    address_line: profile?.address_line,
+                                    phone: profile?.phone
+                                }}
+                                onSave={handleLocationUpdate}
+                                onCancel={() => setShowAddressModal(false)}
+                                requirePhone={true}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

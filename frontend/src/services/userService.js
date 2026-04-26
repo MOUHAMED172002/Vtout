@@ -34,3 +34,9 @@ export const updateProfileStatus = async (id, isActive, token) => {
     });
     return data;
 };
+export const switchRole = async (newRole, token) => {
+    const { data } = await api.post('/profiles/switch-role', { newRole }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};

@@ -3,54 +3,91 @@
 @tailwind utilities;
 
 :root {
+    /* Primary: Deep sophisticated orange/coral */
     --primary: #f97316;
-    /* Orange vibrant */
     --primary-focus: #ea580c;
+    --primary-soft: #fff7ed;
+    
+    /* Neutrals: Rich slates with slight blue tint for harmony */
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-400: #94a3b8;
+    --slate-600: #475569;
+    --slate-900: #0f172a;
+
     --neutral-dark: #0f172a;
-    /* Navy profond */
-    --neutral-light: #f8fafc;
+    --neutral-light: #fdfeff;
+    
+    /* Glassmorphism primitives */
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.3);
+    
+    /* Semantic Colors */
+    --success: #10b981;
+    --error: #f43f5e;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --brand-blue: #0054a6;
+    --brand-orange: #f37021;
+}
+
+.brand-vtout {
+    @apply font-black tracking-tighter flex items-center gap-0;
+    font-family: 'Inter', sans-serif;
+}
+
+.brand-vtout .brand-v {
+    color: var(--brand-blue);
+}
+
+.brand-vtout .brand-tout {
+    color: var(--brand-orange);
 }
 
 @layer base {
     body {
-        @apply text-slate-900 bg-slate-50 font-sans antialiased selection:bg-orange-100 selection:text-orange-600;
+        @apply bg-base-100 text-base-content font-sans antialiased selection:bg-primary/10 selection:text-primary;
     }
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        @apply tracking-tight;
+    h1, h2, h3, h4, h5, h6 {
+        @apply tracking-tightest leading-tight;
     }
 
     select {
-        @apply text-slate-900 font-bold bg-white border-slate-200 cursor-pointer transition-all;
+        @apply text-base-content font-bold bg-base-100 border border-base-content/10 cursor-pointer transition-all duration-300 rounded-2xl shadow-sm;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1.5rem center;
+        background-size: 1.2em;
+        padding-right: 3.5rem;
+        appearance: none;
     }
 
-    option {
-        @apply text-slate-900 bg-white font-medium p-4;
+    select:focus {
+        @apply border-primary ring-[6px] ring-primary/5 outline-none shadow-xl shadow-primary/5;
     }
 }
 
 @layer components {
     .glass-card {
-        @apply backdrop-blur-xl bg-white/70 border border-white/30 shadow-sm;
+        @apply backdrop-blur-3xl bg-base-100/60 border border-base-content/10 shadow-2xl shadow-base-300/50;
     }
 
     .glass-nav {
-        @apply backdrop-blur-md bg-white/80 border-b border-gray-100/50 sticky top-0 z-[100];
+        @apply backdrop-blur-2xl bg-base-100/70 border-b border-base-content/5 sticky top-0 z-[100] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)];
     }
 
     .btn-premium {
-        @apply px-8 py-3 rounded-2xl font-black transition-all duration-300 transform active:scale-95;
+        @apply px-10 py-5 rounded-[2rem] font-black transition-all duration-500 transform active:scale-95 shadow-xl hover:shadow-2xl bg-primary text-primary-content;
     }
 
     .search-bar {
-        @apply w-0 group-hover:w-[250px] md:group-hover:w-[350px] transition-all duration-500 rounded-full border-none px-0 group-hover:px-4 py-2 focus:outline-none bg-transparent group-hover:bg-gray-100/80 backdrop-blur-sm;
+        @apply w-0 group-hover:w-[250px] md:group-hover:w-[350px] transition-all duration-500 rounded-2xl border-none px-0 group-hover:px-6 py-3 focus:outline-none bg-transparent group-hover:bg-base-200/80 backdrop-blur-md font-bold text-sm text-base-content;
+    }
+
+    .select-premium {
+        @apply bg-base-100 border border-base-content/10 rounded-[1.5rem] px-8 py-5 text-sm font-black text-base-content shadow-sm transition-all duration-500 hover:border-base-content/30 hover:shadow-2xl hover:shadow-base-300/50;
     }
 
     /* Custom Admin Table */
@@ -73,11 +110,15 @@
 
 @layer utilities {
     .hero-bg-color {
-        @apply bg-gradient-to-br from-slate-50 via-white to-orange-50/30;
+        @apply bg-gradient-to-br from-white via-[#fdfeff] to-orange-50/40;
     }
 
     .text-gradient {
-        @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600;
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-400;
+    }
+
+    .tracking-tightest {
+        @apply tracking-[-.05em];
     }
 
     .custom-scrollbar::-webkit-scrollbar {
@@ -93,13 +134,20 @@
     }
 
     @keyframes shimmer {
-        100% {
-            transform: translateX(100%);
-        }
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
 
-    @keyframes pulse {
+    .animate-shimmer {
+        animation: shimmer 2s infinite linear;
+    }
+
+    @keyframes pulse-custom {
         0% { transform: scale(1); opacity: 0.8; }
         100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .category-modal-overlay {
+        @apply fixed inset-0 z-[10000];
     }
 }

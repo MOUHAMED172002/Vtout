@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
     X, Search, ChevronRight, ChevronDown, Check,
     Folder, FolderOpen, Tag, Sparkles
@@ -111,68 +112,79 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
         );
     };
 
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+    const modalContent = (
+        <div className="category-modal-overlay fixed inset-0 z-[2000000] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-2xl" onClick={onClose}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white w-full max-w-2xl h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+                exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                className="bg-white w-full max-w-2xl h-[85vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden relative z-[2000001] border border-white/20"
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-8 border-b border-slate-50">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
-                                <Sparkles size={24} />
+                <div className="p-10 border-b border-slate-50 bg-gradient-to-b from-slate-50/50 to-transparent">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 bg-primary rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-primary/30">
+                                <Sparkles size={28} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tighter">Choisir une <span className="text-slate-300">Catégorie.</span></h2>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Navigation hiérarchique</p>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tighter">Choisir une <span className="text-slate-300">Catégorie.</span></h2>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mt-1">Précision Absolute</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
-                            <X size={20} />
+                        <button 
+                          onClick={onClose} 
+                          className="w-12 h-12 rounded-2xl bg-slate-100/50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:rotate-90 transition-all duration-300"
+                        >
+                            <X size={24} />
                         </button>
                     </div>
 
                     <div className="relative group">
                         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
-                            <Search size={18} />
+                            <Search size={20} />
                         </div>
                         <input
                             type="text"
-                            placeholder="Rechercher une catégorie..."
+                            placeholder="Quelle catégorie recherchez-vous ?"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-6 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary/5 outline-none transition-all placeholder:text-slate-300"
+                            className="w-full bg-slate-100/50 border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 py-5 text-sm font-bold text-slate-700 focus:bg-white focus:border-primary/10 focus:ring-8 focus:ring-primary/5 outline-none transition-all placeholder:text-slate-300"
                         />
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-white">
                     {filteredTree.length > 0 ? (
                         filteredTree.map(root => renderNode(root))
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-20">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-                                <Search size={32} className="text-slate-200" />
+                        <div className="h-full flex flex-col items-center justify-center text-center gap-6 py-20">
+                            <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 shadow-inner">
+                                <Search size={40} />
                             </div>
                             <div>
-                                <p className="text-sm font-black text-slate-900">Aucun résultat</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Essayez une autre recherche</p>
+                                <p className="text-lg font-black text-slate-900 tracking-tight">Aucun résultat trouvé</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 max-w-[200px] leading-relaxed">Nous n'avons pas trouvé de catégorie correspondant à votre recherche.</p>
                             </div>
+                            <button onClick={() => setSearchTerm('')} className="text-primary font-black uppercase text-[10px] tracking-widest hover:underline">Réinitialiser la recherche</button>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
-                        Astuce : Sélectionnez la catégorie la plus précise possible
+                <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">
+                        Une sélection méticuleuse pour votre confort
                     </p>
                 </div>
             </motion.div>
         </div>
     );
+
+    const portalTarget = document.getElementById('modal-root');
+    if (!portalTarget) return null;
+
+    return createPortal(modalContent, portalTarget);
 }

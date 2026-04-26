@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const AttributeValue = sequelize.define('AttributeValue', {
     id: {
@@ -20,4 +20,4 @@ const AttributeValue = sequelize.define('AttributeValue', {
     underscored: true
 });
 
-module.exports = AttributeValue;
+export default AttributeValue;

@@ -1,7 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { requireAuth } from '../middleware/authMiddleware.js';
+import * as addressController from '../controllers/addressController.js';
+
 const router = express.Router();
-const addressController = require('../controllers/addressController');
-const { requireAuth } = require('../middleware/authMiddleware');
+
+
 
 router.get('/user/:userId', requireAuth, addressController.getUserAddresses);
 router.get('/me', requireAuth, addressController.getMyAddresses);
@@ -9,4 +12,4 @@ router.post('/', addressController.createAddress);
 router.patch('/:id', requireAuth, addressController.updateAddress);
 router.delete('/:id', requireAuth, addressController.deleteAddress);
 
-module.exports = router;
+export default router;

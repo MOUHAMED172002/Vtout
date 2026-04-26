@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useAuth, useUser } from "../../lib/clerk-shim";
 import {
     getAvailableOrders,
     getMyDeliveries,
@@ -11,6 +11,7 @@ import {
     updateServiceZones
 } from "../../services/deliveryService";
 import { getCommunesParDepartement } from "../../utils/communes";
+import { initSocket, sendLocation } from "../../services/socketService";
 import { Search } from "lucide-react";
 import DeliveryMapLink from "../Shared/DeliveryMapLink";
 import {
@@ -27,10 +28,13 @@ import {
     Truck,
     X,
     Banknote,
+    RefreshCcw,
     AlertOctagon
 } from "lucide-react";
+import NotificationCenter from "../Shared/NotificationCenter";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import api from "../../services/api";
 
 export default function DeliveryDashboard() {
     const { getToken } = useAuth();
@@ -42,23 +46,33 @@ export default function DeliveryDashboard() {
     const [isOnline, setIsOnline] = useState(true);
     const [myself, setMyself] = useState(null);
     const [zoneSearch, setZoneSearch] = useState("");
+    const [walletStats, setWalletStats] = useState({ balance: 0, transactions: [], payoutRequests: [] });
+    const [showPayoutModal, setShowPayoutModal] = useState(false);
+    const [payoutAmount, setPayoutAmount] = useState('');
+    const [payoutMethod, setPayoutMethod] = useState('momo');
+    const [paymentDetails, setPaymentDetails] = useState('');
+    const [saveDetails, setSaveDetails] = useState(false);
+
+    const abortControllerRef = useRef(null);
+    const isFetchingRef = useRef(false);
 
     const communesParDept = useMemo(() => getCommunesParDepartement(), []);
     const filteredDepts = useMemo(() => {
         if (!zoneSearch.trim()) return communesParDept;
         const q = zoneSearch.toLowerCase();
-        return communesParDept
+        return (communesParDept || [])
             .map(d => ({
                 ...d,
-                communes: d.communes.filter(c => c.toLowerCase().includes(q))
+                communes: (d.communes || []).filter(c => c && c.toLowerCase().includes(q))
             }))
-            .filter(d => d.communes.length > 0);
+            .filter(d => d.communes && d.communes.length > 0);
     }, [communesParDept, zoneSearch]);
 
     const stats = [
         { label: "Livrées", value: myself?.total_deliveries || "0", icon: <CheckCircle2 className="text-emerald-500" />, trend: "+12%" },
         { label: "Note", value: myself?.rating || "5.0", icon: <Star className="text-amber-400 fill-amber-400" />, trend: "Stable" },
         { label: "En attente", value: availableOrders.length, icon: <Clock className="text-primary" />, trend: "Nouveau" },
+        { label: "Solde Disponible", value: `${Number(walletStats?.balance || 0).toLocaleString()} F`, icon: <Banknote className="text-indigo-500" />, trend: "" },
     ];
 
     useEffect(() => {
@@ -67,30 +81,56 @@ export default function DeliveryDashboard() {
     }, [tab]);
 
     async function loadData() {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        
         setLoading(true);
+        isFetchingRef.current = true;
+        
         try {
             const token = await getToken();
 
-            if (tab === "available") {
-                const data = await getAvailableOrders(token);
-                setAvailableOrders(Array.isArray(data) ? data : []);
-            } else if (tab === "active" || tab === "history") {
-                const data = await getMyDeliveries(token);
-                setMyOrders(Array.isArray(data) ? data : []);
+            // Fetch both to ensure tab counts are accurate
+            const [availableData, myData] = await Promise.all([
+                getAvailableOrders(token),
+                getMyDeliveries(token)
+            ]);
+
+            if (!controller.signal.aborted) {
+                setAvailableOrders(Array.isArray(availableData) ? availableData : []);
+                setMyOrders(Array.isArray(myData) ? myData : []);
             }
+            
             // Logic to fetch myself for status and zones
             try {
                 const me = await getDeliveryProfile(token);
-                if (me) {
+                if (me && !controller.signal.aborted) {
                     setMyself(me);
                     setIsOnline(me.status !== 'hors_ligne');
                 }
             } catch (err) {
-                console.warn("Could not load delivery profile:", err.message);
-                // Non-bloquant si l'admin regarde
+                if (err.name !== 'CanceledError' && err.message !== 'Request aborted') {
+                    console.warn("Could not load delivery profile:", err.message);
+                }
             }
 
+            // Always load financials so balance shows everywhere
+            if (!controller.signal.aborted) {
+                const data = await fetchFinancials(token);
+                if (data && !data.error && !controller.signal.aborted) {
+                    setWalletStats(data);
+                } else if (!controller.signal.aborted) {
+                    setWalletStats({ balance: 0, transactions: [], payoutRequests: [] });
+                }
+            }
         } catch (err) {
+            if (err.name === 'CanceledError' || err.message === 'Request aborted') {
+                return;
+            }
             console.error(err);
             setAvailableOrders([]);
             setMyOrders([]);
@@ -98,13 +138,61 @@ export default function DeliveryDashboard() {
                 toast.error("Erreur de chargement");
             }
         } finally {
-            setLoading(false);
+            if (abortControllerRef.current === controller) {
+                setLoading(false);
+                isFetchingRef.current = false;
+            }
         }
     }
 
-    // --- REAL-TIME BEACON ---
-    const { initSocket, sendLocation } = require("../../services/socketService");
+    const fetchFinancials = async (token) => {
+        try {
+            const res = await api.get('/financials/my-status');
+            return res.data;
+        } catch (err) {
+            return { error: err.message };
+        }
+    };
 
+    useEffect(() => {
+        if (walletStats.savedPayoutInfo && walletStats.savedPayoutInfo.method === payoutMethod) {
+            setPaymentDetails(walletStats.savedPayoutInfo.details);
+            setSaveDetails(true);
+        } else {
+            setPaymentDetails('');
+            setSaveDetails(false);
+        }
+    }, [payoutMethod, walletStats.savedPayoutInfo]);
+
+    const handlePayoutRequest = async (e) => {
+        e.preventDefault();
+        try {
+            const token = await getToken();
+            const res = await api.post('/financials/request-payout', {
+                amount: payoutAmount,
+                payment_method: payoutMethod,
+                payment_details: paymentDetails,
+                save_details: saveDetails
+            });
+            const data = res.data;
+            if (data.error) throw new Error(data.error);
+            toast.success("Demande envoyée");
+            setShowPayoutModal(false);
+            loadData();
+        } catch (err) {
+            toast.error(err.message);
+        }
+    };
+    const activeOrders = Array.isArray(myOrders) ? myOrders.filter(o => ['expediee', 'expédiée', 'confirmee', 'confirmée', 'assignee', 'assignée'].includes(o.status)) : [];
+    const finishedOrders = Array.isArray(myOrders) ? myOrders.filter(o => ['livree', 'livrée', 'annulee', 'annulée'].includes(o.status)) : [];
+
+    // Check for unremitted cash
+    const unremittedCashOrders = Array.isArray(myOrders) ? myOrders.filter(o => ['livree', 'livrée'].includes(o.status) && o.payment_method === 'delivery' && o.payment_status === 'en_attente') : [];
+    const unremittedCashAmount = unremittedCashOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const hasDebt = unremittedCashAmount > 0;
+    const isFullyBlocked = hasDebt && activeOrders.length === 0;
+
+    // --- REAL-TIME BEACON ---
     useEffect(() => {
         let interval;
         if (isOnline && activeOrders.length > 0) {
@@ -176,14 +264,16 @@ export default function DeliveryDashboard() {
 
     const handleStatusUpdate = async (orderId, status) => {
         let delivery_code = null;
-        if (status === 'livree') {
+        let proof_url = null;
+
+        if (status === 'livrée') {
             delivery_code = window.prompt("Veuillez saisir le code confidentiel de livraison du client (4 chiffres) :");
-            if (!delivery_code) return; // Cancel if no code provided
+            if (!delivery_code) return;
         }
 
         try {
             const token = await getToken();
-            const res = await updateDeliveryStatus(token, orderId, status, delivery_code);
+            const res = await updateDeliveryStatus(token, orderId, status, delivery_code, proof_url);
             if (res.error) {
                 toast.error(res.error);
                 return;
@@ -191,7 +281,7 @@ export default function DeliveryDashboard() {
             toast.success("Statut mis à jour");
             loadData();
         } catch (err) {
-            toast.error(err.message || "Erreur de mise à jour");
+            toast.error(err.response?.data?.error || err.message || "Erreur de mise à jour");
         }
     };
 
@@ -207,14 +297,7 @@ export default function DeliveryDashboard() {
         }
     };
 
-    const activeOrders = Array.isArray(myOrders) ? myOrders.filter(o => o.status === 'expediee' || o.status === 'confirmee') : [];
-    const finishedOrders = Array.isArray(myOrders) ? myOrders.filter(o => o.status === 'livree' || o.status === 'annulee') : [];
 
-    // Check for unremitted cash
-    const unremittedCashOrders = Array.isArray(myOrders) ? myOrders.filter(o => o.status === 'livree' && o.payment_method === 'delivery' && o.payment_status === 'en_attente') : [];
-    const unremittedCashAmount = unremittedCashOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
-    const hasDebt = unremittedCashAmount > 0;
-    const isFullyBlocked = hasDebt && activeOrders.length === 0;
 
     return (
         <div className="relative space-y-10 lg:p-10 bg-[#F8FAFC] min-h-screen">
@@ -284,19 +367,22 @@ export default function DeliveryDashboard() {
                     <p className="text-slate-500 font-bold mt-1">Gérez vos courses en temps réel.</p>
                 </div>
 
-                <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
-                    <button
-                        onClick={handleToggleOnline}
-                        className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-400'}`}
-                    >
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-300'}`}></div>
-                        {isOnline ? "Disponible" : "Hors Ligne"}
-                    </button>
+                <div className="flex items-center gap-4">
+                    <NotificationCenter />
+                    <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
+                        <button
+                            onClick={handleToggleOnline}
+                            className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-400'}`}
+                        >
+                            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-300'}`}></div>
+                            {isOnline ? "Disponible" : "Hors Ligne"}
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((s, idx) => (
                     <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center justify-between group hover:border-primary/30 transition-all">
                         <div className="space-y-2">
@@ -314,28 +400,61 @@ export default function DeliveryDashboard() {
             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/10 overflow-hidden">
                 <div className="flex border-b border-slate-50 p-4 gap-4">
                     <button
-                        onClick={() => setTab("available")}
+                        onClick={() => {
+                            setTab("available");
+                            if (tab === 'available') loadData();
+                        }}
                         className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'available' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         Disponibles ({availableOrders.length})
                     </button>
                     <button
-                        onClick={() => setTab("active")}
+                        onClick={() => {
+                            setTab("active");
+                            if (tab === 'active') loadData();
+                        }}
                         className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'active' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         En cours ({activeOrders.length})
                     </button>
                     <button
-                        onClick={() => setTab("history")}
+                        onClick={() => {
+                            setTab("history");
+                            if (tab === 'history') loadData();
+                        }}
                         className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'history' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         Historique
                     </button>
                     <button
-                        onClick={() => setTab("profile")}
+                        onClick={() => {
+                            setTab("profile");
+                            if (tab === 'profile') loadData();
+                        }}
                         className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         ZONES & INFOS
+                    </button>
+                    <button
+                        onClick={() => {
+                            setTab("wallet");
+                            if (tab === 'wallet') loadData();
+                        }}
+                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                    >
+                        PORTEFEUILLE
+                    </button>
+                </div>
+                
+                {/* Manual Refresh & Tab Re-fetch logic */}
+                <div className="px-8 py-2 flex justify-end">
+                    <button 
+                        onClick={loadData}
+                        disabled={loading}
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all disabled:opacity-50"
+                    >
+                        <RefreshCcw size={12} className={loading ? "animate-spin" : ""} />
+                        {loading ? "Mise à jour..." : "Actualiser"}
                     </button>
                 </div>
 
@@ -372,8 +491,13 @@ export default function DeliveryDashboard() {
                                 {tab === 'available' && (
                                     availableOrders.length === 0 ? (
                                         <div className="py-20 text-center space-y-4">
-                                            <Package size={48} className="mx-auto text-slate-200" />
-                                            <p className="text-slate-500 font-bold">Aucune commande disponible pour le moment.</p>
+                                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Package size={40} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-500 font-bold text-lg">Aucune commande disponible.</p>
+                                            <p className="text-sm text-slate-400 max-w-xs mx-auto">
+                                                Vérifiez l'onglet <span className="font-black text-slate-600">"En cours"</span> pour voir les courses qui vous ont déjà été assignées.
+                                            </p>
                                         </div>
                                     ) : (
                                         availableOrders.map(order => (
@@ -390,16 +514,18 @@ export default function DeliveryDashboard() {
                                                                 <Truck size={12} /> Collecte : {order.supplier?.name || "Plateforme Centrale"}
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col gap-1 mt-2 mb-3">
+                                                        <div className="flex flex-wrap gap-2 mt-4 mb-4">
                                                             {order.items?.map(item => (
-                                                                <div key={item.id} className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-white/60 px-3 py-1.5 rounded-xl border border-slate-100/50">
-                                                                    <span className="text-primary">x{item.quantity}</span>
-                                                                    <span className="truncate max-w-[150px]">{item.product?.name}</span>
-                                                                    {item.variant && (
-                                                                        <span className="text-[10px] bg-primary/10 text-primary px-2 rounded-lg">
-                                                                            {item.variant.attribute_values || item.variant.sku}
-                                                                        </span>
-                                                                    )}
+                                                                <div key={item.id} className="flex items-center gap-3 text-xs font-bold text-slate-600 bg-white/60 px-3 py-2 rounded-2xl border border-slate-100/50 shadow-sm">
+                                                                    <div className="w-8 h-8 rounded-lg bg-white overflow-hidden border border-slate-100 shrink-0">
+                                                                        {item.product?.images?.[0]?.image_url ? (
+                                                                            <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50"><Package size={14}/></div>
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-primary font-black">x{item.quantity}</span>
+                                                                    <span className="truncate max-w-[120px]">{item.product?.name}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -429,9 +555,14 @@ export default function DeliveryDashboard() {
 
                                 {tab === 'active' && (
                                     activeOrders.length === 0 ? (
-                                        <div className="py-20 text-center space-y-4">
-                                            <Truck size={48} className="mx-auto text-slate-200" />
-                                            <p className="text-slate-500 font-bold">Vous n'avez aucune course en cours.</p>
+                                        <div className="py-20 text-center space-y-4 bg-slate-50/50 rounded-[3rem] border border-dashed border-slate-200">
+                                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                                <Truck size={40} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-500 font-bold text-lg">Aucune course en cours.</p>
+                                            <p className="text-sm text-slate-400 max-w-xs mx-auto">
+                                                Allez dans l'onglet <span className="font-black text-slate-600">"Disponibles"</span> pour accepter une nouvelle livraison.
+                                            </p>
                                         </div>
                                     ) : (
                                         activeOrders.map(order => (
@@ -447,31 +578,52 @@ export default function DeliveryDashboard() {
 
                                                         {/* Pickup List */}
                                                         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-3">
-                                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                                                                <Package size={12} /> Liste de colisage
-                                                            </p>
-                                                            {order.items?.map(item => (
-                                                                <div key={item.id} className="flex items-center justify-between group">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center font-black text-xs text-primary shadow-sm border border-slate-100">
-                                                                            {item.quantity}
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs font-black text-slate-700">{item.product?.name}</p>
-                                                                            {item.variant && (
-                                                                                <p className="text-[9px] font-bold text-slate-400 italic">
-                                                                                    {item.variant.attribute_values || item.variant.sku}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>
-                                                                </div>
-                                                            ))}
+                                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                                                 <Package size={12} /> Liste de colisage
+                                                             </p>
+                                                             {order.items?.map(item => (
+                                                                 <div key={item.id} className="flex items-center justify-between group">
+                                                                     <div className="flex items-center gap-3">
+                                                                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-xs text-primary shadow-sm border border-slate-100 overflow-hidden shrink-0">
+                                                                             {item.product?.images?.[0]?.image_url ? (
+                                                                                 <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
+                                                                             ) : (
+                                                                                 <span className="text-primary">{item.quantity}</span>
+                                                                             )}
+                                                                         </div>
+                                                                         <div>
+                                                                             <div className="flex items-center gap-2">
+                                                                                <span className="text-xs font-black text-primary">x{item.quantity}</span>
+                                                                                <p className="text-xs font-black text-slate-700">{item.product?.name}</p>
+                                                                             </div>
+                                                                             {item.variant && (
+                                                                                 <p className="text-[9px] font-bold text-slate-400 italic">
+                                                                                     {item.variant.attribute_values || item.variant.sku}
+                                                                                 </p>
+                                                                             )}
+                                                                         </div>
+                                                                     </div>
+                                                                     <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>
+                                                                 </div>
+                                                             ))}
+                                                        </div>
+
+                                                        {/* Client Info */}
+                                                        <div className="bg-white rounded-2xl p-5 border-2 border-slate-100 space-y-2 mt-4 shadow-sm">
+                                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                                                 <User size={12} /> Client (Destination)
+                                                             </p>
+                                                             <p className="text-sm font-black text-slate-900">{order.user?.fullname || order.guest_name || "Client"}</p>
+                                                             <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                                                 <MapPin size={12} /> {order.address?.address_line}, {order.address?.city}
+                                                             </p>
+                                                             <a href={`tel:${order.user?.phone || order.guest_phone || order.address?.phone}`} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase mt-2 hover:bg-primary transition-colors">
+                                                                 📞 Appeler le client
+                                                             </a>
                                                         </div>
 
                                                         {/* Supplier Info */}
-                                                        {order.status === 'assignee' && (
+                                                        {['confirmée', 'assignée'].includes(order.status) && (
                                                             <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 space-y-2 mt-4">
                                                                 <p className="text-[10px] font-black uppercase text-amber-600 tracking-[0.2em] flex items-center gap-2">
                                                                     <MapPin size={12} /> Point de Collecte
@@ -499,10 +651,10 @@ export default function DeliveryDashboard() {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    {order.status === 'confirmee' ? (
+                                                    {['confirmée', 'assignée'].includes(order.status) ? (
                                                         <div className="grid grid-cols-[1fr_auto] gap-2">
                                                             <button
-                                                                onClick={() => handleStatusUpdate(order.id, 'expediee')}
+                                                                onClick={() => handleStatusUpdate(order.id, 'expédiée')}
                                                                 className="w-full btn btn-primary h-16 rounded-2xl font-black gap-3 text-lg"
                                                             >
                                                                 <Truck size={24} /> Récupérer le colis
@@ -517,7 +669,7 @@ export default function DeliveryDashboard() {
                                                         </div>
                                                     ) : (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(order.id, 'livree')}
+                                                            onClick={() => handleStatusUpdate(order.id, 'livrée')}
                                                             className="w-full btn btn-primary h-16 rounded-2xl font-black gap-3 text-lg"
                                                         >
                                                             <CheckCircle2 size={24} /> Confirmer Livraison
@@ -551,12 +703,12 @@ export default function DeliveryDashboard() {
                                         finishedOrders.map(order => (
                                             <div key={order.id} className="bg-white rounded-[2rem] p-6 border border-slate-100 flex items-center justify-between opacity-70 hover:opacity-100 transition-opacity">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${order.status === 'livree' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-                                                        {order.status === 'livree' ? <CheckCircle2 size={24} /> : <Clock size={24} />}
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${['livree', 'livrée'].includes(order.status) ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                                                        {['livree', 'livrée'].includes(order.status) ? <CheckCircle2 size={24} /> : <Clock size={24} />}
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-black text-slate-900">Commande #{order.id.slice(0, 8)}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at).toLocaleDateString()}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
                                                 <p className="font-black text-slate-900">{Number(order.total_amount).toLocaleString()} F</p>
@@ -650,10 +802,150 @@ export default function DeliveryDashboard() {
                                         </div>
                                     </div>
                                 )}
+
+                                {tab === 'wallet' && (
+                                    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+                                           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Solde Disponible</p>
+                                                    <h2 className="text-5xl font-black">{Number(walletStats?.balance || 0).toLocaleString()} <span className="text-xl text-primary">F</span></h2>
+                                                </div>
+                                                <button 
+                                                    onClick={() => setShowPayoutModal(true)}
+                                                    className="bg-primary text-white px-10 py-5 rounded-2xl font-black uppercase text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+                                                >
+                                                    Retirer mes gains
+                                                </button>
+                                           </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                            <div className="space-y-6">
+                                                <h3 className="text-lg font-black text-slate-900">Demandes de retrait</h3>
+                                                <div className="space-y-4">
+                                                    {(walletStats?.payoutRequests || []).map(p => (
+                                                        <div key={p.id} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+                                                            <div>
+                                                                <p className="font-black text-slate-900">{Number(p.amount).toLocaleString()} F</p>
+                                                                <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
+                                                            </div>
+                                                            <span className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                                {p.status}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-6">
+                                                <h3 className="text-lg font-black text-slate-900">Dernières transactions</h3>
+                                                <div className="space-y-4">
+                                                    {(walletStats?.transactions || []).map(t => (
+                                                        <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center hover:shadow-lg transition-shadow">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t.type === 'earning' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                                                                    <Banknote size={18} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-black text-slate-800">{t.description}</p>
+                                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(t.createdAt || t.created_at).toLocaleDateString()}</p>
+                                                                </div>
+                                                            </div>
+                                                            <p className={`font-black ${t.type === 'earning' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                                                                {t.type === 'earning' ? '+' : '-'} {Number(t.amount).toLocaleString()} F
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
+            </div>
+            {/* Payout Modal */}
+            <AnimatePresence>
+                {showPayoutModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+                            onClick={() => setShowPayoutModal(false)} 
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl relative z-10 space-y-8"
+                        >
+                            <div className="space-y-2">
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Retrait d'argent</h3>
+                                <p className="text-sm font-bold text-slate-400">Demandez le virement de vos gains.</p>
+                            </div>
+
+                            <form onSubmit={handlePayoutRequest} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Montant à retirer (FCFA)</label>
+                                    <input 
+                                        type="number" 
+                                        required 
+                                        value={payoutAmount} 
+                                        onChange={e => setPayoutAmount(e.target.value)} 
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-5 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all" 
+                                        placeholder="Ex: 5000" 
+                                    />
+                                    <p className="text-[10px] text-right font-bold text-slate-400">Solde max: {Number(walletStats?.balance || 0).toLocaleString()} F</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button type="button" onClick={() => setPayoutMethod('momo')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'momo' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                                        <Truck size={24} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Mobile Money</span>
+                                    </button>
+                                    <button type="button" onClick={() => setPayoutMethod('bank')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'bank' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                                        <Banknote size={24} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Banque</span>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
+                                        {payoutMethod === 'momo' ? 'Numéro de téléphone MoMo & Nom' : 'Informations Bancaires (RIB, Nom de la banque)'}
+                                    </label>
+                                    <textarea 
+                                        required 
+                                        value={paymentDetails} 
+                                        onChange={e => setPaymentDetails(e.target.value)} 
+                                        rows="2"
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" 
+                                        placeholder={payoutMethod === 'momo' ? "Ex: 67000000 - Jean Dupont" : "Ex: Société Générale, RIB: 00001..."}
+                                    />
+                                    <div className="flex items-center gap-2 ml-4 mt-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="save_details_rider" 
+                                            checked={saveDetails} 
+                                            onChange={e => setSaveDetails(e.target.checked)}
+                                            className="checkbox checkbox-xs checkbox-primary"
+                                        />
+                                        <label htmlFor="save_details_rider" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer select-none">Enregistrer ces informations</label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="w-full py-6 bg-primary text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center justify-center gap-3">
+                                    Confirmer la demande <ChevronRight size={18} />
+                                </button>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Debug Info (Support) */}
+            <div className="fixed bottom-4 left-4 z-[100] bg-slate-900/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    Raw: {myOrders.length} | Active: {activeOrders.length} | Tab: {tab} | DP: {myself?.id || 'None'}
+                </p>
             </div>
         </div>
     );

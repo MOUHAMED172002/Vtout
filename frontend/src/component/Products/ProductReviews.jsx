@@ -64,16 +64,16 @@ export default function ProductReviews({ productId }) {
             <div key={r.id} className="p-6 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 transition-all space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm">
-                  {r.user?.avatar_url ? (
-                    <img src={r.user.avatar_url} alt={r.user?.fullname || "U"} className="w-full h-full object-cover" />
+                  {r.author?.avatar_url ? (
+                    <img src={r.author.avatar_url} alt={r.author?.fullname || "U"} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-xs font-black text-primary">{(r.user?.fullname && r.user.fullname.charAt(0)) || "U"}</span>
+                    <span className="text-xs font-black text-primary">{(r.author?.fullname && r.author.fullname.charAt(0)) || "U"}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-slate-900 truncate">{r.user?.fullname || "Client anonyme"}</p>
+                  <p className="text-xs font-black text-slate-900 truncate">{r.author?.fullname || "Client anonyme"}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {r.created_at ? new Date(r.created_at).toLocaleDateString("fr-FR") : ""}
+                    {r.createdAt || r.created_at ? new Date(r.createdAt || r.created_at).toLocaleDateString("fr-FR") : ""}
                   </p>
                 </div>
                 <Stars value={r.rating} />

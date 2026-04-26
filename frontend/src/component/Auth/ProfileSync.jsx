@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useUser, useAuth } from '../../lib/clerk-shim';
 import api from '../../services/api';
 
 export default function ProfileSync() {

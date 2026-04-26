@@ -10,7 +10,7 @@ export default function FiltersPanelDrawer({ onFilterChange }) {
     <>
       {/* Sidebar Desktop - Clean & Integrated Design */}
       <div className="hidden lg:block w-80 shrink-0">
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/40 sticky top-36 overflow-hidden">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/40 sticky top-36">
           {/* Decorative background element */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-[-20%] -translate-y-[20%] blur-3xl pointer-events-none" />
 
@@ -71,7 +71,7 @@ export default function FiltersPanelDrawer({ onFilterChange }) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[3.5rem] shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-t border-white"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[3.5rem] shadow-2xl max-h-[92vh] flex flex-col border-t border-white"
             >
               {/* Handle Bar */}
               <div className="w-16 h-1.5 bg-slate-100 rounded-full mx-auto mt-4 shrink-0" />

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+﻿import React, { useEffect, useState } from "react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getAllProfiles } from "../../../services/userService";
 import UserTable from "../UserAdmin/UserTable";
 import UserDetailsModal from "../UserAdmin/UserDetailsModal";

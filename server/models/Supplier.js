@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Supplier = sequelize.define('Supplier', {
     id: {
@@ -35,8 +35,8 @@ const Supplier = sequelize.define('Supplier', {
         type: DataTypes.STRING
     },
     status: {
-        type: DataTypes.ENUM('  En attente', 'active', 'suspended'),
-        defaultValue: '  En attente'
+        type: DataTypes.ENUM('En attente', 'active', 'suspended'),
+        defaultValue: 'En attente'
     },
     terms_accepted: {
         type: DataTypes.BOOLEAN,
@@ -77,4 +77,4 @@ const Supplier = sequelize.define('Supplier', {
     underscored: true
 });
 
-module.exports = Supplier;
+export default Supplier;

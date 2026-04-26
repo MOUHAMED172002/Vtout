@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Eye, Star, Zap } from "lucide-react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "../../lib/clerk-shim";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
 import { getOptimizedImage } from "../../utils/cloudinaryHelper";
@@ -77,21 +77,31 @@ export default function ProductCard({ product, onFavoriteChange }) {
     return Number(v).toLocaleString("fr-FR");
   };
 
-  const isSaleActive = useMemo(() => {
-    if (product?.is_flash_sale && product.flash_sale_end) {
-      return new Date(product.flash_sale_end) > new Date();
-    }
-    // If not marked as flash sale, but has old_price, consider it active
-    return product?.old_price > product?.price;
-  }, [product]);
-
-  const discount = product?.old_price && product.price && isSaleActive
-    ? Math.round(((product.old_price - product.price) / product.old_price) * 100)
-    : 0;
-
   // ── Price Logic ──
-  const currentPrice = isSaleActive ? product.price : (product.old_price || product.price);
-  const showOldPrice = isSaleActive && product.old_price > product.price;
+  const getProductDisplayPrice = () => {
+    const bPrice = Number(product?.price) > 0 ? Number(product?.price) : Number(product?.supplier_price || 0);
+    const bOldPrice = Number(product?.old_price || 0);
+
+    // Check first variant if base price is 0
+    const firstVariantPrice = product?.variants?.[0]?.priceRows?.[0];
+    const vPrice = firstVariantPrice ? (Number(firstVariantPrice.price) > 0 ? Number(firstVariantPrice.price) : Number(product?.supplier_price || 0)) : 0;
+    const vOldPrice = firstVariantPrice ? Number(firstVariantPrice.old_price) : 0;
+
+    const finalCurrent = bPrice > 0 ? bPrice : vPrice;
+    const finalOld = bOldPrice > 0 ? bOldPrice : vOldPrice;
+
+    return {
+      currentPrice: finalCurrent,
+      oldPrice: finalOld,
+      isSale: finalOld > finalCurrent && finalCurrent > 0,
+      discountPercent: (finalOld > finalCurrent && finalCurrent > 0)
+        ? Math.round(((finalOld - finalCurrent) / finalOld) * 100)
+        : 0
+    };
+  };
+
+  const { currentPrice, oldPrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
+  const showOldPrice = isSaleActive;
 
   // ── Deterministic Sales Count (Visual only) ──
   const salesCount = useMemo(() => {
@@ -106,10 +116,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -10 }}
-      className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500"
+      whileHover={{ y: -8 }}
+      className="group relative bg-base-100 rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] transition-all duration-700"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -125,24 +133,16 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
         {/* Glassmorphism Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 z-4">
-          {discount > 0 && (
+          {finalDiscount > 0 && (
             <motion.span
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="backdrop-blur-md bg-red-500/80 text-slate-900 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-sm border border-red-400/30"
+              className="backdrop-blur-xl bg-orange-600/90 text-white text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-orange-500/20 border border-white/20"
             >
-              -{discount}%
+              -{finalDiscount}%
             </motion.span>
           )}
-          {product.is_flash_sale && isSaleActive && (
-            <motion.span
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="backdrop-blur-md bg-rose-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-rose-200 border border-rose-400/30 flex items-center gap-1"
-            >
-              <Star size={8} fill="currentColor" /> Flash
-            </motion.span>
-          )}
+
         </div>
 
         {/* Favorite Button */}
@@ -150,12 +150,12 @@ export default function ProductCard({ product, onFavoriteChange }) {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleToggleFavorite}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-300 z-10 ${isFavorite
-            ? 'bg-red-500 text-slate-900 shadow-lg shadow-red-200'
-            : 'bg-white/60 text-gray-700 hover:bg-white hover:text-red-500 border border-white/40'
+          className={`absolute top-3 right-3 p-2.5 rounded-2xl backdrop-blur-xl transition-all duration-500 z-10 ${isFavorite
+            ? "bg-rose-500 text-white shadow-xl shadow-rose-500/30 border border-rose-400/50"
+            : "bg-white/40 text-slate-600 hover:bg-white hover:text-rose-500 border border-white/40 shadow-sm"
             }`}
         >
-          {isFavorite ? <AiFillHeart className="w-5 h-5 shadow-sm" /> : <AiOutlineHeart className="w-5 h-5" />}
+          {isFavorite ? <AiFillHeart className="w-5 h-5" /> : <AiOutlineHeart className="w-5 h-5" />}
         </motion.button>
 
         {/* Quick Action Overlay */}
@@ -216,15 +216,15 @@ export default function ProductCard({ product, onFavoriteChange }) {
         )}
 
         <Link to={`/products/${product.id}`} className="block">
-          <h3 className="font-bold text-gray-800 text-sm md:text-base line-clamp-1 hover:text-primary transition-colors">
+          <h3 className="font-black text-base-content text-sm md:text-base line-clamp-1 hover:text-primary transition-colors tracking-tight">
             {product.name}
           </h3>
         </Link>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-xl font-black text-gray-900">{formatPrice(currentPrice)} F</span>
+          <span className="text-2xl font-black text-base-content tracking-tighter">{formatPrice(currentPrice)} <span className="text-xs text-primary font-black uppercase ml-0.5">F</span></span>
           {showOldPrice && (
-            <span className="text-sm text-gray-400 line-through decoration-red-400/50">{formatPrice(product.old_price)} F</span>
+            <span className="text-xs text-base-content/50 line-through decoration-base-content/20 font-bold">{formatPrice(oldPrice)} F</span>
           )}
         </div>
 

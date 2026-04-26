@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Order = sequelize.define('Order', {
     id: {
@@ -72,12 +72,24 @@ const Order = sequelize.define('Order', {
         type: DataTypes.DATE,
         allowNull: true
     },
+    confirmed_at: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    shipped_at: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     picked_up_at: {
         type: DataTypes.DATE,
         allowNull: true
     },
     delivered_at: {
         type: DataTypes.DATE,
+        allowNull: true
+    },
+    status_history: {
+        type: DataTypes.JSON, // Stores array of {status, date}
         allowNull: true
     },
     proof_url: {
@@ -107,10 +119,23 @@ const Order = sequelize.define('Order', {
     delivery_code: {
         type: DataTypes.STRING(20),
         allowNull: true
+    },
+    colis_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+        allowNull: false
+    },
+    coupon_code: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+    },
+    discount_amount: {
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 0.00
     }
 }, {
     tableName: 'orders',
     underscored: true
 });
 
-module.exports = Order;
+export default Order;

@@ -1,38 +1,45 @@
-const { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierProduct, Category, FailedSearch, Supplier, Review } = require('../models');
-const { Op } = require('sequelize');
-const crypto = require('crypto');
-const { sequelize } = require('../models');
-const { sendProductApprovalNotification } = require('../services/mailService');
+import crypto from 'crypto';
+import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierProduct, Category, FailedSearch, Supplier, Profile, Boutique, Review, Config, sequelize } from '../models/index.js';
+import { Op } from 'sequelize';
+import { sendProductApprovalNotification } from '../services/mailService.js';
 
-exports.getAllProducts = async (req, res) => {
+export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, isFlashSale, approval_status, isAdmin } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, isFlashSale, approval_status } = req.query;
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
         const where = {};
 
         if (category_id) where.category_id = category_id;
 
-        // Si c'est un administrateur, on montre tout, sinon seulement les approuvés
-        if (isAdmin === 'true' || req.auth?.role === 'admin') {
+        // Admin can see everything, others only see approved products
+        if (isAdmin) {
             if (approval_status) where.approval_status = approval_status;
         } else {
             where.approval_status = 'approved';
-
-            // Logic to prevent duplicate (name, category_id) for clients
-            // We only show one instance of each (name, category_id) pair
-            // This ensures uniqueness by name/category on the storefront
-            where.id = {
-                [Op.in]: sequelize.literal(`(
-                    SELECT MAX(id) FROM products
-                    WHERE approval_status = 'approved'
-                    GROUP BY name, category_id
-                )`)
-            };
+            where.price = { [Op.gt]: 0 }; // Safeguard: don't show products with 0 price to users
         }
 
         if (minPrice || maxPrice) {
-            where.price = {};
-            if (minPrice) where.price[Op.gte] = minPrice;
-            if (maxPrice) where.price[Op.lte] = maxPrice;
+            let min = parseFloat(minPrice);
+            let max = parseFloat(maxPrice);
+            
+            if (isNaN(min)) min = 0;
+            if (isNaN(max)) max = 999999999;
+            
+            // Filter products where (base price matches) OR (at least one variant price matches)
+            where[Op.and] = [
+                sequelize.literal(`(
+                    \`Product\`.price BETWEEN ${min} AND ${max}
+                    OR EXISTS (
+                        SELECT 1 FROM \`product_variant_prices\` AS pvp
+                        INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                        WHERE pv.product_id = \`Product\`.id
+                        AND pvp.price BETWEEN ${min} AND ${max}
+                    )
+                )`)
+            ];
         }
 
         if (isFlashSale === 'true') {
@@ -65,7 +72,14 @@ exports.getAllProducts = async (req, res) => {
             },
             include: [
                 { model: Category, as: 'category' },
-                { model: ProductImage, as: 'images' }
+                { model: ProductImage, as: 'images' },
+                { model: SupplierProduct, as: 'supplierLink' },
+                { 
+                    model: ProductVariant, 
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
             ]
         };
 
@@ -80,7 +94,7 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-exports.getProductById = async (req, res) => {
+export const getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
             attributes: {
@@ -101,17 +115,17 @@ exports.getProductById = async (req, res) => {
             },
             include: [
                 { model: Category, as: 'category' },
-                {
-                    model: ProductImage,
-                    as: 'images'
-                },
-                {
-                    model: ProductVariant,
+                { model: ProductImage, as: 'images' },
+                { 
+                    model: ProductVariant, 
                     as: 'variants',
-                    include: [
-                        { model: ProductVariantPrice, as: 'priceRows' },
-                        { model: SupplierProduct, as: 'supplierLink' }
-                    ]
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                },
+                { model: SupplierProduct, as: 'supplierLink' },
+                { 
+                    model: Supplier, 
+                    as: 'supplier', 
+                    attributes: ['id', 'name'] 
                 }
             ]
         });
@@ -120,18 +134,20 @@ exports.getProductById = async (req, res) => {
 
         res.json(product);
     } catch (error) {
-        console.error(error);
+        console.error('GetProductById Error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération du produit' });
     }
 };
 
-exports.searchProducts = async (req, res) => {
+export const searchProducts = async (req, res) => {
     try {
         const { q } = req.query;
         if (!q) return res.json([]);
 
         const products = await Product.findAll({
             where: {
+                approval_status: 'approved',
+                price: { [Op.gt]: 0 },
                 [Op.or]: [
                     { name: { [Op.like]: `%${q}%` } },
                     { description: { [Op.like]: `%${q}%` } }
@@ -139,7 +155,14 @@ exports.searchProducts = async (req, res) => {
             },
             include: [
                 { model: Category, as: 'category' },
-                { model: ProductImage, as: 'images' }
+                { model: ProductImage, as: 'images' },
+                { model: SupplierProduct, as: 'supplierLink' },
+                { 
+                    model: ProductVariant, 
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
             ],
             limit: 20
         });
@@ -153,12 +176,21 @@ exports.searchProducts = async (req, res) => {
             const catIds = matchingCategories.map(c => c.id);
             const extraProducts = await Product.findAll({
                 where: {
+                    approval_status: 'approved',
+                    price: { [Op.gt]: 0 },
                     category_id: { [Op.in]: catIds },
                     id: { [Op.notIn]: products.map(p => p.id) }
                 },
                 include: [
                     { model: Category, as: 'category' },
-                    { model: ProductImage, as: 'images' }
+                    { model: ProductImage, as: 'images' },
+                    { model: SupplierProduct, as: 'supplierLink' },
+                    { 
+                        model: ProductVariant, 
+                        as: 'variants',
+                        include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                    },
+                    { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
                 ],
                 limit: 20 - products.length
             });
@@ -185,52 +217,75 @@ exports.searchProducts = async (req, res) => {
     }
 };
 
-exports.createProduct = async (req, res) => {
+export const createProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const {
             name, description, price, old_price, stock, category_id,
-            images, variants,
+            images, variants, supplierLinks,
             // Flash sale fields
             is_flash_sale, flash_sale_end,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
         } = req.body;
 
-        const productId = crypto.randomUUID();
+        // Detect if the request comes from an administrator
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
+        const isSupplier = req.auth?.role === 'fournisseur' && !isAdmin;
 
-        // Detect if the request comes from a supplier
-        const isSupplier = req.auth?.role === 'fournisseur';
         let finalSupplierId = supplier_id;
-        let finalStatus = approval_status || 'approved';
+        let finalStatus = approval_status || 'En attente';
 
-        if (isSupplier) {
-            // Find the supplier ID for this user
+        // If no supplier_id provided, try to find the current user's supplier profile
+        if (!finalSupplierId && req.auth?.userId) {
             const supplierProfile = await Supplier.findOne({ where: { user_id: req.auth.userId } });
             if (supplierProfile) {
+                if (isSupplier && supplierProfile.status !== 'active') {
+                    await transaction.rollback();
+                    return res.status(403).json({ error: 'Votre compte fournisseur doit être approuvé par l’administrateur avant d’ajouter des produits.' });
+                }
                 finalSupplierId = supplierProfile.id;
-                finalStatus = '  En attente'; // Force   En attente for suppliers
+                // Suppliers always start with 'En attente' unless they are admins
+                if (isSupplier) finalStatus = 'En attente';
             }
         }
 
-        // 1. Create base product
+        // Fetch commission rate for marketplace logic
+        let commissionRate = 0.10; 
+        try {
+            const configRate = await Config.findOne({ where: { key: 'commission_rate' } });
+            if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
+        } catch (err) { console.error('Erreur commission_rate', err); }
+
+        let finalPrice = price;
+        let calculatedSupplierPrice = supplier_price;
+
+        if (finalPrice && !calculatedSupplierPrice) {
+            calculatedSupplierPrice = Math.round(finalPrice * (1 - commissionRate));
+        } else if (!finalPrice && calculatedSupplierPrice) {
+            finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
+        }
+
+        // 1. Create base product (NEW)
+        const productId = crypto.randomUUID();
         const product = await Product.create({
             id: productId,
             name,
-            // Only admin can set the description in the system for agora products
-            description: isSupplier ? null : description,
-            // If it's a supplier, the retail price is 0 (admin will set it)
-            price: isSupplier ? 0 : (price || 0),
-            old_price: isSupplier ? 0 : (old_price || 0),
+            description,
+            price: finalPrice || 0,
+            old_price: old_price || 0,
             stock: stock || 0,
             category_id,
             is_flash_sale: isSupplier ? false : (is_flash_sale || false),
             flash_sale_end: isSupplier ? null : (flash_sale_end || null),
             supplier_id: finalSupplierId || null,
-            supplier_price: isSupplier ? supplier_price : (supplier_price || null),
+            supplier_price: calculatedSupplierPrice || 0,
             approval_status: finalStatus,
             admin_feedback: admin_feedback || null,
-            in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true
+            in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true,
+            boutique_id: boutique_id || null
         }, { transaction });
 
         // 2. Insert Images
@@ -243,78 +298,89 @@ exports.createProduct = async (req, res) => {
             await ProductImage.bulkCreate(imageRows, { transaction });
         }
 
-        // 3. Handle Variants
+        // 3. Handle Variants (Add new variants to existing or new product)
         if (variants && variants.length > 0) {
             for (let i = 0; i < variants.length; i++) {
                 const v = variants[i];
-                const variantId = crypto.randomUUID();
-                const variantSku = v.sku || `${productId}-${i}`;
+                const submittedComboStr = typeof v.combination === 'string' ? v.combination : JSON.stringify(v.combination || {});
+                
+                // Check if this variant already exists on the product
+                let existingVariant = (product.variants || []).find(ev => {
+                    const evComboStr = typeof ev.combination === 'string' ? ev.combination : JSON.stringify(ev.combination || {});
+                    return evComboStr === submittedComboStr;
+                });
 
-                const newVariant = await ProductVariant.create({
-                    id: variantId,
-                    product_id: productId,
-                    combination: v.combination,
-                    sku: variantSku
-                }, { transaction });
-
-                // Price/Stock for variant
-                await ProductVariantPrice.create({
-                    variant_id: newVariant.id,
-                    price: v.price || price,
-                    old_price: v.old_price || old_price,
-                    stock: v.stock || 0,
-                    image_url: v.image_url || null
-                }, { transaction });
-
-                // Supplier links for variant
-                if (v.supplierLinks && v.supplierLinks.length > 0) {
-                    const supplierRows = v.supplierLinks.map(link => ({
-                        supplier_id: link.supplier_id,
+                let variantId;
+                if (!existingVariant) {
+                    // Create NEW variant
+                    variantId = crypto.randomUUID();
+                    const variantSku = v.sku || `${productId}-${i}-${Date.now()}`;
+                    existingVariant = await ProductVariant.create({
+                        id: variantId,
                         product_id: productId,
-                        variant_id: newVariant.id,
-                        supplier_sku: link.supplier_sku || null,
-                        supplier_price: link.supplier_price || v.price || price,
-                        available: true
-                    }));
-                    await SupplierProduct.bulkCreate(supplierRows, { transaction });
+                        combination: v.combination,
+                        sku: variantSku
+                    }, { transaction });
+
+                    await ProductVariantPrice.create({
+                        variant_id: variantId,
+                        price: v.price || price || 0,
+                        old_price: v.old_price || old_price || 0,
+                        stock: v.stock || 0,
+                        image_url: v.image_url || null
+                    }, { transaction });
+                } else {
+                    variantId = existingVariant.id;
                 }
+
+                // Add Supplier Link for this variant
+                await SupplierProduct.create({
+                    supplier_id: finalSupplierId,
+                    product_id: productId,
+                    variant_id: variantId,
+                    supplier_sku: v.sku || null,
+                    supplier_price: v.supplier_price || v.price || supplier_price || price || 0,
+                    available: true,
+                    approval_status: finalStatus
+                }, { transaction });
             }
         } else {
-            // 4. Handle Root Supplier Links (for products without variants)
-            const { supplierLinks } = req.body;
-            if (supplierLinks && supplierLinks.length > 0) {
-                const supplierRows = supplierLinks.map(link => ({
-                    supplier_id: link.supplier_id,
+            // 4. Handle Root Supplier Links (No variants)
+            const linksToAdd = supplierLinks && supplierLinks.length > 0 ? supplierLinks : [{ supplier_id: 'me' }];
+            
+            for (const link of linksToAdd) {
+                await SupplierProduct.create({
+                    supplier_id: link.supplier_id === 'me' ? finalSupplierId : link.supplier_id,
                     product_id: productId,
                     variant_id: null,
                     supplier_sku: link.supplier_sku || null,
-                    supplier_price: link.supplier_price || price,
-                    available: true
-                }));
-                await SupplierProduct.bulkCreate(supplierRows, { transaction });
+                    supplier_price: link.supplier_price || supplier_price || price || 0,
+                    available: true,
+                    approval_status: finalStatus
+                }, { transaction });
             }
         }
 
         await transaction.commit();
         res.status(201).json(product);
     } catch (error) {
-        await transaction.rollback();
+        if (transaction) await transaction.rollback();
         console.error('CreateProduct error:', error);
         res.status(500).json({ error: 'Erreur lors de la création du produit' });
     }
 };
 
-exports.updateProduct = async (req, res) => {
+export const updateProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const {
+        let {
             name, description, price, old_price, stock, category_id,
             images, variants, supplierLinks,
             // Flash sale fields
             is_flash_sale, flash_sale_end,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
         } = req.body;
 
         const productToEdit = await Product.findByPk(id);
@@ -323,7 +389,9 @@ exports.updateProduct = async (req, res) => {
             return res.status(404).json({ error: 'Produit non trouvé' });
         }
 
-        const isAdmin = req.auth?.role === 'admin';
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
         const isSupplier = req.auth?.role === 'fournisseur';
 
         if (isSupplier && !isAdmin) {
@@ -336,24 +404,54 @@ exports.updateProduct = async (req, res) => {
 
         let finalStatus = approval_status;
         if (isSupplier && !isAdmin) {
-            finalStatus = '  En attente'; // Reset to   En attente if supplier edits
+            finalStatus = 'En attente'; // Reset to En attente if supplier edits
+        }
+
+        // Sync price with supplier_price if it's a marketplace product update
+        let finalPrice = price;
+        
+        // Fetch commission rate
+        let commissionRate = 0.10;
+        try {
+            const configRate = await Config.findOne({ where: { key: 'commission_rate' } });
+            if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
+        } catch (err) { console.error('Erreur commission rate', err); }
+
+        if (supplier_price !== undefined && (isSupplier || isAdmin)) {
+            // If selling price (price) is updated, re-calculate supplier_price
+            if (price !== undefined && price !== productToEdit.price) {
+                supplier_price = Math.round(price * (1 - commissionRate));
+            }
+        }
+        
+        // Final fallback to ensure they are synced if one is missing
+        if (finalPrice && !supplier_price) supplier_price = Math.round(finalPrice * (1 - commissionRate));
+        if (!finalPrice && supplier_price) finalPrice = Math.round(supplier_price / (1 - commissionRate));
+
+        // Sync approval_status to SupplierProduct if it changed
+        if (finalStatus) {
+            await SupplierProduct.update(
+                { approval_status: finalStatus, admin_feedback },
+                { where: { product_id: id }, transaction }
+            );
         }
 
         // 1. Update base product
         const [updatedRows] = await Product.update({
             name,
             description,
-            price: (isSupplier && !isAdmin) ? productToEdit.price : price, // Suppliers can't change final price
-            old_price: (isSupplier && !isAdmin) ? productToEdit.old_price : old_price,
+            price: finalPrice,
+            old_price: old_price,
             stock: stock || 0,
             category_id,
             is_flash_sale: (isSupplier && !isAdmin) ? productToEdit.is_flash_sale : (is_flash_sale !== undefined ? is_flash_sale : undefined),
             flash_sale_end: (isSupplier && !isAdmin) ? productToEdit.flash_sale_end : (flash_sale_end !== undefined ? flash_sale_end : undefined),
             supplier_id: isAdmin ? supplier_id : undefined,
-            supplier_price: supplier_price !== undefined ? supplier_price : undefined,
+            supplier_price: supplier_price,
             approval_status: finalStatus,
             admin_feedback: isAdmin ? admin_feedback : undefined,
-            in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : undefined
+            in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : undefined,
+            boutique_id: boutique_id !== undefined ? boutique_id : undefined
         }, {
             where: { id },
             transaction
@@ -427,14 +525,22 @@ exports.updateProduct = async (req, res) => {
 
                 // Supplier links for variant
                 if (v.supplierLinks && v.supplierLinks.length > 0) {
-                    const supplierRows = v.supplierLinks.map(link => ({
-                        supplier_id: link.supplier_id,
-                        product_id: id,
-                        variant_id: newVariant.id,
-                        supplier_sku: link.supplier_sku || null,
-                        supplier_price: link.supplier_price || v.price || price,
-                        available: true
-                    }));
+                    const supplierRows = v.supplierLinks.map(link => {
+                        let sid = link.supplier_id;
+                        if (sid === 'me' || !sid) {
+                            // Use existing product supplier_id as fallback
+                            sid = productToEdit.supplier_id;
+                        }
+                        return {
+                            supplier_id: sid,
+                            product_id: id,
+                            variant_id: newVariant.id,
+                            supplier_sku: link.supplier_sku || null,
+                            supplier_price: link.supplier_price || v.price || price,
+                            available: true
+                        };
+                    });
+                    
                     await SupplierProduct.bulkCreate(supplierRows, { transaction });
                 }
             }
@@ -443,7 +549,7 @@ exports.updateProduct = async (req, res) => {
             await SupplierProduct.destroy({ where: { product_id: id, variant_id: null }, transaction });
             if (supplierLinks.length > 0) {
                 const supplierRows = supplierLinks.map(link => ({
-                    supplier_id: link.supplier_id,
+                    supplier_id: link.supplier_id === 'me' ? productToEdit.supplier_id : link.supplier_id,
                     product_id: id,
                     variant_id: null,
                     supplier_sku: link.supplier_sku || null,
@@ -479,13 +585,15 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-exports.deleteProduct = async (req, res) => {
+export const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const product = await Product.findByPk(id);
         if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
 
-        const isAdmin = req.auth?.role === 'admin';
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
         const isSupplier = req.auth?.role === 'fournisseur';
 
         if (isSupplier && !isAdmin) {
@@ -503,7 +611,7 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
-exports.getRelatedProducts = async (req, res) => {
+export const getRelatedProducts = async (req, res) => {
     try {
         const { id } = req.params;
         const product = await Product.findByPk(id, {
@@ -535,8 +643,8 @@ exports.getRelatedProducts = async (req, res) => {
                 { model: Category, as: 'category' },
                 { model: ProductImage, as: 'images' }
             ],
-            limit: 12, // Increased limit for variety
-            order: sequelize.random()
+            limit: 12,
+            order: sequelize.literal('RAND()')
         });
 
         res.json(related);

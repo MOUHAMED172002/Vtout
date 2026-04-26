@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
-import { getProducts, createProduct, updateProduct, deleteProduct } from "../../../services/productService";
+import { useAuth } from "../../../lib/clerk-shim";
+import { getProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../../../services/productService";
 import ProductTable from "../Product/ProductTable";
 import AddProductModal from "../Product/AddProductModal";
 import EditProductModal from "../Product/EditProductModal";
@@ -19,7 +19,8 @@ export default function ProductsAdmin() {
   async function fetchProducts() {
     setLoading(true);
     try {
-      const data = await getProducts();
+      // Charge uniquement les produits APPROUVÉS dans la liste générale
+      const data = await getProducts({ isAdmin: 'true', approval_status: 'approved' });
       setProducts(data || []);
     } catch (err) {
       console.error(err);
@@ -103,8 +104,14 @@ export default function ProductsAdmin() {
         <ProductTable
           products={products}
           loading={loading}
-          onEdit={(p) => {
-            setEditingProduct(p);
+          onEdit={async (p) => {
+            // Charge le produit complet (variants + fournisseur) avant d'ouvrir le modal
+            try {
+              const full = await getProductById(p.id);
+              setEditingProduct(full);
+            } catch {
+              setEditingProduct(p); // fallback sur les données partielles
+            }
             setShowEditModal(true);
           }}
           onDelete={handleDelete}

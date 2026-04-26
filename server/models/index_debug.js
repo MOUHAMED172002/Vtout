@@ -1,9 +1,9 @@
-const sequelize = require('../config/database');
+import sequelize from '../config/database.js';
 const Category = require('./Category');
 const Product = require('./Product');
 const ProductImage = require('./ProductImage');
 
-module.exports = {
+export {
     sequelize,
     Category,
     Product,

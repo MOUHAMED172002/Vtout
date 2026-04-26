@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const SupportMessage = sequelize.define('SupportMessage', {
     id: {
@@ -36,4 +36,4 @@ const SupportMessage = sequelize.define('SupportMessage', {
     underscored: true
 });
 
-module.exports = SupportMessage;
+export default SupportMessage;

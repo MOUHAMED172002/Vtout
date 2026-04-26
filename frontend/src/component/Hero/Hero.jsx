@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -6,8 +6,9 @@ import "slick-carousel/slick/slick-theme.css";
 import Image1 from '../../assets/hero/headphone.png';
 import Image2 from '../../assets/category/vr.png';
 import Image3 from '../../assets/category/macbook.png';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../../services/api';
 
 const HeroData = [
     {
@@ -41,6 +42,25 @@ const HeroData = [
 
 const Hero = () => {
     const navigate = useNavigate();
+    const [heroData, setHeroData] = useState(HeroData);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchHeroConfig = async () => {
+            try {
+                const { data } = await api.get('/configs');
+                const heroConfig = data.find(c => c.key === 'hero_carousel');
+                if (heroConfig && heroConfig.value) {
+                    setHeroData(JSON.parse(heroConfig.value));
+                }
+            } catch (error) {
+                console.error("Erreur chargement config Hero:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHeroConfig();
+    }, []);
 
     const settings = {
         dots: true,
@@ -55,12 +75,20 @@ const Hero = () => {
         dotsClass: "slick-dots custom-dots",
     };
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-96">
+                <Loader2 className="animate-spin text-primary w-10 h-10" />
+            </div>
+        );
+    }
+
     return (
         <section className="relative pt-6 md:pt-10 overflow-hidden">
             <div className="container px-4 md:px-8">
                 <div className="hero-bg-color rounded-[2.5rem] md:rounded-[4rem] min-h-[500px] md:min-h-[700px] shadow-2xl shadow-slate-100 border border-white/50 relative overflow-hidden">
                     <Slider {...settings}>
-                        {HeroData.map((data) => (
+                        {heroData.map((data) => (
                             <div key={data.id} className="outline-none">
                                 <div className={`grid grid-cols-1 lg:grid-cols-2 min-h-[500px] md:min-h-[700px] relative px-8 md:px-20 py-16 md:py-0 items-center`}>
 
@@ -83,7 +111,7 @@ const Hero = () => {
                                                 initial={{ opacity: 0, x: -30 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ duration: 0.8, delay: 0.2 }}
-                                                className="text-6xl md:text-8xl xl:text-9xl font-black text-gray-900 leading-[0.9]"
+                                                className="text-6xl md:text-8xl xl:text-9xl font-black text-base-content leading-[0.9]"
                                             >
                                                 {data.title}
                                             </motion.h1>
@@ -91,7 +119,7 @@ const Hero = () => {
                                                 initial={{ opacity: 0, x: -30 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ duration: 0.8, delay: 0.4 }}
-                                                className="text-5xl md:text-7xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-500 to-gray-300 leading-[0.9]"
+                                                className="text-5xl md:text-7xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-200 leading-[0.9]"
                                             >
                                                 {data.title2}
                                             </motion.h2>
@@ -105,7 +133,7 @@ const Hero = () => {
                                         >
                                             <button
                                                 onClick={() => navigate('/products-liste')}
-                                                className="group relative inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-3xl font-black hover:bg-primary transition-all duration-300 shadow-xl shadow-gray-200 hover:shadow-primary/30 active:scale-95"
+                                                className="group relative inline-flex items-center gap-3 bg-neutral text-neutral-content px-10 py-5 rounded-3xl font-black hover:bg-primary hover:text-primary-content transition-all duration-300 shadow-xl shadow-base-300 hover:shadow-primary/30 active:scale-95"
                                             >
                                                 Explorer la collection
                                                 <ArrowRight className="group-hover:translate-x-2 transition-transform" />

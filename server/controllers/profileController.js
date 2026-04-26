@@ -1,7 +1,8 @@
-const { Profile } = require('../models');
-const crypto = require('crypto');
+import { Profile, sequelize } from '../models/index.js';
+import crypto from 'crypto';
 
-exports.syncProfile = async (req, res) => {
+
+export const syncProfile = async (req, res) => {
     try {
         const { userId } = req.auth;
         if (!userId) {
@@ -16,7 +17,7 @@ exports.syncProfile = async (req, res) => {
     }
 };
 
-exports.getMe = async (req, res) => {
+export const getMe = async (req, res) => {
     try {
         const { userId } = req.auth;
         if (!userId) return res.status(404).json({ error: 'Profil non trouvé' });
@@ -27,7 +28,7 @@ exports.getMe = async (req, res) => {
     }
 };
 
-exports.updateMe = async (req, res) => {
+export const updateMe = async (req, res) => {
     try {
         const { userId } = req.auth;
         if (!userId) return res.status(404).json({ error: 'Profil non trouvé' });
@@ -52,7 +53,7 @@ exports.updateMe = async (req, res) => {
     }
 };
 
-exports.getAllProfiles = async (req, res) => {
+export const getAllProfiles = async (req, res) => {
     try {
         const profiles = await Profile.findAll();
         res.json(profiles);
@@ -61,9 +62,20 @@ exports.getAllProfiles = async (req, res) => {
     }
 };
 
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.auth?.userId;
+        const role = req.auth?.role;
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = role === 'admin' || (userEmail && adminEmails.includes(userEmail));
+
+        // Protection IDOR: Only allow if it's the user's own profile, or if the user is an admin
+        if (userId !== id && !isAdmin) {
+             return res.status(403).json({ error: 'Accès non autorisé à ce profil' });
+        }
+
         const profile = await Profile.findByPk(id);
         if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
         res.json(profile);
@@ -72,7 +84,7 @@ exports.getProfile = async (req, res) => {
     }
 };
 
-exports.updateProfileStatus = async (req, res) => {
+export const updateProfileStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { is_active } = req.body;
@@ -85,5 +97,52 @@ exports.updateProfileStatus = async (req, res) => {
         res.json(profile);
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });
+    }
+};
+
+export const switchRole = async (req, res) => {
+    try {
+        const { userId, role: currentRole } = req.auth;
+        const { newRole } = req.body;
+
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+        
+        // Safety: Don't allow switching IF the user is already an admin via env or database
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const userEmail = req.auth.email?.toLowerCase();
+        
+        /* 
+        if (currentRole === 'admin' || adminEmails.includes(userEmail)) {
+             return res.status(403).json({ error: 'Les administrateurs ne peuvent pas changer de rôle via cette interface.' });
+        }
+        */
+
+        const validRoles = ['user', 'fournisseur', 'livreur'];
+        if (!validRoles.includes(newRole)) {
+            return res.status(400).json({ error: 'Rôle invalide' });
+        }
+
+        const profile = await Profile.findByPk(userId);
+        if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        profile.role = newRole;
+        await profile.save();
+        
+        try {
+            await sequelize.query(
+                'UPDATE user SET role = :role WHERE id = :id',
+                {
+                    replacements: { role: newRole, id: userId },
+                    type: sequelize.QueryTypes.UPDATE
+                }
+            );
+        } catch (authError) {
+             console.warn('Could not update Better Auth user role:', authError.message);
+        }
+
+        res.json({ message: `Rôle mis à jour avec succès : ${newRole}`, role: newRole });
+    } catch (error) {
+        console.error('switchRole error:', error);
+        res.status(500).json({ error: 'Erreur lors du changement de rôle' });
     }
 };

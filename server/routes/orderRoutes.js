@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as orderController from '../controllers/orderController.js';
+import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const orderController = require('../controllers/orderController');
-const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 router.get('/me', requireAuth, orderController.getMyOrders);
 router.get('/me/supplier', requireAuth, orderController.getMySupplierOrders);
@@ -9,6 +10,8 @@ router.get('/', requireAuth, requireAdmin, orderController.getAllOrders);
 router.get('/:id', requireAuth, orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
 router.post('/', orderController.createOrder);
-router.put('/:id/status', orderController.updateOrderStatus);
+router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 
-module.exports = router;
+router.get('/:id/suggested-livreurs', requireAuth, requireAdmin, orderController.getSuggestedLivreurs);
+
+export default router;

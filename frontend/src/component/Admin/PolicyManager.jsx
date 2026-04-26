@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../lib/clerk-shim";
 import { getPolicies, createPolicy, updatePolicy, deletePolicy as apiDeletePolicy } from "../../services/contentService";
 import toast from "react-hot-toast";
 import { ShieldCheck, Save, Trash2, Edit2, X, Plus } from "lucide-react";
@@ -91,9 +91,11 @@ export default function PolicyManager() {
             onChange={(e) => setNewPolicy({ ...newPolicy, type: e.target.value })}
             className="w-full px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 font-bold focus:outline-none focus:border-primary/40 appearance-none"
           >
-            <option value="general">Général (Clients)</option>
-            <option value="supplier">Fournisseurs</option>
-            <option value="delivery">Livreurs</option>
+            <option value="general">CGV / Conditions Générales</option>
+            <option value="supplier">Contrat Fournisseur</option>
+            <option value="delivery">Contrat Livreur</option>
+            <option value="privacy">Politique de Confidentialité</option>
+            <option value="return">Règlement des Retours</option>
           </select>
         </div>
         <textarea
@@ -135,9 +137,11 @@ export default function PolicyManager() {
                       onChange={(e) => setEditData({ ...editData, type: e.target.value })}
                       className="w-full px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 font-bold appearance-none"
                     >
-                      <option value="general">Général</option>
-                      <option value="supplier">Fournisseur</option>
-                      <option value="delivery">Livreur</option>
+                      <option value="general">CGV</option>
+                      <option value="supplier">Contrat Fournisseur</option>
+                      <option value="delivery">Contrat Livreur</option>
+                      <option value="privacy">Confidentialité</option>
+                      <option value="return">Retours</option>
                     </select>
                   </div>
                   <textarea

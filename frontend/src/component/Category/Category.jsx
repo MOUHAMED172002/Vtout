@@ -9,33 +9,41 @@ export default function Category() {
   const [parents, setParents] = useState([]);
   const [activeParent, setActiveParent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const childCarouselRef = useRef(null);
+    const navigate = useNavigate();
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0, id: null });
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const data = await getCategories();
-        setAllCategories(data || []);
-        const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
-        const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
-        setParents(parentCats);
-        // Autofill first parent on load for better interactivity
-        if (parentCats.length > 0) setActiveParent(parentCats[0]);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCategories();
-  }, []);
+    const handleMouseMove = (e, id) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMousePos({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+            id
+        });
+    };
 
-  const children = activeParent
-    ? allCategories.filter(c => c.parent_id === activeParent.id)
-    : [];
+    useEffect(() => {
+        async function fetchCategories() {
+            try {
+                const data = await getCategories();
+                setAllCategories(data || []);
+                const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
+                const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
+                setParents(parentCats);
+                if (parentCats.length > 0) setActiveParent(parentCats[0]);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchCategories();
+    }, []);
 
-  if (loading) {
+    const children = activeParent
+        ? allCategories.filter(c => c.parent_id === activeParent.id)
+        : [];
+
+    if (loading) {
     return (
       <div className="container py-20 flex justify-center">
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -81,22 +89,31 @@ export default function Category() {
                 key={cat.id}
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.95 }}
+                onMouseMove={(e) => handleMouseMove(e, cat.id)}
                 onClick={() => setActiveParent(cat)}
-                className={`flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start ${isActive
+                className={`flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group ${isActive
                   ? 'bg-slate-900 border-slate-900 shadow-xl shadow-slate-200 text-white'
                   : 'bg-white border-slate-100 text-slate-400 hover:border-primary/30 hover:bg-slate-50'
                   }`}
               >
-                <div className={`text-2xl md:text-3xl transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+                {/* Effect 4: Spotlight Overlay */}
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    background: mousePos.id === cat.id ? `radial-gradient(circle 50px at ${mousePos.x}px ${mousePos.y}px, rgba(249, 115, 22, 0.15), transparent)` : ''
+                  }}
+                />
+
+                <div className={`text-2xl md:text-3xl transition-transform duration-500 relative z-10 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                   {isEmoji ? cat.icon : <Icon size={isActive ? 28 : 24} className={isActive ? 'text-slate-900' : 'text-slate-300'} />}
                 </div>
-                <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-tight text-center line-clamp-1 px-1 ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-tight text-center line-clamp-1 px-1 relative z-10 ${isActive ? 'text-white' : 'text-slate-500'}`}>
                   {cat.name}
                 </span>
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute -bottom-2 w-8 h-1 bg-primary rounded-full"
+                    className="absolute -bottom-2 w-8 h-1 bg-primary rounded-full z-10"
                   />
                 )}
               </motion.button>

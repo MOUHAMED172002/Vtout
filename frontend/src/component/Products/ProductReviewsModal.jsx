@@ -93,7 +93,7 @@ export default function ProductReviewsModal({ productId, onClose }) {
                     <div className="text-center md:text-center flex-1">
                       <p className="text-sm font-black text-slate-900 truncate max-w-[100px]">{r.user?.fullname || "Client"}</p>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {r.created_at ? new Date(r.created_at).toLocaleDateString("fr-FR") : ""}
+                        {r.createdAt || r.created_at ? new Date(r.createdAt || r.created_at).toLocaleDateString("fr-FR") : ""}
                       </p>
                     </div>
                   </div>

@@ -7,41 +7,105 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../clerk-shim';
+import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 import {
     getCategories,
+    getAttributes,
+    createAttribute,
+    addAttributeValue,
     getAttributesByCategory,
-    createProduct
+    createProduct,
+    updateProduct,
+    searchProducts
 } from '../../services/productService';
 import { uploadSingleImage } from '../../services/uploadService';
 import CategorySearchModal from './CategorySearchModal';
+import CustomSelect from '../Shared/CustomSelect';
 
 const steps = [
     { id: 'info', title: 'Informations', icon: Info },
+    { id: 'attributes', title: 'Attributs', icon: Hash },
     { id: 'images', title: 'Images', icon: ImageIcon },
     { id: 'variants', title: 'Variantes & Prix', icon: Layers },
 ];
 
-export default function SupplierProductForm({ onClose }) {
-    const { getToken } = useAuth();
+const InlineAdder = ({ label, onAdd, loading }) => {
+    const [value, setValue] = useState('');
+    const [show, setShow] = useState(false);
+
+    if (!show) return (
+        <button
+            type="button"
+            onClick={() => setShow(true)}
+            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline transition-all"
+        >
+            <Plus size={12} /> {label}
+        </button>
+    );
+
+    return (
+        <div className="flex items-center gap-2 animate-in zoom-in-95 duration-200">
+            <input
+                type="text"
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                className="input input-xs input-bordered h-7 text-[10px] font-bold"
+                placeholder={`Nom ${label}...`}
+                autoFocus
+            />
+            <button
+                type="button"
+                disabled={loading || !value}
+                onClick={async () => {
+                    await onAdd(value);
+                    setValue('');
+                    setShow(false);
+                }}
+                className={`btn btn-xs btn-primary h-7 px-3 font-black ${loading ? 'loading' : ''}`}
+            >
+                OK
+            </button>
+            <button type="button" onClick={() => setShow(false)} className="btn btn-xs btn-ghost h-7 w-7 p-0">×</button>
+        </div>
+    );
+};
+
+export default function SupplierProductForm({ onClose, initialData = null }) {
+    const { getToken, userId } = useAuth();
     const [currentStep, setCurrentStep] = useState(0);
     const [categories, setCategories] = useState([]);
+    const [boutiques, setBoutiques] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
-
+    
     // Attributes handling
     const [availableAttributes, setAvailableAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useState([]);
     const [selectedValuesMap, setSelectedValuesMap] = useState({});
+    const [attrSearchQuery, setAttrSearchQuery] = useState("");
+    const [inlineLoading, setInlineLoading] = useState(false);
+    const [commissionRate, setCommissionRate] = useState(10);
 
     const [imageFiles, setImageFiles] = useState([]);
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
-        defaultValues: {
+        defaultValues: initialData ? {
+            name: initialData.name,
+            description: initialData.description || '',
+            category_id: initialData.category_id || '',
+            boutique_id: initialData.boutique_id || '',
+            variants: initialData.variants || [],
+            supplier_price: initialData.supplier_price || initialData.price || '',
+            stock: initialData.stock || 0,
+            supplier_note: initialData.supplier_note || ''
+        } : {
             name: '',
             description: '',
             category_id: '',
+            boutique_id: '',
             variants: [],
             supplier_price: '',
             stock: 0,
@@ -53,27 +117,71 @@ export default function SupplierProductForm({ onClose }) {
     const variants = watch('variants');
     const globalSupplierPrice = watch('supplier_price');
 
-    // Fetch categories on mount
+    // Fetch initial data
     useEffect(() => {
-        const fetchCats = async () => {
-            const data = await getCategories();
-            setCategories(data || []);
+        const fetchInitialData = async () => {
+            const token = await getToken();
+            const [catData, boutData, attrData, commData] = await Promise.all([
+                getCategories(),
+                import('../../services/supplierService').then(s => s.getMyBoutiques(token)),
+                getAttributes(),
+                axios.get(`${API_URL}/configs/key/commission_rate`).catch(e => ({ data: { value: 10 } }))
+            ]);
+            setCategories(catData || []);
+            setBoutiques(boutData || []);
+            setAvailableAttributes(attrData || []);
+            if (commData.data && commData.data.value) setCommissionRate(parseFloat(commData.data.value));
+            if (boutData && boutData.length > 0 && !initialData?.boutique_id) {
+                setValue('boutique_id', boutData[0].id);
+            }
+            if (initialData?.images?.length > 0) {
+                setImageFiles(initialData.images.map(img => ({
+                    file: null,
+                    preview: img.image_url || img.url,
+                    isMain: img.is_main,
+                    existingUrl: img.image_url || img.url
+                })));
+            }
         };
-        fetchCats();
-    }, []);
+        fetchInitialData();
+    }, [getToken, setValue, initialData]);
 
-    // Fetch attributes when category changes
-    useEffect(() => {
-        if (selectedCategoryId) {
-            const fetchAttrs = async () => {
-                const data = await getAttributesByCategory(selectedCategoryId);
-                setAvailableAttributes(data || []);
-            };
-            fetchAttrs();
-        } else {
-            setAvailableAttributes([]);
+    const addAttributeValueLocal = async (attributeId, value) => {
+        setInlineLoading(true);
+        try {
+            const token = await getToken();
+            await addAttributeValue(attributeId, value, token);
+            const updatedAttrs = await getAttributes();
+            setAvailableAttributes(updatedAttrs);
+            toast.success("Valeur ajoutée");
+        } catch (err) {
+            toast.error("Erreur ajout valeur");
+        } finally {
+            setInlineLoading(false);
         }
-    }, [selectedCategoryId]);
+    };
+
+    const createAttributeLocal = async (name) => {
+        if (!name.trim()) return;
+        setInlineLoading(true);
+        try {
+            const token = await getToken();
+            const newAttrResp = await createAttribute({ name }, token);
+            const updatedAttrs = await getAttributes();
+            setAvailableAttributes(updatedAttrs);
+            const newId = newAttrResp?.id;
+            const newAttr = updatedAttrs.find(a => a.id === newId);
+            if (newAttr) {
+                setSelectedAttributes(prev => [...prev, newAttr]);
+            }
+            setAttrSearchQuery("");
+            toast.success("Attribut créé");
+        } catch (err) {
+            toast.error("Erreur création attribut");
+        } finally {
+            setInlineLoading(false);
+        }
+    };
 
     const selectedCategory = useMemo(() => {
         return categories.find(c => String(c.id) === String(selectedCategoryId));
@@ -122,11 +230,14 @@ export default function SupplierProductForm({ onClose }) {
                     sku: '',
                     supplier_price: parseFloat(globalSupplierPrice) || 0,
                     stock: 0,
+                    image_file: null,
+                    preview_url: null
                 };
             });
 
             setValue('variants', newVariants);
-            toast.success(`${newVariants.length} variantes générées`);
+            // When variants are generated, we prioritize their prices
+            toast.success(`${newVariants.length} variantes générées. Les prix seront gérés par variante.`);
         } catch (e) {
             toast.error(e.message);
         }
@@ -137,23 +248,50 @@ export default function SupplierProductForm({ onClose }) {
     };
 
     const onSubmit = async (data) => {
-        if (imageFiles.length === 0) {
-            toast.error("Veuillez ajouter au moins une image.");
-            setCurrentStep(1);
-            return;
-        }
-
         setLoading(true);
         try {
             const token = await getToken();
             const uploadedImages = [];
-
             for (const img of imageFiles) {
-                const url = await uploadSingleImage(img.file, token);
-                uploadedImages.push({ url, isMain: img.isMain });
+                if (img.existingUrl) {
+                    uploadedImages.push({ url: img.existingUrl, isMain: img.isMain });
+                } else if (img.file) {
+                    const url = await uploadSingleImage(img.file, token);
+                    uploadedImages.push({ url, isMain: img.isMain });
+                }
             }
 
-            const mainImageUrl = uploadedImages.find(img => img.isMain)?.url || null;
+            const mainImageUrl = uploadedImages.find(img => img.isMain)?.url || (uploadedImages.length > 0 ? uploadedImages[0].url : null);
+
+            const processedVariants = [];
+            for (const v of (data.variants || [])) {
+                let vImageUrl = v.image_url || mainImageUrl;
+                if (v.image_file) {
+                    vImageUrl = await uploadSingleImage(v.image_file, token);
+                }
+                const vSellingPrice = parseFloat(v.supplier_price) || parseFloat(data.supplier_price) || 0;
+                processedVariants.push({
+                    combination: v.combination,
+                    sku: v.sku,
+                    stock: parseInt(v.stock) || 0,
+                    price: vSellingPrice,
+                    image_url: vImageUrl,
+                    supplierLinks: [{
+                        supplier_id: 'me',
+                        supplier_price: vSellingPrice * (1 - commissionRate / 100),
+                        supplier_sku: v.sku
+                    }]
+                });
+            }
+
+            let finalPrice = parseFloat(data.supplier_price) || 0;
+            let calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
+
+            if (processedVariants && processedVariants.length > 0) {
+                const minVariantPrice = Math.min(...processedVariants.map(v => v.price));
+                finalPrice = minVariantPrice > 0 ? minVariantPrice : 0;
+                calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
+            }
 
             const payload = {
                 name: data.name,
@@ -161,25 +299,27 @@ export default function SupplierProductForm({ onClose }) {
                 category_id: parseInt(data.category_id),
                 images: uploadedImages,
                 supplier_note: data.supplier_note,
-                supplier_price: parseFloat(data.supplier_price) || 0,
+                price: finalPrice,
+                supplier_price: calculatedSupplierPrice,
                 stock: parseInt(data.stock) || 0,
-                status: 'draft', // Draft   En attente admin review
-                approval_status: '  En attente',
-                variants: (data.variants || []).map(v => ({
-                    combination: v.combination,
-                    sku: v.sku,
-                    stock: parseInt(v.stock) || 0,
-                    image_url: mainImageUrl, // default
-                    supplierLinks: [{
-                        supplier_id: 'me',
-                        supplier_price: parseFloat(v.supplier_price) || parseFloat(data.supplier_price) || 0,
-                        supplier_sku: v.sku
-                    }]
-                }))
+                status: 'draft',
+                approval_status: 'En attente',
+                boutique_id: data.boutique_id,
+                variants: processedVariants,
+                supplierLinks: processedVariants.length === 0 ? [{
+                    supplier_id: 'me',
+                    supplier_price: calculatedSupplierPrice,
+                    supplier_sku: data.sku || null
+                }] : []
             };
 
-            await createProduct(payload, token);
-            toast.success("Produit envoyé pour validation !");
+            if (initialData?.id) {
+                await updateProduct(initialData.id, payload, token);
+                toast.success("Produit mis à jour et envoyé pour validation !");
+            } else {
+                await createProduct(payload, token);
+                toast.success("Produit envoyé pour validation !");
+            }
             onClose();
         } catch (err) {
             toast.error(err.response?.data?.error || "Erreur lors de la création");
@@ -207,7 +347,7 @@ export default function SupplierProductForm({ onClose }) {
                         <Plus size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 tracking-tighter">Ajouter un produit</h2>
+                        <h2 className="text-xl font-black text-slate-900 tracking-tighter">{initialData ? 'Modifier le produit' : 'Ajouter un produit'}</h2>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section Vendeur</p>
                     </div>
                 </div>
@@ -251,6 +391,19 @@ export default function SupplierProductForm({ onClose }) {
                                 </button>
                             </div>
 
+                            {boutiques.length > 1 && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sélectionner la Boutique</label>
+                                    <CustomSelect
+                                        options={boutiques.map(b => ({ value: b.id, label: `${b.name} (${b.commune_label})` }))}
+                                        value={watch('boutique_id')}
+                                        onChange={(val) => setValue('boutique_id', val, { shouldValidate: true })}
+                                        placeholder="Sélectionner une boutique..."
+                                        className="w-full"
+                                    />
+                                </div>
+                            )}
+
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description (Optionnel)</label>
                                 <textarea {...register("description")} rows={4} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" placeholder="Détails du produit..." />
@@ -264,7 +417,65 @@ export default function SupplierProductForm({ onClose }) {
                     )}
 
                     {currentStep === 1 && (
-                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                            <div className="bg-indigo-900 rounded-[2.5rem] p-10 text-white space-y-10">
+                                <div className="space-y-6">
+                                    <h3 className="text-2xl font-black text-white">Sélection des <span className="text-indigo-400">Attributs.</span></h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                                <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher ou créer attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-4 text-xs font-bold" />
+                                            </div>
+                                            {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (
+                                                <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-6 py-4 bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] whitespace-nowrap shadow-xl">
+                                                    {inlineLoading ? "..." : "+ Créer"}
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {availableAttributes.filter(a => a.name.toLowerCase().includes(attrSearchQuery.toLowerCase())).map(attr => (
+                                                <button key={attr.id} type="button" onClick={() => {
+                                                    if (selectedAttributes.find(a => a.id === attr.id)) setSelectedAttributes(selectedAttributes.filter(a => a.id !== attr.id));
+                                                    else setSelectedAttributes([...selectedAttributes, attr]);
+                                                }} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white/5 text-slate-400 border-white/10'}`}>
+                                                    {attr.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {selectedAttributes.length > 0 && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {selectedAttributes.map(attr => (
+                                            <div key={attr.id} className="p-5 bg-white/5 rounded-[2rem] border border-white/10 space-y-4">
+                                                <span className="text-[10px] font-black uppercase text-indigo-400">{attr.name}</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.values.map(v => (
+                                                        <button key={v.id} type="button" onClick={() => {
+                                                            const current = selectedValuesMap[attr.id] || [];
+                                                            if (current.includes(v.id)) setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: current.filter(id => id !== v.id) });
+                                                            else setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: [...current, v.id] });
+                                                        }} className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white/5 text-white border-white/10'}`}>
+                                                            {v.value}
+                                                        </button>
+                                                    ))}
+                                                    <div className="ml-2 flex items-center">
+                                                        <InlineAdder label="Valeur" onAdd={(val) => addAttributeValueLocal(attr.id, val)} loading={inlineLoading} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <button type="button" onClick={() => { generateVariants(); nextStep(); }} disabled={selectedAttributes.length === 0} className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl">Générer & Continuer</button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {currentStep === 2 && (
+                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-black text-slate-900 tracking-tight">Photos du produit</h3>
                                 <label className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-slate-900 transition-all">
@@ -275,7 +486,7 @@ export default function SupplierProductForm({ onClose }) {
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                                 {imageFiles.map((img, idx) => (
-                                    <div key={idx} className={`relative aspect-square rounded-[2rem] overflow-hidden border-4 group ${img.isMain ? 'border-indigo-500' : 'border-slate-50'}`}>
+                                    <div key={idx} className={`relative aspect-square rounded-[1.5rem] overflow-hidden border-4 group ${img.isMain ? 'border-indigo-500 shadow-lg shadow-indigo-500/20' : 'border-slate-50'}`}>
                                         <img src={img.preview} className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                                             <button type="button" onClick={() => removeImage(idx)} className="bg-rose-500 text-white p-2 rounded-full hover:scale-110 transition-transform"><Trash2 size={16} /></button>
@@ -292,81 +503,86 @@ export default function SupplierProductForm({ onClose }) {
                         </motion.div>
                     )}
 
-                    {currentStep === 2 && (
-                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                    {currentStep === 3 && (
+                        <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
                             {/* Global Supplier Info */}
-                            <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Mon Prix de Gros (FCFA)</label>
-                                    <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                            {variants.length === 0 && (
+                            <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8 shadow-inner">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Prix de vente final (FCFA)</label>
+                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 10000" />
+                                    </div>
+                                    {globalSupplierPrice && (
+                                        <div className="px-4 py-3 bg-white/50 rounded-2xl flex justify-between items-center">
+                                            <span className="text-[9px] font-black uppercase text-slate-400">Votre gain net (estimation) :</span>
+                                            <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
                                     <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
                                 </div>
                             </div>
+                            )}
 
-                            {/* Variants Generator */}
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Variantes personnalisées</h4>
-                                    {availableAttributes.length > 0 && (
-                                        <div className="flex gap-2">
-                                            {availableAttributes.map(attr => (
-                                                <button key={attr.id} type="button" onClick={() => {
-                                                    if (selectedAttributes.find(a => a.id === attr.id)) setSelectedAttributes(selectedAttributes.filter(a => a.id !== attr.id));
-                                                    else setSelectedAttributes([...selectedAttributes, attr]);
-                                                }} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-                                                    {attr.name}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {selectedAttributes.length > 0 && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-[2rem]">
-                                        {selectedAttributes.map(attr => (
-                                            <div key={attr.id} className="space-y-3">
-                                                <p className="text-[10px] font-black uppercase text-slate-900">{attr.name}</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {attr.values.map(v => (
-                                                        <button key={v.id} type="button" onClick={() => {
-                                                            const current = selectedValuesMap[attr.id] || [];
-                                                            if (current.includes(v.id)) setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: current.filter(id => id !== v.id) });
-                                                            else setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: [...current, v.id] });
-                                                        }} className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-slate-500 border-slate-100'}`}>
-                                                            {v.value}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <button type="button" onClick={generateVariants} className="sm:col-span-2 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl">
-                                            Générer les combinaisons de variantes
-                                        </button>
-                                    </div>
-                                )}
-
-                                {variants.length > 0 && (
-                                    <div className="space-y-4">
+                                <h4 className="text-xl font-black text-slate-900 tracking-tighter">Personnalisation des Variantes</h4>
+                                {variants.length > 0 ? (
+                                    <div className="space-y-6">
                                         {variants.map((v, idx) => (
-                                            <div key={idx} className="p-6 bg-white border border-slate-100 rounded-3xl flex flex-col md:flex-row items-center gap-6 group hover:shadow-xl hover:shadow-slate-100 transition-all">
-                                                <div className="flex-1 flex flex-wrap gap-2">
-                                                    {Object.entries(v.combination).map(([a, val], i) => (
-                                                        <span key={i} className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black uppercase text-slate-500">{a}: {val}</span>
-                                                    ))}
-                                                </div>
-                                                <div className="flex items-center gap-4 w-full md:w-auto">
-                                                    <div className="relative flex-1 md:w-32">
-                                                        <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
+                                            <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:shadow-slate-100 transition-all">
+                                                {/* Variant Image Selector */}
+                                                <div className="w-32 h-32 relative group/img">
+                                                    <div className="w-full h-full bg-slate-50 rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 overflow-hidden relative">
+                                                        {watch(`variants.${idx}.preview_url`) ? (
+                                                            <img src={watch(`variants.${idx}.preview_url`)} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <>
+                                                                <ImageIcon className="w-6 h-6 text-slate-300" />
+                                                                <span className="text-[8px] font-black uppercase text-slate-400 mt-1">Image</span>
+                                                            </>
+                                                        )}
+                                                        <input 
+                                                            type="file" 
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files[0];
+                                                                if (file) {
+                                                                    setValue(`variants.${idx}.image_file`, file);
+                                                                    setValue(`variants.${idx}.preview_url`, URL.createObjectURL(file));
+                                                                }
+                                                            }}
+                                                        />
                                                     </div>
-                                                    <div className="relative flex-1 md:w-32">
-                                                        <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-black" placeholder="Stock" />
+                                                </div>
+
+                                                <div className="flex-1 space-y-4">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {Object.entries(v.combination).map(([a, val], i) => (
+                                                            <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">{a}: {val}</span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black uppercase text-slate-400">Prix</label>
+                                                            <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black uppercase text-slate-400">Stock</label>
+                                                            <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black" placeholder="Stock" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                ) : (
+                                    <div className="py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center gap-4 text-slate-300 text-center">
+                                        <Layers size={48} strokeWidth={1} />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Aucune variante générée</p>
+                                        <button type="button" onClick={() => setCurrentStep(1)} className="text-indigo-500 text-[10px] font-black uppercase underline">Retourner aux attributs</button>
                                     </div>
                                 )}
                             </div>

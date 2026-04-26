@@ -1,5 +1,5 @@
-const express = require("express");
-const { Order, Payment } = require("../models");
+import express from "express";
+import { Order } from "../models/index.js";
 
 const router = express.Router();
 
@@ -24,29 +24,29 @@ router.post("/", async (req, res) => {
       return res.status(400).send("missing order id");
     }
 
-    // map provider status to your statuses
-    let paymentStatus = "  En attente";
+    // map provider status to your internal statuses
+    let payment_status = "en_attente";
+    let order_status = "en_attente";
+
     if (String(providerStatus).toLowerCase() === "paid" || String(providerStatus).toLowerCase() === "successful") {
-      paymentStatus = "paid";
-    } else if (String(providerStatus).toLowerCase() === "failed") {
-      paymentStatus = "failed";
+      payment_status = "payé";
+      order_status = "confirmée"; // Passer l'ordre en confirmé dès que c'est payé
+    } else if (String(providerStatus).toLowerCase() === "failed" || String(providerStatus).toLowerCase() === "declined") {
+      payment_status = "non_payé";
+      order_status = "annulée";
     }
 
-    // update payments row(s)
-    await Payment.update(
+    // update order
+    await Order.update(
       {
-        status: paymentStatus,
-        provider_metadata: payload,
+        payment_status: payment_status,
+        status: order_status,
+        payment_id: payload?.id || orderId, // Stocker l'ID de transaction FedaPay
       },
-      { where: { order_id: orderId } }
+      { where: { id: orderId } }
     );
 
-    // update order status if paid
-    if (paymentStatus === "paid") {
-      await Order.update({ status: "paid" }, { where: { id: orderId } });
-    } else if (paymentStatus === "failed") {
-      await Order.update({ status: "payment_failed" }, { where: { id: orderId } });
-    }
+    console.log(`[Webhook] Order ${orderId} updated to ${payment_status}/${order_status}`);
 
     return res.status(200).send("ok");
   } catch (err) {
@@ -55,4 +55,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

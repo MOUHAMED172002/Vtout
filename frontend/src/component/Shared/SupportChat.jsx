@@ -57,7 +57,7 @@ export default function SupportChat() {
             conversation_id: `${user.id}_admin`
         };
         sendMessage(msg);
-        setMessages(prev => [...prev, { ...msg, created_at: new Date(), sender: { role: 'user' } }]);
+        setMessages(prev => [...prev, { ...msg, created_at: new Date(), sender: { role: user.role || 'user' } }]);
         setInput("");
     };
 
@@ -147,7 +147,7 @@ export default function SupportChat() {
                                                 )}
                                                 <p className="text-[12px] leading-relaxed font-semibold">{msg.content}</p>
                                                 <p className={`text-[8px] mt-2 font-bold uppercase opacity-40 ${isMe ? 'text-right' : 'text-left'}`}>
-                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(msg.createdAt || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                         </motion.div>
@@ -184,6 +184,14 @@ export default function SupportChat() {
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                animate={{
+                    y: [0, -8, 0],
+                }}
+                transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                }}
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-900 text-white rounded-[2rem] sm:rounded-[2.5rem] flex items-center justify-center shadow-[0_15px_40px_rgba(15,23,42,0.3)] hover:bg-slate-800 transition-all group relative border border-white/10"
             >

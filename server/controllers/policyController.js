@@ -1,6 +1,7 @@
-const { Policy } = require('../models');
+import { Policy } from '../models/index.js';
 
-exports.getAllPolicies = async (req, res) => {
+
+export const getAllPolicies = async (req, res) => {
     try {
         const policies = await Policy.findAll();
         res.json(policies);
@@ -9,7 +10,7 @@ exports.getAllPolicies = async (req, res) => {
     }
 };
 
-exports.getPoliciesByType = async (req, res) => {
+export const getPoliciesByType = async (req, res) => {
     try {
         const { type } = req.params;
         const policies = await Policy.findAll({ where: { type } });
@@ -19,7 +20,7 @@ exports.getPoliciesByType = async (req, res) => {
     }
 };
 
-exports.createPolicy = async (req, res) => {
+export const createPolicy = async (req, res) => {
     try {
         const policy = await Policy.create(req.body);
         res.status(201).json(policy);
@@ -28,7 +29,7 @@ exports.createPolicy = async (req, res) => {
     }
 };
 
-exports.updatePolicy = async (req, res) => {
+export const updatePolicy = async (req, res) => {
     try {
         const { id } = req.params;
         await Policy.update(req.body, { where: { id } });
@@ -38,7 +39,7 @@ exports.updatePolicy = async (req, res) => {
     }
 };
 
-exports.deletePolicy = async (req, res) => {
+export const deletePolicy = async (req, res) => {
     try {
         const { id } = req.params;
         await Policy.destroy({ where: { id } });

@@ -9,6 +9,7 @@
         "fix_*.js",
         "generate_*.js"
     ],
+    "delay": "2500",
     "watch": [
         "."
     ]

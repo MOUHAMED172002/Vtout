@@ -1,27 +1,32 @@
-const { DeliveryPerson, Order, Address, Profile, OrderItem, Product, Supplier, ProductVariant } = require('../models');
-const { Op } = require('sequelize');
-const sequelize = require('../config/database');
+import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, ProductVariant, sequelize } from '../models/index.js';
+import { Op } from 'sequelize';
+import { processOrderFinancials } from '../services/financialService.js';
 
-exports.getAvailableOrders = async (req, res) => {
+
+export const getAvailableOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
             where: {
-                status: 'confirmee',
+                status: { [Op.in]: ['confirmée'] },
                 delivery_person_id: null,
                 supplier_id: { [Op.not]: null }
             },
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
+                { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
                 {
                     model: OrderItem, as: 'items',
                     include: [
-                        { model: Product, as: 'product' },
+                        { 
+                            model: Product, as: 'product',
+                            include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }]
+                        },
                         { model: ProductVariant, as: 'variant' }
                     ]
                 }
             ],
-            order: [['created_at', 'ASC']]
+            order: [[sequelize.literal('created_at'), 'ASC']]
         });
         res.json(orders);
     } catch (error) {
@@ -29,22 +34,30 @@ exports.getAvailableOrders = async (req, res) => {
     }
 };
 
-exports.assignToMe = async (req, res) => {
+export const assignToMe = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { orderId } = req.body;
 
         const deliveryPerson = await DeliveryPerson.findOne({ where: { user_id: userId } });
         if (!deliveryPerson) return res.status(403).json({ error: 'Vous n\'êtes pas enregistré comme livreur' });
+        
+        // SECURITE : S'assurer que le livreur est vérifié
+        if (!deliveryPerson.is_verified) return res.status(403).json({ error: 'Votre compte livreur est en attente de validation.' });
 
         const order = await Order.findByPk(orderId);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
         if (order.delivery_person_id) return res.status(400).json({ error: 'Commande déjà assignée' });
 
+        // SECURITE : Vérifier que la commande est valide pour l'assignation
+        if (!['confirmee', 'confirmée', 'en_attente'].includes(order.status)) {
+            return res.status(400).json({ error: 'Cette commande n\'est plus disponible.' });
+        }
+
         const unremittedCashCount = await Order.count({
             where: {
                 delivery_person_id: deliveryPerson.id,
-                status: 'livree',
+                status: 'livrée',
                 payment_method: 'delivery',
                 payment_status: 'en_attente'
             }
@@ -56,14 +69,14 @@ exports.assignToMe = async (req, res) => {
             });
         }
 
-        await order.update({ delivery_person_id: deliveryPerson.id, assigned_at: new Date(), status: 'confirmee' });
+        await order.update({ delivery_person_id: deliveryPerson.id, assigned_at: new Date(), status: 'confirmée' });
         res.json({ message: 'Commande assignée avec succès', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de l\'assignation de la commande' });
     }
 };
 
-exports.releaseOrder = async (req, res) => {
+export const releaseOrder = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { orderId } = req.body;
@@ -73,7 +86,7 @@ exports.releaseOrder = async (req, res) => {
 
         const order = await Order.findOne({ where: { id: orderId, delivery_person_id: deliveryPerson.id } });
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-        if (order.status !== 'confirmee') return res.status(400).json({ error: 'Impossible de désassigner une commande déjà expédiée ou livrée' });
+        if (!['confirmee', 'confirmée', 'assignee', 'assignée'].includes(order.status)) return res.status(400).json({ error: 'Impossible de désassigner une commande déjà expédiée ou livrée' });
 
         await order.update({ delivery_person_id: null, assigned_at: null });
         res.json({ message: 'Commande désassignée avec succès', order });
@@ -82,37 +95,55 @@ exports.releaseOrder = async (req, res) => {
     }
 };
 
-exports.updateDeliveryStatus = async (req, res) => {
+export const updateDeliveryStatus = async (req, res) => {
     try {
         const userId = req.auth.userId;
-        const { orderId, status, delivery_code } = req.body;
+        const { orderId, status, delivery_code, proof_url } = req.body;
+
+        const STATUS_MAP = {
+            'livree': 'livrée',
+            'expediee': 'expédiée',
+            'confirmee': 'confirmée',
+            'assignee': 'assignée'
+        };
+        const mappedStatus = STATUS_MAP[status] || status;
 
         const deliveryPerson = await DeliveryPerson.findOne({ where: { user_id: userId } });
         const order = await Order.findOne({ where: { id: orderId, delivery_person_id: deliveryPerson?.id } });
         if (!order) return res.status(404).json({ error: 'Commande assignée non trouvée' });
 
-        const updateData = { status };
+        const oldStatus = order.status;
+        const updateData = { status: mappedStatus };
+        if (proof_url) updateData.proof_url = proof_url;
 
-        if (status === 'expediee') {
+        if (mappedStatus === 'expédiée') {
             updateData.picked_up_at = new Date();
         }
 
-        if (status === 'livree') {
-            if (!delivery_code || order.delivery_code !== delivery_code) {
-                return res.status(400).json({ error: 'Code de confirmation de livraison incorrect. Veuillez demander le code au client.' });
+        if (mappedStatus === 'livrée') {
+            // SECURITE CRITIQUE : Toujours exiger le code de livraison
+            if (order.delivery_code && order.delivery_code !== delivery_code) {
+                console.error(`[FRAUDE POSSIBLE] Delivery code mismatch for order ${order.id}. Expected ${order.delivery_code}, got ${delivery_code}.`);
+                return res.status(400).json({ error: 'Code de livraison invalide. Impossible de confirmer la livraison.' });
             }
             updateData.delivered_at = new Date();
             await deliveryPerson.increment('total_deliveries');
         }
 
         await order.update(updateData);
+        
+        const isDelivered = (mappedStatus === 'livrée') && (oldStatus !== 'livrée');
+        if (isDelivered) {
+            await processOrderFinancials(order);
+        }
+
         res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });
     }
 };
 
-exports.getMyDeliveries = async (req, res) => {
+export const getMyDeliveries = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const deliveryPerson = await DeliveryPerson.findOne({ where: { user_id: userId } });
@@ -123,15 +154,19 @@ exports.getMyDeliveries = async (req, res) => {
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
+                { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
                 {
                     model: OrderItem, as: 'items',
                     include: [
-                        { model: Product, as: 'product' },
+                        { 
+                            model: Product, as: 'product',
+                            include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }]
+                        },
                         { model: ProductVariant, as: 'variant' }
                     ]
                 }
             ],
-            order: [['updated_at', 'DESC']]
+            order: [[sequelize.literal('updated_at'), 'DESC']]
         });
         res.json(orders);
     } catch (error) {
@@ -139,7 +174,7 @@ exports.getMyDeliveries = async (req, res) => {
     }
 };
 
-exports.toggleStatus = async (req, res) => {
+export const toggleStatus = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { status, lat, lng } = req.body;
@@ -161,7 +196,7 @@ exports.toggleStatus = async (req, res) => {
     }
 };
 
-exports.updateLocation = async (req, res) => {
+export const updateLocation = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { lat, lng } = req.body;
@@ -178,7 +213,7 @@ exports.updateLocation = async (req, res) => {
     }
 };
 
-exports.updateServiceZones = async (req, res) => {
+export const updateServiceZones = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { zones } = req.body;
@@ -193,7 +228,7 @@ exports.updateServiceZones = async (req, res) => {
     }
 };
 
-exports.getMyProfile = async (req, res) => {
+export const getMyProfile = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const deliveryPerson = await DeliveryPerson.findOne({
@@ -207,7 +242,7 @@ exports.getMyProfile = async (req, res) => {
     }
 };
 
-exports.getLivreursList = async (req, res) => {
+export const getLivreursList = async (req, res) => {
     try {
         const livreurs = await DeliveryPerson.findAll({
             include: [{ model: Profile, as: 'profile', attributes: ['id', 'fullname', 'email', 'phone'] }]
@@ -218,13 +253,13 @@ exports.getLivreursList = async (req, res) => {
     }
 };
 
-exports.getDeliveryStatsAdmin = async (req, res) => {
+export const getDeliveryStatsAdmin = async (req, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         const debts = await Order.findAll({
-            where: { payment_method: 'delivery', payment_status: 'en_attente', status: 'livree', delivery_person_id: { [Op.ne]: null } },
+            where: { payment_method: 'delivery', payment_status: 'en_attente', status: 'livrée', delivery_person_id: { [Op.ne]: null } },
             attributes: [
                 'delivery_person_id',
                 [sequelize.fn('SUM', sequelize.col('Order.total_amount')), 'total_debt'],
@@ -235,7 +270,7 @@ exports.getDeliveryStatsAdmin = async (req, res) => {
         });
 
         const dailyDeliveries = await Order.findAll({
-            where: { status: 'livree', updated_at: { [Op.gte]: today }, delivery_person_id: { [Op.ne]: null } },
+            where: { status: 'livrée', updated_at: { [Op.gte]: today }, delivery_person_id: { [Op.ne]: null } },
             attributes: [
                 'delivery_person_id',
                 [sequelize.fn('COUNT', sequelize.col('Order.id')), 'count']
@@ -250,14 +285,14 @@ exports.getDeliveryStatsAdmin = async (req, res) => {
     }
 };
 
-exports.confirmCashRemitted = async (req, res) => {
+export const confirmCashRemitted = async (req, res) => {
     try {
         const { deliveryPersonId } = req.body;
         if (!deliveryPersonId) return res.status(400).json({ error: 'ID du livreur requis' });
 
         const [updatedCount] = await Order.update(
             { payment_status: 'payé' },
-            { where: { delivery_person_id: deliveryPersonId, payment_method: 'delivery', payment_status: 'en_attente', status: 'livree' } }
+            { where: { delivery_person_id: deliveryPersonId, payment_method: 'delivery', payment_status: 'en_attente', status: 'livrée' } }
         );
         res.json({ message: `Paiements confirmés pour ${updatedCount} commandes.`, count: updatedCount });
     } catch (error) {
@@ -265,7 +300,7 @@ exports.confirmCashRemitted = async (req, res) => {
     }
 };
 
-exports.verifyLivreur = async (req, res) => {
+export const verifyLivreur = async (req, res) => {
     try {
         const { id } = req.params;
         const { is_verified } = req.body;
@@ -276,7 +311,17 @@ exports.verifyLivreur = async (req, res) => {
         await deliveryPerson.update({ is_verified });
 
         const profile = await Profile.findByPk(deliveryPerson.user_id);
-        if (profile) await profile.update({ role: is_verified ? 'livreur' : 'user' });
+        if (profile) {
+             const newRole = is_verified ? 'livreur' : 'user';
+             await profile.update({ role: newRole });
+             await sequelize.query(
+                 'UPDATE user SET role = :role WHERE id = :id',
+                 {
+                     replacements: { role: newRole, id: deliveryPerson.user_id },
+                     type: sequelize.QueryTypes.UPDATE
+                 }
+             );
+        }
 
         res.json({ message: 'Statut mis à jour et rôle synchronisé' });
     } catch (error) {
@@ -284,7 +329,7 @@ exports.verifyLivreur = async (req, res) => {
     }
 };
 
-exports.adminAssignOrder = async (req, res) => {
+export const adminAssignOrder = async (req, res) => {
     try {
         const { orderId, deliveryPersonId } = req.body;
 
@@ -300,7 +345,7 @@ exports.adminAssignOrder = async (req, res) => {
         if (!deliveryPerson) return res.status(404).json({ error: 'Livreur non trouvé' });
 
         const updateData = { delivery_person_id: deliveryPerson.id, assigned_at: order.assigned_at || new Date() };
-        if (order.status === 'en_attente') updateData.status = 'confirmee';
+        if (order.status === 'en_attente') updateData.status = 'confirmée';
 
         await order.update(updateData);
         res.json({ message: 'Commande assignée par l\'administrateur', order });
@@ -309,7 +354,7 @@ exports.adminAssignOrder = async (req, res) => {
     }
 };
 
-exports.registerLivreur = async (req, res) => {
+export const registerLivreur = async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { vehicle_type, vehicle_model, license_plate, id_card_url, phone, fullname, service_zones } = req.body;
@@ -320,7 +365,7 @@ exports.registerLivreur = async (req, res) => {
         });
 
         if (!created) {
-            await deliveryPerson.update({ vehicle_type, vehicle_model, license_plate, id_card_url, service_zones: service_zones || [], is_verified: false });
+            await deliveryPerson.update({ vehicle_type, vehicle_model, license_plate, id_card_url, service_zones: service_zones || [] });
         }
 
         const profile = await Profile.findByPk(userId);
@@ -328,11 +373,21 @@ exports.registerLivreur = async (req, res) => {
             const updates = {};
             if (phone && profile.phone !== phone) updates.phone = phone;
             if (fullname && profile.fullname !== fullname) updates.fullname = fullname;
-            if (Object.keys(updates).length > 0) await profile.update(updates);
+            try {
+                if (Object.keys(updates).length > 0) {
+                    await profile.update(updates);
+                }
+            } catch (err) {
+                if (err.name === 'SequelizeUniqueConstraintError') {
+                    return res.status(400).json({ error: "Ce numéro de téléphone est déjà utilisé par un autre utilisateur." });
+                }
+                throw err;
+            }
         }
 
         res.json({ message: 'Demande d\'inscription envoyée. En attente de vérification.', deliveryPerson });
     } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de l\'enregistrement' });
+        console.error("REGISTER LIVREUR ERROR:", error);
+        res.status(500).json({ error: 'Erreur lors de l\'enregistrement', details: error.message });
     }
 };

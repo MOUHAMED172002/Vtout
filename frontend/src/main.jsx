@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ClerkProvider } from '@clerk/clerk-react'
+import { ClerkProvider } from './lib/clerk-shim';
 import { HelmetProvider } from 'react-helmet-async'
 import ErrorBoundary from './component/Shared/ErrorBoundary.jsx'
 import { Toaster } from 'react-hot-toast'
@@ -9,7 +9,11 @@ import App from './App.jsx'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { CartProvider } from "./component/context/CartContext.jsx";
-import { ProfileProvider } from "./component/context/useProfile.jsx";
+import { ProfileProvider } from "./component/context/useProfile";
+
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ConfigProvider } from "./component/context/ConfigContext.jsx";
+import { ThemeProvider } from "./component/context/ThemeContext.jsx";
 
 // Importez votre clé publishable
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -21,20 +25,26 @@ if (!PUBLISHABLE_KEY) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <HelmetProvider>
-        <ClerkProvider
-          publishableKey={PUBLISHABLE_KEY}
-          afterSignOutUrl="/"
-          clerkJSVersion="5.22.0"
-        >
-          <ProfileProvider>
-            <CartProvider>
-              <Toaster position="top-right" reverseOrder={false} />
-              <App />
-            </CartProvider>
-          </ProfileProvider>
-        </ClerkProvider>
-      </HelmetProvider>
+      <Router>
+        <HelmetProvider>
+          <ClerkProvider
+            publishableKey={PUBLISHABLE_KEY}
+            afterSignOutUrl="/"
+            clerkJSVersion="5.22.0"
+          >
+            <ConfigProvider>
+              <ProfileProvider>
+                <CartProvider>
+                  <ThemeProvider>
+                    <Toaster position="top-right" reverseOrder={false} />
+                    <App />
+                  </ThemeProvider>
+                </CartProvider>
+              </ProfileProvider>
+            </ConfigProvider>
+          </ClerkProvider>
+        </HelmetProvider>
+      </Router>
     </ErrorBoundary>
   </StrictMode>
 )

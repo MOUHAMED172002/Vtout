@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Review = sequelize.define('Review', {
     id: {
@@ -35,10 +35,14 @@ const Review = sequelize.define('Review', {
     images: {
         type: DataTypes.JSON,
         defaultValue: []
+    },
+    is_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
     tableName: 'reviews',
     underscored: true
 });
 
-module.exports = Review;
+export default Review;

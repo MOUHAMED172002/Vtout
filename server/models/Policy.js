@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 const Policy = sequelize.define('Policy', {
     id: {
@@ -16,7 +16,7 @@ const Policy = sequelize.define('Policy', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('general', 'supplier', 'delivery'),
+        type: DataTypes.ENUM('general', 'supplier', 'delivery', 'cgv'),
         defaultValue: 'general'
     }
 }, {
@@ -24,4 +24,4 @@ const Policy = sequelize.define('Policy', {
     underscored: true
 });
 
-module.exports = Policy;
+export default Policy;

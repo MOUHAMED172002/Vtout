@@ -199,11 +199,11 @@ export default function CartPage() {
                   <div className="space-y-4 mb-8 text-slate-400 relative z-10">
                     <div className="flex justify-between font-bold">
                       <span>Articles ({displayCart.length})</span>
-                      <span className="text-slate-900">{total.toLocaleString()} F</span>
+                      <span className="text-blue-900">{total.toLocaleString()} F</span>
                     </div>
                     <div className="flex justify-between font-bold">
-                      <span>Expédition</span>
-                      <span className="text-emerald-400">Gratuit</span>
+                      <span>Expédition (Estimation)</span>
+                      <span className="text-primary">{(1000 * (selectedIds.size > 0 ? selectedIds.size : displayCart.length)).toLocaleString()} F</span>
                     </div>
                     <div className="h-px bg-slate-800 my-6"></div>
                     <div className="flex justify-between items-end">

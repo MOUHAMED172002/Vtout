@@ -1,7 +1,8 @@
-const { Favorite, Product, ProductImage } = require('../models');
-const crypto = require('crypto');
+import { Favorite, Product, ProductImage } from '../models/index.js';
+import crypto from 'crypto';
 
-exports.addFavorite = async (req, res) => {
+
+export const addFavorite = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { product_id } = req.body;
@@ -18,7 +19,7 @@ exports.addFavorite = async (req, res) => {
     }
 };
 
-exports.removeFavorite = async (req, res) => {
+export const removeFavorite = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { product_id } = req.params;
@@ -33,7 +34,7 @@ exports.removeFavorite = async (req, res) => {
     }
 };
 
-exports.getMyFavorites = async (req, res) => {
+export const getMyFavorites = async (req, res) => {
     try {
         const { userId } = req.auth;
         const favorites = await Favorite.findAll({
@@ -54,7 +55,7 @@ exports.getMyFavorites = async (req, res) => {
     }
 };
 
-exports.checkFavorite = async (req, res) => {
+export const checkFavorite = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { product_id } = req.params;
@@ -67,7 +68,7 @@ exports.checkFavorite = async (req, res) => {
     }
 };
 
-exports.toggleFavorite = async (req, res) => {
+export const toggleFavorite = async (req, res) => {
     try {
         const { userId } = req.auth;
         const { product_id } = req.body;

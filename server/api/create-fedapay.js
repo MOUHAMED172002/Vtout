@@ -1,6 +1,5 @@
-const express = require("express");
-const fetch = require("node-fetch");
-const { Order, Payment } = require("../models");
+import express from "express";
+import { Order } from "../models/index.js";
 
 const router = express.Router();
 const FEDAPAY_SECRET = process.env.FEDAPAY_SECRET;
@@ -68,4 +67,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

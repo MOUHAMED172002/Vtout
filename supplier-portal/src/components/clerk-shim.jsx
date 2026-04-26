@@ -37,12 +37,19 @@ export const ClerkProvider = ({ children }) => {
 
 export const useAuth = () => {
     const { session, user, isLoaded } = useContext(AuthContext);
+    
+    const getToken = React.useCallback(async () => {
+        if (!session) return null;
+        return session.id;
+    }, [session?.id]);
+
     return {
         isLoaded,
         isSignedIn: !!session,
         userId: user?.id || null,
+        role: user?.role || 'user',
         sessionId: session?.id || null,
-        getToken: async () => session?.id,
+        getToken,
         signOut: async () => await authClient.signOut(),
     };
 };
@@ -86,6 +93,6 @@ export const SignedOut = ({ children }) => {
     return <>{children}</>;
 };
 
-export const SignIn = () => <AuthUI mode="signIn" />;
-export const SignUp = () => <AuthUI mode="signUp" />;
+export const SignIn = (props) => <AuthUI mode="signIn" {...props} />;
+export const SignUp = (props) => <AuthUI mode="signUp" {...props} />;
 export const UserButton = () => <UserDropdown />;

@@ -123,33 +123,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </button>
       </div>
 
-      {/* Promotions / Flash Sale */}
-      <div className="border-b border-slate-50">
-        <SectionHeader title="Offres" sectionKey="promo" icon={Sparkles} />
-        <AnimatePresence>
-          {openSections.promo && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
-              <button
-                onClick={() => updateFilters({ isFlashSale: !filters.isFlashSale })}
-                className={`w-full group flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${filters.isFlashSale ? 'bg-rose-50 border-rose-500' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${filters.isFlashSale ? 'bg-rose-500 text-white' : 'bg-white text-slate-400'}`}>
-                    <Zap size={18} fill={filters.isFlashSale ? "currentColor" : "none"} />
-                  </div>
-                  <div className="text-left">
-                    <p className={`text-xs font-black uppercase tracking-widest ${filters.isFlashSale ? 'text-rose-600' : 'text-slate-600'}`}>Ventes Flash</p>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Offres à durée limitée</p>
-                  </div>
-                </div>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${filters.isFlashSale ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white border-slate-200'}`}>
-                  {filters.isFlashSale && <ChevronRight size={14} className="rotate-90" />}
-                </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+
 
       {/* Sorting */}
       <div className="border-b border-slate-50">
@@ -213,15 +187,62 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                 ))}
               </div>
 
-              <div className="space-y-4 px-2">
-                <div className="relative h-2 bg-slate-50 rounded-full">
-                  <div className="absolute h-full bg-primary rounded-full" style={{ left: `${(filters.minPrice / 500000) * 100}%`, right: `${100 - (filters.maxPrice / 500000) * 100}%` }}></div>
-                  <input type="range" min={0} max={500000} step={1000} value={filters.minPrice} onChange={(e) => updateFilters({ minPrice: Number(e.target.value) })} className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none custom-range-thumb" />
-                  <input type="range" min={0} max={500000} step={1000} value={filters.maxPrice} onChange={(e) => updateFilters({ maxPrice: Number(e.target.value) })} className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none custom-range-thumb" />
+              <div className="space-y-6 px-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Min (FCFA)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs text-bold">CFA</span>
+                      <input 
+                        type="number" 
+                        value={filters.minPrice} 
+                        onChange={(e) => updateFilters({ minPrice: Math.max(0, Number(e.target.value)) })}
+                        className="w-full bg-slate-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Max (FCFA)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs text-bold">CFA</span>
+                      <input 
+                        type="number" 
+                        value={filters.maxPrice} 
+                        onChange={(e) => updateFilters({ maxPrice: Math.max(0, Number(e.target.value)) })}
+                        className="w-full bg-slate-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  <span>{filters.minPrice.toLocaleString()} F</span>
-                  <span>{filters.maxPrice.toLocaleString()} F</span>
+
+                <div className="relative h-6 flex items-center">
+                  <div className="absolute w-full h-1.5 bg-slate-100 rounded-full">
+                    <div 
+                      className="absolute h-full bg-orange-400 rounded-full" 
+                      style={{ 
+                        left: `${(filters.minPrice / 500000) * 100}%`, 
+                        right: `${100 - (filters.maxPrice / 500000) * 100}%` 
+                      }} 
+                    />
+                  </div>
+                  <input 
+                    type="range" 
+                    min={0} 
+                    max={500000} 
+                    step={1000} 
+                    value={filters.minPrice} 
+                    onChange={(e) => updateFilters({ minPrice: Math.min(Number(e.target.value), filters.maxPrice - 1000) })} 
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                  />
+                  <input 
+                    type="range" 
+                    min={0} 
+                    max={500000} 
+                    step={1000} 
+                    value={filters.maxPrice} 
+                    onChange={(e) => updateFilters({ maxPrice: Math.max(Number(e.target.value), filters.minPrice + 1000) })} 
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                  />
                 </div>
               </div>
             </motion.div>
@@ -292,28 +313,20 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Category Search Modal */}
-      <AnimatePresence>
-        {showCategoryModal && (
+      {/* Category Search Modal - Rendered outside overflow container for better stacking context */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-[999999] pointer-events-auto">
           <CategorySearchModal
             categories={categories}
             onClose={() => setShowCategoryModal(false)}
             onSelect={(cat) => {
-              updateFilters({ category_id: cat.id });
+              updateFilters({ category_id: String(cat.id) });
               setShowCategoryModal(false);
             }}
           />
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
-      <style>{`
-        .custom-range-thumb::-webkit-slider-thumb {
-          @apply appearance-none w-5 h-5 bg-white border-2 border-primary rounded-full cursor-pointer pointer-events-auto shadow-lg shadow-primary/10;
-        }
-        .custom-range-thumb::-moz-range-thumb {
-          @apply appearance-none w-5 h-5 bg-white border-2 border-primary rounded-full cursor-pointer pointer-events-auto shadow-lg shadow-primary/10;
-        }
-      `}</style>
     </div>
   );
 }

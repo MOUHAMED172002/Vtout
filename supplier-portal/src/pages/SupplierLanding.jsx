@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Package, TrendingUp, ShieldCheck, ChevronRight, Store, DollarSign } from 'lucide-react';
-import { SignedOut, SignedIn } from '@clerk/clerk-react';
+import { SignedOut, SignedIn } from '../components/clerk-shim';
 
 export default function SupplierLanding() {
     const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function SupplierLanding() {
                         <Store size={24} className="text-white" />
                     </div>
                     <div>
-                        <span className="font-black text-xl tracking-tighter text-slate-900 leading-none block">EShop</span>
+                        <span className="font-black text-xl tracking-tighter text-slate-900 leading-none block">Vtout</span>
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">Partenaires</span>
                     </div>
                 </div>
@@ -27,9 +27,14 @@ export default function SupplierLanding() {
                         </button>
                     </SignedIn>
                     <SignedOut>
-                        <button onClick={() => navigate('/inscription')} className="btn btn-primary rounded-full px-8 text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20">
-                            S'inscrire / Se Connecter
-                        </button>
+                        <div className="flex gap-3">
+                            <button onClick={() => navigate('/connexion')} className="btn btn-ghost rounded-full px-6 text-xs font-black uppercase tracking-widest border border-slate-200">
+                                Se Connecter
+                            </button>
+                            <button onClick={() => navigate('/inscription')} className="btn btn-primary rounded-full px-8 text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20">
+                                S'inscrire
+                            </button>
+                        </div>
                     </SignedOut>
                 </div>
             </header>
@@ -50,7 +55,7 @@ export default function SupplierLanding() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                             </span>
-                            Merci pour votre intérêt envers EShop
+                            Merci pour votre intérêt envers Vtout
                         </div>
 
                         <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-slate-900 leading-[1.1]">
@@ -63,18 +68,28 @@ export default function SupplierLanding() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                            <button
-                                onClick={() => navigate('/inscription')}
-                                className="w-full sm:w-auto px-10 py-5 bg-indigo-600 hover:bg-slate-900 text-white rounded-full font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-3 hover:-translate-y-1"
-                            >
-                                Commencer l'Inscription <ChevronRight size={18} />
-                            </button>
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-slate-100 text-slate-900 rounded-full font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
-                            >
-                                Se Connecter
-                            </button>
+                            <SignedIn>
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 hover:bg-slate-900 text-white rounded-full font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-3 hover:-translate-y-1"
+                                >
+                                    Accéder à mon Espace <ChevronRight size={18} />
+                                </button>
+                            </SignedIn>
+                            <SignedOut>
+                                <button
+                                    onClick={() => navigate('/inscription')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-indigo-600 hover:bg-slate-900 text-white rounded-full font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-3 hover:-translate-y-1"
+                                >
+                                    Commencer l'Inscription <ChevronRight size={18} />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/connexion')}
+                                    className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-slate-100 text-slate-900 rounded-full font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+                                >
+                                    Se Connecter
+                                </button>
+                            </SignedOut>
                         </div>
                     </motion.div>
                 </section>
@@ -127,7 +142,7 @@ export default function SupplierLanding() {
                         <ShieldCheck size={64} className="mx-auto text-indigo-400" />
                         <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Partenariat Sécurisé</h2>
                         <p className="text-lg text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto">
-                            L'excellence de notre plateforme repose sur la confiance. Chaque fournisseur signe un contrat électronique lors de son inscription garantissant la confidentialité de ses prix de gros et le respect des normes de qualité EShop.
+                            L'excellence de notre plateforme repose sur la confiance. Chaque fournisseur signe un contrat électronique lors de son inscription garantissant la confidentialité de ses prix de gros et le respect des normes de qualité Vtout.
                         </p>
                         <button onClick={() => navigate('/inscription')} className="px-10 py-5 bg-white text-slate-900 rounded-full font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-3 mx-auto">
                             Commencer maintenant <ChevronRight size={18} />
@@ -138,7 +153,7 @@ export default function SupplierLanding() {
 
             {/* Footer */}
             <footer className="bg-white border-t border-slate-100 py-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-                © {new Date().getFullYear()} EShop Partenaires. Tous droits réservés.
+                © {new Date().getFullYear()} Vtout Partenaires. Tous droits réservés.
             </footer>
         </div>
     );

@@ -1,7 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { requireAdmin } from '../middleware/authMiddleware.js';
+import * as policyController from '../controllers/policyController.js';
+
 const router = express.Router();
-const policyController = require('../controllers/policyController');
-const { requireAdmin } = require('../middleware/authMiddleware');
+
+
 
 // Public
 router.get('/', policyController.getAllPolicies);
@@ -12,4 +15,4 @@ router.post('/', requireAdmin, policyController.createPolicy);
 router.put('/:id', requireAdmin, policyController.updatePolicy);
 router.delete('/:id', requireAdmin, policyController.deletePolicy);
 
-module.exports = router;
+export default router;

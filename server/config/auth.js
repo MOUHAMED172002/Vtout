@@ -1,10 +1,7 @@
-const { betterAuth } = require("better-auth");
-const { Resend } = require("resend");
-const mysql = require("mysql2");
-const { Kysely, MysqlDialect } = require("kysely");
-
-// Configuration de Resend pour les emails transactionnels
-const resend = new Resend(process.env.RESEND_API_KEY || "replace_me_if_not_in_env");
+import { betterAuth } from "better-auth";
+import { Resend } from "resend";
+import mysql from "mysql2";
+import { Kysely, MysqlDialect } from "kysely";
 
 const MYSQL_DATABASE_URL = process.env.DATABASE_URL || process.env.MYSQL_DATABASE_URL || `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || '127.0.0.1'}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || 'eshop_db'}`;
 const pool = mysql.createPool(MYSQL_DATABASE_URL);
@@ -15,48 +12,113 @@ const db = new Kysely({
     })
 });
 
-const auth = betterAuth({
+// Lit la config email depuis la DB (priorité) ou le .env (fallback)
+// Appelé à chaque envoi → prend en compte les modifications faites via l'admin sans redémarrage
+const getEmailConfig = async () => {
+    try {
+        const [rows] = await pool.promise().query(
+            "SELECT `key`, value FROM configs WHERE `group` = 'email'"
+        );
+        const map = {};
+        (Array.isArray(rows) ? rows : []).forEach(r => { map[r.key] = r.value; });
+        return {
+            apiKey:      map['RESEND_API_KEY']    || process.env.RESEND_API_KEY,
+            fromName:    map['MAIL_FROM_NAME']    || 'Vtout',
+            fromAddress: map['MAIL_FROM_ADDRESS'] || 'security@vtout.com',
+        };
+    } catch {
+        return {
+            apiKey:      process.env.RESEND_API_KEY,
+            fromName:    'Vtout',
+            fromAddress: 'security@vtout.com',
+        };
+    }
+};
+
+// Build a broad list of trusted origins covering localhost, WSL2/LAN IPs, and any explicit extras
+const DEV_PORTS = [5173, 5174, 5175, 5176, 5177, 3000, 3001];
+const LAN_HOSTS = [
+    'localhost', '127.0.0.1',
+    '172.30.0.1',  // WSL2 host gateway (most common)
+    '172.29.0.1',
+    '172.16.0.1',
+    '192.168.1.1',
+];
+
+// Generate origin strings for all combinations of host × port
+const generatedOrigins = LAN_HOSTS.flatMap(host =>
+    DEV_PORTS.map(port => `http://${host}:${port}`)
+);
+
+const allTrustedOrigins = [
+    ...new Set([
+        ...generatedOrigins,
+        (process.env.FRONTEND_URL || '').replace(/\/$/, ''),
+        (process.env.ADMIN_URL || '').replace(/\/$/, ''),
+        (process.env.BETTER_AUTH_URL || '').replace(/\/$/, ''),
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+    ])
+].filter(Boolean);
+
+export const auth = betterAuth({
     database: {
-        db, // Injection directe de Kysely, aucune résolution interne ne peut échouer.
+        db, 
         type: "mysql"
     },
-    baseURL: process.env.BASE_URL || "http://localhost:3000",
-    trustedOrigins: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://localhost:3000"],
+    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000/api/auth",
+    trustedOrigins: allTrustedOrigins,
     advanced: {
         crossSubDomainCookies: true
     },
     emailAndPassword: {
         enabled: true,
         autoSignIn: true,
-        sendResetPassword: async ({ user, url, token }, request) => {
-            // Envoi de l'e-mail de réinitialisation robuste via Resend
-            await resend.emails.send({
-                from: 'Vtout Security <security@vtout.com>', // À remplacer par votre domaine vérifié Resend
-                to: [user.email],
-                subject: 'Réinitialisez votre mot de passe Vtout',
-                html: `
-                    <div style="font-family: sans-serif; text-align: center; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
-                        <h2 style="color: #1a202c;">Sécurité Vtout</h2>
-                        <p style="color: #4a5568;">Bonjour ${user.name || 'Utilisateur'},</p>
-                        <p style="color: #4a5568;">Nous avons reçu une demande pour réinitialiser le mot de passe de votre compte.</p>
-                        <a href="${url}" style="display: inline-block; padding: 12px 24px; color: white; background-color: #6366f1; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 25px 0; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);">
-                            Définir un nouveau mot de passe
-                        </a>
-                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                        <p style="color: #a0aec0; font-size: 12px;">Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce message, votre compte est en sécurité.</p>
-                    </div>
-                `
-            }).catch(console.error);
+        sendResetPassword: async ({ user, url }, request) => {
+            try {
+                const cfg = await getEmailConfig();
+                if (!cfg.apiKey) {
+                    console.warn('[Auth] No RESEND_API_KEY — reset email not sent.');
+                    return;
+                }
+                const resend = new Resend(cfg.apiKey);
+                await resend.emails.send({
+                    from: `${cfg.fromName} Security <${cfg.fromAddress}>`,
+                    to: [user.email],
+                    subject: 'Réinitialisez votre mot de passe Vtout',
+                    html: `
+                        <div style="font-family:sans-serif;max-width:540px;margin:auto;padding:40px;border-radius:24px;border:1px solid #e2e8f0;">
+                            <div style="background:#0f172a;padding:24px;border-radius:16px;text-align:center;margin-bottom:28px;">
+                                <span style="font-size:28px;font-weight:900;letter-spacing:-1px;">
+                                    <span style="color:#0054a6;">v</span><span style="color:#f37021;">tout</span>
+                                </span>
+                            </div>
+                            <h2 style="color:#0f172a;font-size:22px;font-weight:900;margin-bottom:8px;">Réinitialisation de mot de passe</h2>
+                            <p style="color:#64748b;font-size:15px;">Bonjour <strong>${user.name || user.email}</strong>,</p>
+                            <p style="color:#64748b;font-size:15px;">Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous :</p>
+                            <div style="text-align:center;margin:32px 0;">
+                                <a href="${url}" style="background:#f37021;color:white;padding:16px 36px;border-radius:14px;text-decoration:none;font-weight:900;font-size:15px;display:inline-block;">
+                                    Changer mon mot de passe
+                                </a>
+                            </div>
+                            <p style="color:#94a3b8;font-size:12px;text-align:center;">Ce lien expire dans 1 heure. Si vous n'avez pas fait cette demande, ignorez cet email.</p>
+                            <div style="border-top:1px solid #f1f5f9;margin-top:24px;padding-top:16px;text-align:center;">
+                                <p style="color:#cbd5e1;font-size:11px;">Vtout &mdash; La boutique en ligne au Bénin</p>
+                            </div>
+                        </div>
+                    `
+                });
+            } catch (err) {
+                console.error('[Auth] sendResetPassword error:', err);
+            }
         }
     },
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
-        },
-        facebook: {
-            clientId: process.env.FACEBOOK_CLIENT_ID || '',
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET || ''
         }
     },
     user: {
@@ -69,5 +131,5 @@ const auth = betterAuth({
         }
     }
 });
+console.log('[auth] BetterAuth initialized.');
 
-module.exports = { auth };

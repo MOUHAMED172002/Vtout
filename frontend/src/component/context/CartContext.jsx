@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "../../lib/clerk-shim";
 import { getMyCart, addToCart as apiAddToCart, removeFromCart as apiRemoveFromCart, updateCartItemQuantity as apiUpdateCartItemQuantity } from "../../services/cartService";
 import toast from "react-hot-toast";
 
@@ -24,7 +24,9 @@ export function CartProvider({ children }) {
         const items = await getMyCart(token);
         setCart(items || []);
       } catch (err) {
-        console.error("refreshCart error", err);
+        if (err.name !== 'CanceledError' && err.message !== 'Request aborted') {
+          console.error("refreshCart error", err);
+        }
       } finally {
         setLoading(false);
       }

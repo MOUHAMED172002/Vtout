@@ -1,7 +1,9 @@
-require('dotenv').config({ override: true });
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+import 'dotenv/config';
+import cloudinaryModule from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer from 'multer';
+
+const cloudinary = cloudinaryModule.v2;
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,11 +16,10 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'eshop',
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
-        background_removal: "cloudinary_ai"
+        transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
     },
 });
 
 const upload = multer({ storage: storage });
 
-module.exports = { cloudinary, upload };
+export { cloudinary, upload };

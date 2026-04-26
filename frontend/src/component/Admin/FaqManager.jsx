@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+﻿import React, { useEffect, useState } from "react";
+import { useAuth } from "../../lib/clerk-shim";
 import { getFaqs, createFaq, updateFaq, deleteFaq as apiDeleteFaq } from "../../services/contentService";
 import toast from "react-hot-toast";
 import { HelpCircle, Plus, Trash2, Edit2, Save, X } from "lucide-react";

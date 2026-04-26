@@ -7,7 +7,7 @@ import territoireData from '../data/decoupage-territorial-benin.json';
 export const getCommunesParDepartement = () => {
     return territoireData.map(dept => ({
         departement: dept.lib_dep,
-        communes: dept.communes.map(c => c.lib_com)
+        communes: (dept.communes || []).map(c => c.lib_com)
     }));
 };
 

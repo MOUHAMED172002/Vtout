@@ -7,8 +7,15 @@ export const getSuppliers = async (token) => {
     return data;
 };
 
-export const getSupplierProducts = async (token) => {
+export const getAllSupplierProducts = async (token) => {
     const { data } = await api.get('/suppliers/products', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
+export const getMySupplierProducts = async (token) => {
+    const { data } = await api.get('/suppliers/me/products', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return data;
@@ -63,6 +70,12 @@ export const updateSupplierProduct = async (id, data, token) => {
 
 export const deleteSupplierProduct = async (id, token) => {
     const resp = await api.delete(`/suppliers/products/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return resp.data;
+};
+export const deleteSupplier = async (id, token) => {
+    const resp = await api.delete(`/suppliers/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return resp.data;

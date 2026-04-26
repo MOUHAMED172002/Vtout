@@ -1,22 +1,50 @@
 import React from "react";
 import { Star, ShieldCheck, Truck, MessageCircle, Heart, Users, Target, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
-
-export default function About({
-  title = "Notre Histoire",
-  tagline = "L'excellence au service de votre style.",
-  mission = "Depuis notre création, notre mission est de démocratiser le luxe et la qualité premium. Nous sélectionnons chaque pièce avec une rigueur absolue pour vous offrir uniquement le meilleur du marché.",
-  stats = [
+import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
+export default function About() {
+  const navigate = useNavigate();
+  const [team, setTeam] = React.useState([
+  ]);
+  const [stats, setStats] = React.useState([
     { label: "Clients Heureux", value: "12k+", icon: <Heart className="text-red-400" size={20} /> },
     { label: "Articles Premium", value: "1.2k", icon: <Star className="text-amber-400" size={20} /> },
     { label: "Villes Desservies", value: "300+", icon: <Truck className="text-primary" size={20} /> }
-  ],
-  team = [
-    { name: "Amina Diallo", role: "Visionnaire & Fondatrice", avatar: "https://ui-avatars.com/api/?name=Amina+Diallo&background=f97316&color=fff" },
-    { name: "Karim Soglo", role: "Directeur de Collection", avatar: "https://ui-avatars.com/api/?name=Karim+Soglo&background=0f172a&color=fff" },
-    { name: "Sara Mensah", role: "Expérience Client", avatar: "https://ui-avatars.com/api/?name=Sara+Mensah&background=10b981&color=fff" }
-  ]
-}) {
+  ]);
+  const [title, setTitle] = React.useState("Notre Histoire");
+  const [tagline, setTagline] = React.useState("L'excellence au service de votre style.");
+  const [mission, setMission] = React.useState("Depuis notre création, notre mission est de démocratiser le luxe et la qualité premium. Nous sélectionnons chaque pièce avec une rigueur absolue pour vous offrir uniquement le meilleur du marché.");
+
+  React.useEffect(() => {
+    const fetchAboutConfig = async () => {
+      try {
+        const { data } = await api.get('/configs');
+        const teamConfig = data.find(c => c.key === 'about_team');
+        if (teamConfig && teamConfig.value) {
+          setTeam(JSON.parse(teamConfig.value));
+        }
+        const titleConfig = data.find(c => c.key === 'about_title');
+        if (titleConfig) setTitle(titleConfig.value);
+
+        const taglineConfig = data.find(c => c.key === 'about_tagline');
+        if (taglineConfig) setTagline(taglineConfig.value);
+
+        const missionConfig = data.find(c => c.key === 'about_mission');
+        if (missionConfig) setMission(missionConfig.value);
+
+        const statsConfig = data.find(c => c.key === 'about_stats');
+        if (statsConfig && statsConfig.value) {
+          const parsedStats = JSON.parse(statsConfig.value);
+          // Re-attach icons based on index or key if needed, or just keep default icons
+          setStats(prev => parsedStats.map((s, i) => ({ ...s, icon: prev[i]?.icon })));
+        }
+      } catch (error) {
+        console.error("Erreur chargement config About:", error);
+      }
+    };
+    fetchAboutConfig();
+  }, []);
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
@@ -38,7 +66,7 @@ export default function About({
                 {mission}
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
-                <button className="btn btn-primary rounded-2xl px-10 h-16 font-black text-lg shadow-xl shadow-primary/20">Explorer la collection</button>
+                <button onClick={() => navigate('/products')} className="btn btn-primary rounded-2xl px-10 h-16 font-black text-lg shadow-xl shadow-primary/20"> Explorer la collection</button>
                 <button
                   onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
                   className="btn btn-ghost rounded-2xl px-10 h-16 font-black text-lg border-2 border-slate-100"
@@ -133,13 +161,13 @@ export default function About({
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               <button
-                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                onClick={() => navigate('/products')}
                 className="btn bg-white text-primary border-none rounded-2xl px-12 h-16 font-black text-xl hover:bg-slate-50 shadow-xl"
               >
                 Commencer mon shopping
               </button>
               <button
-                onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                onClick={() => navigate('/temoignages')}
                 className="btn btn-ghost text-slate-900 rounded-2xl px-12 h-16 font-black text-xl border-2 border-white/30"
               >
                 Voir nos avis

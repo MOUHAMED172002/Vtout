@@ -1,107 +1,323 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { MapPin, Check, ExternalLink, ShieldCheck } from "lucide-react";
-import UnifiedLocationPicker from "../Shared/UnifiedLocationPicker";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, Check, Search, ShieldCheck, Phone, X } from "lucide-react";
+import { getHierarchy } from "../../services/locationService";
+import territories_fallback from "../../data/decoupage-territorial-benin.json";
 
-export default function AddressSelector({ onChange, requirePhone = false }) {
-  const [phoneRaw, setPhoneRaw] = useState("");
+const removeAccents = (str) => {
+  if (!str) return "";
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
+export default function AddressSelector({ 
+  onChange, 
+  requirePhone = false, 
+  requireQuartier = false, 
+  initial = null,
+  onSave, 
+  onCancel 
+}) {
+  const [phoneRaw, setPhoneRaw] = useState(initial?.phone || "");
   const [phoneError, setPhoneError] = useState(null);
-  const [location, setLocation] = useState(null); // { lat, lng, formattedAddress, departement_label, ... }
+  const [addressDetails, setAddressDetails] = useState("");
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [allLocations, setAllLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const wrapperRef = useRef(null);
 
-  // BENIN phone validation
-  const validatePhone = (input) => {
-    const s = String(input).trim();
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        setLoading(true);
+        let rawData;
+        try {
+          rawData = await getHierarchy();
+        } catch (err) {
+          console.warn("[AddressSelector] Falling back to local data", err);
+          rawData = territories_fallback;
+        }
+
+        const list = [];
+        rawData.forEach((dep) => {
+          const communes = dep.communes || [];
+          communes.forEach((com) => {
+            // My API returns arrondissements which contain quartiers
+            // Or directly quartiers if configured differently
+            const arrs = com.arrondissements || [];
+            if (arrs.length > 0) {
+              arrs.forEach((arr) => {
+                const qs = arr.quartiers || [];
+                qs.forEach((q) => {
+                  const formatted = `${q.name || q.lib_quart}, ${arr.name || arr.lib_arrond}, ${com.name || com.lib_com}`;
+                  list.push({
+                    departement_id: dep.id || dep.id_dep,
+                    departement_label: dep.name || dep.lib_dep,
+                    commune_id: com.id || com.id_com,
+                    commune_label: com.name || com.lib_com,
+                    arrondissement_id: arr.id || arr.id_arrond,
+                    arrondissement_label: arr.name || arr.lib_arrond,
+                    quartier_id: q.id || q.id_quart,
+                    quartier_label: q.name || q.lib_quart,
+                    formattedAddress: formatted,
+                    searchStr: removeAccents(formatted)
+                  });
+                });
+              });
+            } else if (com.quartiers) {
+               com.quartiers.forEach((q) => {
+                  const formatted = `${q.name}, ${com.name}`;
+                  list.push({
+                    departement_id: dep.id,
+                    departement_label: dep.name,
+                    commune_id: com.id,
+                    commune_label: com.name,
+                    quartier_id: q.id,
+                    quartier_label: q.name,
+                    formattedAddress: formatted,
+                    searchStr: removeAccents(formatted)
+                  });
+               });
+            }
+          });
+        });
+        setAllLocations(list);
+      } catch (e) {
+        console.error("Failed to load locations:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadLocations();
+  }, []);
+
+  useEffect(() => {
+    if (initial) {
+      if (initial.quartier_label && initial.commune_label) {
+        const formatted = `${initial.quartier_label}, ${initial.commune_label}, ${initial.departement_label || ''}`;
+        setSelectedLocation({
+          departement_label: initial.departement_label,
+          commune_label: initial.commune_label,
+          quartier_label: initial.quartier_label,
+          formattedAddress: formatted
+        });
+        setSearchQuery(formatted);
+      }
+      if (initial.address_line) {
+         setAddressDetails(initial.address_line);
+      }
+    }
+  }, [initial]);
+
+  const filteredLocations = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = removeAccents(searchQuery.trim());
+    return allLocations.filter(loc => 
+      loc.searchStr.includes(query)
+    ).slice(0, 50); // limit for performance
+  }, [searchQuery, allLocations]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handlePhoneBlur = () => {
+    const s = String(phoneRaw).trim();
+    if (s.length === 0) {
+      setPhoneError(null);
+      return;
+    }
     const digits = s.replace(/[^\d]/g, "");
     if (digits.length >= 8 && digits.length <= 15) {
       setPhoneError(null);
-      return true;
+    } else {
+      setPhoneError("Numéro invalide (ex: 61000000)");
     }
-    setPhoneError("Numéro de téléphone requis (ex: 61000000)");
-    return false;
   };
 
-  const handleLocationSelect = (loc) => {
-    setLocation(loc);
-  };
+  // We only keep standard address details in currentAddressLine, preventing duplication.
+  const currentAddressLine = addressDetails || selectedLocation?.formattedAddress || "";
 
-  const handleQuartierChange = (val) => {
-    setLocation(prev => ({ ...prev, quartier_label: val }));
-  };
-
-  const handleCommuneChange = (val) => {
-    setLocation(prev => ({ ...prev, commune_label: val }));
-  };
+  const digitsOnly = phoneRaw.replace(/[^\d]/g, "");
+  const isPhoneValid = digitsOnly.length >= 8 && digitsOnly.length <= 15;
+  const isValidForSave = !!selectedLocation && (!requirePhone || isPhoneValid);
 
   useEffect(() => {
     if (onChange) {
-      const isValid = !!location && !!location.lat && !!location.lng && (requirePhone ? (phoneRaw.length >= 8) : true);
-
       onChange({
-        ...location,
+        ...selectedLocation,
+        address_line: currentAddressLine,
         phone: phoneRaw,
-        is_valid: isValid,
-        address_line: location?.formattedAddress || "",
+        is_valid: isValidForSave,
+        label: initial?.label || "Adresse de livraison"
       });
     }
-  }, [location, phoneRaw, onChange, requirePhone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLocation, addressDetails, phoneRaw, requirePhone, currentAddressLine, isValidForSave, initial?.label]);
+
+  const handleManualSave = () => {
+    if (onSave && isValidForSave) {
+      onSave({
+        id: initial?.id, 
+        ...selectedLocation,
+        address_line: currentAddressLine,
+        phone: phoneRaw,
+        is_default: initial?.is_default || false,
+        label: initial?.label || "Adresse"
+      });
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Map Section */}
-      <div className="space-y-4">
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-          <MapPin size={14} className="text-primary" /> Pointer mon lieu de livraison
+    <div className="space-y-6">
+      <div className="space-y-2 relative" ref={wrapperRef}>
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+          <MapPin size={14} className="text-primary" /> Localité (Rechercher votre quartier) *
         </label>
-        <UnifiedLocationPicker
-          onLocationSelect={handleLocationSelect}
-          label="Cliquer pour définir ma position"
-        />
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:font-medium placeholder:text-slate-300"
+            placeholder="Ex: Akassato, Godomey..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(true);
+              if (selectedLocation) setSelectedLocation(null);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+          />
+          {selectedLocation && (
+             <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+               <Check className="h-5 w-5 text-emerald-500" />
+             </div>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {showSuggestions && searchQuery && filteredLocations.length > 0 && (
+             <motion.div 
+               initial={{ opacity: 0, y: -10 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -10 }}
+               className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar"
+             >
+                {filteredLocations.map((loc) => (
+                   <div 
+                     key={loc.id || Object.values(loc).join('')}
+                     onClick={() => {
+                        setSelectedLocation(loc);
+                        setSearchQuery(loc.formattedAddress);
+                        setShowSuggestions(false);
+                     }}
+                     className="px-5 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                   >
+                      <div className="font-bold text-sm text-slate-900">{loc.quartier_label}</div>
+                      <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
+                   </div>
+                ))}
+             </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {showSuggestions && searchQuery && filteredLocations.length === 0 && (
+          <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
+             <p className="text-sm font-bold text-slate-500">Aucune localité trouvée.</p>
+          </div>
+        )}
       </div>
 
-      {/* Confirmation Fields */}
-      {location && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100"
-        >
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Numéro de téléphone (Appel Joignable) *</label>
-            <div className="relative">
+      <AnimatePresence mode="wait">
+        {selectedLocation && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6"
+          >
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Détails (Rue, Maison, Repère) - Optionnel</label>
               <input
-                type="tel"
-                value={phoneRaw}
-                onChange={(e) => setPhoneRaw(e.target.value)}
-                placeholder="Ex: 61 00 00 00"
-                className={`w-full h-14 bg-white border rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all ${phoneError ? 'border-rose-500' : 'border-slate-200'}`}
+                type="text"
+                value={addressDetails}
+                onChange={(e) => setAddressDetails(e.target.value)}
+                placeholder="Ex: Portail noir, près de la pharmacie..."
+                className="w-full h-12 bg-white border border-slate-200 rounded-xl px-5 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900"
               />
-              {phoneRaw.length >= 8 && !phoneError && <Check size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500" />}
             </div>
-            {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}
-            <p className="text-[9px] font-medium text-slate-400 ml-2 italic">Ce numéro sera utilisé par le livreur pour vous contacter à l'arrivée.</p>
-          </div>
-        </motion.div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+                <Phone size={14} className="text-primary" /> Numéro de téléphone *
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={phoneRaw}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPhoneRaw(val);
+                    if (val.replace(/[^\d]/g, "").length >= 8) setPhoneError(null);
+                  }}
+                  onBlur={handlePhoneBlur}
+                  placeholder="Ex: 61 00 00 00"
+                  className={`w-full h-14 bg-white border rounded-2xl pl-16 pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-slate-900 ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-slate-200 focus:border-primary focus:ring-primary/5'}`}
+                />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <span className="text-slate-400 font-bold">+229</span>
+                </div>
+                {isPhoneValid && !phoneError && <Check size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500" />}
+              </div>
+              {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}
+              <p className="text-[9px] font-medium text-slate-400 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter la livraison.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Settings for Address Manager mode */}
+      {(onSave || onCancel) && (
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6 md:mt-2">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2 transition-all outline-none"
+            >
+              <X size={16} /> Annuler
+            </button>
+          )}
+          {onSave && (
+            <button
+              onClick={handleManualSave}
+              disabled={!isValidForSave}
+              className="px-6 py-3 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:brightness-110 flex items-center gap-2 transition-all outline-none disabled:opacity-50 disabled:grayscale shadow-lg shadow-primary/20"
+            >
+              <Check size={16} /> {initial ? "Mettre à jour" : "Enregistrer"}
+            </button>
+          )}
+        </div>
       )}
 
-      {/* Footer Info */}
-      {location && (
-        <div className="p-6 bg-slate-900 rounded-[2rem] text-white flex items-center gap-6 shadow-2xl relative overflow-hidden">
+      {selectedLocation && !onSave && (
+        <div className="p-5 bg-slate-900 rounded-[1.5rem] text-white flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
-          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary shrink-0">
+          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary shrink-0 z-10">
             <ShieldCheck size={24} />
           </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-1">Précision Maximale</p>
-            <p className="text-xs font-bold text-slate-400 truncate pr-4">{location.formattedAddress || 'Position enregistrée'}</p>
+          <div className="min-w-0 z-10">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">Livraison garantie</p>
+            <p className="text-xs font-bold text-slate-300 truncate">{currentAddressLine || 'Localité vérifiée'}</p>
           </div>
-          <a
-            href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
-            target="_blank"
-            rel="noreferrer"
-            className="ml-auto w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform"
-          >
-            <ExternalLink size={16} />
-          </a>
         </div>
       )}
     </div>

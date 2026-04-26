@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  getSupplierProducts,
+  getAllSupplierProducts,
   updateSupplierProduct,
   deleteSupplierProduct
 } from "../../../services/supplierService";
 import { Truck, Edit2, Trash2, RefreshCw } from 'lucide-react';
 
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 
 /**
  * SupplierList
@@ -26,7 +26,7 @@ export default function FournisseurListe() {
     setLoading(true);
     try {
       const token = await getToken();
-      const data = await getSupplierProducts(token);
+      const data = await getAllSupplierProducts(token);
       const rows = data || [];
 
       // group by supplier
@@ -154,9 +154,9 @@ export default function FournisseurListe() {
                         <td>
                           <div className="flex flex-wrap gap-1">
                             {r.variant?.combination ? (
-                              JSON.parse(r.variant.combination).map((c, i) => (
+                              Object.entries(typeof r.variant.combination === 'string' ? JSON.parse(r.variant.combination) : r.variant.combination).map(([attr, val], i) => (
                                 <span key={i} className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-bold rounded uppercase">
-                                  {c.attribute}: {c.value}
+                                  {attr}: {val}
                                 </span>
                               ))
                             ) : (

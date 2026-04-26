@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend API pour Vtout - La boutique en ligne multiservices.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
+    "axios": "^1.15.1",
     "better-auth": "^1.5.6",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
@@ -31,6 +33,7 @@
     "resend": "^6.9.4",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.3",
+    "uuid": "^13.0.0",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {

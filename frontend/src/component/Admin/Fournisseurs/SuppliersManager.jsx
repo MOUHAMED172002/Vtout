@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getSuppliers, updateSupplierStatus } from '../../../services/supplierService';
-import { useAuth } from '@clerk/clerk-react';
-import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical } from 'lucide-react';
+import { getSuppliers, updateSupplierStatus, deleteSupplier } from '../../../services/supplierService';
+import { useAuth } from '../../../lib/clerk-shim';
+import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SuppliersManager = () => {
@@ -33,36 +33,50 @@ const SuppliersManager = () => {
             fetchSuppliers(); // Refresh list
         } catch (error) {
             console.error('Erreur lors de la mise à jour du statut:', error);
+            alert('Erreur lors de la mise à jour du statut');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action est irréversible.')) return;
+        try {
+            const token = await getToken();
+            await deleteSupplier(id, token);
+            fetchSuppliers(); // Refresh list
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
     const getStatusBadge = (status) => {
-        switch (status) {
-            case 'active':
-                return (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider">
-                        <CheckCircle size={14} /> Actif
-                    </span>
-                );
-            case '  En attente':
-                return (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-wider">
-                        <Clock size={14} /> En attente
-                    </span>
-                );
-            case 'suspended':
-                return (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider">
-                        <XCircle size={14} /> Suspendu
-                    </span>
-                );
-            default:
-                return (
-                    <span className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-black uppercase tracking-wider">
-                        {status}
-                    </span>
-                );
+        const s = status?.toLowerCase() || '';
+        if (s === 'active' || s === 'actif') {
+            return (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider">
+                    <CheckCircle size={14} /> Actif
+                </span>
+            );
         }
+        if (s === 'en_attente' || s === 'en attente') {
+            return (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-wider">
+                    <Clock size={14} /> En attente
+                </span>
+            );
+        }
+        if (s === 'suspended' || s === 'suspendu') {
+            return (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider">
+                    <XCircle size={14} /> Suspendu
+                </span>
+            );
+        }
+        return (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-wider">
+                <Clock size={14} /> En attente
+            </span>
+        );
     };
 
     if (loading) {
@@ -76,54 +90,60 @@ const SuppliersManager = () => {
     return (
         <div className="space-y-8 pb-20">
             <div>
-                <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Gestion des Fournisseurs</h2>
-                <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Validation et suivi des partenaires</p>
+                <h2 className="text-4xl font-black tracking-tighter text-base-content mb-2">Gestion des Fournisseurs</h2>
+                <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[10px]">Validation et suivi des partenaires</p>
             </div>
 
-            <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-base-content/5 border border-base-content/10 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full text-base-content">
                         <thead>
-                            <tr className="bg-slate-50/50">
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Boutique / Nom</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Localisation</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Contacts</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Statut</th>
-                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Actions</th>
+                            <tr className="bg-base-200/50">
+                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Boutique / Nom</th>
+                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Localisation</th>
+                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Contacts</th>
+                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Statut</th>
+                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-base-content/10">
                             {suppliers.length > 0 ? (
                                 suppliers.map((supplier) => (
                                     <motion.tr
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         key={supplier.id}
-                                        className="hover:bg-slate-50/30 transition-colors group"
+                                        className="hover:bg-base-200/50 transition-colors group"
                                     >
                                         <td className="px-10 py-8">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-2xl bg-indigo-50 border-2 border-white shadow-xl shadow-indigo-100/20 flex items-center justify-center text-indigo-600 font-black text-xl italic group-hover:scale-110 transition-transform">
+                                                <div className="w-14 h-14 rounded-2xl bg-primary/10 border-2 border-base-100 shadow-xl shadow-primary/10 flex items-center justify-center text-primary font-black text-xl italic group-hover:scale-110 transition-transform">
                                                     {supplier.name?.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-black text-slate-900">{supplier.name}</p>
-                                                    <p className="text-xs font-bold text-slate-400">{supplier.email || supplier.user?.email}</p>
+                                                    <p className="text-sm font-black text-base-content">{supplier.name}</p>
+                                                    <p className="text-xs font-bold text-base-content/50">{supplier.email || supplier.user?.email}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
-                                            <div className="flex items-center gap-2 text-slate-500">
-                                                <MapPin size={16} className="text-slate-400 shrink-0" />
-                                                <span className="text-xs font-bold leading-tight max-w-[200px]">
-                                                    {supplier.address_line || "Adresse non renseignée"}, {supplier.commune_label}
+                                            <div className="flex items-center gap-2 text-base-content/70">
+                                                <MapPin size={16} className="text-base-content/50 shrink-0" />
+                                                <span className="text-[11px] font-black text-base-content leading-tight block">
+                                                    {supplier.quartier_label || "Quartier non défini"}
                                                 </span>
+                                                <span className="text-[10px] font-bold text-base-content/50 block">
+                                                    {supplier.commune_label}, {supplier.departement_label}
+                                                </span>
+                                                {supplier.address_line && (
+                                                    <span className="text-[9px] text-base-content/30 italic block mt-1">{supplier.address_line}</span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
                                             <div className="space-y-2">
-                                                <div className="flex items-center gap-2 text-slate-500">
-                                                    <Phone size={14} className="text-indigo-400 shrink-0" />
+                                                <div className="flex items-center gap-2 text-base-content/70">
+                                                    <Phone size={14} className="text-primary shrink-0" />
                                                     <span className="text-xs font-bold">{supplier.phone}</span>
                                                 </div>
                                                 {supplier.whatsapp && (
@@ -138,33 +158,45 @@ const SuppliersManager = () => {
                                             {getStatusBadge(supplier.status)}
                                         </td>
                                         <td className="px-10 py-8 text-right">
-                                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {supplier.status === '  En attente' && (
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(supplier.id, 'active')}
-                                                        className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-200"
-                                                    >
-                                                        Approuver
-                                                    </button>
+                                            <div className="flex items-center justify-end gap-3">
+                                                {(!supplier.status || !['active', 'actif', 'suspended', 'suspendu'].includes(supplier.status.toLowerCase())) && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(supplier.id, 'active')}
+                                                            className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center gap-2"
+                                                        >
+                                                            <CheckCircle size={14} /> Approuver
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(supplier.id, 'suspended')}
+                                                            className="px-4 py-2 bg-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-200 transition-all active:scale-95 flex items-center gap-2"
+                                                        >
+                                                            <Ban size={14} /> Rejeter
+                                                        </button>
+                                                    </>
                                                 )}
-                                                {supplier.status === 'active' && (
+                                                {['active', 'actif'].includes(supplier.status?.toLowerCase()) && (
                                                     <button
                                                         onClick={() => handleStatusUpdate(supplier.id, 'suspended')}
-                                                        className="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-200"
+                                                        className="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 shadow-lg shadow-amber-200 transition-all active:scale-95 flex items-center gap-2"
                                                     >
-                                                        Suspendre
+                                                        <Ban size={14} /> Suspendre
                                                     </button>
                                                 )}
-                                                {supplier.status === 'suspended' && (
+                                                {['suspended', 'suspendu'].includes(supplier.status?.toLowerCase()) && (
                                                     <button
                                                         onClick={() => handleStatusUpdate(supplier.id, 'active')}
-                                                        className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-200"
+                                                        className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center gap-2"
                                                     >
-                                                        Réactiver
+                                                        <CheckCircle size={14} /> Réactiver
                                                     </button>
                                                 )}
-                                                <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 hover:text-slate-600 transition-all border border-slate-100">
-                                                    <MoreVertical size={16} />
+                                                <button 
+                                                    onClick={() => handleDelete(supplier.id)}
+                                                    className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-100 active:scale-95 shadow-sm"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -174,12 +206,12 @@ const SuppliersManager = () => {
                                 <tr>
                                     <td colSpan="5" className="px-10 py-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
-                                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 border border-slate-100">
+                                            <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center text-base-content/20 border border-base-content/10">
                                                 <Clock size={40} />
                                             </div>
                                             <div>
-                                                <p className="text-lg font-black text-slate-800">Aucun fournisseur</p>
-                                                <p className="text-xs font-bold text-slate-400">La liste des partenaires s'affichera ici.</p>
+                                                <p className="text-lg font-black text-base-content">Aucun fournisseur</p>
+                                                <p className="text-xs font-bold text-base-content/50">La liste des partenaires s'affichera ici.</p>
                                             </div>
                                         </div>
                                     </td>

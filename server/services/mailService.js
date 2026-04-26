@@ -1,16 +1,30 @@
-const { Resend } = require('resend');
-const dotenv = require('dotenv');
+import { Resend } from 'resend';
+import 'dotenv/config';
+import { Config } from '../models/index.js';
 
-dotenv.config();
-
-const apiKey = process.env.RESEND_API_KEY;
-let resend;
-
-if (apiKey) {
-    resend = new Resend(apiKey);
-} else {
-    console.warn('WARNING: RESEND_API_KEY is not defined in .env. Emails will not be sent.');
-}
+/**
+ * Get email config: DB values take priority over .env
+ */
+const getEmailConfig = async () => {
+    try {
+        const configs = await Config.findAll({ where: { group: 'email' } });
+        const map = {};
+        configs.forEach(c => { map[c.key] = c.value; });
+        return {
+            apiKey: map['RESEND_API_KEY'] || process.env.RESEND_API_KEY,
+            fromName: map['MAIL_FROM_NAME'] || 'Vtout',
+            fromAddress: map['MAIL_FROM_ADDRESS'] || 'onboarding@resend.dev',
+            adminEmail: map['ADMIN_NOTIF_EMAIL'] || process.env.ADMIN_NOTIF_EMAIL || process.env.ADMIN_EMAILS?.split(',')[0]
+        };
+    } catch {
+        return {
+            apiKey: process.env.RESEND_API_KEY,
+            fromName: 'Vtout',
+            fromAddress: 'onboarding@resend.dev',
+            adminEmail: process.env.ADMIN_NOTIF_EMAIL || process.env.ADMIN_EMAILS?.split(',')[0]
+        };
+    }
+};
 
 /**
  * Generate invoice HTML template
@@ -95,17 +109,33 @@ const templates = {
                 <a href="${process.env.FRONTEND_URL || '#'}/fournisseur/dashboard" style="background-color: #0f172a; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: bold;">Accéder au tableau de bord</a>
             </div>
         </div>
+    `,
+    supplierApproval: (supplier, status) => `
+        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; border-radius: 24px; background-color: ${status === 'active' ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${status === 'active' ? '#bbf7d0' : '#fecaca'};">
+            <h2 style="color: #0f172a;">${status === 'active' ? 'Bienvenue parmi nos partenaires !' : 'Mise à jour de votre compte'}</h2>
+            <p>Bonjour <strong>${supplier.name}</strong>,</p>
+            <p>Votre compte fournisseur sur notre plateforme est désormais <strong>${status === 'active' ? 'ACTIF' : 'SUSPENDU'}</strong>.</p>
+            ${status === 'active' ? '<p>Vous pouvez dès à présent ajouter vos produits et commencer à vendre.</p>' : '<p>Veuillez contacter l\'administration pour plus de détails.</p>'}
+            <div style="margin-top: 25px;">
+                <a href="${process.env.FRONTEND_URL || '#'}/fournisseur/dashboard" style="background-color: #0f172a; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: bold;">Accéder au portail</a>
+            </div>
+        </div>
     `
 };
 
 /**
- * Envoi mail général
+ * Envoi mail général (lit config DB en temps réel)
  */
 const sendMail = async (to, subject, html) => {
-    if (!resend) return { success: false, error: 'Resend not configured' };
+    const cfg = await getEmailConfig();
+    if (!cfg.apiKey) {
+        console.warn('[Mail] No RESEND_API_KEY found. Email not sent.');
+        return { success: false, error: 'Resend not configured' };
+    }
+    const resend = new Resend(cfg.apiKey);
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Shop <onboarding@resend.dev>', // Modifiez par votre domaine en prod
+            from: `${cfg.fromName} <${cfg.fromAddress}>`,
             to,
             subject,
             html,
@@ -118,25 +148,47 @@ const sendMail = async (to, subject, html) => {
     }
 };
 
-exports.sendOrderNotificationToAdmin = async (order) => {
-    const adminEmail = process.env.ADMIN_NOTIF_EMAIL || process.env.ADMIN_EMAILS.split(',')[0];
+export const sendOrderNotificationToAdmin = async (order) => {
+    const cfg = await getEmailConfig();
+    const adminEmail = cfg.adminEmail;
     return sendMail(adminEmail, `🚀 Nouvelle Commande #${order.id.slice(0, 8)}`, templates.orderAdmin(order));
 };
 
-exports.sendOrderUpdateToCustomer = async (order, statusLabel) => {
+export const sendOrderUpdateToCustomer = async (order, statusLabel) => {
     const email = order.guest_email || order.user_email;
     if (!email) return;
     return sendMail(email, `📦 Commande #${order.id.slice(0, 8)} : ${statusLabel}`, templates.statusUpdate(order, statusLabel));
 };
 
-exports.sendProductApprovalNotification = async (supplierEmail, product, status, feedback) => {
+export const sendProductApprovalNotification = async (supplierEmail, product, status, feedback) => {
     if (!supplierEmail) return;
     const subject = status === 'approved' ? '✅ Produit Approuvé' : '❌ Produit Refusé';
     return sendMail(supplierEmail, subject, templates.productApproval(product, status, feedback));
 };
 
-exports.sendInvoiceEmail = async (order, items) => {
+export const sendSupplierApprovalNotification = async (supplierEmail, supplier, status) => {
+    if (!supplierEmail) return;
+    const subject = status === 'active' ? '✅ Compte Fournisseur Approuvé' : '⚠️ Compte Fournisseur Suspendu';
+    return sendMail(supplierEmail, subject, templates.supplierApproval(supplier, status));
+};
+
+export const sendInvoiceEmail = async (order, items) => {
     const email = order.guest_email || order.user_email;
     if (!email) return;
     return sendMail(email, `🧾 Votre Reçus - Commande #${order.id.slice(0, 8)}`, generateInvoiceTemplate(order, items));
+};
+
+/**
+ * Test email - send a simple test email to verify config
+ */
+export const sendTestEmail = async (to) => {
+    return sendMail(to, '✅ Test Email Vtout', `
+        <div style="font-family:sans-serif;max-width:500px;margin:auto;padding:40px;border-radius:20px;border:1px solid #e2e8f0;">
+            <h2 style="color:#0f172a;">Email de test Vtout ✅</h2>
+            <p style="color:#475569;">Si vous recevez cet email, votre configuration Resend est opérationnelle !</p>
+            <div style="background:#f0fdf4;padding:16px;border-radius:12px;margin-top:20px;">
+                <p style="color:#166534;font-weight:bold;margin:0;">🚀 Prêt pour la production</p>
+            </div>
+        </div>
+    `);
 };

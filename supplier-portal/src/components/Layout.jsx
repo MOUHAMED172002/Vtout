@@ -1,26 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from './clerk-shim';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Package, PlusCircle, LogOut,
-    Store, Menu, X, ChevronRight, Bell, FileText
+    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag
 } from 'lucide-react';
+import NotificationCenter from './Shared/NotificationCenter';
+import LogoText from './Shared/LogoText';
 
 const navLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
+    { to: '/mes-commandes', icon: ShoppingBag, label: 'Mes Commandes' },
+    { to: '/mes-produits', icon: Package, label: 'Mes Produits' },
     { to: '/ajouter-produit', icon: PlusCircle, label: 'Ajouter un produit' },
+    { to: '/portefeuille', icon: Wallet, label: 'Mon Portefeuille' },
+    { to: '/statistiques', icon: TrendingUp, label: 'Statistiques' },
     { to: '/conditions', icon: FileText, label: 'Conditions & Politiques' },
 ];
 
 const Sidebar = ({ mobile, onClose }) => {
     const { user } = useUser();
     const { signOut } = useClerk();
+    const { getToken } = useAuth();
     const navigate = useNavigate();
 
     const handleSignOut = async () => {
         await signOut();
         navigate('/');
+    };
+
+    const handleSwitchRole = async (newRole) => {
+        try {
+            const token = await getToken();
+            await api.post('/profiles/switch-role', { newRole }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(`Passage au rôle ${newRole} réussi !`);
+            window.location.href = '/'; // Refresh to apply changes
+        } catch (err) {
+            toast.error("Échec du changement de rôle");
+        }
     };
 
     return (
@@ -32,7 +54,7 @@ const Sidebar = ({ mobile, onClose }) => {
                         <Store size={20} className="text-white" />
                     </div>
                     <div>
-                        <p className="font-black text-sm leading-none">Portail</p>
+                        <LogoText className="text-sm leading-none" />
                         <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Fournisseur</p>
                     </div>
                 </div>
@@ -85,10 +107,80 @@ const Sidebar = ({ mobile, onClose }) => {
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all"
                 >
                     <LogOut size={18} />
-                    <span>Se déconnecter</span>
                 </button>
+                <div className="mt-2 space-y-1 px-4">
+                    <p className="text-[8px] font-black uppercase text-white/20 mb-2">Changer de mode</p>
+                    <button
+                        onClick={() => handleSwitchRole('user')}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                    >
+                        Mode Client
+                    </button>
+                    <button
+                        onClick={() => handleSwitchRole('livreur')}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                    >
+                        Mode Livreur
+                    </button>
+                </div>
             </div>
         </aside>
+    );
+};
+
+const RoleSwitcher = () => {
+    const { user, isLoaded } = useUser();
+    const { getToken } = useAuth();
+    const [show, setShow] = useState(false);
+
+    useEffect(() => {
+        if (isLoaded && user && user.publicMetadata?.role === 'user') {
+            setShow(true);
+        }
+    }, [isLoaded, user]);
+
+    const handleSwitch = async () => {
+        try {
+            const token = await getToken();
+            await api.post('/profiles/switch-role', { newRole: 'fournisseur' }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success("Vous êtes maintenant fournisseur !");
+            setShow(false);
+            window.location.reload();
+        } catch (err) {
+            toast.error("Action impossible");
+        }
+    };
+
+    if (!show) return null;
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-8 left-8 right-8 md:left-auto md:right-8 md:w-96 z-[9999] bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border border-white/10"
+        >
+            <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center shrink-0">
+                    <Store size={24} />
+                </div>
+                <div>
+                    <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400">Accès Partenaire</h4>
+                    <p className="text-xs font-medium text-white/60 leading-relaxed mt-1">
+                        Vous êtes connecté avec un compte client. Souhaitez-vous activer votre profil fournisseur pour vendre sur Vtout ?
+                    </p>
+                </div>
+            </div>
+            <div className="flex gap-3">
+                <button onClick={() => setShow(false)} className="flex-1 py-3 px-4 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                    Plus tard
+                </button>
+                <button onClick={handleSwitch} className="flex-1 py-3 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20">
+                    Activer
+                </button>
+            </div>
+        </motion.div>
     );
 };
 
@@ -128,24 +220,32 @@ const Layout = ({ children }) => {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Mobile Header */}
-                <header className="md:hidden bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between">
-                    <button onClick={() => setSidebarOpen(true)} className="text-slate-600 hover:text-slate-900 transition-colors">
-                        <Menu size={22} />
-                    </button>
-                    <div className="flex items-center gap-2">
-                        <Store size={18} className="text-indigo-500" />
-                        <span className="font-black text-sm">Portail Fournisseur</span>
+                {/* Header / TopBar */}
+                <header className="bg-white border-b border-slate-100 px-6 md:px-12 py-4 flex items-center justify-between z-30">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 hover:text-slate-900 transition-colors">
+                            <Menu size={22} />
+                        </button>
+                        <div className="hidden md:flex items-center gap-3">
+                            <Store size={24} className="text-indigo-500" />
+                            <h2 className="text-xl font-black tracking-tighter text-slate-900">Espace Fournisseur</h2>
+                        </div>
+                        <div className="md:hidden flex items-center gap-2">
+                            <Store size={18} className="text-indigo-500" />
+                            <LogoText className="text-xs" /> <span className="font-black text-xs text-slate-400">Partner</span>
+                        </div>
                     </div>
-                    <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                        <Bell size={20} />
-                    </button>
+                    
+                    <div className="flex items-center gap-4">
+                        <NotificationCenter />
+                    </div>
                 </header>
 
                 {/* Scrollable Page Content */}
                 <main className="flex-1 overflow-y-auto">
                     {children}
                 </main>
+                <RoleSwitcher />
             </div>
         </div>
     );

@@ -1,0 +1,33 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const ThemeContext = createContext({
+    theme: 'vtout',
+    setTheme: () => {},
+    themes: []
+});
+
+export const ThemeProvider = ({ children }) => {
+    const [theme, setThemeState] = useState(localStorage.getItem('theme') || 'vtout');
+
+    const themes = [
+        "vtout", "light", "dark", "cupcake", "synthwave", "cyberpunk", 
+        "luxury", "dracula", "emerald", "corporate", "retro", "valentine"
+    ];
+
+    const setTheme = (newTheme) => {
+        setThemeState(newTheme);
+        localStorage.setItem('theme', newTheme);
+    };
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    return (
+        <ThemeContext.Provider value={{ theme, setTheme, themes }}>
+            {children}
+        </ThemeContext.Provider>
+    );
+};
+
+export const useTheme = () => useContext(ThemeContext);

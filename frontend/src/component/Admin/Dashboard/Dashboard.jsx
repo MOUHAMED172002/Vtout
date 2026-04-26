@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../../lib/clerk-shim";
 import { getDashboardStats } from "../../../services/statsService";
 import QuickStats from "../Dashboard/QuickStats";
 import SalesChart from "../Dashboard/SalesChart";
@@ -9,14 +9,14 @@ import InventoryAlerts from "../Dashboard/InventoryAlerts";
 import TopCustomers from "../Dashboard/TopCustomers";
 import CategoryDistribution from "../Dashboard/CategoryDistribution";
 import FulfillmentQueue from "../Dashboard/FulfillmentQueue";
-import { LayoutDashboard, Download, RefreshCcw, TrendingUp, Package, Users, AlertCircle, PieChart, Star, UserCheck, Check, CheckCircle, Clock, DollarSign, Truck, UserPlus, MessageCircle, Activity } from "lucide-react";
+import { LayoutDashboard, Download, RefreshCcw, TrendingUp, Package, Users, AlertCircle, PieChart, Star, UserCheck, Check, CheckCircle, Clock, DollarSign, Truck, UserPlus, MessageCircle, Activity, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import OrderDetailsModal from "../Order/OrderDetailsModal";
 import { getDeliveryStatsAdmin, confirmCashRemitted } from "../../../services/deliveryService";
 
-export default function Dashboard() {
+export default function Dashboard({ changeTab }) {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -55,10 +55,10 @@ export default function Dashboard() {
   };
 
   const handleOrderClick = (order) => {
-    // We need the full order object for the modal
-    // But recentOrdersFormatted is simplified. 
-    // We can either find it in data.recentOrders or fetch it.
-    const fullOrder = data.recentOrders.find(r => r.id === order.id);
+    // Check both recent orders and fulfillment queue
+    const fullOrder = data.recentOrders.find(r => r.id === order.id) || 
+                      data.fulfillmentQueue.find(f => f.id === order.id) || 
+                      order;
     if (fullOrder) {
       setSelectedOrder(fullOrder);
       setShowOrderModal(true);
@@ -233,13 +233,13 @@ export default function Dashboard() {
                 </h2>
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Commandes à traiter</p>
               </div>
-              <Link to="/orders" className="text-xs font-black text-primary hover:underline uppercase tracking-widest">Voir tout</Link>
+              <button onClick={() => changeTab?.("Commandes", "delivery")} className="text-xs font-black text-primary hover:underline uppercase tracking-widest">Voir tout</button>
             </div>
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-50 rounded-2xl animate-pulse"></div>)}
               </div>
-            ) : <FulfillmentQueue orders={data.fulfillmentQueue} />}
+            ) : <FulfillmentQueue orders={data.fulfillmentQueue} onOrderClick={handleOrderClick} />}
           </motion.div>
         </div>
 
@@ -286,6 +286,54 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
+        {/* row 3.5: Performance Partenaires (NEW Hybrid Marketplace Logic) */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="xl:col-span-12 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+                  Performance Partenaires <Store className="text-emerald-500" size={24} />
+                </h2>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Classement des vendeurs par chiffre d'affaires</p>
+              </div>
+              <button 
+                onClick={() => changeTab?.("Fournisseurs", "suppliersList")} 
+                className="text-xs font-black text-primary hover:underline uppercase tracking-widest"
+              >
+                Gérer les partenaires
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {data.supplierPerformance?.length > 0 ? data.supplierPerformance.map((sup, idx) => (
+                <div key={idx} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-primary/20 transition-all group">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm font-black text-lg group-hover:scale-110 transition-transform">
+                      {sup.name ? sup.name.charAt(0).toUpperCase() : 'S'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-slate-900 truncate">{sup.name || "Partenaire"}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{sup.orders} ventes</p>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-slate-200">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Chiffre d'Affaires</p>
+                    <p className="text-xl font-black text-emerald-600">{Number(sup.revenue).toLocaleString()} F</p>
+                  </div>
+                </div>
+              )) : (
+                <div className="col-span-full py-12 text-center text-slate-400 text-xs font-bold bg-slate-50 rounded-[2.5rem] border border-dashed border-slate-200">
+                  Aucune performance partenaire enregistrée pour cette période.
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
         {/* Recent Orders Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -302,7 +350,7 @@ export default function Dashboard() {
               </h2>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Temps réel</p>
             </div>
-            <button className="btn btn-primary rounded-xl btn-sm font-black shadow-lg shadow-primary/20 uppercase tracking-widest">Journal Journal complet</button>
+            <button onClick={() => changeTab?.("Commandes", "ordersList")} className="btn btn-primary rounded-xl btn-sm font-black shadow-lg shadow-primary/20 uppercase tracking-widest">Journal complet</button>
           </div>
 
           <div className="relative z-10">
@@ -448,6 +496,7 @@ export default function Dashboard() {
       {showOrderModal && selectedOrder && (
         <OrderDetailsModal
           order={selectedOrder}
+          isOpen={showOrderModal}
           onClose={() => {
             setShowOrderModal(false);
             setSelectedOrder(null);
