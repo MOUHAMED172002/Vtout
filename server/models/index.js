@@ -36,6 +36,55 @@ import Quartier from './Quartier.js';
 import Notification from './Notification.js';
 import Blog from './Blog.js';
 import Otp from './Otp.js';
+import { DataTypes } from 'sequelize';
+
+// --- Better Auth Tables (Declarations for sync) ---
+const User = sequelize.define('user', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    emailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+    image: { type: DataTypes.TEXT },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+    role: { type: DataTypes.STRING, defaultValue: 'user' }
+}, { tableName: 'user' });
+
+const Session = sequelize.define('session', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    expiresAt: { type: DataTypes.DATE, allowNull: false },
+    token: { type: DataTypes.STRING, allowNull: false, unique: true },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE },
+    userId: { type: DataTypes.STRING, allowNull: false },
+    ipAddress: { type: DataTypes.TEXT },
+    userAgent: { type: DataTypes.TEXT }
+}, { tableName: 'session' });
+
+const Account = sequelize.define('account', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    accountId: { type: DataTypes.STRING, allowNull: false },
+    providerId: { type: DataTypes.STRING, allowNull: false },
+    userId: { type: DataTypes.STRING, allowNull: false },
+    accessToken: { type: DataTypes.TEXT },
+    refreshToken: { type: DataTypes.TEXT },
+    idToken: { type: DataTypes.TEXT },
+    accessTokenExpiresAt: { type: DataTypes.DATE },
+    refreshTokenExpiresAt: { type: DataTypes.DATE },
+    scope: { type: DataTypes.TEXT },
+    password: { type: DataTypes.TEXT },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE }
+}, { tableName: 'account' });
+
+const Verification = sequelize.define('verification', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    identifier: { type: DataTypes.TEXT, allowNull: false },
+    value: { type: DataTypes.TEXT, allowNull: false },
+    expiresAt: { type: DataTypes.DATE, allowNull: false },
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE }
+}, { tableName: 'verification' });
 
 // --- Relations ---
 
@@ -244,5 +293,9 @@ export {
     Quartier,
     Notification,
     Blog,
-    Otp
+    Otp,
+    User,
+    Session,
+    Account,
+    Verification
 };

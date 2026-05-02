@@ -7,6 +7,7 @@ import {
     Policy, Department, Commune, Arrondissement, Quartier
 } from './models/index.js';
 import { seedConfigs } from './seedConfigs.js';
+import seedBlogs from './seedBlogs.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,7 @@ export async function runMasterSeed() {
         }
 
         // 3. Contracts & Policies
-        console.log('🌱 [SEED] Initializing Contracts (CGV, Supplier, Delivery)...');
+        console.log('🌱 [SEED] Initializing Contracts...');
         const policies = [
             { type: 'general', title: 'Conditions Générales de Vente (CGV)', content: 'CGV Vtout Bénin...' },
             { type: 'supplier', title: 'Contrat Partenaire Fournisseur', content: 'Contrat Fournisseur...' },
@@ -41,23 +42,35 @@ export async function runMasterSeed() {
             await Policy.findOrCreate({ where: { type: p.type }, defaults: p });
         }
 
-        // 4. Attributes (Tailles, Couleurs, etc.)
+        // 4. Attributes
         console.log('🌱 [SEED] Loading Product Attributes...');
         const attrs = ['Couleur', 'Taille', 'Pointure', 'Stockage', 'RAM'];
         for (const name of attrs) {
             await ProductAttribute.findOrCreate({ where: { name } });
         }
 
-        // 5. Géographie (Bénin - Départements principaux)
-        console.log('🌱 [SEED] Initializing Geography (Benin)...');
-        const depts = ['Littoral', 'Atlantique', 'Ouémé', 'Mono', 'Borgou', 'Zou', 'Collines', 'Alibori', 'Atacora', 'Donga', 'Couffo', 'Plateau'];
-        for (const d of depts) {
-            await Department.findOrCreate({ where: { name: d } });
+        // 5. Géographie du Bénin (JSON Complet)
+        const geoPath = path.join(__dirname, '../frontend/src/data/decoupage-territorial-benin.json');
+        if (fs.existsSync(geoPath)) {
+            console.log('🌱 [SEED] Loading Benin Geography (Full JSON)...');
+            const geoData = JSON.parse(fs.readFileSync(geoPath, 'utf8'));
+            for (const dep of geoData) {
+                await Department.upsert({ id: dep.id_dep, name: dep.lib_dep });
+                for (const com of dep.communes) {
+                    await Commune.upsert({ id: com.id_com, department_id: dep.id_dep, name: com.lib_com });
+                    // On s'arrête aux communes pour la rapidité au boot, 
+                    // mais tout est prêt pour charger les arrondissements si besoin.
+                }
+            }
+            console.log('✅ [SEED] Geography loaded.');
         }
+
+        // 6. Blogs
+        await seedBlogs();
 
         console.log('✅ [MASTER SEED] Global data initialization completed!');
 
     } catch (error) {
-        console.error('❌ [MASTER SEED] Error during data loading:', error.message);
+        console.error('❌ [MASTER SEED] Error:', error.message);
     }
 }

@@ -12,12 +12,38 @@ export const AuthUI = ({ mode = 'signIn' }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [whatsappPassword, setWhatsappPassword] = useState('');
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [whatsappMode, setWhatsappMode] = useState('none'); // 'none', 'request', 'verify'
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
-    const [whatsappPassword, setWhatsappPassword] = useState('');
+
+    // --- Persistance pour mobile ---
+    // Sauvegarde l'état si on change d'app pour aller voir le code WhatsApp
+    React.useEffect(() => {
+        const saved = sessionStorage.getItem('vtout_auth_state');
+        if (saved) {
+            try {
+                const { mode, ph, nm } = JSON.parse(saved);
+                if (mode) setWhatsappMode(mode);
+                if (ph) setPhone(ph);
+                if (nm) setName(nm);
+            } catch (e) {}
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (whatsappMode !== 'none') {
+            sessionStorage.setItem('vtout_auth_state', JSON.stringify({
+                mode: whatsappMode,
+                ph: phone,
+                nm: name
+            }));
+        } else {
+            sessionStorage.removeItem('vtout_auth_state');
+        }
+    }, [whatsappMode, phone, name]);
 
 
     const handleSubmit = async (e) => {
