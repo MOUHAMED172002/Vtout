@@ -4,14 +4,14 @@ FROM node:18-alpine AS production
 # Create app directory
 WORKDIR /app
 
-# On copie tout ce qui est dans le contexte de build
-COPY . .
+# On copie le package.json depuis le dossier server
+COPY server/package*.json ./
 
-# On vérifie où on est et ce qu'il y a (pour le débug dans les logs Dokploy)
-RUN ls -la
+# Installation des dépendances
+RUN npm install --omit=dev
 
-# On force l'installation en pointant directement le dossier courant
-RUN npm install --omit=dev --prefix .
+# On copie tout le reste du dossier server vers /app
+COPY server/ .
 
 # Expose port
 EXPOSE 3000

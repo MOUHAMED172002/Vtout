@@ -3,9 +3,11 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY . .
-RUN ls -la
+# On copie depuis le sous-dossier frontend
+COPY frontend/package*.json ./
 RUN npm install
+
+COPY frontend/ .
 RUN npm run build
 
 # Step 2: Serve the app with Nginx

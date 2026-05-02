@@ -3,9 +3,11 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY . .
-RUN ls -la
+# On copie depuis le sous-dossier supplier-portal
+COPY supplier-portal/package*.json ./
 RUN npm install
+
+COPY supplier-portal/ .
 RUN npm run build
 
 # Step 2: Serve the app with Nginx
