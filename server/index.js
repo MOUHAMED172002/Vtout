@@ -77,6 +77,7 @@ import createFedapay from "./api/create-fedapay.js";
 import fedapayWebhook from "./api/fedapay-webhook.js";
 
 const app = express();
+app.set('trust proxy', 1); // Indispensable pour Dokploy/Traefik
 
 process.on('uncaughtException', (err) => {
     console.error('[FATAL] Uncaught Exception:', err.message);
