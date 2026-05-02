@@ -4,17 +4,15 @@ FROM node:18-alpine AS build
 WORKDIR /app
 
 COPY . .
+RUN ls -la
 RUN npm install
 RUN npm run build
 
 # Step 2: Serve the app with Nginx
 FROM nginx:alpine AS production
 
-# Copy the build output to Nginx's default directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config if you have one, or use default
-# For SPA, we need to redirect all requests to index.html
 RUN echo 'server { \
     listen 80; \
     location / { \
