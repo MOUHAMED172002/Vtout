@@ -4,14 +4,11 @@ FROM node:18-alpine AS production
 # Create app directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy all files from the current directory (server/)
+COPY . .
 
 # Install dependencies
-RUN npm install --production
-
-# Copy app source code
-COPY . .
+RUN npm install --omit=dev
 
 # Expose port
 EXPOSE 3000
