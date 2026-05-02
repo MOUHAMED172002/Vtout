@@ -4,6 +4,8 @@ import PaymentSettings from "../Setting/PaymentSettings";
 import ShippingSettings from "../Setting/ShippingSettings";
 import AdminAccountSettings from "../Setting/AdminAccountSettings";
 import NotificationsSettings from "../Setting/NotificationsSettings";
+import WhatsAppSettings from "../Setting/WhatsAppSettings";
+import CloudinarySettings from "../Setting/CloudinarySettings";
 
 /**
  * SettingsAdmin - wrapper simple pour différentes sections de configuration.
@@ -20,6 +22,8 @@ export default function SettingsAdmin() {
         <ShippingSettings />
         <AdminAccountSettings />
         <NotificationsSettings />
+        <WhatsAppSettings />
+        <CloudinarySettings />
       </div>
     </div>
   );

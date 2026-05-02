@@ -1,12 +1,20 @@
 import express from 'express';
-import { upload } from '../config/cloudinary.js';
+import { upload, refreshCloudinaryConfig } from '../config/cloudinary.js';
 import { requireAuth, requireAdmin, requireFournisseur } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+const ensureCloudinaryConfig = async (req, res, next) => {
+    try {
+        await refreshCloudinaryConfig();
+    } catch (e) {
+        console.error('Cloudinary config error:', e);
+    }
+    next();
+};
 
 // Route pour uploader une seule image
-router.post('/single', requireAuth, upload.single('image'), (req, res) => {
+router.post('/single', requireAuth, ensureCloudinaryConfig, upload.single('image'), (req, res) => {
     try {
         console.log(`[upload/single] User: ${req.auth?.userId}`);
         if (!req.file) {
@@ -22,7 +30,7 @@ router.post('/single', requireAuth, upload.single('image'), (req, res) => {
 });
 
 // Route pour uploader plusieurs images
-router.post('/multiple', requireAuth, requireFournisseur, upload.array('images', 5), (req, res) => {
+router.post('/multiple', requireAuth, requireFournisseur, ensureCloudinaryConfig, upload.array('images', 5), (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ error: 'Aucun fichier téléchargé' });

@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
+import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -257,6 +258,14 @@ export const createOrder = async (req, res) => {
                 }
             }
             createdOrders.push(order);
+
+            // WhatsApp Notif to Supplier
+            if (actualSupplierId) {
+                Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(supplier => {
+                    const phone = supplier?.phone || supplier?.profile?.phone;
+                    if (phone) notifySupplierOfNewOrder(phone, order.id, order.total_amount);
+                });
+            }
         }
 
         if (userId) {
@@ -273,6 +282,13 @@ export const createOrder = async (req, res) => {
 
         sendOrderNotificationToAdmin(mainOrder, enrichedItems.map(e => e.product)).catch(() => {});
         sendInvoiceEmail(mainOrder, enrichedItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+        
+        // WhatsApp Notif to Customer
+        const customerPhone = guest_phone || (userId ? (await Profile.findByPk(userId))?.phone : null);
+        if (customerPhone) sendNewOrderWhatsApp(customerPhone, mainOrder.id, totalCartAmount).catch(() => {});
+        
+        // WhatsApp Notif to Admin
+        notifyAdmin(`Nouvelle commande reçue ! ID: #${mainOrder.id.slice(0, 8)} - Client: ${guest_name || 'Inconnu'} - Total: ${totalCartAmount} F`).catch(() => {});
 
         if (['fedapay', 'mobile_money', 'card'].includes(payment_method)) {
             try {
@@ -310,6 +326,7 @@ export const createOrder = async (req, res) => {
     } catch (error) {
         if (transaction) await transaction.rollback();
         console.error("CREATE ORDER ERROR:", error);
+        notifyAdmin(`❌ ERREUR CRITIQUE (Create Order): ${error.message}`).catch(() => {});
         res.status(500).json({ error: 'Erreur lors de la création de la commande', details: error.message });
     }
 };
@@ -395,6 +412,23 @@ export const updateOrderStatus = async (req, res) => {
 
         await order.update(updatePayload);
 
+        // WhatsApp Notif to Customer
+        try {
+            const userProfile = await Profile.findByPk(order.user_id);
+            const customerPhone = order.guest_phone || userProfile?.phone;
+            if (customerPhone && status) {
+                notifyCustomerOfStatusUpdate(customerPhone, order.id, mappedStatus).catch(() => {});
+            }
+        } catch (_) {}
+
+        // WhatsApp Notif to Deliverer (if assigned)
+        if (req.body.delivery_person_id) {
+            DeliveryPerson.findByPk(req.body.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] }).then(deliverer => {
+                const phone = deliverer?.phone || deliverer?.profile?.phone;
+                if (phone) notifyDelivererOfAssignment(phone, order.id);
+            });
+        }
+
         // 1. Stock deduction on confirmation
         if (mappedStatus === 'confirmée' && oldStatus === 'en_attente') {
             try {
@@ -477,6 +511,7 @@ export const updateOrderStatus = async (req, res) => {
         res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
         console.error("UPDATE ORDER ERROR:", error);
+        notifyAdmin(`❌ ERREUR (Update Order ID: ${req.params.id}): ${error.message}`).catch(() => {});
         res.status(500).json({ error: 'Erreur lors de la mise à jour', details: error.message });
     }
 };
