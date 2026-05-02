@@ -1,0 +1,23 @@
+services:
+  api:
+    build: ./server
+    container_name: vtout-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./server/.env
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: vtout-frontend
+    ports:
+      - "5173:80"
+    restart: always
+
+  supplier-portal:
+    build: ./supplier-portal
+    container_name: vtout-supplier
+    ports:
+      - "5174:80"
+    restart: always
