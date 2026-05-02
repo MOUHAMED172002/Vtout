@@ -9,7 +9,7 @@ export const fedapayCallback = async (req, res) => {
         // param 'id' vient de FedaPay (ID de transaction)
         
         if (!id || !order_id) {
-            return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/error`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error`);
         }
 
         // On vérifie le statut réel via l'API FedaPay (sécurité)
@@ -17,26 +17,26 @@ export const fedapayCallback = async (req, res) => {
         
         const order = await Order.findByPk(order_id);
         if (!order) {
-            return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/error?msg=OrderNotFound`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=OrderNotFound`);
         }
 
         // Sécurité supplémentaire: vérifier que l'ID de commande correspond bien à la transaction FedaPay
         const txOrderId = fedaTx.custom_metadata?.order_id || fedaTx.metadata?.order_id;
         if (txOrderId && !txOrderId.includes(order.id.toString())) {
             console.error('[Payment Callback] FedaPay Transaction does not match this Order ID. Fraud attempt detected.');
-            return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/error?msg=SecurityError`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=SecurityError`);
         }
 
         if (fedaTx.status === 'approved') {
             await order.update({ payment_status: 'payé' });
-            return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/success?order_id=${order.id}`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${order.id}`);
         } else {
             await order.update({ payment_status: 'echec' });
-            return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/error?msg=PaymentFailed`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=PaymentFailed`);
         }
     } catch (error) {
         console.error('[Payment Callback] Error:', error);
-        res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout/error`);
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error`);
     }
 };
 

@@ -84,13 +84,13 @@ export default function DeliveryDashboard() {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
-        
+
         const controller = new AbortController();
         abortControllerRef.current = controller;
-        
+
         setLoading(true);
         isFetchingRef.current = true;
-        
+
         try {
             const token = await getToken();
 
@@ -104,7 +104,7 @@ export default function DeliveryDashboard() {
                 setAvailableOrders(Array.isArray(availableData) ? availableData : []);
                 setMyOrders(Array.isArray(myData) ? myData : []);
             }
-            
+
             // Logic to fetch myself for status and zones
             try {
                 const me = await getDeliveryProfile(token);
@@ -192,12 +192,13 @@ export default function DeliveryDashboard() {
     const hasDebt = unremittedCashAmount > 0;
     const isFullyBlocked = hasDebt && activeOrders.length === 0;
 
-    // --- REAL-TIME BEACON ---
+    // --- REAL-TIME BEACON (Commented out) ---
+    /*
     useEffect(() => {
         let interval;
         if (isOnline && activeOrders.length > 0) {
             const socket = initSocket(clerkUser?.id);
-            
+
             interval = setInterval(() => {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -227,6 +228,7 @@ export default function DeliveryDashboard() {
             if (interval) clearInterval(interval);
         };
     }, [isOnline, activeOrders.length, myself?.id, clerkUser?.id, getToken]);
+    */
 
     const handleToggleOnline = async () => {
         try {
@@ -445,10 +447,10 @@ export default function DeliveryDashboard() {
                         PORTEFEUILLE
                     </button>
                 </div>
-                
+
                 {/* Manual Refresh & Tab Re-fetch logic */}
                 <div className="px-8 py-2 flex justify-end">
-                    <button 
+                    <button
                         onClick={loadData}
                         disabled={loading}
                         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all disabled:opacity-50"
@@ -521,7 +523,7 @@ export default function DeliveryDashboard() {
                                                                         {item.product?.images?.[0]?.image_url ? (
                                                                             <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
                                                                         ) : (
-                                                                            <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50"><Package size={14}/></div>
+                                                                            <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50"><Package size={14} /></div>
                                                                         )}
                                                                     </div>
                                                                     <span className="text-primary font-black">x{item.quantity}</span>
@@ -578,48 +580,48 @@ export default function DeliveryDashboard() {
 
                                                         {/* Pickup List */}
                                                         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-3">
-                                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                                                                 <Package size={12} /> Liste de colisage
-                                                             </p>
-                                                             {order.items?.map(item => (
-                                                                 <div key={item.id} className="flex items-center justify-between group">
-                                                                     <div className="flex items-center gap-3">
-                                                                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-xs text-primary shadow-sm border border-slate-100 overflow-hidden shrink-0">
-                                                                             {item.product?.images?.[0]?.image_url ? (
-                                                                                 <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
-                                                                             ) : (
-                                                                                 <span className="text-primary">{item.quantity}</span>
-                                                                             )}
-                                                                         </div>
-                                                                         <div>
-                                                                             <div className="flex items-center gap-2">
+                                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                                                <Package size={12} /> Liste de colisage
+                                                            </p>
+                                                            {order.items?.map(item => (
+                                                                <div key={item.id} className="flex items-center justify-between group">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-xs text-primary shadow-sm border border-slate-100 overflow-hidden shrink-0">
+                                                                            {item.product?.images?.[0]?.image_url ? (
+                                                                                <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
+                                                                            ) : (
+                                                                                <span className="text-primary">{item.quantity}</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="flex items-center gap-2">
                                                                                 <span className="text-xs font-black text-primary">x{item.quantity}</span>
                                                                                 <p className="text-xs font-black text-slate-700">{item.product?.name}</p>
-                                                                             </div>
-                                                                             {item.variant && (
-                                                                                 <p className="text-[9px] font-bold text-slate-400 italic">
-                                                                                     {item.variant.attribute_values || item.variant.sku}
-                                                                                 </p>
-                                                                             )}
-                                                                         </div>
-                                                                     </div>
-                                                                     <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>
-                                                                 </div>
-                                                             ))}
+                                                                            </div>
+                                                                            {item.variant && (
+                                                                                <p className="text-[9px] font-bold text-slate-400 italic">
+                                                                                    {item.variant.attribute_values || item.variant.sku}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>
+                                                                </div>
+                                                            ))}
                                                         </div>
 
                                                         {/* Client Info */}
                                                         <div className="bg-white rounded-2xl p-5 border-2 border-slate-100 space-y-2 mt-4 shadow-sm">
-                                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
-                                                                 <User size={12} /> Client (Destination)
-                                                             </p>
-                                                             <p className="text-sm font-black text-slate-900">{order.user?.fullname || order.guest_name || "Client"}</p>
-                                                             <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                                                                 <MapPin size={12} /> {order.address?.address_line}, {order.address?.city}
-                                                             </p>
-                                                             <a href={`tel:${order.user?.phone || order.guest_phone || order.address?.phone}`} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase mt-2 hover:bg-primary transition-colors">
-                                                                 📞 Appeler le client
-                                                             </a>
+                                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                                                <User size={12} /> Client (Destination)
+                                                            </p>
+                                                            <p className="text-sm font-black text-slate-900">{order.user?.fullname || order.guest_name || "Client"}</p>
+                                                            <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                                                <MapPin size={12} /> {order.address?.address_line}, {order.address?.city}
+                                                            </p>
+                                                            <a href={`tel:${order.user?.phone || order.guest_phone || order.address?.phone}`} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase mt-2 hover:bg-primary transition-colors">
+                                                                📞 Appeler le client
+                                                            </a>
                                                         </div>
 
                                                         {/* Supplier Info */}
@@ -806,18 +808,18 @@ export default function DeliveryDashboard() {
                                 {tab === 'wallet' && (
                                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
-                                           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                                                 <div>
                                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Solde Disponible</p>
                                                     <h2 className="text-5xl font-black">{Number(walletStats?.balance || 0).toLocaleString()} <span className="text-xl text-primary">F</span></h2>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => setShowPayoutModal(true)}
                                                     className="bg-primary text-white px-10 py-5 rounded-2xl font-black uppercase text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-all"
                                                 >
                                                     Retirer mes gains
                                                 </button>
-                                           </div>
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -870,12 +872,12 @@ export default function DeliveryDashboard() {
             <AnimatePresence>
                 {showPayoutModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
-                            onClick={() => setShowPayoutModal(false)} 
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            onClick={() => setShowPayoutModal(false)}
                         />
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
                             className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl relative z-10 space-y-8"
                         >
@@ -887,13 +889,13 @@ export default function DeliveryDashboard() {
                             <form onSubmit={handlePayoutRequest} className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Montant à retirer (FCFA)</label>
-                                    <input 
-                                        type="number" 
-                                        required 
-                                        value={payoutAmount} 
-                                        onChange={e => setPayoutAmount(e.target.value)} 
-                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-5 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all" 
-                                        placeholder="Ex: 5000" 
+                                    <input
+                                        type="number"
+                                        required
+                                        value={payoutAmount}
+                                        onChange={e => setPayoutAmount(e.target.value)}
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-5 text-2xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+                                        placeholder="Ex: 5000"
                                     />
                                     <p className="text-[10px] text-right font-bold text-slate-400">Solde max: {Number(walletStats?.balance || 0).toLocaleString()} F</p>
                                 </div>
@@ -913,19 +915,19 @@ export default function DeliveryDashboard() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">
                                         {payoutMethod === 'momo' ? 'Numéro de téléphone MoMo & Nom' : 'Informations Bancaires (RIB, Nom de la banque)'}
                                     </label>
-                                    <textarea 
-                                        required 
-                                        value={paymentDetails} 
-                                        onChange={e => setPaymentDetails(e.target.value)} 
+                                    <textarea
+                                        required
+                                        value={paymentDetails}
+                                        onChange={e => setPaymentDetails(e.target.value)}
                                         rows="2"
-                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" 
+                                        className="w-full bg-slate-50 border-none rounded-2xl px-8 py-4 text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none"
                                         placeholder={payoutMethod === 'momo' ? "Ex: 67000000 - Jean Dupont" : "Ex: Société Générale, RIB: 00001..."}
                                     />
                                     <div className="flex items-center gap-2 ml-4 mt-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="save_details_rider" 
-                                            checked={saveDetails} 
+                                        <input
+                                            type="checkbox"
+                                            id="save_details_rider"
+                                            checked={saveDetails}
                                             onChange={e => setSaveDetails(e.target.checked)}
                                             className="checkbox checkbox-xs checkbox-primary"
                                         />

@@ -27,6 +27,7 @@ import Login from './component/Auth/Login';
 import Register from './component/Auth/Register';
 import ResetPassword from './component/Auth/ResetPassword';
 import ProfileSync from './component/Auth/ProfileSync';
+import { notificationService } from './services/notificationService';
 import SEO from './component/Shared/SEO';
 
 import ScrollToTop from './component/Shared/ScrollToTop';
@@ -49,6 +50,9 @@ import PolicyPage from './component/Popup/Policypage';
 import About from './component/About/About';
 import PlatformReviews from './component/Popup/PlatformReviews';
 import NotFoundPage from './component/Shared/NotFoundPage';
+import BlogDetail from './component/Blogs/BlogDetail';
+import MagPage from './component/Blogs/MagPage';
+import Privacy from './component/Popup/Privacy';
 
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
@@ -88,7 +92,14 @@ const AppContent = ({ products, loading }) => {
   const { signOut } = useAuth();
   const [showSupplierModal, setShowSupplierModal] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
+        if (profileUser?.id) {
+            notificationService.connect(profileUser.id);
+        }
+        return () => notificationService.disconnect();
+    }, [profileUser]);
+
+    useEffect(() => {
     // Ne pas bloquer si l'utilisateur est déjà sur une route fournisseur
     const isSupplierRoute = location.pathname.startsWith('/fournisseur');
     if (profileUser?.role === 'fournisseur' && !isSupplierRoute) {
@@ -190,6 +201,8 @@ const AppContent = ({ products, loading }) => {
           <Route path="/auth/inscription/*" element={<PageWrapper><><Navbar /><Register /><Footer /></></PageWrapper>} />
           <Route path="/auth/connexion/*" element={<PageWrapper><><Navbar /><Login /><Footer /></></PageWrapper>} />
           <Route path="/reset-password" element={<PageWrapper><><Navbar /><ResetPassword /><Footer /></></PageWrapper>} />
+          <Route path="/blog/:slug" element={<PageWrapper><BlogDetail /></PageWrapper>} />
+          <Route path="/mag" element={<PageWrapper><MagPage /></PageWrapper>} />
 
           {/* User Dashboard - Restricted for Livreur */}
           <Route path="/user/dashboard/*" element={
@@ -224,6 +237,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/user/address" element={<PublicRoute><PageWrapper><><Navbar /><AddressSelector /></></PageWrapper></PublicRoute>} />
           <Route path="/Faq" element={<PageWrapper><><Navbar /><FaqList /><Footer /></></PageWrapper>} />
           <Route path="/Policy" element={<PageWrapper><><Navbar /><PolicyPage /><Footer /></></PageWrapper>} />
+          <Route path="/privacy" element={<PageWrapper><><Navbar /><Privacy /><Footer /></></PageWrapper>} />
           <Route path="/devenir-livreur" element={<PageWrapper><><Navbar /><DevenirLivreur /><Footer /></></PageWrapper>} />
 
           {/* Supplier Routes */}

@@ -4,22 +4,22 @@ const initialConfigs = [
     // Branding
     { key: 'APP_NAME', value: 'Vtout', group: 'branding', description: 'Nom de la marketplace' },
     { key: 'site_logo', value: '/logo.png', group: 'branding', description: 'URL du logo' },
-    
+
     // Social Media
     { key: 'FACEBOOK', value: 'https://facebook.com/vtout', group: 'social', description: 'Lien Facebook' },
     { key: 'WHATSAPP', value: '+229 61 00 00 00', group: 'social', description: 'Numéro WhatsApp' },
     { key: 'INSTAGRAM', value: 'https://instagram.com/vtout', group: 'social', description: 'Lien Instagram' },
     { key: 'TIKTOK', value: 'https://tiktok.com/@vtout', group: 'social', description: 'Lien TikTok' },
-    
+
     // Contact Info
     { key: 'CONTACT_EMAIL', value: 'contact@vtout.com', group: 'contact', description: 'Email de support' },
     { key: 'CONTACT_PHONE', value: '+229 61 00 00 00', group: 'contact', description: 'Téléphone de support' },
     { key: 'CONTACT_ADDRESS', value: 'Calavi Bidosèssi, Cotonou, Bénin', group: 'contact', description: 'Adresse physique du siège' },
-    
+
     // Business Hours
     { key: 'hours_weekday', value: '08:00 - 18:00', group: 'hours', description: 'Heures en semaine' },
     { key: 'hours_weekend', value: '09:00 - 13:00', group: 'hours', description: 'Heures le weekend' },
-    
+
     // Features
     { key: 'feature_delivery_fee', value: '1000', group: 'features', description: 'Frais de livraison par défaut' },
     { key: 'feature_free_shipping_threshold', value: '50000', group: 'features', description: 'Seuil pour livraison gratuite' },

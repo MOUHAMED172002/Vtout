@@ -1,8 +1,9 @@
 import {
     Order, OrderItem, Product, Profile, ProductImage, Category,
     ProductVariant, ProductVariantPrice, Supplier, SupplierProduct,
-    FailedSearch, FinancialTransaction, sequelize
+    FailedSearch, FinancialTransaction
 } from '../models/index.js';
+import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
 
 export const getDashboardStats = async (req, res) => {
@@ -222,10 +223,14 @@ export const getDashboardStats = async (req, res) => {
 
 export const getFailedSearches = async (req, res) => {
     try {
-        const searches = await FailedSearch.findAll({ limit: 50, order: [['createdAt', 'DESC']] });
+        const searches = await FailedSearch.findAll({ 
+            limit: 50, 
+            order: [['created_at', 'DESC']] 
+        });
         res.json(searches);
     } catch (error) {
-        res.status(500).json({ error: 'Erreur lors de la récupération des recherches infructueuses' });
+        console.warn('[Stats] search-analytics table may not exist yet:', error.message);
+        res.json([]); // Retourne un tableau vide si la table n'existe pas
     }
 };
 

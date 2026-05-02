@@ -305,9 +305,16 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                       <p className="text-sm font-black text-slate-900 leading-none line-clamp-1">
                         {order.guest_name || order.user_id || "Client Inconnu"}
                       </p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                        {order.user_id ? "Client Enregistré" : "Achat Invité"}
-                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {order.user_id ? "Client Enregistré" : "Achat Invité"}
+                        </p>
+                        {order.delivery_code && (
+                          <span className="bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full border border-primary/20">
+                            CODE : {order.delivery_code}
+                          </span>
+                        )}
+                      </div>
                       {order.guest_email && <p className="text-[10px] text-slate-400 mt-1">{order.guest_email}</p>}
                     </div>
                   </div>

@@ -28,6 +28,15 @@ export default function ResetPassword() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Extract token from URL (Better Auth sends it as ?token=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            toast.error('Jeton de réinitialisation manquant ou invalide.');
+            return;
+        }
+
         if (password.length < 8) {
             toast.error('Le mot de passe doit contenir au moins 8 caractères.');
             return;
@@ -39,7 +48,10 @@ export default function ResetPassword() {
 
         setLoading(true);
         try {
-            const res = await authClient.resetPassword({ newPassword: password });
+            const res = await authClient.resetPassword({ 
+                newPassword: password,
+                token: token // Pass the token explicitly
+            });
             if (res.error) {
                 toast.error(res.error.message || 'Erreur de réinitialisation');
             } else {

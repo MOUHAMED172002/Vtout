@@ -34,6 +34,8 @@ import Commune from './Commune.js';
 import Arrondissement from './Arrondissement.js';
 import Quartier from './Quartier.js';
 import Notification from './Notification.js';
+import Blog from './Blog.js';
+import Otp from './Otp.js';
 
 // --- Relations ---
 
@@ -197,6 +199,10 @@ Dispute.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 Order.hasMany(Dispute, { foreignKey: 'order_id', as: 'disputes' });
 Dispute.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
 
+// Blogs
+Blog.belongsTo(Profile, { foreignKey: 'author_id', as: 'author' });
+Profile.hasMany(Blog, { foreignKey: 'author_id', as: 'blogs' });
+
 // --- Final Consolidations ---
 // (Avoiding duplicates that caused 'alias user' errors)
 
@@ -236,5 +242,7 @@ export {
     Commune,
     Arrondissement,
     Quartier,
-    Notification
+    Notification,
+    Blog,
+    Otp
 };

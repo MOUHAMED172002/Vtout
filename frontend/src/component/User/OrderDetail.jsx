@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import OrderTrackingMap from "../Shared/OrderTrackingMap";
+import { notificationService } from "../../services/notificationService";
 
 /* ── Timeline progression ──────────────────────────────────────────────────── */
 const STEPS = [
@@ -125,6 +127,21 @@ export default function OrderDetail() {
       }
     }
     load();
+
+    // Real-time status updates
+    const handleStatusUpdate = (data) => {
+        if (data.orderId === id) {
+            toast.success(data.message);
+            // Refresh order data
+            load();
+        }
+    };
+
+    notificationService.subscribe('order_status_updated', handleStatusUpdate);
+
+    return () => {
+        notificationService.unsubscribe('order_status_updated', handleStatusUpdate);
+    };
   }, [id, getToken]);
 
   /* ── Loading ── */
@@ -368,6 +385,26 @@ export default function OrderDetail() {
             </div>
           </div>
         )}
+
+        {/* ── REAL-TIME TRACKING MAP (Commented out) ── */}
+        {/* normalizedStatus === 'expediee' && (
+          <div className="px-10 md:px-14 py-10 border-b border-slate-100 space-y-6">
+            <div className="flex items-center justify-between">
+               <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <Navigation className="text-primary animate-pulse" size={24} /> 
+                  Suivi en temps réel.
+                </h3>
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                   Livreur en route
+                </span>
+            </div>
+            <OrderTrackingMap 
+                orderId={order.id} 
+                customerPos={order.address ? [order.address.latitude || 6.3667, order.address.longitude || 2.4333] : null}
+                supplierPos={order.supplier ? [order.supplier.latitude || 6.37, order.supplier.longitude || 2.44] : null}
+            />
+          </div>
+        ) */}
 
         {/* ── Body ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12">

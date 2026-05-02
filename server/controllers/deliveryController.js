@@ -18,7 +18,7 @@ export const getAvailableOrders = async (req, res) => {
                 {
                     model: OrderItem, as: 'items',
                     include: [
-                        { 
+                        {
                             model: Product, as: 'product',
                             include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }]
                         },
@@ -41,7 +41,7 @@ export const assignToMe = async (req, res) => {
 
         const deliveryPerson = await DeliveryPerson.findOne({ where: { user_id: userId } });
         if (!deliveryPerson) return res.status(403).json({ error: 'Vous n\'êtes pas enregistré comme livreur' });
-        
+
         // SECURITE : S'assurer que le livreur est vérifié
         if (!deliveryPerson.is_verified) return res.status(403).json({ error: 'Votre compte livreur est en attente de validation.' });
 
@@ -131,7 +131,7 @@ export const updateDeliveryStatus = async (req, res) => {
         }
 
         await order.update(updateData);
-        
+
         const isDelivered = (mappedStatus === 'livrée') && (oldStatus !== 'livrée');
         if (isDelivered) {
             await processOrderFinancials(order);
@@ -158,7 +158,7 @@ export const getMyDeliveries = async (req, res) => {
                 {
                     model: OrderItem, as: 'items',
                     include: [
-                        { 
+                        {
                             model: Product, as: 'product',
                             include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }]
                         },
@@ -312,15 +312,15 @@ export const verifyLivreur = async (req, res) => {
 
         const profile = await Profile.findByPk(deliveryPerson.user_id);
         if (profile) {
-             const newRole = is_verified ? 'livreur' : 'user';
-             await profile.update({ role: newRole });
-             await sequelize.query(
-                 'UPDATE user SET role = :role WHERE id = :id',
-                 {
-                     replacements: { role: newRole, id: deliveryPerson.user_id },
-                     type: sequelize.QueryTypes.UPDATE
-                 }
-             );
+            const newRole = is_verified ? 'livreur' : 'user';
+            await profile.update({ role: newRole });
+            await sequelize.query(
+                'UPDATE user SET role = :role WHERE id = :id',
+                {
+                    replacements: { role: newRole, id: deliveryPerson.user_id },
+                    type: sequelize.QueryTypes.UPDATE
+                }
+            );
         }
 
         res.json({ message: 'Statut mis à jour et rôle synchronisé' });

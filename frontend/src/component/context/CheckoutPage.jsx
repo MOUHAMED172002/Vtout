@@ -7,7 +7,7 @@ import { createOrder, updateOrderStatus } from "../../services/orderService";
 import { createAddress } from "../../services/addressService";
 import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
-import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X } from "lucide-react";
+import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                   initial={{ opacity: 0, x: -20, scale: 0.98 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, x: 20, scale: 0.98 }}
-                  className="bg-base-100 p-12 rounded-[3.5rem] border border-base-content/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
+                  className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-content/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8 md:space-y-10"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-violet-50 text-violet-600 rounded-3xl shadow-sm">
@@ -373,7 +373,7 @@ export default function CheckoutPage() {
 
           {/* Sidebar Summary */}
           <div className="lg:col-span-4">
-            <div className="sticky top-24 bg-base-100 p-12 rounded-[3.5rem] border border-base-content/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] space-y-10 relative overflow-hidden group">
+            <div className="sticky top-24 bg-base-100 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-base-content/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] space-y-8 md:space-y-10 relative overflow-hidden group">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700"></div>
               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
 

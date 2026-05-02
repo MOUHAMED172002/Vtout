@@ -3,13 +3,14 @@ import { useAuth } from '../components/clerk-shim';
 import { authClient } from '../components/clerk-shim';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Store, User, Mail, Lock, Eye, EyeOff, ChevronRight, CheckCircle2, Loader2, ArrowLeft, ShieldCheck, Package, TrendingUp } from 'lucide-react';
+import { Store, User, Mail, Lock, Eye, EyeOff, ChevronRight, CheckCircle2, Loader2, ArrowLeft, ShieldCheck, Package, TrendingUp, MessageCircle, Smartphone, ArrowRight } from 'lucide-react';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const STEPS = [
-    { id: 1, label: 'Votre compte', icon: User },
+    { id: 1, label: 'Identité', icon: User },
     { id: 2, label: 'Sécurité', icon: Lock },
-    { id: 3, label: 'Confirmation', icon: CheckCircle2 },
+    { id: 3, label: 'Vérification', icon: CheckCircle2 },
 ];
 
 export default function SupplierRegister() {
@@ -20,6 +21,9 @@ export default function SupplierRegister() {
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [whatsappMode, setWhatsappMode] = useState('none'); // 'none', 'request', 'verify'
+    const [phone, setPhone] = useState('');
+    const [otp, setOtp] = useState('');
 
     const [form, setForm] = useState({
         name: '',
@@ -81,8 +85,6 @@ export default function SupplierRegister() {
                 toast.error(res.error.message || "Erreur lors de la création du compte");
                 setStep(1);
             } else {
-                // Role 'fournisseur' is already set during signUp — no extra call needed.
-                // authMiddleware will sync the profile automatically on first authenticated request.
                 toast.success('Compte fournisseur créé ! Bienvenue sur Vtout.');
                 window.location.href = '/dashboard';
             }
@@ -93,13 +95,46 @@ export default function SupplierRegister() {
         }
     };
 
+    const handleRequestOTP = async (e) => {
+        e.preventDefault();
+        if (!phone) return toast.error('Veuillez entrer votre numéro WhatsApp');
+        setLoading(true);
+        try {
+            await api.post('/auth/whatsapp/send-code', { phone });
+            toast.success('Code envoyé sur votre WhatsApp !');
+            setWhatsappMode('verify');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Erreur lors de l\'envoi du code');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyOTP = async (e) => {
+        e.preventDefault();
+        if (otp.length !== 6) return toast.error('Le code doit contenir 6 chiffres');
+        setLoading(true);
+        try {
+            await api.post('/auth/whatsapp/verify-code', { phone, code: otp, role: 'fournisseur' });
+            toast.success('Inscription et connexion réussies !');
+            window.location.href = '/dashboard';
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Code invalide ou expiré');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const inputClass = (field) =>
-        `w-full pl-12 pr-5 py-4 bg-slate-50 border-2 rounded-2xl font-semibold text-sm text-slate-900 focus:bg-white focus:outline-none transition-all ${errors[field] ? 'border-rose-400 focus:border-rose-400' : 'border-transparent focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50'}`;
+        `w-full pl-12 pr-5 py-4 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 rounded-2xl font-bold text-sm text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors[field] ? 'border-rose-300 ring-rose-50 ring-4' : ''}`;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50 flex flex-col">
+        <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
+             {/* Background design elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-600/10 transform -skew-y-6 sm:skew-y-0 sm:-rotate-3"></div>
+
             {/* Header */}
-            <header className="px-8 py-5 flex items-center justify-between">
+            <header className="px-8 py-6 flex items-center justify-between relative z-10">
                 <Link to="/" className="flex items-center gap-3 group">
                     <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform">
                         <Store size={20} className="text-white" />
@@ -109,198 +144,203 @@ export default function SupplierRegister() {
                         <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Partenaires</span>
                     </div>
                 </Link>
-                <Link to="/connexion" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
-                    Déjà inscrit ? Se connecter →
+                <Link to="/connexion" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-slate-100 shadow-sm">
+                    Déjà inscrit ? Connexion →
                 </Link>
             </header>
 
-            <div className="flex-1 flex items-center justify-center px-4 py-12">
-                <div className="w-full max-w-lg">
-
-                    {/* Stepper */}
-                    <div className="flex items-center justify-center gap-0 mb-10">
-                        {STEPS.map((s, i) => {
-                            const Icon = s.icon;
-                            const done = step > s.id;
-                            const active = step === s.id;
-                            return (
-                                <React.Fragment key={s.id}>
-                                    <div className="flex flex-col items-center gap-2">
-                                        <motion.div
-                                            animate={{
-                                                backgroundColor: done ? '#4f46e5' : active ? '#4f46e5' : '#e2e8f0',
-                                                scale: active ? 1.1 : 1,
-                                            }}
-                                            transition={{ duration: 0.3 }}
-                                            className="w-11 h-11 rounded-full flex items-center justify-center shadow-md"
-                                        >
-                                            {done
-                                                ? <CheckCircle2 size={20} className="text-white" />
-                                                : <Icon size={18} className={active ? 'text-white' : 'text-slate-400'} />
-                                            }
-                                        </motion.div>
-                                        <span className={`text-[9px] font-black uppercase tracking-widest ${active ? 'text-indigo-600' : done ? 'text-indigo-400' : 'text-slate-300'}`}>
-                                            {s.label}
-                                        </span>
-                                    </div>
-                                    {i < STEPS.length - 1 && (
-                                        <div className={`h-[2px] w-16 mb-5 mx-1 rounded-full transition-all duration-500 ${step > s.id ? 'bg-indigo-500' : 'bg-slate-200'}`} />
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
+            <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+                <div className="w-full max-w-xl">
+                    
+                    {/* Stepper (Simplified & Modern) */}
+                    <div className="flex items-center justify-center gap-8 mb-10">
+                        {STEPS.map((s, i) => (
+                            <div key={s.id} className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs transition-all shadow-sm ${step >= s.id ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-300 border border-slate-100'}`}>
+                                    {step > s.id ? <CheckCircle2 size={16} /> : s.id}
+                                </div>
+                                <span className={`hidden sm:block text-[10px] font-black uppercase tracking-widest ${step >= s.id ? 'text-slate-900' : 'text-slate-300'}`}>
+                                    {s.label}
+                                </span>
+                                {i < STEPS.length - 1 && <div className="hidden sm:block w-8 h-px bg-slate-200" />}
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Card */}
-                    <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/60 border border-white overflow-hidden">
-                        <AnimatePresence mode="wait">
+                    <div className="relative">
+                        {/* Skewed background effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 shadow-lg transform -skew-y-2 sm:skew-y-0 sm:rotate-2 sm:rounded-[3rem] opacity-20"></div>
 
-                            {/* ── STEP 1 : Infos de base ── */}
-                            {step === 1 && (
-                                <motion.div key="step1" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }} className="p-10 space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <User size={28} className="text-indigo-600" />
-                                        </div>
-                                        <h1 className="text-3xl font-black tracking-tighter text-slate-900">Votre identité</h1>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Étape 1 sur 3 — Informations du compte</p>
-                                    </div>
+                        <div className="relative backdrop-blur-xl bg-white/80 border border-white/40 shadow-2xl rounded-[3rem] overflow-hidden">
+                            <AnimatePresence mode="wait">
 
-                                    <div className="space-y-5">
-                                        {/* Nom */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Nom complet</label>
-                                            <div className="relative">
-                                                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type="text" value={form.name} onChange={set('name')} className={inputClass('name')} placeholder="Ex : Kokou Mensah" />
+                                {/* ── STEP 1 : Identité ── */}
+                                {step === 1 && (
+                                    <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-10 md:p-14 space-y-8">
+                                        <div className="text-center space-y-3">
+                                            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-100">
+                                                <User size={28} className="text-white" />
                                             </div>
-                                            {errors.name && <p className="text-xs text-rose-500 font-bold px-1">{errors.name}</p>}
+                                            <h1 className="text-4xl font-black tracking-tighter text-slate-900">Devenir Partenaire</h1>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Étape 1 — Votre identité</p>
                                         </div>
 
-                                        {/* Email */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Adresse e-mail professionnelle</label>
-                                            <div className="relative">
-                                                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type="email" value={form.email} onChange={set('email')} className={inputClass('email')} placeholder="votre@boutique.com" />
-                                            </div>
-                                            {errors.email && <p className="text-xs text-rose-500 font-bold px-1">{errors.email}</p>}
-                                        </div>
-                                    </div>
+                                        {whatsappMode === 'none' ? (
+                                            <>
+                                                <div className="space-y-5">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Nom complet</label>
+                                                        <div className="relative">
+                                                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                            <input type="text" value={form.name} onChange={set('name')} className={inputClass('name')} placeholder="Ex : Kokou Mensah" />
+                                                        </div>
+                                                        {errors.name && <p className="text-[10px] text-rose-500 font-black px-1 mt-1 uppercase">{errors.name}</p>}
+                                                    </div>
 
-                                    <button onClick={handleNext} className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-0.5 active:scale-95">
-                                        Continuer <ChevronRight size={18} />
-                                    </button>
-                                </motion.div>
-                            )}
-
-                            {/* ── STEP 2 : Mot de passe ── */}
-                            {step === 2 && (
-                                <motion.div key="step2" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }} className="p-10 space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Lock size={28} className="text-indigo-600" />
-                                        </div>
-                                        <h1 className="text-3xl font-black tracking-tighter text-slate-900">Sécurisez votre accès</h1>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Étape 2 sur 3 — Mot de passe</p>
-                                    </div>
-
-                                    <div className="space-y-5">
-                                        {/* Password */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Mot de passe</label>
-                                            <div className="relative">
-                                                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} className={`${inputClass('password')} pr-12`} placeholder="Min. 8 caractères" />
-                                                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600">
-                                                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                                                </button>
-                                            </div>
-                                            {errors.password && <p className="text-xs text-rose-500 font-bold px-1">{errors.password}</p>}
-                                            {/* Strength bar */}
-                                            {form.password && (
-                                                <div className="flex gap-1 px-1 pt-1">
-                                                    {[1,2,3,4].map(i => (
-                                                        <div key={i} className={`h-1 flex-1 rounded-full transition-all ${form.password.length >= i * 2 ? (form.password.length >= 8 ? 'bg-emerald-400' : 'bg-amber-400') : 'bg-slate-100'}`} />
-                                                    ))}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">E-mail professionnel</label>
+                                                        <div className="relative">
+                                                            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                            <input type="email" value={form.email} onChange={set('email')} className={inputClass('email')} placeholder="votre@boutique.com" />
+                                                        </div>
+                                                        {errors.email && <p className="text-[10px] text-rose-500 font-black px-1 mt-1 uppercase">{errors.email}</p>}
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
 
-                                        {/* Confirm */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Confirmer le mot de passe</label>
-                                            <div className="relative">
-                                                <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={set('confirmPassword')} className={`${inputClass('confirmPassword')} pr-12`} placeholder="Répétez le mot de passe" />
-                                                <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600">
-                                                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                <button onClick={handleNext} className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-0.5">
+                                                    Continuer <ChevronRight size={18} />
                                                 </button>
+
+                                                <div className="relative pt-2">
+                                                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100" /></div>
+                                                    <div className="relative flex justify-center"><span className="bg-white/0 px-4 text-[10px] font-black uppercase tracking-widest text-slate-300">Ou inscription rapide</span></div>
+                                                </div>
+
+                                                <button onClick={() => setWhatsappMode('request')} className="w-full py-4 bg-white border border-slate-200 hover:border-emerald-300 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-sm group">
+                                                    <MessageCircle size={20} className="text-emerald-500 group-hover:scale-110 transition-transform" /> Inscription via WhatsApp
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <form onSubmit={whatsappMode === 'request' ? handleRequestOTP : handleVerifyOTP} className="space-y-6">
+                                                {whatsappMode === 'request' ? (
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Numéro WhatsApp</label>
+                                                        <div className="relative">
+                                                            <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                            <input type="text" required value={phone} onChange={e => setPhone(e.target.value)} className="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl font-bold text-sm text-slate-900 focus:bg-white focus:ring-4 focus:ring-emerald-50 focus:outline-none transition-all" placeholder="229XXXXXXXX" />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center block">Code reçu sur WhatsApp</label>
+                                                        <input type="text" maxLength={6} required autoFocus value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} className="w-full text-center tracking-[1em] text-3xl py-5 bg-emerald-50/30 border-2 border-emerald-100 rounded-3xl font-black text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-none transition-all" placeholder="000000" />
+                                                    </div>
+                                                )}
+
+                                                <button type="submit" disabled={loading} className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-emerald-100 hover:-translate-y-0.5">
+                                                    {loading ? <Loader2 size={18} className="animate-spin" /> : <>{whatsappMode === 'request' ? 'Recevoir le code' : 'Confirmer & S\'inscrire'} <ArrowRight size={18} /></>}
+                                                </button>
+
+                                                <button type="button" onClick={() => setWhatsappMode('none')} className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2">
+                                                    <ArrowLeft size={16} /> Retour au formulaire
+                                                </button>
+                                            </form>
+                                        )}
+                                    </motion.div>
+                                )}
+
+                                {/* ── STEP 2 : Sécurité ── */}
+                                {step === 2 && (
+                                    <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-10 md:p-14 space-y-8">
+                                        <div className="text-center space-y-3">
+                                            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-100">
+                                                <Lock size={28} className="text-white" />
                                             </div>
-                                            {errors.confirmPassword && <p className="text-xs text-rose-500 font-bold px-1">{errors.confirmPassword}</p>}
+                                            <h1 className="text-4xl font-black tracking-tighter text-slate-900">Sécurisation</h1>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Étape 2 — Accès au compte</p>
                                         </div>
-                                    </div>
 
-                                    <div className="flex gap-3">
-                                        <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95">
-                                            <ArrowLeft size={16} /> Retour
-                                        </button>
-                                        <button onClick={handleNext} className="flex-[2] py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-0.5 active:scale-95">
-                                            Continuer <ChevronRight size={18} />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
+                                        <div className="space-y-5">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Mot de passe</label>
+                                                <div className="relative">
+                                                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                    <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} className={`${inputClass('password')} pr-12`} placeholder="Min. 8 caractères" />
+                                                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                                        {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                    </button>
+                                                </div>
+                                                {errors.password && <p className="text-[10px] text-rose-500 font-black px-1 mt-1 uppercase">{errors.password}</p>}
+                                            </div>
 
-                            {/* ── STEP 3 : Confirmation ── */}
-                            {step === 3 && (
-                                <motion.div key="step3" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }} className="p-10 space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <CheckCircle2 size={28} className="text-emerald-500" />
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Confirmation</label>
+                                                <div className="relative">
+                                                    <ShieldCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                    <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={set('confirmPassword')} className={`${inputClass('confirmPassword')} pr-12`} placeholder="Répétez le mot de passe" />
+                                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                                        {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                    </button>
+                                                </div>
+                                                {errors.confirmPassword && <p className="text-[10px] text-rose-500 font-black px-1 mt-1 uppercase">{errors.confirmPassword}</p>}
+                                            </div>
                                         </div>
-                                        <h1 className="text-3xl font-black tracking-tighter text-slate-900">Tout est prêt !</h1>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Étape 3 sur 3 — Vérification et création</p>
-                                    </div>
 
-                                    {/* Recap */}
-                                    <div className="bg-slate-50 rounded-3xl p-6 space-y-4 border border-slate-100">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-3">Récapitulatif</p>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-slate-500">Nom</span>
-                                            <span className="text-sm font-black text-slate-900">{form.name}</span>
+                                        <div className="flex gap-4">
+                                            <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all">
+                                                <ArrowLeft size={16} /> Retour
+                                            </button>
+                                            <button onClick={handleNext} className="flex-[2] py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-100 hover:-translate-y-0.5">
+                                                Suivant <ChevronRight size={18} />
+                                            </button>
                                         </div>
-                                        <div className="border-t border-slate-100" />
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-slate-500">E-mail</span>
-                                            <span className="text-sm font-black text-slate-900">{form.email}</span>
+                                    </motion.div>
+                                )}
+
+                                {/* ── STEP 3 : Vérification ── */}
+                                {step === 3 && (
+                                    <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-10 md:p-14 space-y-8">
+                                        <div className="text-center space-y-3">
+                                            <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-100">
+                                                <CheckCircle2 size={28} className="text-white" />
+                                            </div>
+                                            <h1 className="text-4xl font-black tracking-tighter text-slate-900">C'est prêt !</h1>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Étape 3 — Finalisation</p>
                                         </div>
-                                        <div className="border-t border-slate-100" />
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-slate-500">Rôle</span>
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                <Package size={12} /> Fournisseur
-                                            </span>
+
+                                        <div className="bg-slate-50/50 border border-slate-100 rounded-[2rem] p-8 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Partenaire</span>
+                                                <span className="text-sm font-black text-slate-900">{form.name}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">E-mail</span>
+                                                <span className="text-sm font-black text-slate-900">{form.email}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plateforme</span>
+                                                <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">Vtout Partners</span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <p className="text-[10px] font-bold text-slate-400 text-center leading-relaxed">
-                                        En créant votre compte, vous acceptez les{' '}
-                                        <Link to="/conditions" className="text-indigo-500 hover:underline">conditions partenaires Vtout</Link>.
-                                    </p>
+                                        <p className="text-[10px] font-bold text-slate-400 text-center px-4 leading-relaxed uppercase tracking-wide">
+                                            En confirmant, vous acceptez les{' '}
+                                            <Link to="/terms" className="text-indigo-500 hover:underline">conditions d'utilisation</Link> du portail fournisseur.
+                                        </p>
 
-                                    <div className="flex gap-3">
-                                        <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95">
-                                            <ArrowLeft size={16} /> Retour
-                                        </button>
-                                        <button onClick={handleSubmit} disabled={loading} className="flex-[2] py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50">
-                                            {loading ? <Loader2 size={18} className="animate-spin" /> : <><TrendingUp size={16} /> Créer mon compte</>}
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
+                                        <div className="flex gap-4">
+                                            <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">
+                                                <ArrowLeft size={16} />
+                                            </button>
+                                            <button onClick={handleSubmit} disabled={loading} className="flex-[3] py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:-translate-y-0.5 disabled:opacity-50">
+                                                {loading ? <Loader2 size={18} className="animate-spin" /> : <><TrendingUp size={18} /> Créer mon compte</>}
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
 
-                        </AnimatePresence>
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -7,11 +7,12 @@ const router = express.Router();
 router.post("/", async (req, res) => {
   try {
     // SECURITY: Verify that the request comes from Fedapay
-    // In production, compare a custom secret header or verify IP.
     const secret = process.env.FEDAPAY_WEBHOOK_SECRET;
-    if (secret && req.headers['x-fedapay-secret'] !== secret) {
-      console.warn("UNAUTHORIZED WEBHOOK ATTEMPT BLOCKED.");
-      return res.status(403).send("Forbidden");
+    
+    // Fail if secret is not configured or doesn't match
+    if (!secret || req.headers['x-fedapay-secret'] !== secret) {
+      console.warn(`[SECURITY] Unauthorized webhook attempt from IP: ${req.ip}`);
+      return res.status(403).json({ error: "Forbidden: Invalid Secret" });
     }
 
     const payload = req.body;

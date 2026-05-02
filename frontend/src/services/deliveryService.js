@@ -14,12 +14,16 @@ export const registerLivreur = async (token, data) => {
 };
 
 export const getAvailableOrders = async (token) => {
-    const res = await api.get("/delivery/available");
+    const res = await api.get("/delivery/available", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
 export const getMyDeliveries = async (token) => {
-    const res = await api.get("/delivery/my-deliveries");
+    const res = await api.get("/delivery/my-deliveries", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
@@ -29,12 +33,16 @@ export const getDeliveryProfile = async (token) => {
 };
 
 export const assignOrder = async (token, orderId) => {
-    const res = await api.post("/delivery/assign", { orderId });
+    const res = await api.post("/delivery/assign", { orderId }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
 export const releaseOrder = async (token, orderId) => {
-    const res = await api.post("/delivery/release", { orderId });
+    const res = await api.post("/delivery/release", { orderId }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
@@ -44,12 +52,16 @@ export const updateDeliveryStatus = async (token, orderId, status, delivery_code
 };
 
 export const toggleDeliveryStatus = async (token, status) => {
-    const res = await api.post("/delivery/toggle-status", { status });
+    const res = await api.post("/delivery/toggle-status", { status }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
 export const updateServiceZones = async (token, zones) => {
-    const res = await api.post("/delivery/update-zones", { zones });
+    const res = await api.post("/delivery/update-zones", { zones }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
@@ -69,16 +81,22 @@ export const adminAssignOrder = async (token, orderId, deliveryPersonId) => {
 };
 
 export const verifyLivreur = async (token, id, isVerified) => {
-    const res = await api.post(`/delivery/admin/verify/${id}`, { is_verified: isVerified });
+    const res = await api.post(`/delivery/admin/verify/${id}`, { is_verified: isVerified }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
 export const getDeliveryStatsAdmin = async (token) => {
-    const res = await api.get("/delivery/admin/stats");
+    const res = await api.get("/delivery/admin/stats", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
 export const confirmCashRemitted = async (token, deliveryPersonId) => {
-    const res = await api.post("/delivery/admin/confirm-cash", { deliveryPersonId });
+    const res = await api.post("/delivery/admin/confirm-cash", { deliveryPersonId }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };

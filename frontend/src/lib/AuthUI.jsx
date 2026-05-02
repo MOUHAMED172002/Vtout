@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { authClient } from './clerk-shim';
-import { Mail, Lock, User, Github, Facebook, ArrowRight, Loader } from 'lucide-react';
+import { Mail, Lock, User, Github, Facebook, ArrowRight, Loader, Eye, EyeOff, MessageCircle, Smartphone, ChevronLeft } from 'lucide-react';
+import api from '../services/api';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import toast from 'react-hot-toast';
 
 export const AuthUI = ({ mode = 'signIn' }) => {
@@ -8,8 +11,14 @@ export const AuthUI = ({ mode = 'signIn' }) => {
     const [isForgotPath, setIsForgotPath] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [whatsappMode, setWhatsappMode] = useState('none'); // 'none', 'request', 'verify'
+    const [phone, setPhone] = useState('');
+    const [otp, setOtp] = useState('');
+    const [whatsappPassword, setWhatsappPassword] = useState('');
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,9 +26,54 @@ export const AuthUI = ({ mode = 'signIn' }) => {
 
         try {
             if (isForgotPath) {
-                await authClient.forgetPassword({ email, redirectTo: window.location.origin + '/reset-password' });
+                await authClient.requestPasswordReset({ email, redirectTo: window.location.origin + '/reset-password' });
                 toast.success("E-mail de réinitialisation envoyé !");
                 setIsForgotPath(false);
+            } else if (whatsappMode === 'request') {
+                if (!phone) {
+                    toast.error("Veuillez entrer un numéro valide");
+                    setLoading(false);
+                    return;
+                }
+                if (!whatsappPassword || whatsappPassword.length < 6) {
+                    toast.error("Veuillez entrer un mot de passe (min 6 caractères)");
+                    setLoading(false);
+                    return;
+                }
+                await api.post('/auth/whatsapp/send-code', { phone });
+                toast.success("Code envoyé sur WhatsApp !");
+                setWhatsappMode('verify');
+            } else if (whatsappMode === 'verify') {
+                // 1. Vérifier le code OTP
+                await api.post('/auth/whatsapp/verify-code', { phone, code: otp });
+                
+                // 2. Créer ou connecter l'utilisateur via Better Auth nativement avec son mot de passe
+                const fakeEmail = `${phone.replace(/\\D/g, '')}@whatsapp.vtout.com`;
+                let authRes = await authClient.signUp.email({ 
+                    email: fakeEmail, 
+                    password: whatsappPassword, 
+                    name: name || 'Utilisateur WhatsApp'
+                });
+
+                if (authRes.error && (authRes.error.status === 400 || authRes.error.message?.includes('exist'))) {
+                    // L'utilisateur existe déjà, on le connecte
+                    authRes = await authClient.signIn.email({ email: fakeEmail, password: whatsappPassword });
+                    if (authRes.error) {
+                        toast.error("Ce numéro est déjà lié à un autre mot de passe.");
+                        setLoading(false);
+                        return;
+                    }
+                } else if (authRes.error) {
+                    toast.error(authRes.error.message || "Erreur de création de compte");
+                    setLoading(false);
+                    return;
+                }
+
+                // 3. Synchroniser le profil Vtout
+                try { await api.get('/profile/sync'); } catch (e) { console.error('Sync error', e); }
+
+                toast.success("Connexion réussie !");
+                window.location.href = '/';
             } else if (isSign) {
                 const res = await authClient.signIn.email({ email, password });
                 if (res.error) {
@@ -36,11 +90,13 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                 }
             }
         } catch (err) {
-            toast.error('Une erreur inattendue est survenue.');
+            const errorData = err.response?.data;
+            toast.error(errorData?.message || errorData?.error || 'Une erreur est survenue.');
         } finally {
             setLoading(false);
         }
     };
+
 
     const socialLogin = async (provider) => {
         const res = await authClient.signIn.social({ 
@@ -68,80 +124,172 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {!isSign && !isForgotPath && (
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
+                        {whatsappMode === 'none' ? (
+                            <>
+                                {!isSign && !isForgotPath && (
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <User className="h-5 w-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={name}
+                                            onChange={e => setName(e.target.value)}
+                                            autoComplete="name"
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                            placeholder="Votre nom complet"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        autoComplete="email"
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                        placeholder="Votre adresse e-mail"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    required
-                                    value={name}
-                                    onChange={e => setName(e.target.value)}
-                                    autoComplete="name"
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                    placeholder="Votre nom complet"
-                                />
-                            </div>
-                        )}
 
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Mail className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                autoComplete="email"
-                                className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                placeholder="Votre adresse e-mail"
-                            />
-                        </div>
+                                {!isForgotPath && (
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Lock className="h-5 w-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            required
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            autoComplete={isSign ? "current-password" : "new-password"}
+                                            className="block w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                            placeholder="Mot de passe sécurisé"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+                                )}
 
-                        {!isForgotPath && (
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    autoComplete={isSign ? "current-password" : "new-password"}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                                    placeholder="Mot de passe sécurisé"
-                                />
-                            </div>
-                        )}
-
-                        {isSign && !isForgotPath && (
-                            <div className="flex items-center justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsForgotPath(true)}
-                                    className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
-                                >
-                                    Mot de passe oublié ?
-                                </button>
+                                {isSign && !isForgotPath && (
+                                    <div className="flex items-center justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsForgotPath(true)}
+                                            className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                                        >
+                                            Mot de passe oublié ?
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="space-y-6">
+                                {whatsappMode === 'request' ? (
+                                    <>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <User className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={name}
+                                                onChange={e => setName(e.target.value)}
+                                                className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                                placeholder="Votre nom complet"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                                <Smartphone className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <PhoneInput
+                                                international
+                                                defaultCountry="BJ"
+                                                value={phone}
+                                                onChange={setPhone}
+                                                className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full"
+                                                placeholder="Numéro WhatsApp"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                                <Lock className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                required
+                                                value={whatsappPassword}
+                                                onChange={e => setWhatsappPassword(e.target.value)}
+                                                className="block w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                                placeholder="Créer un mot de passe"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                            >
+                                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            required
+                                            autoFocus
+                                            value={otp}
+                                            onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                                            className="block w-full text-center tracking-[0.8em] text-2xl py-3 border-2 border-emerald-100 rounded-xl bg-emerald-50/30 dark:bg-emerald-900/10 text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-all font-black"
+                                            placeholder="000000"
+                                        />
+                                        <p className="text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">Code envoyé au {phone}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden transition-all duration-300 transform hover:scale-[1.02] shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r ${whatsappMode !== 'none' ? 'from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 focus:ring-emerald-500' : 'from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500'} focus:outline-none focus:ring-2 focus:ring-offset-2 overflow-hidden transition-all duration-300 transform hover:scale-[1.02] shadow-lg disabled:opacity-70 disabled:cursor-not-allowed`}
                         >
                             {loading ? <Loader className="animate-spin h-5 w-5" /> : (
                                 <span className="flex items-center">
-                                    {isForgotPath ? "Envoyer le lien" : (isSign ? "Se connecter" : "S'inscrire")}
+                                    {isForgotPath ? "Envoyer le lien" : 
+                                     whatsappMode === 'request' ? "Recevoir le code WhatsApp" : 
+                                     whatsappMode === 'verify' ? "Vérifier & Continuer" : 
+                                     (isSign ? "Se connecter" : "S'inscrire")}
                                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                 </span>
                             )}
                         </button>
+
+                        {whatsappMode !== 'none' && (
+                            <button
+                                type="button"
+                                onClick={() => setWhatsappMode('none')}
+                                className="w-full flex justify-center items-center py-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" /> Retour aux options classiques
+                            </button>
+                        )}
                     </form>
+
 
                     {!isForgotPath && (
                         <div className="mt-8">
@@ -153,15 +301,23 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     <span className="px-2 bg-white/80 dark:bg-gray-900/80 text-gray-500">Ou continuer avec</span>
                                 </div>
                             </div>
-                            <div className="mt-4">
-                                <button
-                                    onClick={() => socialLogin('google')}
-                                    className="w-full flex justify-center items-center py-2.5 px-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                                >
-                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5 mr-2" alt="Google" />
-                                    Google
-                                </button>
-                            </div>
+                             <div className="mt-4 grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => socialLogin('google')}
+                                        className="flex justify-center items-center py-2.5 px-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                    >
+                                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5 mr-2" alt="Google" />
+                                        Google
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => setWhatsappMode('request')}
+                                        className="flex justify-center items-center py-2.5 px-4 border border-emerald-200 dark:border-emerald-800 rounded-xl shadow-sm bg-emerald-50/50 dark:bg-emerald-900/10 text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors duration-200 group"
+                                    >
+                                        <MessageCircle className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                                        WhatsApp
+                                    </button>
+                                </div>
                         </div>
                     )}
 

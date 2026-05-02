@@ -100,7 +100,7 @@ export default function InvoicesList() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-4">Mes factures</h2>
+      <h2 className="text-lg font-semibold mb-4">Mes reçus</h2>
 
       {/* En-tête utilisateur optionnel */}
       {userInfo && (

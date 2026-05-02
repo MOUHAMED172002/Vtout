@@ -24,13 +24,13 @@ const getEmailConfig = async () => {
         return {
             apiKey:      map['RESEND_API_KEY']    || process.env.RESEND_API_KEY,
             fromName:    map['MAIL_FROM_NAME']    || 'Vtout',
-            fromAddress: map['MAIL_FROM_ADDRESS'] || 'security@vtout.com',
+            fromAddress: map['MAIL_FROM_ADDRESS'] || 'onboarding@resend.dev',
         };
     } catch {
         return {
             apiKey:      process.env.RESEND_API_KEY,
             fromName:    'Vtout',
-            fromAddress: 'security@vtout.com',
+            fromAddress: 'onboarding@resend.dev',
         };
     }
 };
@@ -84,7 +84,7 @@ export const auth = betterAuth({
                     return;
                 }
                 const resend = new Resend(cfg.apiKey);
-                await resend.emails.send({
+                const info = await resend.emails.send({
                     from: `${cfg.fromName} Security <${cfg.fromAddress}>`,
                     to: [user.email],
                     subject: 'Réinitialisez votre mot de passe Vtout',
@@ -110,8 +110,13 @@ export const auth = betterAuth({
                         </div>
                     `
                 });
+                if (info.error) {
+                    console.error('[Auth] Resend error details:', info.error);
+                } else {
+                    console.log('[Auth] Reset email sent successfully to:', user.email);
+                }
             } catch (err) {
-                console.error('[Auth] sendResetPassword error:', err);
+                console.error('[Auth] sendResetPassword exception:', err);
             }
         }
     },

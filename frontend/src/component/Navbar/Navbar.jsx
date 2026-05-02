@@ -10,7 +10,8 @@ import {
   Search,
   LayoutDashboard,
   LogOut,
-  Truck
+  Truck,
+  FileText
 } from "lucide-react";
 import { useUser, UserButton, SignedIn, SignedOut } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
@@ -24,7 +25,7 @@ import ThemeSelector from "../context/ThemeSelector";
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
   { id: 2, name: "Boutique", link: "/products-liste", icon: <ShoppingBag size={20} /> },
-  { id: 3, name: "À propos", link: "/about", icon: <Info size={20} /> },
+  { id: 4, name: "À propos", link: "/about", icon: <Info size={20} /> },
 ];
 
 export default function Navbar() {

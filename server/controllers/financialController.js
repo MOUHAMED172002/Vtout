@@ -1,4 +1,5 @@
-import { FinancialTransaction, PayoutRequest, Profile, Order, sequelize } from '../models/index.js';
+import { FinancialTransaction, PayoutRequest, Profile, Order } from '../models/index.js';
+import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
 import crypto from 'crypto';
 

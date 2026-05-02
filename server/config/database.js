@@ -1,25 +1,35 @@
 import { Sequelize } from 'sequelize';
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isProd = process.env.NODE_ENV === 'production';
 
-// Pool conservateur pour XAMPP local (max_connections MySQL = 100 par défaut)
+// Configuration du pool adaptée pour éviter les blocages sur XAMPP
 const poolConfig = {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
+    max: isProd ? 20 : 5,
+    min: isProd ? 2 : 0,
+    acquire: 60000, // Augmenté à 60s pour les sync complexes
+    idle: 10000,
+    evict: 60000
 };
 
 const sharedOptions = {
     dialect: 'mysql',
-    logging: false, // Désactivé pour éviter saturation lors du sync
+    logging: isProd ? false : console.log, // On réactive les logs en dev pour voir où ça bloque
     define: {
         underscored: true,
         timestamps: true
     },
     pool: poolConfig,
     dialectOptions: {
-        connectTimeout: 20000,
+        connectTimeout: 30000, // 30s de timeout de connexion
+    },
+    retry: {
+        max: 3,
+        match: [
+            /ETIMEDOUT/,
+            /ECONNRESET/,
+            /ECONNREFUSED/,
+            /PROTOCOL_CONNECTION_LOST/,
+        ]
     }
 };
 

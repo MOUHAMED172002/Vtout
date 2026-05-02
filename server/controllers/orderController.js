@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon } from '../models/index.js';
+import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
 import { processOrderFinancials } from '../services/financialService.js';
@@ -89,10 +90,18 @@ export const getOrderById = async (req, res) => {
 
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
 
-        // Security check: Only owner or admin can see the order
-        // Note: For guest orders (order.user_id is null), we might want to check against session, 
-        // but for now let's just allow it if it exists or add a more complex check later.
-        if (order.user_id && order.user_id !== req.auth?.userId && req.auth?.role !== 'admin') {
+        // Security check: Only owner, assigned supplier/rider, or admin can see the order
+        const userId = req.auth?.userId;
+        const role = req.auth?.role;
+
+        // If it's a guest order (no user_id), only admin or the creator (via future token) should see it.
+        // For now, we restrict to Admin to prevent public leakage of guest PII.
+        if (!order.user_id) {
+            if (role !== 'admin') {
+                return res.status(403).json({ error: 'Accès restreint. Seul un administrateur peut voir les commandes invités pour le moment.' });
+            }
+        } else if (order.user_id !== userId && role !== 'admin') {
+            // If it's a registered user's order, check ownership
             return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
         }
 
@@ -104,33 +113,51 @@ export const getOrderById = async (req, res) => {
 };
 
 export const createOrder = async (req, res) => {
+    const transaction = await sequelize.transaction();
     try {
         const userId = req.auth?.userId || null;
-
         const { items, address_id, payment_method, notes, delivery_fee, guest_name, guest_email, guest_phone, coupon_code } = req.body;
-        if (!items || items.length === 0) return res.status(400).json({ error: 'Le panier est vide' });
+        
+        if (!items || items.length === 0) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'Le panier est vide' });
+        }
 
         let subtotal = 0;
         const enrichedItems = [];
 
+        // 1. Initial Validation & Stock Check
         for (const item of items) {
-            const product = await Product.findByPk(item.product_id);
-            if (!product) return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
+            const product = await Product.findByPk(item.product_id, { transaction });
+            if (!product) {
+                await transaction.rollback();
+                return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
+            }
 
             let unitPrice = parseFloat(product.price || 0);
             let variantData = null;
 
             if (item.variant_price_id) {
                 const variantPrice = await ProductVariantPrice.findByPk(item.variant_price_id, {
-                    include: [{ model: ProductVariant, as: 'variant' }]
+                    include: [{ model: ProductVariant, as: 'variant' }],
+                    transaction
                 });
                 if (variantPrice) {
-                    // Security check: ensure variant belongs to the product
                     if (variantPrice.variant.product_id !== product.id) {
+                        await transaction.rollback();
                         return res.status(400).json({ error: `La variante ne correspond pas au produit ${product.name}` });
+                    }
+                    if (variantPrice.stock < item.quantity) {
+                        await transaction.rollback();
+                        return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${variantPrice.stock})` });
                     }
                     unitPrice = parseFloat(variantPrice.price || unitPrice);
                     variantData = variantPrice;
+                }
+            } else {
+                if (product.stock !== undefined && product.stock < item.quantity) {
+                    await transaction.rollback();
+                    return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });
                 }
             }
 
@@ -138,27 +165,22 @@ export const createOrder = async (req, res) => {
             enrichedItems.push({ product, item, unitPrice, variantData });
         }
 
-        // Group items by supplier
+        // 2. Group items by supplier
         const itemsBySupplier = {};
         for (const { product, item, unitPrice, variantData } of enrichedItems) {
-            // Priority 1: Direct supplier_id on Product
-            // Priority 2: SupplierProduct mapping (fallback)
             let sId = product.supplier_id;
-            
             if (!sId) {
-                const sp = await SupplierProduct.findOne({ where: { product_id: product.id } });
+                const sp = await SupplierProduct.findOne({ where: { product_id: product.id }, transaction });
                 sId = sp?.supplier_id || 'no_supplier';
             }
-            
             if (!itemsBySupplier[sId]) itemsBySupplier[sId] = [];
             itemsBySupplier[sId].push({ product, item, unitPrice, variantData });
         }
 
         const supplierIds = Object.keys(itemsBySupplier);
-        const customerAddress = address_id ? await Address.findByPk(address_id) : null;
         const createdOrders = [];
         
-        // --- Coupon Logic ---
+        // 3. Coupon Logic
         let totalDiscount = 0;
         let validatedCoupon = null;
         if (coupon_code) {
@@ -169,54 +191,45 @@ export const createOrder = async (req, res) => {
                     active: true,
                     start_date: { [Op.lte]: now },
                     end_date: { [Op.gte]: now }
-                }
+                },
+                transaction
             });
             
             if (validatedCoupon) {
                 if (!validatedCoupon.usage_limit || validatedCoupon.used_count < validatedCoupon.usage_limit) {
                     if (subtotal >= parseFloat(validatedCoupon.min_order_amount)) {
-                        if (validatedCoupon.discount_type === 'percentage') {
-                            totalDiscount = (subtotal * parseFloat(validatedCoupon.discount_value)) / 100;
-                        } else {
-                            totalDiscount = parseFloat(validatedCoupon.discount_value);
-                        }
+                        totalDiscount = validatedCoupon.discount_type === 'percentage' 
+                            ? (subtotal * parseFloat(validatedCoupon.discount_value)) / 100 
+                            : parseFloat(validatedCoupon.discount_value);
                         totalDiscount = Math.min(totalDiscount, subtotal);
                     }
                 }
             }
         }
 
+        // 4. Create individual orders per supplier
         for (const sId of supplierIds) {
             const supplierItems = itemsBySupplier[sId];
             const actualSupplierId = sId === 'no_supplier' ? null : sId;
+            let sSubtotal = supplierItems.reduce((sum, si) => sum + (si.unitPrice * si.item.quantity), 0);
             
-            let sSubtotal = 0;
-            supplierItems.forEach(si => { sSubtotal += si.unitPrice * si.item.quantity; });
-            
-            // Calcul forfaitaire des frais de livraison : 1000 F par commande
             let sDeliveryFee = 1000; 
-            console.log(`[Delivery] Supplier: ${actualSupplierId}, Fixed Fee: ${sDeliveryFee}`);
-            
-            
-            const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
-
-            // Distribute discount proportionally if multiple suppliers
-            const orderId = crypto.randomUUID();
-            
-            // Pro-rate discount for this specific order
             const orderShareOfSubtotal = subtotal > 0 ? (sSubtotal / subtotal) : 1;
             const sDiscount = totalDiscount * orderShareOfSubtotal;
             const sTotal = (sSubtotal - sDiscount) + sDeliveryFee;
+            
+            const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const orderId = crypto.randomUUID();
 
             const order = await Order.create({
                 id: orderId,
-                user_id: userId || null,
+                user_id: userId,
                 guest_name,
                 guest_email,
                 guest_phone,
                 address_id,
                 payment_method: payment_method || 'delivery',
-                payment_status: payment_method === 'card' ? 'payé' : 'en_attente',
+                payment_status: 'en_attente',
                 status: 'en_attente',
                 total_amount: sTotal,
                 delivery_fee: sDeliveryFee,
@@ -226,7 +239,7 @@ export const createOrder = async (req, res) => {
                 delivery_code: deliveryCode,
                 supplier_id: actualSupplierId,
                 items_count: supplierItems.length
-            });
+            }, { transaction });
 
             for (const { product, item, unitPrice, variantData } of supplierItems) {
                 await OrderItem.create({
@@ -235,65 +248,67 @@ export const createOrder = async (req, res) => {
                     variant_id: variantData?.variant_id || null,
                     quantity: item.quantity,
                     price: unitPrice
-                });
+                }, { transaction });
+
+                if (variantData) {
+                    await variantData.decrement('stock', { by: item.quantity, transaction });
+                } else if (product.stock !== undefined) {
+                    await product.decrement('stock', { by: item.quantity, transaction });
+                }
             }
             createdOrders.push(order);
         }
 
         if (userId) {
-            await Cart.destroy({ where: { user_id: userId } });
+            await Cart.destroy({ where: { user_id: userId }, transaction });
+        }
+        if (validatedCoupon && totalDiscount > 0) {
+            await validatedCoupon.increment('used_count', { by: 1, transaction });
         }
 
-        if (validatedCoupon && totalDiscount > 0) {
-            await validatedCoupon.increment('used_count', { by: 1 });
-        }
+        await transaction.commit();
 
         const mainOrder = createdOrders[0];
         let totalCartAmount = createdOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
 
-        try {
-            await sendOrderNotificationToAdmin(mainOrder, enrichedItems.map(e => e.product));
-        } catch (_) {}
-        try {
-            await sendInvoiceEmail(mainOrder, enrichedItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice })));
-        } catch (_) {}
+        sendOrderNotificationToAdmin(mainOrder, enrichedItems.map(e => e.product)).catch(() => {});
+        sendInvoiceEmail(mainOrder, enrichedItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
 
-        // Handle FedaPay if selected
-        if (payment_method === 'fedapay' || payment_method === 'mobile_money' || payment_method === 'card') {
+        if (['fedapay', 'mobile_money', 'card'].includes(payment_method)) {
             try {
-                let customerProfile = null;
-                if (userId) {
-                    customerProfile = await Profile.findByPk(userId);
-                }
-                const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/api/payments/fedapay-callback`;
+                const customerProfile = userId ? await Profile.findByPk(userId) : null;
+                // Le redirectUrl doit pointer vers notre endpoint backend qui traitera le retour
+                const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+                const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${mainOrder.id}`;
                 
-                // We pass a dummy order object with the total cart amount to FedaPay
                 const fedapayOrderObj = { ...mainOrder.toJSON(), total_amount: totalCartAmount };
-                // Include all order IDs in metadata to update them all in Webhook if needed
                 fedapayOrderObj.id = createdOrders.map(o => o.id).join(','); 
 
-                const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, redirectUrl);
+                const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl);
                 
                 return res.status(201).json({
                     message: 'Commande créée (Paiement Requis)',
                     order: mainOrder.toJSON(),
-                    delivery_code: mainOrder.delivery_code,
                     payment_url: fedaTx.checkoutUrl,
-                    transaction_id: fedaTx.transactionId,
-                    token: fedaTx.token
+                    transaction_id: fedaTx.transactionId
                 });
             } catch (fedaError) {
-                console.error('[FedaPay] Error on create:', fedaError);
-                return res.status(500).json({ error: 'Erreur lors de l\'initialisation du paiement.', details: fedaError.message });
+                return res.status(201).json({ 
+                    message: 'Commande créée, mais erreur de paiement. Veuillez payer via votre historique.', 
+                    order: mainOrder.toJSON(),
+                    payment_error: true 
+                });
             }
         }
 
         res.status(201).json({ 
-            message: 'Commande créée', 
+            message: 'Commande créée avec succès', 
             order: mainOrder.toJSON(), 
             delivery_code: mainOrder.delivery_code 
         });
+
     } catch (error) {
+        if (transaction) await transaction.rollback();
         console.error("CREATE ORDER ERROR:", error);
         res.status(500).json({ error: 'Erreur lors de la création de la commande', details: error.message });
     }
@@ -302,7 +317,7 @@ export const createOrder = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, proof_url } = req.body;
+        const { status } = req.body;
 
         const order = await Order.findByPk(id);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
@@ -372,7 +387,11 @@ export const updateOrderStatus = async (req, res) => {
 
         if (req.body.proof_url) updatePayload.proof_url = req.body.proof_url;
         if (req.body.colis_count) updatePayload.colis_count = req.body.colis_count;
-        if (req.body.payment_status) updatePayload.payment_status = req.body.payment_status;
+        
+        // SECURITY: Only Admin can manually update payment_status
+        if (req.body.payment_status && role === 'admin') {
+            updatePayload.payment_status = req.body.payment_status;
+        }
 
         await order.update(updatePayload);
 
@@ -437,6 +456,24 @@ export const updateOrderStatus = async (req, res) => {
             }
         } catch (_) {}
 
+        // 5. Real-time notifications via Socket.io
+        if (req.io) {
+            // Notify Customer
+            if (order.user_id) {
+                req.io.to(order.user_id).emit('order_status_updated', {
+                    orderId: order.id,
+                    status: mappedStatus,
+                    message: `Votre commande #${order.id.slice(0, 8)} est maintenant ${mappedStatus}.`
+                });
+            }
+            // Notify Admins
+            req.io.to('admins').emit('admin_notification', {
+                type: 'ORDER_UPDATE',
+                message: `Commande #${order.id.slice(0, 8)} mise à jour vers ${mappedStatus}.`,
+                orderId: order.id
+            });
+        }
+
         res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
         console.error("UPDATE ORDER ERROR:", error);
@@ -495,6 +532,65 @@ export const getSuggestedLivreurs = async (req, res) => {
         res.json(results);
     } catch (error) {
         console.error("GET SUGGESTED LIVREURS ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const getSuggestedSuppliers = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.findByPk(id, {
+            include: [{ model: OrderItem, as: 'items' }]
+        });
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+
+        const productIds = order.items.map(item => item.product_id);
+
+        // Find all suppliers that offer these products
+        // This is a simplified logic: find suppliers who have these products in SupplierProduct
+        const supplierProducts = await SupplierProduct.findAll({
+            where: { product_id: { [Op.in]: productIds } },
+            include: [{ 
+                model: Supplier, 
+                as: 'supplier',
+                include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone'] }]
+            }]
+        });
+
+        // Unique suppliers
+        const suppliersMap = new Map();
+        supplierProducts.forEach(sp => {
+            if (sp.supplier && !suppliersMap.has(sp.supplier.id)) {
+                suppliersMap.set(sp.supplier.id, {
+                    id: sp.supplier.id,
+                    name: sp.supplier.name,
+                    phone: sp.supplier.profile?.phone || sp.supplier.phone,
+                    address: sp.supplier.address_line,
+                    commune: sp.supplier.commune_label || sp.supplier.commune
+                });
+            }
+        });
+
+        res.json(Array.from(suppliersMap.values()));
+    } catch (error) {
+        console.error("GET SUGGESTED SUPPLIERS ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const assignSupplier = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { supplier_id } = req.body;
+
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+
+        await order.update({ supplier_id });
+
+        res.json({ message: 'Fournisseur assigné avec succès', order });
+    } catch (error) {
+        console.error("ASSIGN SUPPLIER ERROR:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };

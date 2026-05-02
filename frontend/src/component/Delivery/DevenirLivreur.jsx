@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search } from "lucide-react";
+import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth, useUser, SignIn, SignUp } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 
 import { uploadSingleImage } from "../../services/uploadService";
@@ -106,328 +106,309 @@ export default function DevenirLivreur() {
     };
 
     return (
-        <div className="bg-slate-50 min-h-screen py-20 px-6">
-            <div className="max-w-3xl mx-auto">
+        <div className="bg-slate-50 min-h-screen py-20 px-4 relative overflow-hidden">
+            {/* Premium design background elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-600/10 transform -skew-y-6 sm:skew-y-0 sm:-rotate-3"></div>
+
+            <div className="max-w-4xl mx-auto relative z-10">
                 <div className="text-center mb-12 space-y-4">
-                    <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 rotate-12">
+                    <motion.div 
+                        initial={{ scale: 0 }} 
+                        animate={{ scale: 1 }} 
+                        className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 rotate-12 shadow-xl shadow-primary/5"
+                    >
                         <Truck size={40} />
-                    </div>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Devenir <span className="text-primary">Livreur.</span></h1>
-                    <p className="text-gray-500 font-bold max-w-md mx-auto">Rejoignez la plus grande flotte de livraison au Bénin et boostez vos revenus.</p>
+                    </motion.div>
+                    <h1 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tighter leading-tight">Devenir <span className="text-primary underline decoration-indigo-200">Livreur.</span></h1>
+                    <p className="text-gray-500 font-bold max-w-md mx-auto text-lg">Rejoignez la plus grande flotte de livraison au Bénin et boostez vos revenus.</p>
                 </div>
 
-                <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-gray-100 p-10 md:p-16 relative overflow-hidden">
-                    <AnimatePresence mode="wait">
-                        {step === 1 && !isSignedIn && (
-                             <motion.div
-                                 key="auth"
-                                 initial={{ opacity: 0, x: -20 }}
-                                 animate={{ opacity: 1, x: 0 }}
-                                 exit={{ opacity: 0, x: 20 }}
-                                 className="space-y-8"
-                             >
-                                <div className="flex justify-center gap-4 mb-4">
+                <div className="relative">
+                    {/* Skewed decorative background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 shadow-lg transform -skew-y-2 sm:skew-y-0 sm:rotate-2 sm:rounded-[4rem] opacity-20"></div>
+
+                    <div className="relative backdrop-blur-2xl bg-white/80 border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            {step === 1 && !isSignedIn && (
+                                <motion.div
+                                    key="auth"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="space-y-10"
+                                >
+                                    <div className="flex justify-center gap-4">
                                         <button 
                                             onClick={() => setAuthMode('signUp')}
-                                            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}
+                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
                                         >
                                             S'inscrire
                                         </button>
                                         <button 
                                             onClick={() => setAuthMode('signIn')}
-                                            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}
+                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
                                         >
                                             Se Connecter
                                         </button>
                                     </div>
 
-                                    <div className="text-center">
-                                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">
-                                            {authMode === 'signUp' ? 'Devenir Livreur' : 'Bon retour !'}
+                                    <div className="text-center space-y-2">
+                                        <h2 className="text-4xl font-black tracking-tighter text-slate-900">
+                                            {authMode === 'signUp' ? 'Créer mon profil' : 'Bon retour !'}
                                         </h2>
-                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
-                                            {authMode === 'signUp' ? 'Étape 1 : Créez votre compte d\'accès' : 'Connectez-vous à votre espace livreur'}
+                                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">
+                                            {authMode === 'signUp' ? 'Étape 1 : Authentification' : 'Accès à votre espace Livreur'}
                                         </p>
                                     </div>
                                     
-                                    {authMode === 'signUp' ? <SignUp /> : <SignIn />}
-                             </motion.div>
-                        )}
+                                    <div className="max-w-md mx-auto">
+                                        {authMode === 'signUp' ? <SignUp /> : <SignIn />}
+                                    </div>
+                                </motion.div>
+                            )}
 
-                        {step === 1 && isSignedIn && !accountConfirmed && (
-                            <motion.div
-                                key="confirm-account"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="space-y-8 py-6"
-                            >
-                                <div className="p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 flex flex-col items-center text-center space-y-6">
-                                    <div className="w-24 h-24 bg-white rounded-full p-1 shadow-xl border border-primary/20">
-                                        <img src={user?.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Bienvenue, {user?.fullName} !</h2>
-                                        <p className="text-slate-500 font-bold text-sm max-w-xs mx-auto">Voulez-vous utiliser ce compte existant pour devenir livreur sur Vtout ?</p>
-                                    </div>
-                                    <div className="flex flex-col w-full gap-3 pt-4">
-                                        <button 
-                                            onClick={() => setAccountConfirmed(true)} 
-                                            className="w-full py-5 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-sm"
-                                        >
-                                            Oui, continuer avec ce compte
-                                        </button>
-                                        <button 
-                                            onClick={() => signOut()} 
-                                            className="text-xs font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest py-3"
-                                        >
-                                            Non, utiliser un autre compte
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {step === 1 && isSignedIn && accountConfirmed && (
-                            <motion.div
-                                key="terms"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-8"
-                            >
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-2xl font-black text-gray-900 border-l-4 border-primary pl-4 uppercase tracking-tighter">Conditions d'admission</h2>
-                                        <button onClick={() => setAccountConfirmed(false)} className="text-[10px] font-black text-slate-400 uppercase hover:text-primary">Retour</button>
-                                    </div>
-                                    <div className="grid gap-4">
-                                        {policies.length > 0 ? (
-                                            policies.map((p, i) => (
-                                                <div key={p.id} className="flex flex-col gap-2 p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                            <CheckCircle2 size={18} />
-                                                        </div>
-                                                        <p className="font-black text-gray-900 text-sm">{p.title}</p>
-                                                    </div>
-                                                    <div className="text-xs font-bold text-gray-500 leading-relaxed pl-11 whitespace-pre-wrap">
-                                                        {p.content}
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            [
-                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir au moins 18 ans" },
-                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Posséder un moyen de déplacement propre (Moto, Voiture)" },
-                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Avoir un smartphone avec connexion internet" },
-                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Fournir une pièce d'identité valide (CIP, CNI ou Passeport)" },
-                                                { icon: <CheckCircle2 className="text-emerald-500" />, text: "Être courtois et respectueux envers les clients" },
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-gray-700">
-                                                    {item.icon}
-                                                    {item.text}
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-6 pt-6">
-                                    <label className="flex items-center gap-4 cursor-pointer group">
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox checkbox-primary rounded-lg w-6 h-6 border-slate-300"
-                                            checked={acceptedTerms}
-                                            onChange={(e) => setAcceptedTerms(e.target.checked)}
-                                        />
-                                        <span className="text-gray-600 font-bold group-hover:text-gray-900 font-sm">J'accepte les conditions de partenariat d'Vtout</span>
-                                    </label>
-                                    <button
-                                        disabled={!acceptedTerms}
-                                        onClick={() => setStep(2)}
-                                        className="btn btn-primary h-16 rounded-[1.5rem] font-black text-lg shadow-xl shadow-primary/20 gap-3 uppercase tracking-widest"
-                                    >
-                                        Accepter et continuer <ChevronRight />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {step === 2 && (
-                            <motion.div
-                                key="form"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-8"
-                            >
-                                <h2 className="text-2xl font-black text-gray-900 border-l-4 border-primary pl-4">Vos Informations</h2>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nom Complet</label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered w-full h-14 rounded-2xl font-bold bg-slate-50 border-slate-100"
-                                            value={form.fullname}
-                                            onChange={e => setForm({ ...form, fullname: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Téléphone (WhatsApp de préference)</label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered w-full h-14 rounded-2xl font-bold bg-slate-50 border-slate-100"
-                                            value={form.phone}
-                                            onChange={e => setForm({ ...form, phone: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Type de véhicule</label>
-                                        <select
-                                            className="select select-bordered w-full h-14 rounded-2xl font-bold bg-slate-50 border-slate-100"
-                                            value={form.vehicle_type}
-                                            onChange={e => setForm({ ...form, vehicle_type: e.target.value })}
-                                        >
-                                            <option value="moto">Moto (Zémidjan)</option>
-                                            <option value="car">Voiture</option>
-                                            <option value="bicycle">Vélo / À pied</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Modèle (Ex: Haojue 110)</label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered w-full h-14 rounded-2xl font-bold bg-slate-50 border-slate-100"
-                                            value={form.vehicle_model}
-                                            onChange={e => setForm({ ...form, vehicle_model: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">
-                                        Zones de service souhaitées
-                                        <span className="ml-2 text-primary">({(form.service_zones || []).length} sélectionnée(s))</span>
-                                    </label>
-
-                                    {/* Search */}
-                                    <div className="relative">
-                                        <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Rechercher une commune..."
-                                            value={zoneSearch}
-                                            onChange={e => setZoneSearch(e.target.value)}
-                                            className="input input-bordered w-full h-12 rounded-2xl font-bold bg-slate-50 border-slate-100 pl-10"
-                                        />
-                                    </div>
-
-                                    {/* Communes grouped by dept */}
-                                    <div className="space-y-5 max-h-72 overflow-y-auto pr-1">
-                                        {filteredDepts.map(dept => (
-                                            <div key={dept.departement}>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                    <span className="inline-block w-4 h-px bg-slate-200"></span>
-                                                    {dept.departement}
-                                                </p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {dept.communes.map(zone => (
-                                                        <button
-                                                            key={zone}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const zones = form.service_zones || [];
-                                                                const newZones = zones.includes(zone)
-                                                                    ? zones.filter(z => z !== zone)
-                                                                    : [...zones, zone];
-                                                                setForm({ ...form, service_zones: newZones });
-                                                            }}
-                                                            className={`px-3 py-2 rounded-xl font-bold text-xs transition-all border ${form.service_zones?.includes(zone)
-                                                                    ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/10'
-                                                                    : 'bg-slate-50 border-slate-100 text-gray-400 hover:border-slate-300'
-                                                                }`}
-                                                        >
-                                                            {zone}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                            {step === 1 && isSignedIn && !accountConfirmed && (
+                                <motion.div
+                                    key="confirm-account"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="space-y-10 py-4"
+                                >
+                                    <div className="p-10 bg-gradient-to-br from-primary/5 to-transparent rounded-[3rem] border border-primary/10 flex flex-col items-center text-center space-y-8">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
+                                            <div className="relative w-32 h-32 bg-white rounded-full p-1 shadow-2xl border-4 border-white">
+                                                <img src={user?.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
                                             </div>
-                                        ))}
-                                        {filteredDepts.length === 0 && (
-                                            <p className="text-slate-400 text-sm font-bold text-center py-3">Aucune commune trouvée.</p>
-                                        )}
-                                    </div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase italic">* Vous pourrez modifier ces zones plus tard depuis votre dashboard.</p>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Pièce d'identité (Scan/Photo)</label>
-                                    <div className={`relative border-4 border-dashed rounded-[2rem] p-12 text-center space-y-4 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100 hover:border-primary/20 hover:bg-slate-50'}`}>
-                                        <input
-                                            type="file"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            accept="image/*,.pdf"
-                                            onChange={handleFileChange}
-                                            disabled={uploading}
-                                        />
-                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto transition-colors ${form.id_card_url ? 'bg-emerald-100 text-emerald-500' : 'bg-slate-100 text-slate-400 group-hover:bg-primary/20 group-hover:text-primary'}`}>
-                                            {uploading ? <span className="loading loading-spinner text-primary"></span> : form.id_card_url ? <CheckCircle2 size={24} /> : <Upload size={24} />}
                                         </div>
-                                        <div>
-                                            {form.id_card_url ? (
-                                                <>
-                                                    <p className="font-black text-emerald-600">Document reçu !</p>
-                                                    <p className="text-[10px] text-emerald-400 font-bold uppercase truncate max-w-[200px] mx-auto">{form.id_card_url}</p>
-                                                </>
+                                        <div className="space-y-3">
+                                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Salut, {user?.fullName} !</h2>
+                                            <p className="text-slate-500 font-bold text-lg max-w-sm mx-auto leading-relaxed">Voulez-vous utiliser ce compte pour devenir livreur ?</p>
+                                        </div>
+                                        <div className="flex flex-col w-full max-w-sm gap-4 pt-4">
+                                            <button 
+                                                onClick={() => setAccountConfirmed(true)} 
+                                                className="w-full py-5 bg-primary text-white rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.03] active:scale-95 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-3"
+                                            >
+                                                Oui, Continuer <ArrowRight size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={() => signOut()} 
+                                                className="text-xs font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest py-3 flex items-center justify-center gap-2"
+                                            >
+                                                Utiliser un autre compte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 1 && isSignedIn && accountConfirmed && (
+                                <motion.div
+                                    key="terms"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="space-y-10"
+                                >
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                                            <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Conditions d'admission</h2>
+                                            <button onClick={() => setAccountConfirmed(false)} className="px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors">Retour</button>
+                                        </div>
+                                        <div className="grid gap-5">
+                                            {policies.length > 0 ? (
+                                                policies.map((p) => (
+                                                    <div key={p.id} className="group p-8 bg-slate-50/50 rounded-3xl border border-slate-100 hover:border-primary/30 transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-100">
+                                                        <div className="flex items-center gap-4 mb-3">
+                                                            <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                                <CheckCircle2 size={20} />
+                                                            </div>
+                                                            <p className="font-black text-gray-900 tracking-tight">{p.title}</p>
+                                                        </div>
+                                                        <div className="text-sm font-bold text-gray-500 leading-relaxed pl-14 opacity-80">
+                                                            {p.content}
+                                                        </div>
+                                                    </div>
+                                                ))
                                             ) : (
-                                                <>
-                                                    <p className="font-black text-gray-900">Cliquez pour téléverser votre pièce</p>
-                                                    <p className="text-sm text-gray-400 font-medium">Format JPG, PNG ou PDF (Max. 5Mo)</p>
-                                                </>
+                                                ["Avoir au moins 18 ans", "Moyen de déplacement propre", "Smartphone & Connexion Internet", "Pièce d'identité valide"].map((text, i) => (
+                                                    <div key={i} className="flex items-center gap-4 p-6 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-gray-700">
+                                                        <CheckCircle2 size={24} className="text-emerald-500" />
+                                                        {text}
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex gap-4 pt-6">
-                                    <button onClick={() => setStep(1)} className="btn btn-ghost h-14 rounded-2xl font-black px-8">Retour</button>
-                                    <button
-                                        onClick={handleRegister}
-                                        disabled={loading || uploading || !form.id_card_url || !form.service_zones?.length}
-                                        className="btn btn-primary flex-1 h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/20"
-                                    >
-                                        {loading ? <span className="loading loading-spinner"></span> : "Finaliser l'inscription"}
+                                    <div className="flex flex-col gap-6 pt-6">
+                                        <label className="flex items-center gap-5 cursor-pointer group bg-primary/5 p-6 rounded-3xl border border-primary/10">
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-primary rounded-xl w-7 h-7 border-slate-300"
+                                                checked={acceptedTerms}
+                                                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                            />
+                                            <span className="text-gray-700 font-bold group-hover:text-primary transition-colors">J'accepte les conditions de partenariat d'Vtout</span>
+                                        </label>
+                                        <button
+                                            disabled={!acceptedTerms}
+                                            onClick={() => setStep(2)}
+                                            className="w-full h-20 bg-primary text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:grayscale"
+                                        >
+                                            Accepter et continuer <ChevronRight size={24} />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 2 && (
+                                <motion.div
+                                    key="form"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="space-y-12"
+                                >
+                                    <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+                                        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                                            <FileText size={24} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Détails de Profil</h2>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nom Complet</label>
+                                            <div className="relative">
+                                                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.fullname} onChange={e => setForm({ ...form, fullname: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">WhatsApp</label>
+                                            <div className="relative">
+                                                <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Type de véhicule</label>
+                                            <select className="w-full px-6 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none appearance-none" value={form.vehicle_type} onChange={e => setForm({ ...form, vehicle_type: e.target.value })}>
+                                                <option value="moto">Moto (Zémidjan)</option>
+                                                <option value="car">Voiture</option>
+                                                <option value="bicycle">Vélo / À pied</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Modèle du véhicule</label>
+                                            <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.vehicle_model} onChange={e => setForm({ ...form, vehicle_model: e.target.value })} placeholder="Ex: Haojue 110" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <label className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] ml-1 block">Zones de service <span className="text-primary">({(form.service_zones || []).length})</span></label>
+                                        <div className="relative">
+                                            <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" />
+                                            <input type="text" placeholder="Rechercher une commune..." value={zoneSearch} onChange={e => setZoneSearch(e.target.value)} className="w-full pl-14 h-16 rounded-3xl font-bold bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none shadow-inner" />
+                                        </div>
+
+                                        <div className="bg-slate-50/50 rounded-[2rem] p-8 max-h-[400px] overflow-y-auto border border-slate-100 space-y-8 shadow-inner custom-scrollbar">
+                                            {filteredDepts.map(dept => (
+                                                <div key={dept.departement} className="space-y-4">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
+                                                        <span className="w-8 h-px bg-slate-200"></span>
+                                                        {dept.departement}
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-3">
+                                                        {dept.communes.map(zone => (
+                                                            <button
+                                                                key={zone}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const zones = form.service_zones || [];
+                                                                    const newZones = zones.includes(zone) ? zones.filter(z => z !== zone) : [...zones, zone];
+                                                                    setForm({ ...form, service_zones: newZones });
+                                                                }}
+                                                                className={`px-5 py-3 rounded-2xl font-black text-xs transition-all border ${form.service_zones?.includes(zone) ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-white border-slate-100 text-slate-400 hover:border-primary/30 hover:text-primary hover:bg-primary/5'}`}
+                                                            >
+                                                                {zone}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <label className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] ml-1 block">Pièce d'identité (Scan/Photo)</label>
+                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-16 text-center space-y-6 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100 hover:border-primary/20 hover:bg-primary/5'}`}>
+                                            <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.pdf" onChange={handleFileChange} disabled={uploading} />
+                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.id_card_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-slate-100 text-slate-400 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
+                                                {uploading ? <Loader2 size={32} className="animate-spin" /> : form.id_card_url ? <CheckCircle2 size={32} /> : <Upload size={32} />}
+                                            </div>
+                                            <div className="space-y-2">
+                                                {form.id_card_url ? (
+                                                    <p className="font-black text-emerald-600 text-lg uppercase tracking-widest">Document prêt !</p>
+                                                ) : (
+                                                    <>
+                                                        <p className="font-black text-gray-900 text-xl tracking-tight leading-tight">Téléversez votre pièce</p>
+                                                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest opacity-60">Format JPG, PNG ou PDF</p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-6 pt-6">
+                                        <button onClick={() => setStep(1)} className="flex-1 h-16 rounded-2xl font-black text-slate-400 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all uppercase tracking-widest text-[11px]">Retour</button>
+                                        <button
+                                            onClick={handleRegister}
+                                            disabled={loading || uploading || !form.id_card_url || !form.service_zones?.length}
+                                            className="flex-[3] h-16 bg-primary text-white rounded-2xl font-black text-lg shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                                        >
+                                            {loading ? <Loader2 size={24} className="animate-spin" /> : "Envoyer ma demande"}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {step === 3 && (
+                                <motion.div
+                                    key="success"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-center py-10 space-y-10"
+                                >
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-emerald-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+                                        <div className="relative w-40 h-40 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-100">
+                                            <CheckCircle2 size={80} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h2 className="text-5xl font-black text-gray-900 tracking-tighter uppercase leading-tight">C'est parti !</h2>
+                                        <p className="text-gray-500 font-bold text-xl max-w-sm mx-auto leading-relaxed">
+                                            Votre demande est en cours d'examen. Notre équipe vous contactera sous <span className="text-primary">24h</span>.
+                                        </p>
+                                    </div>
+                                    <button onClick={() => navigate("/")} className="w-full max-w-xs h-20 bg-slate-900 text-white hover:bg-black rounded-[2rem] font-black text-xl shadow-2xl shadow-slate-200 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">
+                                        Retour à l'accueil
                                     </button>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {step === 3 && (
-                            <motion.div
-                                key="success"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="text-center py-10 space-y-8"
-                            >
-                                <div className="w-32 h-32 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 scale-110">
-                                    <CheckCircle2 size={64} />
-                                </div>
-                                <div className="space-y-4">
-                                    <h2 className="text-4xl font-black text-gray-900 tracking-tighter">C'est parti !</h2>
-                                    <p className="text-gray-500 font-bold max-w-sm mx-auto leading-relaxed">
-                                        Votre demande est en cours d'examen par notre équipe. Vous recevrez un appel ou un mail sous 24h pour la validation finale.
-                                    </p>
-                                </div>
-                                <button onClick={() => navigate("/")} className="btn bg-gray-900 text-white hover:bg-black h-14 rounded-2xl font-black px-12 mt-8">
-                                    Retour à l'accueil
-                                </button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+            `}} />
         </div>
     );
 }
+

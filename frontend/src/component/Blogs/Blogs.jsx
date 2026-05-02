@@ -1,63 +1,92 @@
-import React from 'react'
-import Heading from '../Shared/Heading'
-import Img1 from "../../assets/blogs/blog-1.jpg"
-import Img2 from "../../assets/blogs/blog-2.jpg"
-import Img3 from "../../assets/blogs/blog-3.jpg"
-
-const BlogsData =[
-    {
-        id:1,
-        title:"How to choose perfect smartwatch?",
-        subtitle:"minima facere deserunt vero illo deleniti eius dolores consequntur , eligendi corports maiores nolestiae laudantium Parro", 
-        published:"jan 20, 2024 by Dilshad",
-        image:Img1,
-        aosDelay:100
-    },
-    {
-        id:2,
-        title:"How to choose perfect smartwatch?",
-        subtitle:"minima facere deserunt vero illo deleniti eius dolores consequntur , eligendi corports maiores nolestiae laudantium Parro", 
-        published:"jan 20, 2024 by Dilshad",
-        image:Img2,
-        aosDelay:150
-    },
-    {
-        id:3,
-        title:"How to choose perfect smartwatch?",
-        subtitle:"minima facere deserunt vero illo deleniti eius dolores consequntur , eligendi corports maiores nolestiae laudantium Parro", 
-        published:"jan 20, 2024 by Dilshad",
-        image:Img3,
-        aosDelay:300
-    }
-]
+import React, { useState, useEffect } from 'react';
+import Heading from '../Shared/Heading';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const Blogs = () => {
-  return (
-    <div className='px-12'>
-        {/* Heading Section */}
-        <Heading title={'Our Blogs'} subtitle={'Read Our Latest Blogs'} />
-        {/* Body Section */}
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-        <div className='container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 gap-y-8 sm:gap-4 md:gap-7 '>
-            {
-                BlogsData.map((data)=>(
-                    <div data-aos="fade-up" data-aos-delay={data.aosDelay} key={data.id} className='bg-white dark:bg-gray-900'>
-                        {/* Image section */}
-                        <div className="overflow-hidden rounded-2xl mb-2 ">
-                            <img className='w-full h-[220px] object-cover rounded-2xl hover:scale-105 duration-500 ' src={data.image}/>
-                        </div>
-                        <div className="space-y-2">
-                            <p className=" text-xs text-gray-500">{data.published}</p>
-                            <p className='font-bold line-clamp-1'>{data.title}</p>
-                            <p className='line-clamp-2 text-sm text-gray-600 dark:text-gray-400'>{data.subtitle}</p>
-                        </div>
-                    </div>
-                ))
-            }
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const res = await axios.get(`${API_URL}/blogs`);
+        setBlogs(res.data);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des blogs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-12 px-12 text-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-48 bg-slate-200 rounded mb-4"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full mt-10">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-[300px] bg-slate-100 rounded-2xl"></div>
+            ))}
+          </div>
         </div>
-      
-    </div>
-  )
-}
+      </div>
+    );
+  }
 
-export default Blogs
+  if (blogs.length === 0) return null;
+
+  return (
+    <div id='vtout-mag' className='px-6 md:px-12 py-12'>
+      <Heading title={'Vtout Mag'} subtitle={'Conseils & Tendances Shopping'} />
+
+      <div className='container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-10'>
+        {blogs.map((data, index) => (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+            key={data.id} 
+            className='group cursor-pointer'
+          >
+            <Link to={`/blog/${data.slug}`}>
+              {/* Image section */}
+              <div className="overflow-hidden rounded-3xl mb-4 relative aspect-[4/3]">
+                <img 
+                  className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' 
+                  src={data.image_url || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop"}
+                  alt={data.title}
+                />
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                   {data.category}
+                </div>
+              </div>
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {new Date(data.published_at || data.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+                <h3 className='font-black text-xl text-slate-900 group-hover:text-primary transition-colors leading-tight'>
+                  {data.title}
+                </h3>
+                <p className='line-clamp-2 text-sm text-slate-500 font-medium leading-relaxed'>
+                  {data.summary}
+                </p>
+                <div className="flex items-center gap-2 pt-2">
+                  <span className="text-[11px] font-black uppercase text-primary tracking-widest">Lire l'article</span>
+                  <div className="w-8 h-[1px] bg-primary group-hover:w-12 transition-all"></div>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Blogs;

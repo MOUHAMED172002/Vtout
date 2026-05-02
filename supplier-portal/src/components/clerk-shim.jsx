@@ -2,12 +2,14 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { createAuthClient } from 'better-auth/react';
 import { AuthUI, UserDropdown } from './AuthUI';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-    ? import.meta.env.VITE_API_URL.replace('/api', '')
-    : 'http://localhost:3000';
+let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+if (API_BASE_URL.startsWith('/')) {
+    API_BASE_URL = window.location.origin + API_BASE_URL;
+}
 
 export const authClient = createAuthClient({
-    baseURL: API_BASE_URL,
+    baseURL: API_BASE_URL + '/auth',
+    plugins: []
 });
 
 const AuthContext = createContext({

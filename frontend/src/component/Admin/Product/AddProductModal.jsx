@@ -736,7 +736,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {!isSupplier && <input type="number" {...register(`variants.${index}.price`)} className="input input-bordered rounded-xl text-xs" placeholder="Prix" />}
-                        <input type="number" {...register(`variants.${index}.stock`)} className="input input-bordered rounded-xl text-xs" placeholder="Stock" />
+                        <input type="number" {...register(`variants.${index}.stock`, { required: "Stock requis" })} className="input input-bordered rounded-xl text-xs" placeholder="Stock *" />
                         <input type="text" {...register(`variants.${index}.sku`)} className="input input-bordered rounded-xl text-xs" placeholder="SKU" />
                       </div>
                     </div>
@@ -780,7 +780,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <label className="text-[10px] font-black uppercase text-slate-400">Stock Disponible</label>
-                      <input type="number" {...register("stock")} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Quantité..." />
+                      <input type="number" {...register("stock", { required: "Stock requis" })} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Quantité requise *" />
                     </div>
                   </div>
                 )}

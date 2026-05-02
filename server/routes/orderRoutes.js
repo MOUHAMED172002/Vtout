@@ -13,5 +13,7 @@ router.post('/', orderController.createOrder);
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 
 router.get('/:id/suggested-livreurs', requireAuth, requireAdmin, orderController.getSuggestedLivreurs);
+router.get('/:id/suggested-suppliers', requireAuth, requireAdmin, orderController.getSuggestedSuppliers);
+router.put('/:id/assign-supplier', requireAuth, requireAdmin, orderController.assignSupplier);
 
 export default router;

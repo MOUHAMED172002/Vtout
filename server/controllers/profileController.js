@@ -9,7 +9,27 @@ export const syncProfile = async (req, res) => {
             return res.status(401).json({ error: 'Non authentifié' });
         }
         let profile = await Profile.findByPk(userId);
-        if (!profile) return res.status(404).json({ error: 'Profil introuvable' });
+        
+        if (!profile) {
+            // Fetch user from better-auth 'user' table and create the Profile dynamically
+            const [users] = await sequelize.query(`SELECT * FROM \`user\` WHERE id = :id`, {
+                replacements: { id: userId }
+            });
+            if (users && users.length > 0) {
+                const u = users[0];
+                profile = await Profile.create({
+                    id: u.id,
+                    email: u.email,
+                    fullname: u.name || 'Utilisateur',
+                    role: u.role || 'user',
+                    email_verified: !!u.emailVerified,
+                    phone: u.email.includes('@whatsapp') ? u.email.split('@')[0] : null
+                });
+            } else {
+                return res.status(404).json({ error: 'Profil introuvable' });
+            }
+        }
+        
         res.json(profile);
     } catch (error) {
         console.error('Sync error:', error);

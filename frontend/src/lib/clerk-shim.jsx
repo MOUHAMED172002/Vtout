@@ -11,6 +11,7 @@ console.log("[clerk-shim] Using API_BASE_URL:", API_BASE_URL);
 
 export const authClient = createAuthClient({
     baseURL: API_BASE_URL + '/auth',
+    plugins: []
 });
 
 const AuthContext = createContext({

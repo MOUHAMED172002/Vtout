@@ -19,6 +19,20 @@ export const getAllProducts = async (req, res) => {
         } else {
             where.approval_status = 'approved';
             where.price = { [Op.gt]: 0 }; // Safeguard: don't show products with 0 price to users
+            
+            // Filter out-of-stock products
+            where[Op.and] = where[Op.and] || [];
+            where[Op.and].push(
+                sequelize.literal(`(
+                    \`Product\`.stock > 0
+                    OR EXISTS (
+                        SELECT 1 FROM \`product_variant_prices\` AS pvp
+                        INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                        WHERE pv.product_id = \`Product\`.id
+                        AND pvp.stock > 0
+                    )
+                )`)
+            );
         }
 
         if (minPrice || maxPrice) {
@@ -148,6 +162,17 @@ export const searchProducts = async (req, res) => {
             where: {
                 approval_status: 'approved',
                 price: { [Op.gt]: 0 },
+                [Op.and]: [
+                    sequelize.literal(`(
+                        \`Product\`.stock > 0
+                        OR EXISTS (
+                            SELECT 1 FROM \`product_variant_prices\` AS pvp
+                            INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                            WHERE pv.product_id = \`Product\`.id
+                            AND pvp.stock > 0
+                        )
+                    )`)
+                ],
                 [Op.or]: [
                     { name: { [Op.like]: `%${q}%` } },
                     { description: { [Op.like]: `%${q}%` } }
@@ -179,7 +204,18 @@ export const searchProducts = async (req, res) => {
                     approval_status: 'approved',
                     price: { [Op.gt]: 0 },
                     category_id: { [Op.in]: catIds },
-                    id: { [Op.notIn]: products.map(p => p.id) }
+                    id: { [Op.notIn]: products.map(p => p.id) },
+                    [Op.and]: [
+                        sequelize.literal(`(
+                            \`Product\`.stock > 0
+                            OR EXISTS (
+                                SELECT 1 FROM \`product_variant_prices\` AS pvp
+                                INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = \`Product\`.id
+                                AND pvp.stock > 0
+                            )
+                        )`)
+                    ]
                 },
                 include: [
                     { model: Category, as: 'category' },
@@ -228,6 +264,20 @@ export const createProduct = async (req, res) => {
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
         } = req.body;
+
+        if (!variants || variants.length === 0) {
+            if (stock === undefined || stock === null || stock === '') {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Le stock est obligatoire pour ce produit.' });
+            }
+        } else {
+            for (const v of variants) {
+                if (v.stock === undefined || v.stock === null || v.stock === '') {
+                    await transaction.rollback();
+                    return res.status(400).json({ error: 'Le stock est obligatoire pour chaque variante.' });
+                }
+            }
+        }
 
         // Detect if the request comes from an administrator
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
@@ -382,6 +432,20 @@ export const updateProduct = async (req, res) => {
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
         } = req.body;
+
+        if (!variants || variants.length === 0) {
+            if (stock === undefined || stock === null || stock === '') {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Le stock est obligatoire pour ce produit.' });
+            }
+        } else {
+            for (const v of variants) {
+                if (v.stock === undefined || v.stock === null || v.stock === '') {
+                    await transaction.rollback();
+                    return res.status(400).json({ error: 'Le stock est obligatoire pour chaque variante.' });
+                }
+            }
+        }
 
         const productToEdit = await Product.findByPk(id);
         if (!productToEdit) {
@@ -637,7 +701,18 @@ export const getRelatedProducts = async (req, res) => {
         const related = await Product.findAll({
             where: {
                 category_id: { [Op.in]: [...new Set(categoryIds)] },
-                id: { [Op.ne]: id }
+                id: { [Op.ne]: id },
+                [Op.and]: [
+                    sequelize.literal(`(
+                        \`Product\`.stock > 0
+                        OR EXISTS (
+                            SELECT 1 FROM \`product_variant_prices\` AS pvp
+                            INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                            WHERE pv.product_id = \`Product\`.id
+                            AND pvp.stock > 0
+                        )
+                    )`)
+                ]
             },
             include: [
                 { model: Category, as: 'category' },

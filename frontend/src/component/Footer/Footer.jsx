@@ -14,10 +14,11 @@ const FooterLinks = [
 ];
 
 const FooterNav = [
+    { title: "Le Mag", link: "/mag" },
     { title: "Supports", link: "/#" },
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
-    { title: "Politique de confidentialité", link: "/Policy" },
+    { title: "Politique de confidentialité", link: "/privacy" },
 
 ];
 

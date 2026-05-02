@@ -128,7 +128,7 @@ export default function OrdersList() {
             Mes <span className="text-slate-400">Commandes.</span>
           </h1>
           <p className="text-slate-500 font-bold max-w-lg leading-relaxed text-sm">
-            Consultez vos achats, téléchargez vos factures et laissez des avis.
+            Consultez vos achats, téléchargez vos reçus et laissez des avis.
           </p>
         </div>
 

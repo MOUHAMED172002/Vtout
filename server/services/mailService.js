@@ -61,6 +61,12 @@ const generateInvoiceTemplate = (order, items) => {
             Total: ${Number(order.total_amount).toLocaleString('fr-FR')} F
         </div>
         
+        <div style="margin-top: 30px; padding: 20px; background-color: #fff9eb; border: 1px solid #ffeeba; border-radius: 10px; text-align: center;">
+            <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Code de validation de livraison :</strong></p>
+            <h1 style="margin: 10px 0 0 0; color: #856404; font-size: 32px; letter-spacing: 5px;">${order.delivery_code || '----'}</h1>
+            <p style="margin: 10px 0 0 0; font-size: 11px; color: #856404;">Veuillez communiquer ce code au livreur uniquement lorsque vous recevez vos articles.</p>
+        </div>
+        
         <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
         <p style="font-size: 12px; color: #777; text-align: center;">
             Cette facture a été générée automatiquement. Si vous avez des questions, contactez notre support.
@@ -83,7 +89,8 @@ const templates = {
                 <p style="margin: 0 0 10px 0;"><strong>ID Commande:</strong> #${order.id.slice(0, 8)}</p>
                 <p style="margin: 0 0 10px 0;"><strong>Client:</strong> ${order.guest_name || 'Inconnu'}</p>
                 <p style="margin: 0 0 10px 0;"><strong>Total:</strong> <span style="color: #0f172a; font-weight: 800; font-size: 18px;">${Number(order.total_amount).toLocaleString()} F</span></p>
-                <p style="margin: 0;"><strong>Paiement:</strong> ${order.payment_method === 'delivery' ? 'À la livraison' : 'En ligne'}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Paiement:</strong> ${order.payment_method === 'delivery' ? 'À la livraison' : 'En ligne'}</p>
+                <p style="margin: 0;"><strong>Code OTP:</strong> <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold;">${order.delivery_code || '----'}</span></p>
             </div>
             <div style="margin-top: 30px; text-align: center;">
                 <a href="${process.env.ADMIN_URL || '#'}/admin/dashboard/orders" style="background-color: #0f172a; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px;">Gérer la commande</a>
@@ -140,10 +147,14 @@ const sendMail = async (to, subject, html) => {
             subject,
             html,
         });
-        if (error) throw error;
+        if (error) {
+            console.error('[Mail] Resend error:', error);
+            return { success: false, error };
+        }
+        console.log('[Mail] Email sent successfully to:', to);
         return { success: true, data };
     } catch (error) {
-        console.error('Mail Error:', error);
+        console.error('[Mail] Critical Error:', error);
         return { success: false, error };
     }
 };

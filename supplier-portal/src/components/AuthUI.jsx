@@ -17,7 +17,7 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
 
         try {
             if (isForgotPath) {
-                await authClient.forgetPassword({ email, redirectTo: window.location.origin + '/reset-password' });
+                await authClient.requestPasswordReset({ email, redirectTo: window.location.origin + '/reset-password' });
                 toast.success("E-mail de réinitialisation envoyé !");
                 setIsForgotPath(false);
             } else if (isSign) {

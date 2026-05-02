@@ -9,7 +9,7 @@ export const getProductReviews = async (req, res) => {
         const { limit = 20 } = req.query;
         const reviews = await Review.findAll({
             where: { product_id: productId },
-            order: [[sequelize.literal('created_at'), 'DESC']],
+            order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
             include: [{ model: Profile, as: 'author', attributes: ['fullname', 'avatar_url'] }]
         });
@@ -33,7 +33,7 @@ export const getMyReviews = async (req, res) => {
         console.log(`[getMyReviews] Querying reviews for userId: ${userId}`);
         const reviews = await Review.findAll({
             where: { user_id: userId },
-            order: [[sequelize.literal('created_at'), 'DESC']],
+            order: [['createdAt', 'DESC']],
             include: [{
                 model: Product,
                 as: 'product',

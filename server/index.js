@@ -1,6 +1,30 @@
 import "dotenv/config";
+import fs from "fs";
+
+
+
+
+
+// --- VALIDATION ENV ---
+const requiredEnv = [
+    'MYSQL_DATABASE_URL',
+    'BETTER_AUTH_SECRET',
+    'BETTER_AUTH_URL',
+    'CLOUDINARY_CLOUD_NAME',
+    'CLOUDINARY_API_KEY',
+    'CLOUDINARY_API_SECRET',
+    'FEDAPAY_WEBHOOK_SECRET'
+];
+
+const missingEnv = requiredEnv.filter(env => !process.env[env]);
+if (missingEnv.length > 0 && process.env.NODE_ENV === 'production') {
+    console.error(`[FATAL] Variables d'environnement manquantes : ${missingEnv.join(', ')}`);
+    process.exit(1);
+}
+
 console.log(">>> [BOOT] Server execution started");
-console.log(">>> [BOOT] Env: PORT=" + process.env.PORT + ", DB=" + (process.env.MYSQL_DATABASE_URL ? "Defined" : "Not Defined"));
+console.log(">>> [BOOT] Env: PORT=" + (process.env.PORT || 3000));
+console.log(">>> [BOOT] Database URL defined:", !!process.env.MYSQL_DATABASE_URL);
 
 import express from "express";
 import cors from "cors";
@@ -34,10 +58,14 @@ import configRoutes from "./routes/configRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import financialRoutes from "./routes/financialRoutes.js";
+import authWhatsAppRoutes from "./routes/authWhatsAppRoutes.js";
+
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
+import seedBlogs from "./seedBlogs.js";
 import { adminSyncFinancials } from "./controllers/financialController.js";
 import { SupportMessage } from "./models/index.js";
 
@@ -48,18 +76,43 @@ import fedapayWebhook from "./api/fedapay-webhook.js";
 const app = express();
 
 process.on('uncaughtException', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`[FATAL] Port already in use and could not be freed. Exiting.`);
-        process.exit(1);
-    }
     console.error('[FATAL] Uncaught Exception:', err.message);
+    // Ne pas quitter sur ECONNRESET (reconnexion DB) — juste logger
+    if (err.code === 'ECONNRESET' || err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.warn('[DB] Connection reset — pool will reconnect automatically.');
+        return;
+    }
     process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {
-    console.error('[FATAL] Unhandled Rejection:', reason?.message || reason);
-    // Do not exit the process to keep the server running
+    console.error('[WARN] Unhandled Rejection:', reason?.message || reason);
+    // Ne pas crasher — juste alerter
 });
+
+// --- GRACEFUL SHUTDOWN ---
+// Libère le port proprement à chaque SIGTERM/SIGINT (nodemon, Ctrl+C, PM2)
+const gracefulShutdown = (signal) => {
+    console.log(`\n[SHUTDOWN] Signal ${signal} reçu. Fermeture propre...`);
+    server.close(async () => {
+        console.log('[SHUTDOWN] Serveur HTTP fermé.');
+        try {
+            await sequelize.close();
+            console.log('[SHUTDOWN] Pool DB fermé.');
+        } catch (e) {
+            console.warn('[SHUTDOWN] Erreur fermeture DB:', e.message);
+        }
+        process.exit(0);
+    });
+    // Forcer la sortie après 10s si le shutdown traîne
+    setTimeout(() => {
+        console.error('[SHUTDOWN] Timeout — forçage de la sortie.');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Dev ports that we run Vite on
 const DEV_PORTS = [5173, 5174, 5175, 5176, 5177];
@@ -105,13 +158,39 @@ const corsOptions = {
 app.use(cors(corsOptions));
 applySecurity(app);
 
-const PORT = process.env.PORT || 3000;
-
-app.use("/api/auth", (req, res, next) => {
-    betterAuthMiddleware(req, res);
+// --- REQUEST LOGGER (Moved to top) ---
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
+    });
+    next();
 });
 
+// Attach Socket.io to requests
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json({ limit: '10kb' }));
+
+app.use("/api/auth/whatsapp", authWhatsAppRoutes);
+
+app.all(["/api/auth", "/api/auth/{*any}"], (req, res) => {
+    return betterAuthMiddleware(req, res);
+});
+
+// Redirection du lien de réinitialisation du backend vers le frontend
+app.get("/reset-password", (req, res) => {
+    const token = req.query.token;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/reset-password?token=${token}`);
+});
+
 app.use(authMiddleware);
 
 app.use("/api/create-fedapay", createFedapay);
@@ -133,12 +212,15 @@ app.use("/api/content", contentRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/configs", configRoutes);
 app.use("/api/locations", locationRoutes);
+
+
 app.use("/api/support", supportRoutes);
 app.use("/api/financials", financialRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/blogs", blogRoutes);
 
 // Emergency Sync Route
 app.get("/api/emergency-sync", requireAuth, requireAdmin, adminSyncFinancials);
@@ -155,6 +237,16 @@ app.use((err, req, res, next) => {
 
 app.get("/", (req, res) => res.send("Vtout API — Online"));
 app.get("/favicon.ico", (req, res) => res.status(204).end());
+
+// Health check pour les moniteurs de disponibilité (UptimeRobot, etc.)
+app.get("/api/health", async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({ status: 'ok', db: 'connected', uptime: process.uptime().toFixed(0) + 's', ts: new Date().toISOString() });
+    } catch {
+        res.status(503).json({ status: 'degraded', db: 'disconnected' });
+    }
+});
 
 const server = http.createServer(app);
 const io = new Server(server, { 
@@ -174,12 +266,14 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
+/* 
     socket.on('driver_location', (data) => {
         if (data.orderId) {
             io.emit(`order_update_${data.orderId}`, data);
         }
         io.emit('admin_driver_update', data);
     });
+*/
 
     socket.on('send_message', async (data) => {
         try {
@@ -211,43 +305,50 @@ io.on('connection', (socket) => {
     });
 });
 
-const startServer = (attempt = 1) => {
-    server.once('listening', () => {
+// --- Global Error Handler ---
+app.use((err, req, res, next) => {
+    console.error(`[FATAL ERROR] ${req.method} ${req.url}:`, err);
+    res.status(500).json({ 
+        error: "Erreur interne du serveur", 
+        message: err.message, 
+        path: req.url 
+    });
+});
+
+const startServer = () => {
+    // Timeout global sur les requêtes HTTP (25s) — évite les connexions bloquantes
+    server.timeout = 25000;
+    server.keepAliveTimeout = 65000; // > 60s (timeout load balancer Nginx par défaut)
+    server.headersTimeout = 66000;
+
+    server.listen(PORT, '0.0.0.0', () => {
         console.log(`✅ Vtout API running on http://localhost:${PORT}`);
     });
 
-    server.once('error', (err) => {
+    server.on('error', (err) => {
         if (err.code === 'EADDRINUSE') {
-            if (attempt >= 5) {
-                console.error(`[FATAL] Port ${PORT} still busy after ${attempt} attempts. Please kill the process using it. Exiting.`);
-                process.exit(1);
-            }
-            console.error(`[WARN] Port ${PORT} busy (attempt ${attempt}). Retrying in 3s...`);
-            server.close();
-            setTimeout(() => startServer(attempt + 1), 3000);
+            console.error(`[FATAL] Port ${PORT} déjà utilisé. Lancez: netstat -ano | findstr :${PORT} puis taskkill /PID <pid> /F`);
         } else {
             console.error('[FATAL] Server error:', err.message);
-            process.exit(1);
         }
+        process.exit(1);
     });
-
-    server.listen(PORT, '0.0.0.0');
 };
 
-console.log("🚀 Initializing Database...");
+// --- STARTUP LOGIC ---
+console.log("🚀 [BOOT] Starting Vtout API...");
+
+// Start HTTP server immediately so port 3000 is open
+startServer();
+
+// Initialize Database in background
+console.log("💾 [BOOT] Connecting to Database...");
 sequelize.authenticate()
     .then(() => {
-        console.log("💾 Database connected");
-        // alter:false = crée les tables manquantes uniquement, sans toucher aux existantes
-        // Ceci évite les ECONNRESET causés par les lourds ALTER TABLE de XAMPP
-        return sequelize.sync({ alter: false });
-    })
-    .then(() => {
-        console.log("📁 Database tables synced");
-        console.log("🚀 Starting Vtout API...");
-        startServer();
+        console.log("✅ [DB] Database connected");
+        // Optional: seedBlogs(); 
     })
     .catch(err => {
-        console.error("❌ Database sync/connection failed:", err.message);
-        process.exit(1);
+        console.error("❌ [DB] Database connection failed:", err.message);
+        console.error("⚠️ [BOOT] API running in degraded mode (No Database)");
     });
