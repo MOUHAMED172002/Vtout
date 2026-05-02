@@ -346,8 +346,11 @@ startServer();
 // Initialize Database in background
 console.log("💾 [BOOT] Connecting to Database...");
 sequelize.authenticate()
-    .then(() => {
+    .then(async () => {
         console.log("✅ [DB] Database connected");
+        console.log(">>> [BOOT] Syncing database...");
+        await sequelize.sync({ alter: true });
+        console.log("✅ [BOOT] Database synced.");
         // Optional: seedBlogs(); 
     })
     .catch(err => {
