@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'; // On utilise fetch natif de Node 18+ (pas besoin de node-fetch si Node 18+)
+// On utilise fetch natif de Node 18+ (pas besoin d'import)
 
 export const createFedapayTransaction = async (order, customerProfile, redirectUrl) => {
     try {
