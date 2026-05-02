@@ -1,4 +1,6 @@
 import "dotenv/config";
+console.log("=== SERVER STARTING ===");
+console.log("NODE_ENV:", process.env.NODE_ENV);
 import fs from "fs";
 
 
@@ -19,7 +21,7 @@ const requiredEnv = [
 const missingEnv = requiredEnv.filter(env => !process.env[env]);
 if (missingEnv.length > 0 && process.env.NODE_ENV === 'production') {
     console.error(`[FATAL] Variables d'environnement manquantes : ${missingEnv.join(', ')}`);
-    process.exit(1);
+    // process.exit(1); // On commente pour voir les logs même s'il manque des choses
 }
 
 console.log(">>> [BOOT] Server execution started");
