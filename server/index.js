@@ -68,6 +68,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import seedBlogs from "./seedBlogs.js";
+import { adminSyncFinancials } from "./controllers/financialController.js";
 import { Config, SupportMessage } from "./models/index.js";
 import { runMasterSeed } from "./masterSeed.js";
 
