@@ -222,21 +222,33 @@ const Layout = ({ children }) => {
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header / TopBar */}
                 <header className="bg-white border-b border-slate-100 px-6 md:px-12 py-4 flex items-center justify-between z-30">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-1">
                         <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 hover:text-slate-900 transition-colors">
                             <Menu size={22} />
                         </button>
-                        <div className="hidden md:flex items-center gap-3">
-                            <Store size={24} className="text-indigo-500" />
-                            <h2 className="text-xl font-black tracking-tighter text-slate-900">Console Vendeur</h2>
+                        
+                        {/* Desktop Search Bar */}
+                        <div className="hidden lg:flex items-center flex-1 max-w-md ml-4">
+                            <div className="relative w-full group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <input 
+                                    type="text" 
+                                    placeholder="Rechercher une commande, un produit..." 
+                                    className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
+                                />
+                            </div>
                         </div>
-                        <div className="md:hidden flex items-center gap-2">
+
+                        <div className="lg:hidden flex items-center gap-2">
                             <Store size={18} className="text-indigo-500" />
                             <LogoText className="text-xs" /> <span className="font-black text-xs text-slate-400">Merchant</span>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-4">
+                        <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
+                            <Search size={20} />
+                        </button>
                         <NotificationCenter />
                     </div>
                 </header>

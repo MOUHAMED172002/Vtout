@@ -367,29 +367,34 @@ const AdminLayout = () => {
 
           <div className="flex items-center gap-2 lg:gap-6">
             {/* Search Bar - More intuitive and responsive */}
-            <div className="relative group flex items-center">
-              <div className={`flex items-center bg-slate-50 rounded-2xl transition-all duration-300 border border-slate-100 ${
-                searchQuery ? 'w-48 lg:w-72 border-indigo-200 bg-white ring-4 ring-indigo-50' : 'w-10 lg:w-64'
-              }`}>
-                <div className="p-2.5 lg:px-4 lg:py-2 text-slate-400">
-                   <Search size={18} />
-                </div>
+            <div className="flex-1 max-w-md hidden sm:block">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher..."
-                  className={`bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400 transition-all ${
-                    searchQuery ? 'opacity-100 w-full' : 'opacity-0 w-0 lg:opacity-100 lg:w-full'
-                  }`}
+                  placeholder="Rechercher partout (⌘K)..."
+                  className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
                 />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="p-2 text-slate-400 hover:text-slate-900">
-                    <X size={14} />
-                  </button>
-                )}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {searchQuery ? (
+                    <button onClick={() => setSearchQuery("")} className="p-1 hover:bg-slate-100 rounded-md text-slate-400">
+                      <X size={14} />
+                    </button>
+                  ) : (
+                    <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border border-slate-200 bg-white px-1.5 font-sans text-[10px] font-medium text-slate-400">
+                      ⌘K
+                    </kbd>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Mobile Search Trigger */}
+            <button className="sm:hidden p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600">
+              <Search size={20} />
+            </button>
 
             <button className="relative p-2.5 lg:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
               <Bell size={20} />

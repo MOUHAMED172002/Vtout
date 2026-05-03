@@ -64,17 +64,30 @@ export default function SearchModal() {
 
   return (
     <>
-      {/* 🔘 Bouton d’ouverture */}
+      {/* 🔘 Bouton d’ouverture (Style Input Moderne) */}
+      <div 
+        onClick={() => setOpen(true)}
+        className="relative group cursor-pointer hidden md:block"
+      >
+        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+          <Search className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
+        </div>
+        <div className="w-64 lg:w-80 pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-black text-slate-400 uppercase tracking-widest group-hover:bg-white group-hover:shadow-md group-hover:border-primary/20 transition-all">
+          Rechercher...
+        </div>
+        <div className="absolute inset-y-0 right-4 flex items-center">
+          <kbd className="hidden lg:inline-flex items-center gap-1 h-5 select-none rounded border border-slate-200 bg-white px-1.5 font-sans text-[10px] font-medium text-slate-400 opacity-100">
+            ⌘K
+          </kbd>
+        </div>
+      </div>
+
+      {/* Version Mobile (Icone Simple) */}
       <button
         onClick={() => setOpen(true)}
-        className="group flex items-center gap-3 px-6 py-3 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 rounded-full transition-all duration-300 w-full md:w-auto overflow-hidden relative"
+        className="md:hidden p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-primary transition-all active:scale-95"
       >
-        <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-        <Search className="w-5 h-5 text-slate-400 group-hover:text-primary transition-colors relative z-10" />
-        <span className="text-xs font-black text-slate-500 group-hover:text-slate-900 uppercase tracking-widest relative z-10">Rechercher...</span>
-        <kbd className="hidden md:inline-flex items-center gap-1 h-5 select-none rounded border border-slate-200 bg-white px-1.5 font-sans text-[10px] font-medium text-slate-400 opacity-100 ml-auto relative z-10">
-          <span className="text-xs text-slate-300">⌘</span>K
-        </kbd>
+        <Search size={22} />
       </button>
 
       {/* 🪟 Modale */}
@@ -84,7 +97,7 @@ export default function SearchModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center pt-20 z-[200] px-4"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center pt-4 md:pt-20 z-[200] px-2 md:px-4"
             onClick={() => setOpen(false)}
           >
             <motion.div
@@ -92,7 +105,7 @@ export default function SearchModal() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+              className="bg-white rounded-3xl md:rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[80vh]"
             >
               {/* Header Search */}
               <div className="p-6 border-b border-slate-50 flex items-center gap-4">
