@@ -19,6 +19,13 @@ const requiredEnv = [
 ];
 
 const missingEnv = requiredEnv.filter(env => !process.env[env]);
+const isProd = process.env.NODE_ENV === 'production';
+
+if (isProd) {
+    console.log = () => {};
+    console.debug = () => {};
+}
+
 if (missingEnv.length > 0 && process.env.NODE_ENV === 'production') {
     console.error(`[FATAL] Variables d'environnement manquantes : ${missingEnv.join(', ')}`);
     // process.exit(1); // On commente pour voir les logs même s'il manque des choses

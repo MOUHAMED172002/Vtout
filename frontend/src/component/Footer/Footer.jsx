@@ -142,7 +142,9 @@ const Footer = () => {
                                     <Phone size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-base-content">{getConfig('CONTACT_PHONE', '+229 61 00 00 00')}</p>
+                                    <a href={`tel:${getConfig('CONTACT_PHONE', '+229 61 00 00 00')}`} className="font-bold text-base-content hover:text-primary transition-colors">
+                                        {getConfig('CONTACT_PHONE', '+229 61 00 00 00')}
+                                    </a>
                                     <p className="text-sm text-base-content/70">{getConfig('hours_weekday', 'Lun - Sam, 8h-18h')}</p>
                                 </div>
                             </div>
@@ -151,7 +153,9 @@ const Footer = () => {
                                     <Mail size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-base-content">{getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}</p>
+                                    <a href={`mailto:${getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}`} className="font-bold text-base-content hover:text-primary transition-colors">
+                                        {getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}
+                                    </a>
                                     <p className="text-sm text-base-content/70">Support 24/7</p>
                                 </div>
                             </div>

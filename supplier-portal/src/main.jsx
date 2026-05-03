@@ -1,4 +1,9 @@
 import React from 'react'
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.debug = () => {};
+  console.info = () => {};
+}
 import ReactDOM from 'react-dom/client'
 import { ClerkProvider } from './components/clerk-shim';
 import { BrowserRouter } from 'react-router-dom'

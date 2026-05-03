@@ -1,4 +1,9 @@
 import { StrictMode } from 'react'
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.debug = () => {};
+  console.info = () => {};
+}
 import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from './lib/clerk-shim';
 import { HelmetProvider } from 'react-helmet-async'
