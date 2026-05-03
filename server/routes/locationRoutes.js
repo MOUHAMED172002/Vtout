@@ -3,7 +3,7 @@ import { Department, Commune, Arrondissement, Quartier, sequelize } from '../mod
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { authMiddleware, requireAdmin } from '../middleware/authMiddleware.js';
+import { authMiddleware, requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
