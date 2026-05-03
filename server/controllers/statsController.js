@@ -139,7 +139,7 @@ export const getDashboardStats = async (req, res) => {
                 include: [{
                     model: Product,
                     as: 'product',
-                    attributes: ['supplier_id', 'name'],
+                    attributes: ['supplier_id'],
                     required: true,
                     include: [{ model: Supplier, as: 'supplier', attributes: ['name'] }]
                 }, {
