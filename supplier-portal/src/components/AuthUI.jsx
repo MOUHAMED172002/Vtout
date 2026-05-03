@@ -61,7 +61,7 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                         {isForgotPath ? "Récupération" : (isSign ? "Bon Retour !" : "Prêt à vendre ?")}
                     </h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                        {isForgotPath ? "Lien sécurisé par e-mail" : (isSign ? "Espace Partenaire Vtout" : "Créez votre boutique en 2 min")}
+                        {isForgotPath ? "Lien sécurisé par e-mail" : (isSign ? "Console Vendeur Vtout" : "Créez votre boutique en 2 min")}
                     </p>
                 </div>
 
@@ -176,7 +176,7 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                         }}
                         className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors p-2"
                     >
-                        {isForgotPath ? "Retour à la connexion" : (isSign ? "Devenir fournisseur" : "Déjà inscrit ? Connexion")}
+                        {isForgotPath ? "Retour à la connexion" : (isSign ? "Devenir vendeur" : "Déjà inscrit ? Connexion")}
                     </button>
                 </div>
             </div>
@@ -204,7 +204,7 @@ export const UserDropdown = () => {
                 <div className="absolute right-0 mt-2 w-64 bg-white/90 backdrop-blur-xl rounded-[28px] shadow-2xl border border-white p-3 z-50 animate-in fade-in slide-in-from-top-2">
                     <div className="px-5 py-4 border-b border-slate-50">
                         <p className="text-sm font-black text-slate-900 truncate">{user.name}</p>
-                        <p className="text-[10px] font-bold text-primary uppercase mt-1 tracking-widest">{user.role || 'Partner'}</p>
+                        <p className="text-[10px] font-bold text-primary uppercase mt-1 tracking-widest">{user.role || 'Vendeur'}</p>
                     </div>
 
                     <div className="py-2">

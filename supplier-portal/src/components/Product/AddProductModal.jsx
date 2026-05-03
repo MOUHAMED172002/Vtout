@@ -264,7 +264,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     try {
       const token = await getToken();
       const createdSup = await createSupplier(newSupplierData, token);
-      toast.success("Fournisseur créé");
+      toast.success("Marchand créé");
       setSuppliers(prev => [...prev, createdSup]);
       setSelectedSupplierId(createdSup.id);
       setCreatingSupplier(false);
@@ -273,7 +273,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         departement_label: "", commune_label: "", quartier_label: ""
       });
     } catch (err) {
-      toast.error("Erreur ajout fournisseur");
+      toast.error("Erreur ajout marchand");
     } finally {
       setInlineLoading(false);
     }
@@ -284,10 +284,10 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     try {
       const token = await getToken();
       const created = await createSupplier({ name }, token);
-      toast.success("Fournisseur ajouté");
+      toast.success("Marchand ajouté");
       setSuppliers(prev => [...prev, created]);
     } catch (err) {
-      toast.error("Erreur ajout fournisseur");
+      toast.error("Erreur ajout marchand");
     } finally {
       setInlineLoading(false);
     }
@@ -354,7 +354,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         if (selectedSupplierId || isSupplier) {
           initialSupplierLinks.push({
             supplier_id: isSupplier ? 'me' : selectedSupplierId,
-            supplier_name: isSupplier ? 'Moi' : (suppliers.find(s => s.id === selectedSupplierId)?.name || 'Fournisseur Global'),
+            supplier_name: isSupplier ? 'Moi' : (suppliers.find(s => s.id === selectedSupplierId)?.name || 'Vendeur Global'),
             supplier_price: parseFloat(globalSupplierPrice) || 0,
             supplier_sku: ''
           });
@@ -385,7 +385,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const onSubmit = async (data) => {
     if (!selectedSupplierId && !isSupplier) {
       setCurrentStep(3);
-      toast.error("Veuillez sélectionner un fournisseur.");
+      toast.error("Veuillez sélectionner un marchand.");
       return;
     }
 
@@ -758,13 +758,13 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         ...suppliers.map(s => ({ value: s.id, label: s.name })),
                         { value: 'new', label: '+ Nouveau' }
                       ]}
-                      placeholder="Fournisseur..."
+                      placeholder="Sélectionner marchand..."
                       className="w-full"
                     />
                   ) : (
                     <div className="p-4 bg-white rounded-2xl flex items-center gap-3">
                       <Truck className="text-primary" />
-                      <span className="font-black text-sm">Fournisseur Connecté</span>
+                      <span className="font-black text-sm">Marchand Connecté</span>
                     </div>
                   )}
                   <div className="space-y-3">

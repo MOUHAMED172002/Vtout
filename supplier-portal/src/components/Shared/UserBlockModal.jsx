@@ -35,7 +35,7 @@ const UserBlockModal = ({ isOpen, onClose, onAction }) => {
             </div>
 
             <p className="text-sm font-medium text-slate-500 leading-relaxed px-4">
-              Ce portail est réservé aux fournisseurs. Votre compte actuel est un compte <span className="font-bold text-slate-900 uppercase">Client/Admin</span>. Pour accéder à cet espace, vous devez vous connecter avec un compte marchand.
+              Ce portail est réservé aux vendeurs professionnels. Votre compte actuel est un compte <span className="font-bold text-slate-900 uppercase">Client/Admin</span>. Pour accéder à cet espace, vous devez activer votre profil marchand.
             </p>
 
             <div className="grid grid-cols-1 gap-4 pt-4">
@@ -44,7 +44,7 @@ const UserBlockModal = ({ isOpen, onClose, onAction }) => {
                 className="group w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-200"
               >
                 <UserCheck size={18} />
-                Devenir Fournisseur
+                Activer Profil Marchand
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               

@@ -101,7 +101,7 @@ const SupplierDashboard = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.firstName}</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Espace Gestion Fournisseur</p>
+                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Console de Gestion Marchand</p>
                 </div>
                 <button
                     onClick={() => navigate('/ajouter-produit')}

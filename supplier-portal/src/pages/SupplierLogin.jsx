@@ -143,7 +143,7 @@ export default function SupplierLogin() {
                     </div>
                     <div>
                         <span className="font-black text-lg tracking-tighter text-slate-900 leading-none block">Vtout</span>
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Partenaires</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Business</span>
                     </div>
                 </Link>
                 <Link to="/inscription" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-slate-100">
@@ -170,7 +170,7 @@ export default function SupplierLogin() {
                                 {forgotMode ? 'Récupérer' : 'Bon Retour !'}
                             </h1>
                             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                {forgotMode ? 'Lien de réinitialisation' : 'Espace Partenaire Vtout'}
+                                {forgotMode ? 'Lien de réinitialisation' : 'Console Vendeur Vtout'}
                             </p>
                         </div>
 

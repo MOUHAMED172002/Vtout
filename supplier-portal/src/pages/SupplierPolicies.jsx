@@ -29,7 +29,7 @@ const SupplierPolicies = () => {
                 <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2 flex items-center gap-4">
                     <FileText className="text-indigo-500" size={32} /> Conditions & Politiques
                 </h1>
-                <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Règlements officiels pour les partenaires Vtout</p>
+                <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Règlements officiels pour les marchands Vtout</p>
             </div>
 
             <div className="grid grid-cols-1 gap-8">
@@ -38,7 +38,7 @@ const SupplierPolicies = () => {
                         <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto">
                             <ShieldCheck size={32} />
                         </div>
-                        <p className="text-sm font-bold text-slate-400">Aucun document n'a encore été publié pour les fournisseurs.</p>
+                        <p className="text-sm font-bold text-slate-400">Aucun document n'a encore été publié pour les marchands.</p>
                     </div>
                 ) : (
                     policies.map((p, idx) => (

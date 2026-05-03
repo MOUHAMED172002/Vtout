@@ -55,7 +55,7 @@ const Sidebar = ({ mobile, onClose }) => {
                     </div>
                     <div>
                         <LogoText className="text-sm leading-none" />
-                        <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Fournisseur</p>
+                        <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Espace Marchand</p>
                     </div>
                 </div>
                 {mobile && (
@@ -145,7 +145,7 @@ const RoleSwitcher = () => {
             await api.post('/profiles/switch-role', { newRole: 'fournisseur' }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success("Vous êtes maintenant fournisseur !");
+            toast.success("Votre profil marchand est maintenant activé !");
             setShow(false);
             window.location.reload();
         } catch (err) {
@@ -166,9 +166,9 @@ const RoleSwitcher = () => {
                     <Store size={24} />
                 </div>
                 <div>
-                    <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400">Accès Partenaire</h4>
+                    <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400">Vendre sur Vtout</h4>
                     <p className="text-xs font-medium text-white/60 leading-relaxed mt-1">
-                        Vous êtes connecté avec un compte client. Souhaitez-vous activer votre profil fournisseur pour vendre sur Vtout ?
+                        Vous êtes connecté avec un compte client. Souhaitez-vous activer votre profil marchand pour commencer à vendre sur Vtout ?
                     </p>
                 </div>
             </div>
@@ -228,11 +228,11 @@ const Layout = ({ children }) => {
                         </button>
                         <div className="hidden md:flex items-center gap-3">
                             <Store size={24} className="text-indigo-500" />
-                            <h2 className="text-xl font-black tracking-tighter text-slate-900">Espace Fournisseur</h2>
+                            <h2 className="text-xl font-black tracking-tighter text-slate-900">Console Vendeur</h2>
                         </div>
                         <div className="md:hidden flex items-center gap-2">
                             <Store size={18} className="text-indigo-500" />
-                            <LogoText className="text-xs" /> <span className="font-black text-xs text-slate-400">Partner</span>
+                            <LogoText className="text-xs" /> <span className="font-black text-xs text-slate-400">Merchant</span>
                         </div>
                     </div>
                     

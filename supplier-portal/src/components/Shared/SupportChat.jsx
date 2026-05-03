@@ -70,7 +70,7 @@ export default function SupportChat() {
                                     <MessageCircle size={20} className="text-indigo-400" />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-black tracking-tight">Support Fournisseur</h4>
+                                    <h4 className="text-sm font-black tracking-tight">Support Vendeur</h4>
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Support en ligne</p>

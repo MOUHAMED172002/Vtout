@@ -56,7 +56,7 @@ export default function SupplierWelcome({ user }) {
     const steps = [
         { id: 1, title: 'Boutique', icon: <Store size={20} /> },
         { id: 2, title: 'Localisation', icon: <MapPin size={20} /> },
-        { id: 3, title: 'Contrat', icon: <ShieldCheck size={20} /> },
+        { id: 3, title: 'Accord Marchand', icon: <ShieldCheck size={20} /> },
     ];
 
     return (
@@ -212,7 +212,7 @@ export default function SupplierWelcome({ user }) {
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center bg-slate-50 rounded-[2rem] p-6 mb-8">
                                 <ShieldCheck size={40} className="mx-auto text-primary mb-4" />
-                                <h2 className="text-2xl font-black text-slate-900 mb-2">Accord Partenaire</h2>
+                                <h2 className="text-2xl font-black text-slate-900 mb-2">Accord Marchand</h2>
                                 <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Signature et validation</p>
                             </div>
 

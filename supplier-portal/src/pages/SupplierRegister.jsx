@@ -106,7 +106,7 @@ export default function SupplierRegister() {
                 console.error("[SignUp Error]", res.error);
                 if (res.error.status === 422) setStep(1); 
             } else {
-                toast.success('Compte fournisseur créé ! Bienvenue sur Vtout.');
+                toast.success('Compte marchand créé ! Bienvenue sur Vtout.');
                 sessionStorage.removeItem('vtout_supplier_reg_state');
                 window.location.href = '/dashboard';
             }
@@ -147,7 +147,7 @@ export default function SupplierRegister() {
             let authRes = await authClient.signUp.email({ 
                 email: fakeEmail, 
                 password: pwd, 
-                name: form.name || 'Partenaire WhatsApp',
+                name: form.name || 'Marchand WhatsApp',
                 role: 'fournisseur'
             });
 
@@ -187,7 +187,7 @@ export default function SupplierRegister() {
                     </div>
                     <div>
                         <span className="font-black text-lg tracking-tighter text-slate-900 leading-none block">Vtout</span>
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Partenaires</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Business</span>
                     </div>
                 </Link>
                 <Link to="/connexion" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-slate-100 shadow-sm">
@@ -227,7 +227,7 @@ export default function SupplierRegister() {
                                             <div className="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-100">
                                                 <User size={28} className="text-white" />
                                             </div>
-                                            <h1 className="text-4xl font-black tracking-tighter text-slate-900">Devenir Partenaire</h1>
+                                            <h1 className="text-4xl font-black tracking-tighter text-slate-900">Devenir Vendeur</h1>
                                             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Étape 1 — Votre identité</p>
                                         </div>
 
@@ -356,7 +356,7 @@ export default function SupplierRegister() {
 
                                         <div className="bg-slate-50/50 border border-slate-100 rounded-[2rem] p-8 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Partenaire</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Marchand</span>
                                                 <span className="text-sm font-black text-slate-900">{form.name}</span>
                                             </div>
                                             <div className="flex items-center justify-between">
@@ -365,13 +365,13 @@ export default function SupplierRegister() {
                                             </div>
                                             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plateforme</span>
-                                                <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">Vtout Partners</span>
+                                                <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">Vtout Business</span>
                                             </div>
                                         </div>
 
                                         <p className="text-[10px] font-bold text-slate-400 text-center px-4 leading-relaxed uppercase tracking-wide">
                                             En confirmant, vous acceptez les{' '}
-                                            <Link to="/terms" className="text-indigo-500 hover:underline">conditions d'utilisation</Link> du portail fournisseur.
+                                            <Link to="/terms" className="text-indigo-500 hover:underline">conditions d'utilisation</Link> du portail marchand.
                                         </p>
 
                                         <div className="flex gap-4">

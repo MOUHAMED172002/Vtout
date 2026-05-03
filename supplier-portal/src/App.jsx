@@ -49,7 +49,7 @@ const RoleBlockModal = ({ role }) => {
                 <h3 className="text-2xl font-black text-slate-900 mb-2">Accès Non Autorisé</h3>
                 <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
                     Vous êtes actuellement connecté avec un compte <span className="font-bold text-slate-800">{role === 'livreur' ? 'Livreur' : 'Client standard'}</span>. 
-                    Le portail partenaire est exclusivement réservé aux fournisseurs.
+                    L'Espace Vendeur est exclusivement réservé aux marchands certifiés.
                 </p>
 
                 <div className="space-y-3">
