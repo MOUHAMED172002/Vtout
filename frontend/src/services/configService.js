@@ -23,3 +23,10 @@ export const deleteConfig = async (key, token) => {
     });
     return data;
 };
+
+export const testEmailConfig = async (to, token) => {
+    const { data } = await api.post('/configs/test-email', { to }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};

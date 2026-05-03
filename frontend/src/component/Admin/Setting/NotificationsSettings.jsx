@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../lib/clerk-shim";
-import { getConfigsByGroup, upsertConfig } from "../../../services/configService";
+import { getConfigsByGroup, upsertConfig, testEmailConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
 import { Mail, Key, Eye, EyeOff, Save, Loader2, CheckCircle, AlertTriangle, Send } from "lucide-react";
 import { motion } from "framer-motion";
@@ -58,22 +58,10 @@ export default function NotificationsSettings() {
     setTesting(true);
     try {
       const token = await getToken();
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/config/test-email`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          credentials: "include",
-          body: JSON.stringify({ to: email.ADMIN_NOTIF_EMAIL }),
-        }
-      );
-      if (res.ok) {
-        toast.success(`Email de test envoyé à ${email.ADMIN_NOTIF_EMAIL} !`);
-      } else {
-        toast.error("Échec de l'envoi. Vérifiez la clé API Resend.");
-      }
-    } catch {
-      toast.error("Erreur réseau lors du test.");
+      await testEmailConfig(email.ADMIN_NOTIF_EMAIL, token);
+      toast.success(`Email de test envoyé à ${email.ADMIN_NOTIF_EMAIL} !`);
+    } catch (err) {
+      toast.error("Échec de l'envoi. Vérifiez la clé API Resend.");
     } finally {
       setTesting(false);
     }
