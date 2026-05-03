@@ -9,6 +9,9 @@ try {
     SOCKET_URL = API_URL.replace(/\/api\/?$/, '');
 }
 
+console.log("[DEBUG] VITE_API_URL =", import.meta.env.VITE_API_URL);
+console.log("[DEBUG] Parsed SOCKET_URL =", SOCKET_URL);
+
 class NotificationService {
     constructor() {
         this.socket = null;
