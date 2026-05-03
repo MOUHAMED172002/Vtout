@@ -350,6 +350,7 @@ const startServer = () => {
 
 // --- STARTUP LOGIC ---
 console.log("🚀 [BOOT] Starting Vtout API...");
+console.log(">>> [BOOT] Configured ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGINS);
 
 // Start HTTP server immediately so port 3000 is open
 startServer();
@@ -360,10 +361,25 @@ sequelize.authenticate()
     .then(async () => {
         console.log("✅ [DB] Database connected");
         console.log(">>> [BOOT] Syncing database...");
-        await sequelize.sync({ alter: true });
-        console.log("✅ [BOOT] Database synced.");
+        
+        try {
+            await sequelize.sync({ alter: true });
+            console.log("✅ [BOOT] Database synced.");
+        } catch (syncError) {
+            console.error("❌ [BOOT] Global sync failed:", syncError.message);
+            console.warn("⚠️ [BOOT] Attempting granular sync...");
+            
+            // Try syncing models one by one to isolate the error and allow others to work
+            for (const modelName of Object.keys(sequelize.models)) {
+                try {
+                    await sequelize.models[modelName].sync({ alter: true });
+                } catch (modelError) {
+                    console.error(`❌ [BOOT] Granular sync failed for ${modelName}:`, modelError.message);
+                }
+            }
+        }
+        
         await runMasterSeed();
-        // Optional: seedBlogs(); 
     })
     .catch(err => {
         console.error("❌ [DB] Database connection failed:", err.message);
