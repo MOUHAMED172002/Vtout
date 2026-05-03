@@ -114,24 +114,28 @@ export default function Dashboard({ changeTab }) {
   }));
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-1000 pb-20">
+    <div className="space-y-6 lg:space-y-12 animate-in fade-in duration-1000 pb-20">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-8">
         <div className="space-y-2">
-          <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
+          <div className="flex items-center gap-3 text-primary font-black uppercase text-[10px] lg:text-xs tracking-[0.3em]">
             <LayoutDashboard size={14} /> Global Insight
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Tableau de <span className="text-slate-400">Bord</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Analysez les performances, suivez vos VIP et gérez la file d'attente en temps réel.</p>
+          <h1 className="text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">
+            Tableau de <span className="text-slate-400">Bord</span>
+          </h1>
+          <p className="text-xs lg:text-base text-slate-500 font-bold max-w-lg">
+            Analysez les performances, suivez vos VIP et gérez la file d'attente en temps réel.
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex bg-white rounded-2xl p-1.5 border border-slate-100 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          <div className="flex bg-white rounded-2xl p-1 lg:p-1.5 border border-slate-100 shadow-sm">
             {["7J", "30J", "12M"].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${period === p
+                className={`px-3 lg:px-6 py-1.5 lg:py-2 rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest transition-all ${period === p
                   ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10"
                   : "text-slate-400 hover:text-slate-900"
                   }`}
@@ -140,37 +144,37 @@ export default function Dashboard({ changeTab }) {
               </button>
             ))}
           </div>
-          <button onClick={() => loadData()} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-primary hover:text-white transition-all">
+          <button onClick={() => loadData()} className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-primary hover:text-white transition-all">
             <RefreshCcw size={18} />
           </button>
           <button
             onClick={handleDownloadReport}
-            className="btn btn-primary rounded-2xl h-12 px-6 font-black gap-2 shadow-lg shadow-primary/20"
+            className="btn btn-primary rounded-2xl h-10 lg:h-12 px-4 lg:px-6 font-black text-xs lg:text-sm gap-2 shadow-lg shadow-primary/20"
           >
-            <Download size={18} /> Rapports
+            <Download size={18} /> <span className="hidden sm:inline">Rapports</span>
           </button>
         </div>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-6 lg:space-y-12">
         <QuickStats stats={data.stats} />
 
         {/* Row 1: Sales Chart & Category Distribution */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="xl:col-span-8 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-8 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6 lg:mb-10">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+                <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                   Analyse des Ventes <TrendingUp className="text-emerald-500" size={24} />
                 </h2>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">Évolution du chiffre d'affaires (30j)</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">Évolution du chiffre d'affaires</p>
               </div>
             </div>
-            <div className="h-[400px]">
+            <div className="h-[300px] lg:h-[400px]">
               {loading ? (
                 <div className="h-full flex items-center justify-center">
                   <span className="loading loading-bars loading-lg text-primary"></span>
@@ -183,10 +187,10 @@ export default function Dashboard({ changeTab }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="xl:col-span-4 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-4 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="space-y-1 mb-8">
-              <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+            <div className="space-y-1 mb-6 lg:mb-8">
+              <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                 Catégories <PieChart className="text-indigo-500" size={24} />
               </h2>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Répartition des ventes</p>
@@ -200,15 +204,15 @@ export default function Dashboard({ changeTab }) {
         </div>
 
         {/* Row 2: Top Customers & Fulfillment Queue */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="xl:col-span-4 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-4 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="space-y-1 mb-10">
-              <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+            <div className="space-y-1 mb-6 lg:mb-10">
+              <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                 VIP Clients <UserCheck className="text-emerald-500" size={24} />
               </h2>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Top 5 contributeurs</p>
@@ -224,16 +228,16 @@ export default function Dashboard({ changeTab }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="xl:col-span-8 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-8 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6 lg:mb-10">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+                <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                   File d'Attente <Package className="text-primary" size={24} />
                 </h2>
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Commandes à traiter</p>
               </div>
-              <button onClick={() => changeTab?.("Commandes", "delivery")} className="text-xs font-black text-primary hover:underline uppercase tracking-widest">Voir tout</button>
+              <button onClick={() => changeTab?.("Commandes", "delivery")} className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">Voir tout</button>
             </div>
             {loading ? (
               <div className="space-y-4">
@@ -244,18 +248,18 @@ export default function Dashboard({ changeTab }) {
         </div>
 
         {/* Row 3: Top Products & Inventory Alerts */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="xl:col-span-7 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-7 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="flex items-center justify-between mb-10">
-              <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+            <div className="flex items-center justify-between mb-6 lg:mb-10">
+              <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                 Best-Sellers <Star className="text-amber-500" size={24} />
               </h2>
-              <Link to="/products-liste" className="text-xs font-black text-primary hover:underline uppercase tracking-widest">Inventory</Link>
+              <Link to="/products-liste" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">Stock</Link>
             </div>
             <div className="space-y-0 text-slate-900">
               {loading ? (
@@ -270,10 +274,10 @@ export default function Dashboard({ changeTab }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="xl:col-span-5 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-5 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="space-y-1 mb-8">
-              <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+            <div className="space-y-1 mb-6 lg:mb-8">
+              <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
                 Ruptures Proches <AlertCircle className="text-rose-500" size={24} />
               </h2>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Niveaux critiques</p>
@@ -286,48 +290,48 @@ export default function Dashboard({ changeTab }) {
           </motion.div>
         </div>
 
-        {/* row 3.5: Performance Partenaires (NEW Hybrid Marketplace Logic) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        {/* row 3.5: Performance Partenaires */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="xl:col-span-12 bg-white rounded-[2.5rem] border border-gray-100 p-10 shadow-xl shadow-slate-100/50"
+            className="xl:col-span-12 bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-gray-100 p-6 lg:p-10 shadow-xl shadow-slate-100/50"
           >
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
-                  Performance Partenaires <Store className="text-emerald-500" size={24} />
+                <h2 className="text-xl lg:text-2xl font-black text-gray-900 flex items-center gap-3 tracking-tighter">
+                  Performance Marchands <Store className="text-emerald-500" size={24} />
                 </h2>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Classement des vendeurs par chiffre d'affaires</p>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Classement par CA</p>
               </div>
               <button 
                 onClick={() => changeTab?.("Fournisseurs", "suppliersList")} 
-                className="text-xs font-black text-primary hover:underline uppercase tracking-widest"
+                className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest"
               >
-                Gérer les partenaires
+                Gérer les marchands
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
               {data.supplierPerformance?.length > 0 ? data.supplierPerformance.map((sup, idx) => (
-                <div key={idx} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-primary/20 transition-all group">
+                <div key={idx} className="p-4 lg:p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-primary/20 transition-all group">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm font-black text-lg group-hover:scale-110 transition-transform">
-                      {sup.name ? sup.name.charAt(0).toUpperCase() : 'S'}
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm font-black text-base lg:text-lg group-hover:scale-110 transition-transform">
+                      {sup.name ? sup.name.charAt(0).toUpperCase() : 'M'}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-black text-slate-900 truncate">{sup.name || "Partenaire"}</p>
+                      <p className="text-sm font-black text-slate-900 truncate">{sup.name || "Marchand"}</p>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{sup.orders} ventes</p>
                     </div>
                   </div>
                   <div className="pt-4 border-t border-slate-200">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Chiffre d'Affaires</p>
-                    <p className="text-xl font-black text-emerald-600">{Number(sup.revenue).toLocaleString()} F</p>
+                    <p className="text-lg lg:text-xl font-black text-emerald-600">{Number(sup.revenue).toLocaleString()} F</p>
                   </div>
                 </div>
               )) : (
-                <div className="col-span-full py-12 text-center text-slate-400 text-xs font-bold bg-slate-50 rounded-[2.5rem] border border-dashed border-slate-200">
-                  Aucune performance partenaire enregistrée pour cette période.
+                <div className="col-span-full py-12 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                  Aucune performance enregistrée.
                 </div>
               )}
             </div>
@@ -339,26 +343,26 @@ export default function Dashboard({ changeTab }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-10 shadow-2xl overflow-hidden relative"
+          className="bg-slate-900 rounded-[2rem] lg:rounded-[2.5rem] border border-slate-800 p-6 lg:p-10 shadow-2xl overflow-hidden relative"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
           <div className="p-2 border-b border-slate-800 flex items-center justify-between mb-8 relative z-10">
             <div className="space-y-1">
-              <h2 className="text-2xl font-black text-white flex items-center gap-3 tracking-tighter">
+              <h2 className="text-xl lg:text-2xl font-black text-white flex items-center gap-3 tracking-tighter">
                 Dernières Activités <Users className="text-primary" size={24} />
               </h2>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Temps réel</p>
             </div>
-            <button onClick={() => changeTab?.("Commandes", "ordersList")} className="btn btn-primary rounded-xl btn-sm font-black shadow-lg shadow-primary/20 uppercase tracking-widest">Journal complet</button>
+            <button onClick={() => changeTab?.("Commandes", "ordersList")} className="btn btn-primary btn-xs sm:btn-sm rounded-xl font-black shadow-lg shadow-primary/20 uppercase tracking-widest">Journal</button>
           </div>
 
           <div className="relative z-10">
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
-              </div>
-            ) : <RecentOrders orders={recentOrdersFormatted} darkTheme={true} onOrderClick={handleOrderClick} />}
+            {recentOrdersFormatted.length > 0 ? (
+               <RecentOrders orders={recentOrdersFormatted} darkTheme={true} onOrderClick={handleOrderClick} />
+            ) : (
+              <div className="py-20 text-center text-slate-500 text-xs font-bold italic">Aucune commande récente.</div>
+            )}
           </div>
         </motion.div>
 

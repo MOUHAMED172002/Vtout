@@ -60,38 +60,44 @@ export default function ProductsAdmin() {
   }
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-6 lg:space-y-12 animate-in fade-in duration-700 pb-10">
       {/* Header Area */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-8">
         <div className="space-y-2">
-          <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
+          <div className="flex items-center gap-3 text-primary font-black uppercase text-[10px] lg:text-xs tracking-[0.3em]">
             <Package size={14} /> Inventaire
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Produits</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Gérez votre catalogue, mettez à jour les stocks et contrôlez vos prix fournisseurs.</p>
+          <h1 className="text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">
+            Gestion des <span className="text-slate-400">Produits</span>
+          </h1>
+          <p className="text-xs lg:text-base text-slate-500 font-bold max-w-lg">
+            Gérez votre catalogue, mettez à jour les stocks et contrôlez vos prix.
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 lg:gap-4">
+          <div className="flex items-center gap-3 bg-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl border border-slate-100 shadow-sm w-full lg:w-auto">
             <Search size={18} className="text-slate-400" />
             <input
               type="text"
               placeholder="Chercher un produit..."
-              className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-48"
+              className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 flex-1 lg:w-48"
             />
           </div>
-          <button
-            onClick={fetchProducts}
-            className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400"
-          >
-            <RefreshCcw size={18} />
-          </button>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn btn-primary rounded-2xl px-10 h-14 font-black shadow-xl shadow-primary/20 gap-3"
-          >
-            <Plus size={20} /> Ajouter un produit
-          </button>
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <button
+              onClick={fetchProducts}
+              className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400"
+            >
+              <RefreshCcw size={18} />
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex-1 lg:flex-none btn btn-primary rounded-2xl px-6 lg:px-10 h-12 lg:h-14 font-black shadow-xl shadow-primary/20 gap-2 lg:gap-3 text-xs lg:text-sm"
+            >
+              <Plus size={18} /> <span className="truncate">Ajouter un produit</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -88,22 +88,22 @@ const SuppliersManager = () => {
     }
 
     return (
-        <div className="space-y-8 pb-20">
-            <div>
-                <h2 className="text-4xl font-black tracking-tighter text-base-content mb-2">Gestion des Fournisseurs</h2>
-                <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[10px]">Validation et suivi des partenaires</p>
+        <div className="space-y-6 lg:space-y-8 pb-20">
+            <div className="px-2 lg:px-0">
+                <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-base-content mb-1">Gestion des Marchands</h2>
+                <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[9px] lg:text-[10px]">Validation et suivi des partenaires</p>
             </div>
 
-            <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-base-content/5 border border-base-content/10 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-base-content">
+            <div className="bg-base-100 rounded-[2rem] lg:rounded-[40px] shadow-2xl shadow-base-content/5 border border-base-content/10 overflow-hidden mx-2 lg:mx-0">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-base-content min-w-[800px] lg:min-w-0">
                         <thead>
                             <tr className="bg-base-200/50">
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Boutique / Nom</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Localisation</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Contacts</th>
-                                <th className="px-10 py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Statut</th>
-                                <th className="px-10 py-8 text-right text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Actions</th>
+                                <th className="px-6 lg:px-10 py-6 lg:py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Boutique / Nom</th>
+                                <th className="px-6 lg:px-10 py-6 lg:py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Localisation</th>
+                                <th className="px-6 lg:px-10 py-6 lg:py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Contacts</th>
+                                <th className="px-6 lg:px-10 py-6 lg:py-8 text-left text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Statut</th>
+                                <th className="px-6 lg:px-10 py-6 lg:py-8 text-right text-[10px] font-black uppercase tracking-widest text-base-content/50 border-b border-base-content/10">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-base-content/10">

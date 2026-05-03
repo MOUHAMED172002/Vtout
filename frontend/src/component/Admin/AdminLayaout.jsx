@@ -74,10 +74,26 @@ import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 const AdminLayout = () => {
   const [selectedMenu, setSelectedMenu] = useState("Dashboard");
   const [selectedSub, setSelectedSub] = useState("overview");
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile
   const [openMenu, setOpenMenu] = useState("Dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Auto-close sidebar on mobile when menu changes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const menuItems = [
+    // ... (rest of menuItems remains same)
     {
       name: "Dashboard",
       icon: <LayoutDashboard size={18} />,
@@ -212,7 +228,6 @@ const AdminLayout = () => {
           case "usersList": return <UsersAdmin />;
           case "userDetails": return <UserDetailsModal />;
           case "userStatus": return <UserStatusToggle />;
-
           default: return <UsersAdmin />;
         }
       case "Finances":
@@ -245,26 +260,24 @@ const AdminLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
-      {/* Mobile Toggle */}
-      <button
-        onClick={() => setSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-6 right-6 z-[60] p-3 bg-white shadow-xl rounded-2xl text-slate-900"
-      >
-        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 transition-transform duration-300 transform lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 transition-all duration-300 ease-in-out lg:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        }`}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="p-8 flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-              <LayoutDashboard className="text-white" size={20} />
+          <div className="p-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <LayoutDashboard className="text-white" size={20} />
+              </div>
+              <span className="text-xl font-black tracking-tighter text-slate-900">Vtout Admin</span>
             </div>
-            <span className="text-xl font-black tracking-tighter text-slate-900">Vtout Admin</span>
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-400 hover:text-slate-900">
+              <X size={20} />
+            </button>
           </div>
 
           {/* Navigation */}
@@ -273,10 +286,11 @@ const AdminLayout = () => {
               <div key={menu.name} className="mb-2">
                 <button
                   onClick={() => setOpenMenu(openMenu === menu.name ? null : menu.name)}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 group ${selectedMenu === menu.name
-                    ? "bg-indigo-50 text-indigo-600"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 group ${
+                    selectedMenu === menu.name
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className={selectedMenu === menu.name ? "text-indigo-600" : "group-hover:text-slate-900"}>
@@ -298,11 +312,13 @@ const AdminLayout = () => {
                         onClick={() => {
                           setSelectedMenu(menu.name);
                           setSelectedSub(sub.key);
+                          if (window.innerWidth < 1024) setSidebarOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-sm ${selectedSub === sub.key
-                          ? "text-indigo-600 font-black bg-indigo-50/50"
-                          : "text-slate-500 font-bold hover:text-slate-900 hover:bg-slate-50/50"
-                          }`}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-sm ${
+                          selectedSub === sub.key
+                            ? "text-indigo-600 font-black bg-indigo-50/50"
+                            : "text-slate-500 font-bold hover:text-slate-900 hover:bg-slate-50/50"
+                        }`}
                       >
                         {sub.icon}
                         {sub.name}
@@ -328,38 +344,64 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "lg:ml-72" : ""}`}>
+      <main className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? "lg:ml-72" : ""}`}>
         {/* Top Header */}
-        <header className="h-24 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-40">
-          <div>
-            <h2 className="text-2xl font-black tracking-tighter text-slate-900">
-              {selectedMenu}
-              <span className="mx-2 text-slate-300 text-lg">/</span>
-              <span className="text-indigo-600">
-                {menuItems.find(m => m.name === selectedMenu)?.subItems.find(s => s.key === selectedSub)?.name || selectedSub}
-              </span>
-            </h2>
+        <header className="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className={`lg:hidden p-2 bg-slate-50 text-slate-900 rounded-xl transition-opacity ${isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="hidden sm:block">
+              <h2 className="text-lg lg:text-2xl font-black tracking-tighter text-slate-900 flex items-center">
+                <span className="hidden md:inline">{selectedMenu}</span>
+                <span className="mx-2 text-slate-300 text-lg hidden md:inline">/</span>
+                <span className="text-indigo-600 truncate max-w-[150px] lg:max-w-none">
+                  {menuItems.find(m => m.name === selectedMenu)?.subItems.find(s => s.key === selectedSub)?.name || selectedSub}
+                </span>
+              </h2>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center bg-slate-50 rounded-2xl px-4 py-2 border border-slate-100">
-              <Search size={18} className="text-slate-400" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                className="bg-transparent border-none focus:ring-0 text-sm font-medium w-48 placeholder:text-slate-400"
-              />
-            </div>
-            <button className="relative p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
-              <Bell size={20} />
-              <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900 leading-none">Admin Vtout</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Super Administrateur</p>
+          <div className="flex items-center gap-2 lg:gap-6">
+            {/* Search Bar - More intuitive and responsive */}
+            <div className="relative group flex items-center">
+              <div className={`flex items-center bg-slate-50 rounded-2xl transition-all duration-300 border border-slate-100 ${
+                searchQuery ? 'w-48 lg:w-72 border-indigo-200 bg-white ring-4 ring-indigo-50' : 'w-10 lg:w-64'
+              }`}>
+                <div className="p-2.5 lg:px-4 lg:py-2 text-slate-400">
+                   <Search size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher..."
+                  className={`bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-slate-400 transition-all ${
+                    searchQuery ? 'opacity-100 w-full' : 'opacity-0 w-0 lg:opacity-100 lg:w-full'
+                  }`}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="p-2 text-slate-400 hover:text-slate-900">
+                    <X size={14} />
+                  </button>
+                )}
               </div>
-              <div className="w-12 h-12 bg-slate-100 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+            </div>
+
+            <button className="relative p-2.5 lg:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
+              <Bell size={20} />
+              <span className="absolute top-2.5 right-2.5 lg:top-3 lg:right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+            </button>
+
+            <div className="flex items-center gap-3 pl-2 lg:pl-4 border-l border-slate-100">
+              <div className="text-right hidden xl:block">
+                <p className="text-sm font-black text-slate-900 leading-none">Admin Vtout</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Super Admin</p>
+              </div>
+              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-slate-100 rounded-2xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
                 <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
               </div>
             </div>
@@ -367,7 +409,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Dynamic Content */}
-        <div className="p-8">
+        <div className="p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
@@ -378,7 +420,7 @@ const AdminLayout = () => {
       {isSidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
         ></div>
       )}
     </div>
