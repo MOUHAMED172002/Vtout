@@ -133,31 +133,31 @@ const GeographyManager = () => {
                     </div>
                 </div>
 
-                {/* Search + Add buttons */}
-                <div className="flex flex-col gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Rechercher une zone..."
-                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 border border-slate-100"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                        />
-                        {searchQuery && (
-                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                    <button
-                        onClick={(e) => openAddModal('department', null, e)}
-                        className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all"
-                    >
-                        <Plus size={16} />
-                        Nouveau Département
-                    </button>
+                {/* Search bar */}
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Rechercher une zone..."
+                        className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 border border-slate-100"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <X size={14} />
+                        </button>
+                    )}
                 </div>
+
+                {/* Add department button — full width, separate row */}
+                <button
+                    onClick={(e) => openAddModal('department', null, e)}
+                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all"
+                >
+                    <Plus size={16} />
+                    Nouveau Département
+                </button>
             </div>
 
             {/* ─── HIERARCHY ───────────────────────────────────────── */}
