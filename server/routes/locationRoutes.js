@@ -36,9 +36,26 @@ router.get('/hierarchy', async (req, res) => {
 // Emergency trigger to import geographic data
 router.get('/seed-data', async (req, res) => {
     try {
-        const jsonPath = path.join(__dirname, '../../frontend/src/data/decoupage-territorial-benin.json');
-        if (!fs.existsSync(jsonPath)) {
-            return res.status(404).json({ error: "Fichier JSON introuvable" });
+        // Try multiple paths to be safe on production
+        const paths = [
+            path.join(__dirname, '../data/decoupage-territorial-benin.json'),
+            path.join(process.cwd(), 'data/decoupage-territorial-benin.json'),
+            path.join(process.cwd(), 'server/data/decoupage-territorial-benin.json')
+        ];
+        
+        let jsonPath = null;
+        for (const p of paths) {
+            if (fs.existsSync(p)) {
+                jsonPath = p;
+                break;
+            }
+        }
+
+        if (!jsonPath) {
+            return res.status(404).json({ 
+                error: "Fichier JSON introuvable", 
+                tried_paths: paths 
+            });
         }
         
         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
