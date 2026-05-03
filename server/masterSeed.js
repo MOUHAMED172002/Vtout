@@ -8,6 +8,7 @@ import {
 } from './models/index.js';
 import { seedConfigs } from './seedConfigs.js';
 import seedBlogs from './seedBlogs.js';
+import { runComprehensiveSeed } from './comprehensiveSeed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,10 @@ export async function runMasterSeed() {
         // 1. Configs & Branding
         await seedConfigs();
 
-        // 2. Categories (via SQL)
+        // 1.5 Comprehensive Catalog Seed
+        await runComprehensiveSeed();
+
+        // 2. Categories (via SQL - Optional if comprehensive seed covers it)
         const sqlPath = path.join(__dirname, 'import_categories.sql');
         if (fs.existsSync(sqlPath)) {
             console.log('🌱 [SEED] Loading Categories...');
