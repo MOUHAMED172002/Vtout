@@ -20,14 +20,14 @@ export default function SupplierLanding() {
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">Partenaires</span>
                     </div>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex p-4 gap-4">
                     <SignedIn>
                         <button onClick={() => navigate('/dashboard')} className="btn btn-primary rounded-full px-8 text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20">
                             Mon Espace
                         </button>
                     </SignedIn>
                     <SignedOut>
-                        <div className="flex gap-3">
+                        <div className="flex p-4 gap-3">
                             <button onClick={() => navigate('/connexion')} className="btn btn-ghost rounded-full px-6 text-xs font-black uppercase tracking-widest border border-slate-200">
                                 Se Connecter
                             </button>

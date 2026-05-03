@@ -1,7 +1,13 @@
 
 import { io } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+let SOCKET_URL = "http://localhost:3000";
+try {
+    SOCKET_URL = new URL(API_URL).origin;
+} catch (e) {
+    SOCKET_URL = API_URL.replace(/\/api\/?$/, '');
+}
 
 class NotificationService {
     constructor() {
