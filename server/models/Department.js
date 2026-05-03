@@ -4,7 +4,8 @@ import sequelize from '../config/database.js';
 const Department = sequelize.define('Department', {
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true
     },
     name: {
         type: DataTypes.STRING(100),

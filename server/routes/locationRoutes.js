@@ -87,21 +87,34 @@ router.post('/', authMiddleware, requireAdmin, async (req, res) => {
     const { type, parentId, name, id } = req.body;
     try {
         let result;
+        const data = { name };
+        if (id) data.id = id;
+
+        let model;
         switch (type) {
             case 'department':
-                result = await Department.upsert({ id, name });
+                model = Department;
                 break;
             case 'commune':
-                result = await Commune.upsert({ id, department_id: parentId, name });
+                model = Commune;
+                data.department_id = parentId;
                 break;
             case 'arrondissement':
-                result = await Arrondissement.upsert({ id, commune_id: parentId, name });
+                model = Arrondissement;
+                data.commune_id = parentId;
                 break;
             case 'quartier':
-                result = await Quartier.upsert({ id, arrondissement_id: parentId, name });
+                model = Quartier;
+                data.arrondissement_id = parentId;
                 break;
             default:
                 return res.status(400).json({ message: 'Invalid level type' });
+        }
+
+        if (id) {
+            result = await model.upsert(data);
+        } else {
+            result = await model.create(data);
         }
         res.json({ success: true, data: result });
     } catch (error) {

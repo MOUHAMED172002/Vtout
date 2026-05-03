@@ -334,13 +334,12 @@ const GeographyManager = () => {
 
                                 <form onSubmit={handleUpsert} className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 ml-4">Identifiant (Numérique)</label>
+                                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400 ml-4">Identifiant (Optionnel)</label>
                                         <input 
                                             type="number"
-                                            required
                                             disabled={modalMode === 'edit'}
                                             className="w-full px-8 py-4 bg-slate-50 border-none rounded-3xl text-sm font-black text-slate-800 placeholder-slate-300 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner disabled:opacity-50"
-                                            placeholder="Ex: 919"
+                                            placeholder="Généré automatiquement si vide"
                                             value={formData.id}
                                             onChange={e => setFormData({ ...formData, id: e.target.value })}
                                         />

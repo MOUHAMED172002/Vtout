@@ -4,7 +4,8 @@ import sequelize from '../config/database.js';
 const Quartier = sequelize.define('Quartier', {
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true
     },
     arrondissement_id: {
         type: DataTypes.INTEGER,
