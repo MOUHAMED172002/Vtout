@@ -353,6 +353,19 @@ sequelize.authenticate()
         console.log(">>> [BOOT] Syncing database...");
         await sequelize.sync({ alter: true });
         console.log("✅ [BOOT] Database synced.");
+
+        // Migration forcée pour Better Auth (emailVerified)
+        try {
+            const [columns] = await sequelize.query("SHOW COLUMNS FROM `user` LIKE 'emailVerified'");
+            if (columns.length === 0) {
+                console.log("⚠️ [FIX] Colonne 'emailVerified' manquante. Tentative d'ajout manuel...");
+                await sequelize.query("ALTER TABLE `user` ADD COLUMN `emailVerified` TINYINT(1) DEFAULT 0 AFTER `email` ");
+                console.log("✅ [FIX] Colonne 'emailVerified' ajoutée avec succès.");
+            }
+        } catch (fixErr) {
+            console.warn("⚠️ [FIX] Échec de l'ajout manuel de 'emailVerified' (déjà existante ou erreur permission):", fixErr.message);
+        }
+
         await runMasterSeed();
         // Optional: seedBlogs(); 
     })
