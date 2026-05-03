@@ -11,6 +11,7 @@ import { useAuth } from '../clerk-shim';
 
 import {
   getCategories,
+  createCategory,
   getAttributes,
   getAttributesByCategory,
   createAttribute,
@@ -19,7 +20,7 @@ import {
   getProducts,
   updateProduct
 } from '../../services/productService';
-import { getSuppliers } from '../../services/supplierService';
+import { getSuppliers, createSupplier } from '../../services/supplierService';
 import { uploadSingleImage } from '../../services/uploadService';
 import CategorySearchModal from './CategorySearchModal';
 import CustomSelect from '../Shared/CustomSelect';
@@ -131,12 +132,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     }
   });
 
-  const productName = watch('name');
-  const catId = watch('category_id');
-
-  const productName = watch('name');
-  const catId = watch('category_id');
-
   const variants = watch('variants');
 
   const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
@@ -145,7 +140,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   });
 
   const selectedCategoryId = watch('category_id');
-  const variants = watch('variants');
 
   useEffect(() => {
     const fetchAllAttrs = async () => {

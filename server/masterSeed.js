@@ -35,7 +35,7 @@ export async function runMasterSeed() {
         console.log('🌱 [SEED] Initializing Contracts...');
         const policies = [
             { type: 'general', title: 'Conditions Générales de Vente (CGV)', content: 'CGV Vtout Bénin...' },
-            { type: 'supplier', title: 'Contrat Partenaire Fournisseur', content: 'Contrat Fournisseur...' },
+            { type: 'supplier', title: 'Accord Marchand Vtout', content: 'Accord de vente marchand...' },
             { type: 'delivery', title: 'Contrat Prestataire de Livraison', content: 'Contrat Livreur...' }
         ];
         for (const p of policies) {

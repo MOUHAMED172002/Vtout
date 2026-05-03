@@ -129,6 +129,7 @@ const isAllowedOrigin = (origin) => {
         const hostname = url.hostname;
         const port = parseInt(url.port, 10);
 
+        // Autoriser localhost et IPs privées pour le dev
         if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
 
         const isPrivateIP =
@@ -138,8 +139,15 @@ const isAllowedOrigin = (origin) => {
 
         if (isPrivateIP && DEV_PORTS.includes(port)) return true;
 
-        const explicit = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim());
-        return explicit.includes(origin);
+        // Autoriser tous les sous-domaines de vtout.com en production
+        if (hostname.endsWith('.vtout.com') || hostname === 'vtout.com') return true;
+
+        // Liste explicite depuis .env
+        const explicit = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+        const extra = (process.env.EXTRA_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+        const allAllowed = [...explicit, ...extra];
+        
+        return allAllowed.includes(origin);
     } catch {
         return false;
     }
@@ -215,6 +223,7 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/configs", configRoutes);
+app.use("/api/config", configRoutes);
 app.use("/api/locations", locationRoutes);
 
 
