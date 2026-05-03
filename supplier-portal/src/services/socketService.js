@@ -1,7 +1,12 @@
 import { io } from "socket.io-client";
 
 let API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const SOCKET_URL = API_URL.endsWith("/api") ? API_URL.slice(0, -4) : API_URL;
+let SOCKET_URL = "http://localhost:3000";
+try {
+    SOCKET_URL = new URL(API_URL).origin;
+} catch (e) {
+    SOCKET_URL = API_URL.replace(/\/api\/?$/, '');
+}
 
 let socket;
 
