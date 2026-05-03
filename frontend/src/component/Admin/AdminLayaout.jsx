@@ -70,6 +70,7 @@ import InvoiceButton from "./Order/InvoiceButton";
 import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AdminLayout = () => {
   const [selectedMenu, setSelectedMenu] = useState("Dashboard");
@@ -77,6 +78,7 @@ const AdminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile
   const [openMenu, setOpenMenu] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   // Auto-close sidebar on mobile when menu changes
   useEffect(() => {
@@ -366,7 +368,7 @@ const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-2 lg:gap-6">
-            {/* Search Bar - More intuitive and responsive */}
+            {/* Search Bar - Desktop */}
             <div className="flex-1 max-w-md hidden sm:block">
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
@@ -374,27 +376,50 @@ const AdminLayout = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher partout (⌘K)..."
-                  className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
+                  placeholder="Rechercher partout..."
+                  className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-base font-medium placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  {searchQuery ? (
-                    <button onClick={() => setSearchQuery("")} className="p-1 hover:bg-slate-100 rounded-md text-slate-400">
-                      <X size={14} />
-                    </button>
-                  ) : (
-                    <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border border-slate-200 bg-white px-1.5 font-sans text-[10px] font-medium text-slate-400">
-                      ⌘K
-                    </kbd>
-                  )}
-                </div>
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-md text-slate-400">
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Mobile Search Trigger */}
-            <button className="sm:hidden p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600">
-              <Search size={20} />
-            </button>
+            {/* Mobile Search - Intuitive Overlay */}
+            <div className="sm:hidden">
+              <button 
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600"
+              >
+                <Search size={20} />
+              </button>
+              
+              <AnimatePresence>
+                {isMobileSearchOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="fixed inset-x-0 top-0 h-20 bg-white z-[60] flex items-center px-4 gap-4 shadow-xl"
+                  >
+                    <Search className="text-indigo-600" size={20} />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Rechercher..."
+                      className="flex-1 bg-transparent border-none text-base font-bold text-slate-900 focus:ring-0"
+                    />
+                    <button onClick={() => setIsMobileSearchOpen(false)} className="p-2 text-slate-400">
+                      <X size={24} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <button className="relative p-2.5 lg:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
               <Bell size={20} />
