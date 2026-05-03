@@ -34,7 +34,7 @@ router.get('/hierarchy', async (req, res) => {
 });
 
 // Emergency trigger to import geographic data
-router.get('/seed-data', async (req, res) => {
+router.get('/seed-data', requireAuth, requireAdmin, async (req, res) => {
     try {
         // Try multiple paths to be safe on production
         const paths = [

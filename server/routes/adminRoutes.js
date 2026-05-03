@@ -10,6 +10,6 @@ router.get('/disputes', requireAuth, requireAdmin, disputeController.getAllDispu
 router.patch('/disputes/:id', requireAuth, requireAdmin, disputeController.updateDisputeStatus);
 
 // Maintenance / Sync - Temporairement public pour débloquer le terminal
-router.get('/sync-financials', financialController.adminSyncFinancials);
+router.get('/sync-financials', requireAuth, requireAdmin, financialController.adminSyncFinancials);
 
 export default router;

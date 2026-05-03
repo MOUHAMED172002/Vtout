@@ -282,7 +282,16 @@ const AppContent = ({ products, loading }) => {
           <Route path="/admin/Dashboard/*" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/order-confirmation/:orderId" element={<PageWrapper><><Navbar /><GuestOrderConfirmationPage /><Footer /></></PageWrapper>} />
           <Route path="/orders" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/orders/:id" element={<PageWrapper><OrderDetail /></PageWrapper>} />
+          <Route path="/orders/:id" element={
+            <PageWrapper>
+              <SignedIn>
+                <OrderDetail />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/auth/connexion" replace />
+              </SignedOut>
+            </PageWrapper>
+          } />
 
           {/* Catch-all 404 */}
           <Route path="*" element={<PageWrapper><NotFoundPage /></PageWrapper>} />
