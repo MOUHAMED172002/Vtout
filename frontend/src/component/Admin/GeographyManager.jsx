@@ -58,12 +58,14 @@ const GeographyManager = () => {
     const handleUpsert = async (e) => {
         e.preventDefault();
         try {
-            await upsertLocation({
+            const payload = {
                 type: targetItem.type,
                 parentId: targetItem.parentId,
-                name: formData.name,
-                id: formData.id
-            });
+                name: formData.name
+            };
+            if (formData.id) payload.id = formData.id;
+
+            await upsertLocation(payload);
             toast.success("Enregistré avec succès");
             setShowModal(false);
             fetchHierarchy();
@@ -128,55 +130,55 @@ const GeographyManager = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-20">
+        <div className="max-w-6xl mx-auto space-y-4 md:space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-100">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
-                        <MapPin size={28} />
+                    <div className="w-12 h-12 md:w-14 md:h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
+                        <MapPin size={24} className="md:size-28" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Gestion Géographique</h1>
-                        <p className="text-sm font-bold text-slate-400">Gérez les départements, communes et quartiers du Bénin</p>
+                        <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Géographie</h1>
+                        <p className="text-xs md:text-sm font-bold text-slate-400">Découpage territorial du Bénin</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input 
                             type="text" 
-                            placeholder="Rechercher une ville..."
-                            className="pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-600 w-64 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
+                            placeholder="Rechercher..."
+                            className="pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-600 w-full lg:w-64 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                     <button 
                         onClick={() => openAddModal('department')}
-                        className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                        className="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all text-sm md:text-base"
                     >
                         <Plus size={18} />
-                        Département
+                        <span className="whitespace-nowrap">Département</span>
                     </button>
                 </div>
             </header>
 
             {/* Hierarchy View */}
-            <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/30">
-                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
+            <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 md:p-8 border-b border-slate-50 bg-slate-50/30">
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">
                         <Globe size={14} /> Hiérarchie Territoriale
                     </div>
                 </div>
 
-                <div className="p-8 space-y-4 max-h-[1000px] overflow-y-auto custom-scrollbar">
+                <div className="p-4 md:p-8 space-y-3 md:space-y-4 max-h-[1000px] overflow-y-auto custom-scrollbar">
                     {hierarchy.map(dep => (
                         <div key={dep.id} className="group">
                             <div 
                                 onClick={() => toggle(dep.id, expandedDeps, setExpandedDeps)}
-                                className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all ${expandedDeps.has(dep.id) ? 'bg-indigo-50 border-indigo-100 shadow-sm' : 'hover:bg-slate-50 border-transparent'} border`}
+                                className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl cursor-pointer transition-all ${expandedDeps.has(dep.id) ? 'bg-indigo-50 border-indigo-100 shadow-sm' : 'hover:bg-slate-50 border-transparent'} border gap-4`}
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 md:gap-4">
                                     <div className={`transition-transform duration-200 ${expandedDeps.has(dep.id) ? 'rotate-90' : ''}`}>
                                         <ChevronRight size={18} className="text-slate-400" />
                                     </div>
@@ -187,19 +189,21 @@ const GeographyManager = () => {
                                         {dep.name}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-[10px] font-black px-2 py-1 bg-white/50 rounded-full text-slate-400 border border-slate-100">
+                                <div className="flex items-center justify-between sm:justify-end gap-4 pl-8 sm:pl-0">
+                                    <span className="text-[9px] md:text-[10px] font-black px-2 py-1 bg-white/50 rounded-full text-slate-400 border border-slate-100">
                                         {dep.communes?.length || 0} communes
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); openAddModal('commune', dep.id); }}
-                                            className="p-1.5 hover:bg-indigo-200 text-indigo-600 rounded-lg transition-colors"
+                                            className="p-2 bg-indigo-100 text-indigo-600 rounded-lg transition-colors"
                                             title="Ajouter une commune"
                                         >
                                             <Plus size={14} />
                                         </button>
-                                        <ActionButtons type="department" id={dep.id} item={dep} />
+                                        <div className="lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                            <ActionButtons type="department" id={dep.id} item={dep} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -211,13 +215,13 @@ const GeographyManager = () => {
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        className="ml-12 mt-2 space-y-2 border-l-2 border-slate-100 pl-4"
+                                        className="ml-4 md:ml-12 mt-2 space-y-2 border-l-2 border-slate-100 pl-4"
                                     >
                                         {dep.communes?.map(com => (
                                             <div key={com.id} className="group/com">
                                                 <div 
                                                     onClick={() => toggle(com.id, expandedComs, setExpandedComs)}
-                                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all"
+                                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all gap-2"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`transition-transform duration-200 ${expandedComs.has(com.id) ? 'rotate-90' : ''}`}>
@@ -227,58 +231,62 @@ const GeographyManager = () => {
                                                             {com.name}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-[10px] font-bold text-slate-400">
+                                                    <div className="flex items-center justify-between sm:justify-end gap-3 pl-7 sm:pl-0">
+                                                        <span className="text-[9px] md:text-[10px] font-bold text-slate-400">
                                                             {com.arrondissements?.length || 0} arronds.
                                                         </span>
                                                         <div className="flex items-center gap-2">
                                                             <button 
                                                                 onClick={(e) => { e.stopPropagation(); openAddModal('arrondissement', com.id); }}
-                                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                                className="p-1.5 bg-slate-100 text-slate-400 hover:text-primary transition-colors rounded-md"
                                                             >
                                                                 <Plus size={12} />
                                                             </button>
-                                                            <ActionButtons type="commune" id={com.id} item={com} parentId={dep.id} />
+                                                            <div className="lg:opacity-0 lg:group-hover/com:opacity-100 transition-opacity flex items-center gap-2">
+                                                                <ActionButtons type="commune" id={com.id} item={com} parentId={dep.id} />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Arrondissements Level */}
                                                 {expandedComs.has(com.id) && (
-                                                    <div className="ml-10 mt-1 space-y-1 border-l-2 border-slate-50 pl-3">
+                                                    <div className="ml-4 md:ml-10 mt-1 space-y-1 border-l-2 border-slate-50 pl-3">
                                                         {com.arrondissements?.map(arr => (
                                                             <div key={arr.id} className="group/arr">
                                                                 <div 
                                                                     onClick={() => toggle(arr.id, expandedArronds, setExpandedArronds)}
-                                                                    className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer text-[11px]"
+                                                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer text-[11px] gap-2"
                                                                 >
                                                                     <div className="flex items-center gap-2 text-slate-500 font-bold">
                                                                         <ChevronRight size={14} className={expandedArronds.has(arr.id) ? 'rotate-90  text-primary' : ''} />
                                                                         {arr.name}
                                                                     </div>
-                                                                    <div className="flex items-center gap-2">
+                                                                    <div className="flex items-center justify-between sm:justify-end gap-2 pl-6 sm:pl-0">
                                                                         <button 
                                                                             onClick={(e) => { e.stopPropagation(); openAddModal('quartier', arr.id); }}
                                                                             className="p-1 text-slate-300 hover:text-primary"
                                                                         >
                                                                             <Plus size={10} />
                                                                         </button>
-                                                                        <ActionButtons type="arrondissement" id={arr.id} item={arr} parentId={com.id} />
+                                                                        <div className="lg:opacity-0 lg:group-hover/arr:opacity-100 transition-opacity flex items-center gap-2">
+                                                                            <ActionButtons type="arrondissement" id={arr.id} item={arr} parentId={com.id} />
+                                                                        </div>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* Quartiers Level */}
                                                                 {expandedArronds.has(arr.id) && (
-                                                                    <div className="ml-8 mt-1 grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100/50">
+                                                                    <div className="ml-4 md:ml-8 mt-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100/50">
                                                                         {arr.quartiers?.map(q => (
                                                                             <div key={q.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-slate-100 group/q hover:shadow-sm transition-all">
                                                                                 <div className="flex items-center gap-2 truncate">
                                                                                     <Home size={10} className="text-slate-300" />
                                                                                     <span className="text-[10px] font-bold text-slate-600 truncate">{q.name}</span>
                                                                                 </div>
-                                                                                <div className="flex gap-1 opacity-0 group-hover/q:opacity-100">
-                                                                                    <button onClick={() => openEditModal('quartier', arr.id, q)} className="text-blue-400 hover:text-blue-600"><Edit size={10} /></button>
-                                                                                    <button onClick={() => handleDelete('quartier', q.id)} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                                                                                <div className="flex gap-1 lg:opacity-0 lg:group-hover/q:opacity-100 transition-opacity">
+                                                                                    <button onClick={() => openEditModal('quartier', arr.id, q)} className="text-blue-400 hover:text-blue-600 p-1"><Edit size={10} /></button>
+                                                                                    <button onClick={() => handleDelete('quartier', q.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={10} /></button>
                                                                                 </div>
                                                                             </div>
                                                                         ))}

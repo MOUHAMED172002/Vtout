@@ -34,7 +34,7 @@ router.get('/hierarchy', async (req, res) => {
 });
 
 // Emergency trigger to import geographic data
-router.get('/seed-data', requireAuth, requireAdmin, async (req, res) => {
+router.get('/seed-data', authMiddleware, requireAuth, requireAdmin, async (req, res) => {
     try {
         // Try multiple paths to be safe on production
         const paths = [
@@ -83,7 +83,7 @@ router.get('/seed-data', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin: Add or update location
-router.post('/', authMiddleware, requireAdmin, async (req, res) => {
+router.post('/', authMiddleware, requireAuth, requireAdmin, async (req, res) => {
     const { type, parentId, name, id } = req.body;
     try {
         let result;
