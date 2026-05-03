@@ -14,6 +14,7 @@ router.get('/faqs', contentController.getAllFaqs);
 router.get('/policies', contentController.getAllPolicies);
 router.get('/cgv', contentController.getCGV);
 router.get('/platform-reviews', contentController.getAllPlatformReviews);
+router.post('/newsletter', contentController.subscribeNewsletter);
 
 // Admin routes
 router.post('/faqs', requireAdmin, contentController.createFaq);

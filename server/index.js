@@ -370,16 +370,20 @@ sequelize.authenticate()
         console.log(">>> [BOOT] Syncing database...");
         
         try {
-            await sequelize.sync({ alter: true });
-            console.log("✅ [BOOT] Database synced.");
+            // En production, on désactive alter:true par défaut pour éviter de corrompre les index
+            // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
+            const syncOptions = isProd ? { alter: false } : { alter: true };
+            await sequelize.sync(syncOptions);
+            console.log(`✅ [BOOT] Database synced (${isProd ? 'Safe Mode' : 'Alter Mode'}).`);
         } catch (syncError) {
             console.error("❌ [BOOT] Global sync failed:", syncError.message);
-            console.warn("⚠️ [BOOT] Attempting granular sync...");
+            console.warn("⚠️ [BOOT] Attempting granular safe sync...");
             
-            // Try syncing models one by one to isolate the error and allow others to work
             for (const modelName of Object.keys(sequelize.models)) {
                 try {
-                    await sequelize.models[modelName].sync({ alter: true });
+                    // On force le mode sans alter pour tous les modèles en cas d'échec global
+                    await sequelize.models[modelName].sync({ alter: false });
+                    console.log(`  - ${modelName}: Synced (Safe)`);
                 } catch (modelError) {
                     console.error(`❌ [BOOT] Granular sync failed for ${modelName}:`, modelError.message);
                 }

@@ -1,4 +1,4 @@
-import { Faq, Policy, PlatformReview, Profile } from '../models/index.js';
+import { Faq, Policy, PlatformReview, Profile, Newsletter } from '../models/index.js';
 import { v4 as  uuidv4 } from 'uuid';
 
 
@@ -108,6 +108,22 @@ export const getCGV = async (req, res) => {
     try {
         const cgv = await Policy.findOne({ where: { type: 'cgv' } });
         res.json(cgv);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const subscribeNewsletter = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email requis' });
+        
+        await Newsletter.findOrCreate({
+            where: { email },
+            defaults: { email }
+        });
+        
+        res.status(201).json({ message: 'Inscription réussie' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

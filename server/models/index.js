@@ -36,6 +36,7 @@ import Quartier from './Quartier.js';
 import Notification from './Notification.js';
 import Blog from './Blog.js';
 import Otp from './Otp.js';
+import Newsletter from './Newsletter.js';
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -297,5 +298,6 @@ export {
     User,
     Session,
     Account,
-    Verification
+    Verification,
+    Newsletter
 };

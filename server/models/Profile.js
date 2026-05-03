@@ -48,8 +48,7 @@ const Profile = sequelize.define('Profile', {
         type: DataTypes.STRING(10)
     },
     clerk_id: {
-        type: DataTypes.STRING,
-        unique: true
+        type: DataTypes.STRING
     },
     password_reset_token: {
         type: DataTypes.STRING

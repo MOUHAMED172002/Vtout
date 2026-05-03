@@ -1,10 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import Blogs from './Blogs';
 import { motion } from 'framer-motion';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const MagPage = () => {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) return toast.error("Veuillez entrer une adresse email");
+    
+    setLoading(true);
+    try {
+      await api.post('/content/newsletter', { email });
+      toast.success("Merci ! Vous êtes bien inscrit à la newsletter.");
+      setEmail('');
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -44,16 +65,24 @@ const MagPage = () => {
             <p className="text-indigo-100 font-medium text-lg max-w-xl mx-auto">
               Inscrivez-vous à notre newsletter pour recevoir les meilleurs articles directement dans votre boîte mail.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-4">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto pt-4">
               <input 
                 type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Votre adresse email..." 
-                className="w-full h-14 bg-white/10 border border-white/20 rounded-2xl px-6 text-white placeholder:text-indigo-200 outline-none focus:bg-white/20 transition-all"
+                disabled={loading}
+                className="w-full h-14 bg-white/10 border border-white/20 rounded-2xl px-6 text-white placeholder:text-indigo-200 outline-none focus:bg-white/20 transition-all disabled:opacity-50"
+                required
               />
-              <button className="w-full sm:w-auto h-14 bg-white text-indigo-600 px-10 rounded-2xl font-black text-sm hover:bg-orange-500 hover:text-white transition-all shadow-xl">
-                S'abonner
+              <button 
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto h-14 bg-white text-indigo-600 px-10 rounded-2xl font-black text-sm hover:bg-orange-500 hover:text-white transition-all shadow-xl disabled:opacity-50"
+              >
+                {loading ? 'Inscription...' : "S'abonner"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
