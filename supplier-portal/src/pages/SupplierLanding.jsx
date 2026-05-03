@@ -31,9 +31,7 @@ export default function SupplierLanding() {
                             <button onClick={() => navigate('/connexion')} className="btn btn-ghost rounded-full px-6 text-xs font-black uppercase tracking-widest border border-slate-200">
                                 Se Connecter
                             </button>
-                            <button onClick={() => navigate('/inscription')} className="btn btn-primary rounded-full px-8 text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20">
-                                S'inscrire
-                            </button>
+
                         </div>
                     </SignedOut>
                 </div>

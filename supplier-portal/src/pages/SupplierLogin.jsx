@@ -10,14 +10,34 @@ export default function SupplierLogin() {
     const { isLoaded, isSignedIn } = useAuth();
     const navigate = useNavigate();
 
-    const [email, setEmail]       = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPass, setShowPass] = useState(false);
-    const [loading, setLoading]   = useState(false);
+    const [loading, setLoading] = useState(false);
     const [forgotMode, setForgotMode] = useState(false);
     const [whatsappMode, setWhatsappMode] = useState('none'); // 'none', 'request', 'verify'
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
+
+    // --- Persistance pour mobile ---
+    useEffect(() => {
+        const saved = sessionStorage.getItem('vtout_supplier_auth');
+        if (saved) {
+            try {
+                const { mode, ph } = JSON.parse(saved);
+                if (mode) setWhatsappMode(mode);
+                if (ph) setPhone(ph);
+            } catch (e) {}
+        }
+    }, []);
+
+    useEffect(() => {
+        if (whatsappMode !== 'none') {
+            sessionStorage.setItem('vtout_supplier_auth', JSON.stringify({ mode: whatsappMode, ph: phone }));
+        } else {
+            sessionStorage.removeItem('vtout_supplier_auth');
+        }
+    }, [whatsappMode, phone]);
 
     useEffect(() => {
         if (isLoaded && isSignedIn) navigate('/dashboard', { replace: true });
@@ -84,7 +104,23 @@ export default function SupplierLogin() {
         if (otp.length !== 6) return toast.error('Le code doit contenir 6 chiffres');
         setLoading(true);
         try {
+            // 1. Vérifier le code
             await api.post('/auth/whatsapp/verify-code', { phone, code: otp, role: 'fournisseur' });
+            
+            // 2. Connecter via Better Auth (utilise le format standardisé par vtout)
+            const fakeEmail = `${phone.replace(/\D/g, '')}@whatsapp.vtout.com`;
+            // On tente de se connecter (le mot de passe est par défaut le numéro si créé via WhatsApp)
+            const authRes = await authClient.signIn.email({ 
+                email: fakeEmail, 
+                password: phone.replace(/\D/g, '') 
+            });
+
+            if (authRes.error) {
+                toast.error(authRes.error.message || "Erreur de connexion");
+                setLoading(false);
+                return;
+            }
+
             toast.success('Connexion réussie !');
             window.location.href = '/dashboard';
         } catch (err) {
@@ -98,7 +134,7 @@ export default function SupplierLogin() {
         <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
             {/* Design elements from main AuthUI */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 opacity-10"></div>
-            
+
             {/* Header */}
             <header className="px-8 py-6 flex items-center justify-between relative z-10">
                 <Link to="/" className="flex items-center gap-3 group">
@@ -111,7 +147,7 @@ export default function SupplierLogin() {
                     </div>
                 </Link>
                 <Link to="/inscription" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-slate-100">
-                    Pas de compte ? S'inscrire →
+                    S'inscrire →
                 </Link>
             </header>
 
@@ -119,7 +155,7 @@ export default function SupplierLogin() {
                 <div className="w-full max-w-md relative">
                     {/* Skewed background effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-[3rem] opacity-20"></div>
-                    
+
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -260,7 +296,7 @@ export default function SupplierLogin() {
                                 </div>
                             </>
                         )}
-                        
+
                         <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Sécurisé par Vtout Encryption</p>
                     </motion.div>
                 </div>

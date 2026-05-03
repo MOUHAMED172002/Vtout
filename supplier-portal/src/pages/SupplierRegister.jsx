@@ -33,6 +33,25 @@ export default function SupplierRegister() {
     });
     const [errors, setErrors] = useState({});
 
+    // --- Persistance pour mobile ---
+    useEffect(() => {
+        const saved = sessionStorage.getItem('vtout_supplier_reg_state');
+        if (saved) {
+            try {
+                const { st, mode, ph, f } = JSON.parse(saved);
+                if (st) setStep(st);
+                if (mode) setWhatsappMode(mode);
+                if (ph) setPhone(ph);
+                if (f) setForm(prev => ({ ...prev, ...f }));
+            } catch (e) {}
+        }
+    }, []);
+
+    useEffect(() => {
+        const state = { st: step, mode: whatsappMode, ph: phone, f: form };
+        sessionStorage.setItem('vtout_supplier_reg_state', JSON.stringify(state));
+    }, [step, whatsappMode, phone, form]);
+
     useEffect(() => {
         if (isLoaded && isSignedIn) navigate('/dashboard', { replace: true });
     }, [isLoaded, isSignedIn, navigate]);
@@ -82,10 +101,13 @@ export default function SupplierRegister() {
                 role: 'fournisseur',
             });
             if (res.error) {
-                toast.error(res.error.message || "Erreur lors de la création du compte");
-                setStep(1);
+                // Better Auth renvoie souvent 422 si l'email existe ou le MDP est court
+                toast.error(res.error.message || "Erreur lors de la création du compte (Vérifiez si l'email existe déjà)");
+                console.error("[SignUp Error]", res.error);
+                if (res.error.status === 422) setStep(1); 
             } else {
                 toast.success('Compte fournisseur créé ! Bienvenue sur Vtout.');
+                sessionStorage.removeItem('vtout_supplier_reg_state');
                 window.location.href = '/dashboard';
             }
         } catch (err) {
@@ -115,8 +137,32 @@ export default function SupplierRegister() {
         if (otp.length !== 6) return toast.error('Le code doit contenir 6 chiffres');
         setLoading(true);
         try {
+            // 1. Vérifier le code OTP
             await api.post('/auth/whatsapp/verify-code', { phone, code: otp, role: 'fournisseur' });
+            
+            // 2. Créer le compte via Better Auth
+            const fakeEmail = `${phone.replace(/\D/g, '')}@whatsapp.vtout.com`;
+            const pwd = phone.replace(/\D/g, '');
+            
+            let authRes = await authClient.signUp.email({ 
+                email: fakeEmail, 
+                password: pwd, 
+                name: form.name || 'Partenaire WhatsApp',
+                role: 'fournisseur'
+            });
+
+            if (authRes.error && (authRes.error.status === 400 || authRes.error.message?.includes('exist'))) {
+                authRes = await authClient.signIn.email({ email: fakeEmail, password: pwd });
+            }
+
+            if (authRes.error) {
+                toast.error(authRes.error.message || "Erreur d'authentification");
+                setLoading(false);
+                return;
+            }
+
             toast.success('Inscription et connexion réussies !');
+            sessionStorage.removeItem('vtout_supplier_reg_state');
             window.location.href = '/dashboard';
         } catch (err) {
             toast.error(err.response?.data?.error || 'Code invalide ou expiré');
