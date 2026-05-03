@@ -7,7 +7,7 @@ if (API_BASE_URL.startsWith('/')) {
     API_BASE_URL = window.location.origin + API_BASE_URL;
 }
 
-console.log("[clerk-shim] Using API_BASE_URL:", API_BASE_URL);
+// console.log("[clerk-shim] Using API_BASE_URL:", API_BASE_URL);
 
 export const authClient = createAuthClient({
     baseURL: API_BASE_URL + '/auth',

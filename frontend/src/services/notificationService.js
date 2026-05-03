@@ -9,8 +9,8 @@ try {
     SOCKET_URL = API_URL.replace(/\/api\/?$/, '');
 }
 
-console.log("[DEBUG] VITE_API_URL =", import.meta.env.VITE_API_URL);
-console.log("[DEBUG] Parsed SOCKET_URL =", SOCKET_URL);
+// console.log("[DEBUG] VITE_API_URL =", import.meta.env.VITE_API_URL);
+// console.log("[DEBUG] Parsed SOCKET_URL =", SOCKET_URL);
 
 class NotificationService {
     constructor() {
@@ -27,14 +27,13 @@ class NotificationService {
         });
 
         this.socket.on('connect', () => {
-            console.log('[Socket] Connected to server');
             if (userId) {
                 this.socket.emit('join', userId);
             }
         });
 
         this.socket.on('disconnect', () => {
-            console.log('[Socket] Disconnected');
+            // Silently disconnected
         });
 
         // Global listeners
