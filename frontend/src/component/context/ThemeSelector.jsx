@@ -24,18 +24,18 @@ const ThemeSelector = () => {
                     <>
                         <div className="fixed inset-0 z-[150]" onClick={() => setIsOpen(false)}></div>
                         <motion.div
-                            initial={{ opacity: 0, y: -20, scale: 0.9, rotateX: 15 }}
-                            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                            exit={{ opacity: 0, y: -20, scale: 0.9, rotateX: 15 }}
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.95 }}
                             style={{ perspective: "1000px" }}
-                            className="absolute right-0 top-full mt-4 w-72 bg-base-100 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-base-content/10 overflow-hidden z-[160] p-6"
+                            className="fixed bottom-0 left-0 right-0 md:absolute md:bottom-auto md:left-auto md:right-0 md:top-full mt-4 w-full md:w-72 bg-base-100 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.2)] md:shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-t md:border border-base-content/10 z-[160] p-6 pb-10 md:pb-6 flex flex-col max-h-[85vh] md:max-h-none"
                         >
                             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-content/5">
                                 <Sparkles className="text-primary" size={20} />
                                 <h3 className="font-black text-sm uppercase tracking-[0.2em] text-base-content">Univers Visuel</h3>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto custom-scrollbar pr-2">
+                            <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2 flex-grow">
                                 {themes.map((t) => (
                                     <button
                                         key={t}

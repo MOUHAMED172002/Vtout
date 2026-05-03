@@ -46,8 +46,8 @@ const Services = () => {
                             >
                                 {data.icon}
                                 <div>
-                                    <h1 className={`lg:text-xl text-gray-500 font-bold ${data.id === 3 ? 'group-hover:text-primary transition-colors' : ''}`}>{data.title}</h1>
-                                    <h1 className='text-gray-400 text-sm'>{data.description}</h1>
+                                    <h1 className={`lg:text-xl text-base-content/80 font-bold ${data.id === 3 ? 'group-hover:text-primary transition-colors' : ''}`}>{data.title}</h1>
+                                    <h1 className='text-base-content/50 text-sm'>{data.description}</h1>
                                 </div>
                             </div>
                         ))

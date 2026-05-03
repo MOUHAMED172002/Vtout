@@ -93,7 +93,7 @@ export default function Navbar() {
                   >
                     <Link
                       to={item.link}
-                      className={`text-sm font-bold uppercase tracking-widest transition-colors ${location.pathname === item.link ? "text-primary" : "text-gray-500 hover:text-gray-900"
+                      className={`text-sm font-bold uppercase tracking-widest transition-colors ${location.pathname === item.link ? "text-primary" : "text-base-content/70 hover:text-base-content"
                         }`}
                     >
                       {item.name}
@@ -108,7 +108,7 @@ export default function Navbar() {
               )}
             </ul>
 
-            <div className="h-6 w-px bg-gray-200"></div>
+            <div className="h-6 w-px bg-base-300"></div>
 
             <div className="flex items-center gap-6">
               <ThemeSelector />
@@ -118,7 +118,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-4 pl-2">
                   <Link
                     to={dashboardLink}
-                    className="text-sm font-black text-gray-900 hover:text-primary transition-colors flex items-center gap-2"
+                    className="text-sm font-black text-base-content hover:text-primary transition-colors flex items-center gap-2"
                   >
                     <LayoutDashboard size={18} />
                     Dashboard
@@ -171,7 +171,7 @@ export default function Navbar() {
             {!isLivreur && <CartIcon />}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 text-gray-900"
+              className="p-2 text-base-content"
             >
               <Menu size={28} />
             </button>
@@ -194,7 +194,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-[80%] max-w-sm bg-white p-8 shadow-2xl flex flex-col"
+              className="absolute right-0 top-0 bottom-0 w-[80%] max-w-sm bg-base-100 p-8 shadow-2xl flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-12">
@@ -202,7 +202,7 @@ export default function Navbar() {
                   <div className="flex items-center gap-2">
                      <ThemeSelector />
                   </div>
-                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 border rounded-full hover:bg-gray-50">
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 border border-base-200 rounded-full hover:bg-base-200">
                     <X size={24} />
                   </button>
               </div>
@@ -213,10 +213,10 @@ export default function Navbar() {
                     <li key={item.id}>
                       <Link
                         to={item.link}
-                        className={`flex items-center gap-4 text-xl font-black ${location.pathname === item.link ? "text-primary" : "text-gray-900"
+                        className={`flex items-center gap-4 text-xl font-black group ${location.pathname === item.link ? "text-primary" : "text-base-content"
                           }`}
                       >
-                        <span className="p-3 bg-gray-50 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <span className="p-3 bg-base-200 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                           {item.icon}
                         </span>
                         {item.name}
@@ -234,9 +234,9 @@ export default function Navbar() {
                   <div className="pt-8 border-t space-y-4">
                     <Link
                       to={dashboardLink}
-                      className="flex items-center gap-4 text-xl font-black text-gray-900"
+                      className="flex items-center gap-4 text-xl font-black text-base-content group"
                     >
-                      <span className="p-3 bg-gray-50 rounded-2xl"><LayoutDashboard size={20} /></span>
+                      <span className="p-3 bg-base-200 rounded-2xl group-hover:text-primary transition-colors"><LayoutDashboard size={20} /></span>
                       Mon Dashboard
                     </Link>
 

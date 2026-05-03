@@ -10,6 +10,7 @@ const FooterLinks = [
     { title: "Accueil", link: "/" },
     { title: "Boutique", link: "/products-liste" },
     { title: "À propos", link: "/about" },
+    { title: "Devenir vendeur", link: import.meta.env.VITE_SUPPLIER_PORTAL_URL || "https://supplier.vtout.com", external: true },
     { title: "Devenir livreur", link: "/devenir-livreur" },
 ];
 
@@ -37,7 +38,7 @@ const Footer = () => {
     };
 
     return (
-        <footer className="bg-white border-t border-gray-100 pt-20 pb-10 overflow-hidden relative">
+        <footer className="bg-base-100 border-t border-base-200 pt-20 pb-10 overflow-hidden relative">
             {/* Background Accent */}
             <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-50 rounded-full blur-3xl opacity-70"></div>
 
@@ -49,27 +50,27 @@ const Footer = () => {
                         <Link to="/" className="group flex items-center">
                             <LogoText className="text-3xl" />
                         </Link>
-                        <p className="text-gray-500 leading-relaxed max-w-xs">
+                        <p className="text-base-content/70 leading-relaxed max-w-xs">
                             Votre destination shopping unique au Bénin. Comme notre nom l'indique, chez {appName}, on vend tout .
                         </p>
                         <div className="flex gap-4">
                             {socials.instagram && (
-                                <a href={socials.instagram} target="_blank" rel="noreferrer" className="p-3 bg-gray-50 text-gray-400 hover:text-primary hover:bg-orange-50 rounded-2xl transition-all" title="Instagram">
+                                <a href={socials.instagram} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="Instagram">
                                     <Instagram size={20} />
                                 </a>
                             )}
                             {socials.facebook && (
-                                <a href={socials.facebook} target="_blank" rel="noreferrer" className="p-3 bg-gray-50 text-gray-400 hover:text-primary hover:bg-orange-50 rounded-2xl transition-all" title="Facebook">
+                                <a href={socials.facebook} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="Facebook">
                                     <Facebook size={20} />
                                 </a>
                             )}
                             {socials.tiktok && (
-                                <a href={socials.tiktok} target="_blank" rel="noreferrer" className="p-3 bg-gray-50 text-gray-400 hover:text-primary hover:bg-orange-50 rounded-2xl transition-all" title="TikTok">
+                                <a href={socials.tiktok} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="TikTok">
                                     <FaTiktok size={20} />
                                 </a>
                             )}
                             {socials.whatsapp && (
-                                <a href={socials.whatsapp.startsWith('http') ? socials.whatsapp : `https://wa.me/${socials.whatsapp}`} target="_blank" rel="noreferrer" className="p-3 bg-gray-50 text-gray-400 hover:text-primary hover:bg-orange-50 rounded-2xl transition-all" title="WhatsApp">
+                                <a href={socials.whatsapp.startsWith('http') ? socials.whatsapp : `https://wa.me/${socials.whatsapp}`} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="WhatsApp">
                                     <FaWhatsapp size={20} />
                                 </a>
                             )}
@@ -78,14 +79,21 @@ const Footer = () => {
 
                     {/* Quick Links */}
                     <div className="space-y-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">Navigation</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Navigation</h3>
                         <ul className="space-y-4">
                             {FooterLinks.map((data, index) => (
                                 <li key={index}>
-                                    <Link to={data.link} className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
-                                        <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                                        {data.title}
-                                    </Link>
+                                    {data.external ? (
+                                        <a href={data.link} target="_blank" rel="noopener noreferrer" className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                            <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                                            {data.title}
+                                        </a>
+                                    ) : (
+                                        <Link to={data.link} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                            <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                                            {data.title}
+                                        </Link>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -93,20 +101,20 @@ const Footer = () => {
 
                     {/* Service Links */}
                     <div className="space-y-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">Assistance</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Assistance</h3>
                         <ul className="space-y-4">
                             {FooterNav.map((data, index) => (
                                 <li key={index}>
                                     {data.title === "Supports" ? (
                                         <button
                                             onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
-                                            className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group"
+                                            className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group"
                                         >
                                             <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                                             {data.title}
                                         </button>
                                     ) : (
-                                        <Link to={data.link} className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                        <Link to={data.link} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
                                             <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                                             {data.title}
                                         </Link>
@@ -118,33 +126,33 @@ const Footer = () => {
 
                     {/* Contact Info */}
                     <div className="space-y-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">Contact</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Contact</h3>
                         <div className="space-y-4">
                             <div className="flex items-start gap-4">
-                                <div className="p-3 bg-gray-50 text-primary rounded-2xl">
+                                <div className="p-3 bg-base-200 text-primary rounded-2xl">
                                     <MapPin size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900">{getConfig('CONTACT_ADDRESS', 'Cotonou, Bénin')}</p>
-                                    <p className="text-sm text-gray-500">Siège Social</p>
+                                    <p className="font-bold text-base-content">{getConfig('CONTACT_ADDRESS', 'Cotonou, Bénin')}</p>
+                                    <p className="text-sm text-base-content/70">Siège Social</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <div className="p-3 bg-gray-50 text-primary rounded-2xl">
+                                <div className="p-3 bg-base-200 text-primary rounded-2xl">
                                     <Phone size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900">{getConfig('CONTACT_PHONE', '+229 61 00 00 00')}</p>
-                                    <p className="text-sm text-gray-500">{getConfig('hours_weekday', 'Lun - Sam, 8h-18h')}</p>
+                                    <p className="font-bold text-base-content">{getConfig('CONTACT_PHONE', '+229 61 00 00 00')}</p>
+                                    <p className="text-sm text-base-content/70">{getConfig('hours_weekday', 'Lun - Sam, 8h-18h')}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <div className="p-3 bg-gray-50 text-primary rounded-2xl">
+                                <div className="p-3 bg-base-200 text-primary rounded-2xl">
                                     <Mail size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900">{getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}</p>
-                                    <p className="text-sm text-gray-500">Support 24/7</p>
+                                    <p className="font-bold text-base-content">{getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}</p>
+                                    <p className="text-sm text-base-content/70">Support 24/7</p>
                                 </div>
                             </div>
                         </div>
@@ -152,18 +160,18 @@ const Footer = () => {
 
                 </div>
 
-                <div className="pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="text-gray-400 text-sm font-medium">
+                <div className="pt-10 border-t border-base-200 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <p className="text-base-content/50 text-sm font-medium">
                         © {new Date().getFullYear()} <LogoText className="text-sm ml-1" />. Tous droits réservés.
                     </p>
-                    <div className="flex items-center gap-6 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                    <div className="flex items-center gap-6 text-base-content/50 text-xs font-bold uppercase tracking-widest">
                         <div className="flex items-center gap-2">
                             <ShieldCheck size={16} className="text-green-500" /> Paiements 100% sécurisés
                         </div>
-                        <div className="hidden md:block h-3 w-px bg-gray-200"></div>
-                        <Link to="/Policy" className="hover:text-gray-900 cursor-pointer transition-colors">Politique</Link>
-                        <Link to="/Policy" className="hover:text-gray-900 cursor-pointer transition-colors">CGV</Link>
-                        <div className="hidden md:block h-3 w-px bg-gray-200"></div>
+                        <div className="hidden md:block h-3 w-px bg-base-300"></div>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">CGV</Link>
+                        <div className="hidden md:block h-3 w-px bg-base-300"></div>
                     </div>
                 </div>
             </div>

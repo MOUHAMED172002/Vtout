@@ -86,7 +86,7 @@ const Hero = () => {
     return (
         <section className="relative pt-6 md:pt-10 overflow-hidden">
             <div className="container px-4 md:px-8">
-                <div className="hero-bg-color rounded-[2.5rem] md:rounded-[4rem] min-h-[500px] md:min-h-[700px] shadow-2xl shadow-slate-100 border border-white/50 relative overflow-hidden">
+                <div className="hero-bg-color rounded-[2.5rem] md:rounded-[4rem] min-h-[500px] md:min-h-[700px] shadow-2xl shadow-base-content/5 border border-base-content/10 relative overflow-hidden">
                     <Slider {...settings}>
                         {heroData.map((data) => (
                             <div key={data.id} className="outline-none">
@@ -149,7 +149,7 @@ const Hero = () => {
                                             transition={{ duration: 1, ease: "easeOut" }}
                                             className="relative w-full max-w-[300px] md:max-w-[500px]"
                                         >
-                                            <div className="absolute inset-0 bg-white/40 rounded-full blur-3xl scale-125"></div>
+                                            <div className="absolute inset-0 bg-base-100/40 rounded-full blur-3xl scale-125"></div>
                                             <img
                                                 src={data.img}
                                                 className="w-full h-auto object-contain drop-shadow-[0_35px_35px_rgba(0,0,0,0.15)] relative z-10"
