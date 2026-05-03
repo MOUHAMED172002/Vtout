@@ -48,7 +48,7 @@ const User = sequelize.define('user', {
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE },
     role: { type: DataTypes.STRING, defaultValue: 'user' }
-}, { tableName: 'user' });
+}, { tableName: 'user', underscored: false });
 
 const Session = sequelize.define('session', {
     id: { type: DataTypes.STRING, primaryKey: true },
@@ -59,7 +59,7 @@ const Session = sequelize.define('session', {
     userId: { type: DataTypes.STRING, allowNull: false },
     ipAddress: { type: DataTypes.TEXT },
     userAgent: { type: DataTypes.TEXT }
-}, { tableName: 'session' });
+}, { tableName: 'session', underscored: false });
 
 const Account = sequelize.define('account', {
     id: { type: DataTypes.STRING, primaryKey: true },
@@ -75,7 +75,7 @@ const Account = sequelize.define('account', {
     password: { type: DataTypes.TEXT },
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE }
-}, { tableName: 'account' });
+}, { tableName: 'account', underscored: false });
 
 const Verification = sequelize.define('verification', {
     id: { type: DataTypes.STRING, primaryKey: true },
@@ -84,7 +84,7 @@ const Verification = sequelize.define('verification', {
     expiresAt: { type: DataTypes.DATE, allowNull: false },
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE }
-}, { tableName: 'verification' });
+}, { tableName: 'verification', underscored: false });
 
 // --- Relations ---
 
