@@ -203,3 +203,92 @@ export const sendTestEmail = async (to) => {
         </div>
     `);
 };
+
+/**
+ * Send email verification link to a user
+ * Generates a short-lived token, stores it in the DB via Better Auth verificationToken table,
+ * and dispatches a premium HTML email.
+ */
+export const sendEmailVerification = async (profile) => {
+    if (!profile?.email) return;
+
+    // Build verification URL using Better Auth's built-in endpoint
+    const baseUrl = process.env.BETTER_AUTH_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    // Generate a simple random token (32 hex chars)
+    const token = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    // Store token in verification table
+    try {
+        const { default: sequelizeInst } = await import('../config/database.js');
+        await sequelizeInst.query(
+            `INSERT INTO verification (id, identifier, value, expiresAt, createdAt, updatedAt)
+             VALUES (UUID(), :email, :token, :expiresAt, NOW(), NOW())
+             ON DUPLICATE KEY UPDATE value = :token, expiresAt = :expiresAt, updatedAt = NOW()`,
+            {
+                replacements: { email: profile.email, token, expiresAt },
+                type: sequelizeInst.QueryTypes.INSERT
+            }
+        );
+    } catch (err) {
+        console.warn('[sendEmailVerification] Token storage failed (table may not exist):', err.message);
+        // Non-blocking — continue to send email anyway with a link to the page
+    }
+
+    const verifyUrl = `${frontendUrl}/auth/verify-email?token=${token}&email=${encodeURIComponent(profile.email)}`;
+    const firstName = (profile.fullname || profile.email).split(' ')[0];
+
+    const html = `
+    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:auto;background:#f8fafc;padding:0;border-radius:24px;overflow:hidden;border:1px solid #e2e8f0;">
+        
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);padding:40px 40px 30px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.1);border-radius:16px;padding:12px 20px;margin-bottom:20px;">
+                <span style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Vtout Platform</span>
+            </div>
+            <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0;letter-spacing:-0.5px;">Vérifiez votre email</h1>
+            <p style="color:#94a3b8;font-size:14px;margin:12px 0 0;">Un clic suffit pour sécuriser votre compte.</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:40px;">
+            <p style="color:#475569;font-size:16px;margin:0 0 20px;">Bonjour <strong style="color:#0f172a;">${firstName}</strong>,</p>
+            <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 30px;">
+                Pour finaliser la sécurisation de votre compte Vtout, nous avons besoin de confirmer que cette adresse email vous appartient.
+                Cliquez sur le bouton ci-dessous dans les prochaines <strong>24 heures</strong>.
+            </p>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:30px 0;">
+                <a href="${verifyUrl}"
+                   style="display:inline-block;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:800;font-size:15px;letter-spacing:0.02em;box-shadow:0 8px 20px rgba(99,102,241,0.35);">
+                    ✉️ Vérifier mon adresse email
+                </a>
+            </div>
+
+            <!-- Security note -->
+            <div style="background:#f1f5f9;border-radius:14px;padding:20px;margin-top:30px;border:1px solid #e2e8f0;">
+                <p style="color:#64748b;font-size:13px;margin:0;line-height:1.6;">
+                    🔒 <strong>Lien sécurisé</strong> · Ce lien expire dans 24h. Si vous n'avez pas créé de compte Vtout,
+                    vous pouvez ignorer cet email en toute sécurité.
+                </p>
+            </div>
+
+            <!-- Fallback URL -->
+            <p style="color:#94a3b8;font-size:11px;margin-top:24px;word-break:break-all;line-height:1.5;">
+                Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+                <a href="${verifyUrl}" style="color:#6366f1;">${verifyUrl}</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#f1f5f9;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="color:#94a3b8;font-size:11px;margin:0;">© ${new Date().getFullYear()} Vtout · Plateforme e-commerce</p>
+        </div>
+    </div>`;
+
+    return sendMail(profile.email, '✉️ Confirmez votre adresse email Vtout', html);
+};
+

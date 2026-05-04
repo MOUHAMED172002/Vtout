@@ -26,6 +26,7 @@ import ProductGrid from './component/Products/ProductGrid';
 import Login from './component/Auth/Login';
 import Register from './component/Auth/Register';
 import ResetPassword from './component/Auth/ResetPassword';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import ProfileSync from './component/Auth/ProfileSync';
 import { notificationService } from './services/notificationService';
 import SEO from './component/Shared/SEO';
@@ -201,6 +202,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/auth/inscription/*" element={<PageWrapper><><Navbar /><Register /><Footer /></></PageWrapper>} />
           <Route path="/auth/connexion/*" element={<PageWrapper><><Navbar /><Login /><Footer /></></PageWrapper>} />
           <Route path="/reset-password" element={<PageWrapper><><Navbar /><ResetPassword /><Footer /></></PageWrapper>} />
+          <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
           <Route path="/blog/:slug" element={<PageWrapper><BlogDetail /></PageWrapper>} />
           <Route path="/mag" element={<PageWrapper><MagPage /></PageWrapper>} />
 

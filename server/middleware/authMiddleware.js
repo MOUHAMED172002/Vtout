@@ -19,7 +19,7 @@ export const authMiddleware = async (req, res, next) => {
             const authHeader = req.headers.authorization;
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 const sessionId = authHeader.split(' ')[1];
-                
+
                 // Fallback 1: Try as a session token
                 session = await auth.api.getSession({
                     headers: {
@@ -42,15 +42,14 @@ export const authMiddleware = async (req, res, next) => {
                                 { replacements: [uId], type: sequelize.QueryTypes.SELECT }
                             );
                             if (userRow) {
-                                // Reconstruct session object
-                                session = { 
+                                session = {
                                     user: {
                                         id: userRow.id,
                                         email: userRow.email,
                                         name: userRow.name,
                                         role: userRow.role || 'user'
-                                    }, 
-                                    session: row 
+                                    },
+                                    session: row
                                 };
                             }
                         }
@@ -62,36 +61,56 @@ export const authMiddleware = async (req, res, next) => {
         }
 
         if (session && session.user) {
-            let profile = await Profile.findOne({ where: { email: session.user.email } });
+            const roleFromAuth = session.user.role || 'user';
 
-            if (!profile) {
-                // If the user signed up via better-auth but has no Profile yet, we create it.
-                // Use the role stored in Better Auth (e.g. 'fournisseur' set during signUp)
-                const roleFromAuth = session.user.role || 'user';
-                profile = await Profile.create({
+            // ── ATOMIC findOrCreate — prevents SequelizeUniqueConstraintError (ER_DUP_ENTRY)
+            // caused by concurrent requests racing to create the same profile row.
+            const [profile, created] = await Profile.findOrCreate({
+                where: { email: session.user.email },
+                defaults: {
                     id: session.user.id,
                     email: session.user.email,
                     fullname: session.user.name || '',
-                    role: roleFromAuth
-                });
-                // Also persist the role back to the `user` table to keep them in sync
-                try {
-                    await sequelize.query(
-                        'UPDATE `user` SET role = :role WHERE id = :id',
-                        { replacements: { role: roleFromAuth, id: session.user.id }, type: sequelize.QueryTypes.UPDATE }
+                    role: roleFromAuth,
+                    email_verified: false
+                }
+            });
+
+            if (created) {
+                // New profile created — sync role back to `user` table (non-blocking)
+                sequelize.query(
+                    'UPDATE `user` SET role = :role WHERE id = :id',
+                    { replacements: { role: roleFromAuth, id: session.user.id }, type: sequelize.QueryTypes.UPDATE }
+                ).catch(() => {});
+
+                // Send email verification (fire & forget — doesn't block request)
+                import('../services/mailService.js').then(({ sendEmailVerification }) => {
+                    sendEmailVerification(profile).catch(e =>
+                        console.warn('[authMiddleware] Verification email failed:', e.message)
                     );
-                } catch (_) { /* non-bloquant */ }
-            } else if (session.user.role && profile.role !== session.user.role) {
-                // Sync role if Better Auth and profile are out of step
-                profile.role = session.user.role;
-                await profile.save();
+                }).catch(() => {});
+
+            } else {
+                // Existing profile — sync role if it changed
+                if (session.user.role && profile.role !== session.user.role) {
+                    profile.role = session.user.role;
+                    await profile.save();
+                }
+
+                // If email still unverified, re-trigger verification email (fire & forget)
+                if (!profile.email_verified) {
+                    import('../services/mailService.js').then(({ sendEmailVerification }) => {
+                        sendEmailVerification(profile).catch(() => {});
+                    }).catch(() => {});
+                }
             }
 
             req.auth = {
-                clerkId: session.user.id, // For backward compatibility
+                clerkId: session.user.id,
                 userId: profile.id,
                 role: profile.role,
                 email: profile.email,
+                emailVerified: !!profile.email_verified,
                 sessionClaims: session.session
             };
         } else {

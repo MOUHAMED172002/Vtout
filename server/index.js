@@ -68,6 +68,7 @@ import locationRoutes from "./routes/locationRoutes.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import financialRoutes from "./routes/financialRoutes.js";
 import authWhatsAppRoutes from "./routes/authWhatsAppRoutes.js";
+import verifyEmailRoutes from "./routes/verifyEmailRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
@@ -209,6 +210,9 @@ app.get("/reset-password", (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     res.redirect(`${frontendUrl}/reset-password?token=${token}`);
 });
+
+// Email verification — public route (no auth required)
+app.use("/api/verify-email", verifyEmailRoutes);
 
 app.use(authMiddleware);
 
