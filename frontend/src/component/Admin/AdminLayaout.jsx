@@ -453,10 +453,25 @@ const AdminLayout = () => {
                 <p className="text-sm font-black text-slate-900 leading-none">Admin Vtout</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Super Admin</p>
               </div>
-              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-slate-100 rounded-2xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
-                <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-slate-100 rounded-2xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
+                  <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
+                </div>
+                <button 
+                  onClick={async () => {
+                    await signOut();
+                    window.location.href = "/";
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all border border-rose-100 shadow-sm font-bold text-xs"
+                  title="Se déconnecter"
+                >
+                  <LogOut size={16} />
+                  <span>Déconnexion</span>
+                </button>
+
               </div>
             </div>
+
           </div>
         </header>
 

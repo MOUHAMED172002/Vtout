@@ -53,15 +53,18 @@ const generatedOrigins = LAN_HOSTS.flatMap(host =>
 const allTrustedOrigins = [
     ...new Set([
         ...generatedOrigins,
+        ...(process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().replace(/\/$/, '')),
+        ...(process.env.EXTRA_ORIGINS || '').split(',').map(o => o.trim().replace(/\/$/, '')),
         (process.env.FRONTEND_URL || '').replace(/\/$/, ''),
         (process.env.ADMIN_URL || '').replace(/\/$/, ''),
-        (process.env.BETTER_AUTH_URL || '').replace(/\/$/, ''),
+        (process.env.BETTER_AUTH_URL || '').replace(/\/$/, '').replace('/api/auth', ''),
         'http://localhost:5173',
         'http://localhost:5174',
         'http://127.0.0.1:5173',
         'http://127.0.0.1:5174',
     ])
 ].filter(Boolean);
+
 
 export const auth = betterAuth({
     database: {
