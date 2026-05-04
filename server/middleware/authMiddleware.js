@@ -99,8 +99,16 @@ export const authMiddleware = async (req, res, next) => {
 
                 // If email still unverified, re-trigger verification email (fire & forget)
                 if (!profile.email_verified) {
-                    import('../services/mailService.js').then(({ sendEmailVerification }) => {
-                        sendEmailVerification(profile).catch(() => {});
+                    // Vérification anti-spam : ne pas renvoyer si un token valide existe déjà (moins de 24h)
+                    sequelize.query(
+                        `SELECT id FROM verification WHERE identifier = :email AND expiresAt > NOW() LIMIT 1`,
+                        { replacements: { email: profile.email }, type: sequelize.QueryTypes.SELECT }
+                    ).then(([existing]) => {
+                        if (!existing) {
+                            import('../services/mailService.js').then(({ sendEmailVerification }) => {
+                                sendEmailVerification(profile).catch(() => {});
+                            }).catch(() => {});
+                        }
                     }).catch(() => {});
                 }
             }
