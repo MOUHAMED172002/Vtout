@@ -114,6 +114,11 @@ router.post('/', authMiddleware, requireAuth, requireAdmin, async (req, res) => 
         if (id) {
             result = await model.upsert(data);
         } else {
+            // Because the database tables (departments, communes, etc.) are missing AUTO_INCREMENT,
+            // we must manually calculate the next ID if one is not provided.
+            const maxRecord = await model.max('id');
+            const nextId = (maxRecord || 0) + 1;
+            data.id = nextId;
             result = await model.create(data);
         }
         res.json({ success: true, data: result });
