@@ -69,6 +69,7 @@ import supportRoutes from "./routes/supportRoutes.js";
 import financialRoutes from "./routes/financialRoutes.js";
 import authWhatsAppRoutes from "./routes/authWhatsAppRoutes.js";
 import verifyEmailRoutes from "./routes/verifyEmailRoutes.js";
+import resendVerificationRoutes from "./routes/resendVerificationRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
@@ -245,6 +246,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/resend-verification", resendVerificationRoutes);
 
 // Emergency Sync Route
 app.get("/api/emergency-sync", requireAuth, requireAdmin, adminSyncFinancials);

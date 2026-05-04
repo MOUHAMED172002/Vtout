@@ -35,6 +35,7 @@ import ScrollToTop from './component/Shared/ScrollToTop';
 import CookieConsent from './component/Shared/CookieConsent';
 import SupportChat from './component/Shared/SupportChat';
 import SupplierBlockModal from './component/Shared/SupplierBlockModal';
+import EmailVerificationBanner from './component/Shared/EmailVerificationBanner';
 
 // --- Pages/Routes ---
 import ProductsList from './component/Products/ProductsList';
@@ -183,6 +184,7 @@ const AppContent = ({ products, loading }) => {
     <div className="bg-base-100 text-base-content transition-colors duration-300 overflow-hidden min-h-screen">
       <SEO />
       <ProfileSync />
+      <EmailVerificationBanner />
 
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
