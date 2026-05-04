@@ -5,15 +5,16 @@ import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';
 import SupplierWalletModal from './SupplierWalletModal';
-import { Wallet } from 'lucide-react';
-
-
+import AddSupplierModal from './AddSupplierModal';
+import { Wallet, UserPlus } from 'lucide-react';
 
 const SuppliersManager = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showAddSupplier, setShowAddSupplier] = useState(false);
     const [selectedForBoutique, setSelectedForBoutique] = useState(null);
     const [selectedForWallet, setSelectedForWallet] = useState(null);
+
     const { getToken } = useAuth();
 
 
@@ -100,8 +101,17 @@ const SuppliersManager = () => {
         <div className="space-y-6 lg:space-y-8 pb-20">
             <div className="px-2 lg:px-0">
                 <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-base-content mb-1">Gestion des Marchands</h2>
-                <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[9px] lg:text-[10px]">Validation et suivi des partenaires</p>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[9px] lg:text-[10px]">Validation et suivi des partenaires</p>
+                    <button 
+                        onClick={() => setShowAddSupplier(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 text-[10px] font-black uppercase tracking-widest"
+                    >
+                        <UserPlus size={16} /> Nouveau Marchand
+                    </button>
+                </div>
             </div>
+
 
             <div className="bg-base-100 rounded-[2rem] lg:rounded-[40px] shadow-2xl shadow-base-content/5 border border-base-content/10 overflow-hidden mx-2 lg:mx-0">
                 <div className="overflow-x-auto custom-scrollbar">
@@ -227,6 +237,12 @@ const SuppliersManager = () => {
             </div>
 
             <AnimatePresence>
+                {showAddSupplier && (
+                    <AddSupplierModal 
+                        onClose={() => setShowAddSupplier(false)}
+                        onCreated={fetchSuppliers}
+                    />
+                )}
                 {selectedForBoutique && (
                     <AddBoutiqueModal 
                         supplier={selectedForBoutique}
@@ -234,6 +250,7 @@ const SuppliersManager = () => {
                         onCreated={fetchSuppliers}
                     />
                 )}
+
                 {selectedForWallet && (
                     <SupplierWalletModal 
                         supplier={selectedForWallet}

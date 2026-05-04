@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from 'react';
-
 import { useForm } from 'react-hook-form';
-import { X, Store, MapPin, Phone, MessageCircle, CreditCard, Save } from 'lucide-react';
+import { X, User, Phone, MessageCircle, CreditCard, Save, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import api from '../../../services/api';
 import { useAuth } from '../../../lib/clerk-shim';
 import { getHierarchy } from '../../../services/locationService';
 
-export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, onCreated }) {
+export default function AddSupplierModal({ onClose, onCreated }) {
     const { getToken } = useAuth();
-    const [suppliers, setSuppliers] = useState([]);
-    const [selectedSupplierId, setSelectedSupplierId] = useState(initialSupplier?.id || '');
     const [hierarchy, setHierarchy] = useState([]);
     const [communes, setCommunes] = useState([]);
     const [quartiers, setQuartiers] = useState([]);
+
+    const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+        defaultValues: {
+            name: '',
+            phone: '',
+            whatsapp: '',
+            momo_number: '',
+            address_line: '',
+            status: 'active'
+        }
+    });
 
     useEffect(() => {
         (async () => {
@@ -24,35 +32,6 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
             } catch (e) { console.error(e); }
         })();
     }, []);
-
-    const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
-        defaultValues: {
-            name: '',
-            phone: initialSupplier?.phone || '',
-            whatsapp: initialSupplier?.whatsapp || '',
-            momo_number: initialSupplier?.momo_number || '',
-            address_line: initialSupplier?.address_line || '',
-            departement_id: initialSupplier?.departement_id || '',
-            departement_label: initialSupplier?.departement_label || '',
-            commune_id: initialSupplier?.commune_id || '',
-            commune_label: initialSupplier?.commune_label || '',
-            quartier_id: initialSupplier?.quartier_id || '',
-            quartier_label: initialSupplier?.quartier_label || ''
-        }
-    });
-
-    useEffect(() => {
-        if (!initialSupplier) {
-            (async () => {
-                try {
-                    const token = await getToken();
-                    const { data } = await api.get('/suppliers', { headers: { Authorization: `Bearer ${token}` } });
-                    setSuppliers(data || []);
-                } catch (e) { console.error(e); }
-            })();
-        }
-    }, [initialSupplier]);
-
 
     const selectedDeptId = watch('departement_id');
     const selectedCommuneId = watch('commune_id');
@@ -83,18 +62,12 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
     };
 
     const onSubmit = async (data) => {
-        const supplierId = selectedSupplierId;
-        if (!supplierId) return toast.error('Veuillez sélectionner un marchand');
-        
         try {
             const token = await getToken();
-            await api.post('/suppliers/boutiques-admin', {
-                ...data,
-                supplier_id: supplierId
-            }, {
+            await api.post('/suppliers', data, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Boutique créée avec succès !');
+            toast.success('Marchand créé avec succès !');
             onCreated?.();
             onClose();
         } catch (error) {
@@ -113,13 +86,11 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
                 <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
-                            <Store size={24} />
+                            <User size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Nouvelle Boutique</h2>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                                {initialSupplier ? `Pour: ${initialSupplier.name}` : 'Assigner à un marchand'}
-                            </p>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Nouveau Marchand</h2>
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Créer un compte partenaire ou votre propre profil vendeur</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
@@ -128,36 +99,33 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
-                    <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 mb-2">
-                        <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase tracking-widest">
-                            <span className="font-black">Note :</span> Un <span className="font-black underline">Marchand</span> est le propriétaire du compte (le partenaire). Une <span className="font-black underline">Boutique</span> est son point de vente physique.
-                        </p>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom Complet / Raison Sociale</label>
+                        <input {...register('name', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Vtout Officiel ou Nom du Partenaire" />
                     </div>
 
-                    {!initialSupplier && (
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sélectionner le Marchand (Propriétaire)</label>
-                            <select 
-                                value={selectedSupplierId}
-                                onChange={(e) => setSelectedSupplierId(e.target.value)}
-                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
-                            >
-                                <option value="">Choisir un marchand...</option>
-                                {suppliers.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name} ({s.phone})</option>
-                                ))}
-                            </select>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Téléphone de Gestion</label>
+                            <input {...register('phone', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
                         </div>
-                    )}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">WhatsApp</label>
+                            <input {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                        </div>
+                    </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom de la boutique</label>
-                        <input {...register('name', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Boutique Principale - Cotonou" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Numéro MoMo (pour les retraits)</label>
+                        <div className="relative">
+                            <CreditCard className="absolute left-6 top-4 text-slate-300" size={18} />
+                            <input {...register('momo_number')} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="01XXXXXXXX" />
+                        </div>
                     </div>
 
                     {/* Zone Géographique */}
                     <div className="space-y-4 pt-4 border-t border-slate-50">
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Localisation Géographique</h4>
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Siège Social / Zone Principale</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Département</label>
@@ -190,35 +158,22 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Téléphone Direct</label>
-                            <input {...register('phone')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Lien WhatsApp</label>
-                            <input {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                        </div>
-                    </div>
-
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adresse Complète / Détails</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adresse Siège</label>
                         <div className="relative">
                             <MapPin className="absolute left-6 top-5 text-slate-300" size={18} />
-                            <textarea {...register('address_line')} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Numéro de carré, repères visuels..." />
+                            <textarea {...register('address_line', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Indiquez l'emplacement du siège..." />
                         </div>
                     </div>
 
                     <div className="pt-4 border-t border-slate-50 flex gap-4">
                         <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-100 transition-colors">Annuler</button>
                         <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
-                            <Save size={16} /> Enregistrer la Boutique
+                            <Save size={16} /> Créer le Marchand
                         </button>
                     </div>
                 </form>
-
             </motion.div>
         </div>
     );
 }
-
