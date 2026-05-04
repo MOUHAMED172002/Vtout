@@ -22,7 +22,6 @@ class NotificationService {
         if (this.socket) return;
 
         this.socket = io(SOCKET_URL, {
-            transports: ['websocket', 'polling'],
             withCredentials: true
         });
 

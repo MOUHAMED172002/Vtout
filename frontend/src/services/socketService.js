@@ -12,7 +12,6 @@ let socket;
 
 export const initSocket = (userId) => {
     socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
         withCredentials: true
     });
     
