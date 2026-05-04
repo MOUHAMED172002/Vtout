@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Package, PlusCircle, LogOut,
-    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search
+    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import LogoText from './Shared/LogoText';
@@ -230,7 +230,7 @@ const Layout = ({ children }) => {
                         {/* Desktop Search Bar */}
                         <div className="hidden lg:flex items-center flex-1 max-w-md ml-4">
                             <div className="relative w-full group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
                                 <input 
                                     type="text" 
                                     placeholder="Rechercher une commande, un produit..." 
@@ -247,7 +247,7 @@ const Layout = ({ children }) => {
                     
                     <div className="flex items-center gap-4">
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
-                            <Search size={20} />
+                            <SearchIcon size={20} />
                         </button>
                         <NotificationCenter />
                     </div>

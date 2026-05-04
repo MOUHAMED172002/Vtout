@@ -3,7 +3,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import {
   X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
   ChevronLeft, Package, Layers, Truck, Info, AlertCircle,
-  Upload, Star, Sparkles, Hash, Search, MapPin
+  Upload, Star, Sparkles, Hash, Search as SearchIcon, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -571,7 +571,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                         <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
                       </div>
                       {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (

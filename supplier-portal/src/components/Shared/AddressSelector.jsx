@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Check, Search, ShieldCheck, Phone, X } from "lucide-react";
+import { MapPin, Check, Search as SearchIcon, ShieldCheck, Phone, X } from "lucide-react";
 import decoupageData from "../../data/decoupage-territorial-benin.json";
 
 // Helper for accents
@@ -143,7 +143,7 @@ export default function AddressSelector({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+            <SearchIcon className="h-5 w-5 text-gray-400" />
           </div>
           <input
             type="text"

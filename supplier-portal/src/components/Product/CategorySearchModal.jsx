@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-    X, Search, ChevronRight, ChevronDown, Check,
+    X, Search as SearchIcon, ChevronRight, ChevronDown, Check,
     Folder, FolderOpen, Tag, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,7 +137,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
 
                     <div className="relative group">
                         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
-                            <Search size={18} />
+                            <SearchIcon size={18} />
                         </div>
                         <input
                             type="text"
@@ -156,7 +156,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-20">
                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-                                <Search size={32} className="text-slate-200" />
+                                <SearchIcon size={32} className="text-slate-200" />
                             </div>
                             <div>
                                 <p className="text-sm font-black text-slate-900">Aucun résultat</p>

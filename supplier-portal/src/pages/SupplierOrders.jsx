@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/clerk-shim';
 import { getMySupplierOrders, updateOrderStatus } from '../services/orderService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Search, Clock, CheckCircle, Truck, XCircle, MapPin, Phone, Eye, ArrowRight, User } from 'lucide-react';
+import { Package, Search as SearchIcon, Clock, CheckCircle, Truck, XCircle, MapPin, Phone, Eye, ArrowRight, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
@@ -124,7 +124,7 @@ const SupplierOrders = () => {
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
                         placeholder="Rechercher par n° de commande ou client..."
