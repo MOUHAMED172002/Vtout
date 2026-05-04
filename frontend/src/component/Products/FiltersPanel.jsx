@@ -1,7 +1,7 @@
 import { getCategories, getAttributesByCategory, getAttributes } from "../../services/productService";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategorySearchModal from "../Shared/CategorySearchModal";
 
