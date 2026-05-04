@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Package, PlusCircle, LogOut,
-    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag
+    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import LogoText from './Shared/LogoText';
