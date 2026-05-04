@@ -3,6 +3,20 @@ import { toNodeHandler } from "better-auth/node";
 import { Profile } from '../models/index.js';
 import sequelize from '../config/database.js';
 
+// In-memory cooldown map — prevents sending verification emails on every request.
+// Key: email, Value: timestamp of last send. Resets when server restarts (acceptable).
+const verificationCooldown = new Map(); // email → Date.now()
+const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+
+const shouldSendVerification = (email) => {
+    const last = verificationCooldown.get(email);
+    if (!last || Date.now() - last > COOLDOWN_MS) {
+        verificationCooldown.set(email, Date.now());
+        return true;
+    }
+    return false;
+};
+
 // Express middleware that handles Better Auth's endpoints directly
 export const betterAuthMiddleware = toNodeHandler(auth);
 
@@ -97,8 +111,8 @@ export const authMiddleware = async (req, res, next) => {
                     await profile.save();
                 }
 
-                // If email still unverified, re-trigger verification email (fire & forget)
-                if (!profile.email_verified) {
+                // If email still unverified, send verification — max once per 30 min per email
+                if (!profile.email_verified && shouldSendVerification(profile.email)) {
                     import('../services/mailService.js').then(({ sendEmailVerification }) => {
                         sendEmailVerification(profile).catch(() => {});
                     }).catch(() => {});
