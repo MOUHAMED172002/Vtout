@@ -245,5 +245,3 @@ const BoutiquesCatalogManager = () => {
 
 export default BoutiquesCatalogManager;
 
-
-export default BoutiquesCatalogManager;

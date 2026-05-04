@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { useForm } from 'react-hook-form';
 import { X, Store, MapPin, Phone, MessageCircle, CreditCard, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
