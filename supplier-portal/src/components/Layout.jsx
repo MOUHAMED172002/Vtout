@@ -49,12 +49,16 @@ const Sidebar = ({ mobile, onClose }) => {
         <aside className="w-72 bg-slate-900 text-white flex flex-col h-screen overflow-hidden">
             {/* Logo */}
             <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-500 rounded-2xl flex items-center justify-center">
+                <div 
+                    onClick={() => (window.location.href = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com')} 
+                    className="flex items-center gap-3 cursor-pointer group"
+                    title="Retour au site principal"
+                >
+                    <div className="w-10 h-10 bg-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Store size={20} className="text-white" />
                     </div>
                     <div>
-                        <LogoText className="text-sm leading-none" />
+                        <LogoText className="text-sm leading-none group-hover:text-indigo-400 transition-colors" />
                         <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Espace Marchand</p>
                     </div>
                 </div>
@@ -64,6 +68,7 @@ const Sidebar = ({ mobile, onClose }) => {
                     </button>
                 )}
             </div>
+
 
             {/* User Info */}
             <div className="p-6 mx-4 my-4 bg-white/5 rounded-2xl flex items-center gap-3">
@@ -100,14 +105,24 @@ const Sidebar = ({ mobile, onClose }) => {
                 ))}
             </nav>
 
-            {/* Logout */}
-            <div className="p-4 border-t border-white/5">
+            {/* Logout & Navigation Back */}
+            <div className="p-4 border-t border-white/5 space-y-2">
+                <button
+                    onClick={() => (window.location.href = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com')}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition-all"
+                >
+                    <Store size={18} />
+                    <span>Retour au site</span>
+                </button>
                 <button
                     onClick={handleSignOut}
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all"
                 >
                     <LogOut size={18} />
+                    <span>Se déconnecter</span>
                 </button>
+            </div>
+
                 <div className="mt-2 space-y-1 px-4">
                     <p className="text-[8px] font-black uppercase text-white/20 mb-2">Changer de mode</p>
                     <button

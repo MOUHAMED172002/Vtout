@@ -71,9 +71,15 @@ import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../../lib/clerk-shim";
+import { useNavigate } from "react-router-dom";
+
 
 const AdminLayout = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState("Dashboard");
+
   const [selectedSub, setSelectedSub] = useState("overview");
   const [isSidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile
   const [openMenu, setOpenMenu] = useState("Dashboard");
@@ -271,16 +277,21 @@ const AdminLayout = () => {
         <div className="h-full flex flex-col">
           {/* Logo */}
           <div className="p-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <div 
+              onClick={() => navigate("/")} 
+              className="flex items-center gap-3 cursor-pointer group"
+              title="Retour à l'accueil du site"
+            >
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
-              <span className="text-xl font-black tracking-tighter text-slate-900">Vtout Admin</span>
+              <span className="text-xl font-black tracking-tighter text-slate-900 group-hover:text-indigo-600 transition-colors">Vtout Admin</span>
             </div>
             <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-400 hover:text-slate-900">
               <X size={20} />
             </button>
           </div>
+
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
@@ -333,15 +344,26 @@ const AdminLayout = () => {
           </nav>
 
           {/* User Section */}
-          <div className="p-6 border-t border-slate-50">
+          <div className="p-6 border-t border-slate-50 space-y-2">
             <button
-              onClick={() => (window.location.href = "/")}
+              onClick={() => navigate("/")}
+              className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all"
+            >
+              <Store size={18} />
+              Retour au site
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                window.location.href = "/";
+              }}
               className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
             >
               <LogOut size={18} />
-              Quitter
+              Se déconnecter
             </button>
           </div>
+
         </div>
       </aside>
 
