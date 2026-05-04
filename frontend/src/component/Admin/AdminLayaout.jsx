@@ -344,25 +344,28 @@ const AdminLayout = () => {
           </nav>
 
           {/* User Section */}
-          <div className="p-6 border-t border-slate-50 space-y-2">
+          <div className="p-6 border-t border-slate-50 space-y-4">
             <button
               onClick={() => navigate("/")}
-              className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all"
+              className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all border border-transparent hover:border-indigo-100"
             >
               <Store size={18} />
               Retour au site
             </button>
             <button
               onClick={async () => {
-                await signOut();
-                window.location.href = "/";
+                if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                  await authClient.signOut();
+                  window.location.href = "/";
+                }
               }}
-              className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+              className="w-full flex items-center gap-3 p-4 text-rose-500 font-black hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 uppercase text-[10px] tracking-widest"
             >
               <LogOut size={18} />
               Se déconnecter
             </button>
           </div>
+
 
         </div>
       </aside>

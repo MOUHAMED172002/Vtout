@@ -675,6 +675,92 @@ export const deleteProduct = async (req, res) => {
     }
 };
 
+export const adminCreateProduct = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const {
+            name, description, price, old_price, stock, category_id,
+            images, is_flash_sale, flash_sale_end, variants,
+            supplier_id, boutique_id, supplier_price, approval_status
+        } = req.body;
+
+        if (!supplier_id) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'Le champ supplier_id est obligatoire pour créer un produit en tant qu\'admin.' });
+        }
+        if (!name || !price) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
+        }
+
+        const product = await Product.create({
+            id: crypto.randomUUID(),
+            name, description, price, old_price, stock, category_id,
+            is_flash_sale, flash_sale_end,
+            supplier_id,
+            supplier_price,
+            approval_status: approval_status || 'approved'
+        }, { transaction });
+
+        if (images && images.length > 0) {
+            await ProductImage.bulkCreate(
+                images.map(img => ({
+                    id: crypto.randomUUID(),
+                    product_id: product.id,
+                    image_url: img.url,
+                    is_main: img.isMain || false
+                })),
+                { transaction }
+            );
+        }
+
+        if (variants && variants.length > 0) {
+            for (const v of variants) {
+                const variant = await ProductVariant.create({
+                    id: crypto.randomUUID(),
+                    product_id: product.id,
+                    sku: v.sku || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    combination: v.combination
+                }, { transaction });
+
+                await ProductVariantPrice.create({
+                    id: crypto.randomUUID(),
+                    variant_id: variant.id,
+                    price: v.price || price,
+                    old_price: v.old_price || old_price,
+                    stock: v.stock || 0,
+                    image_url: v.image_url || null
+                }, { transaction });
+
+                await SupplierProduct.create({
+                    id: crypto.randomUUID(),
+                    supplier_id,
+                    product_id: product.id,
+                    variant_id: variant.id,
+                    boutique_id: boutique_id || null,
+                    supplier_price: v.supplier_price || supplier_price,
+                    supplier_sku: v.supplier_sku || v.sku
+                }, { transaction });
+            }
+        } else {
+            await SupplierProduct.create({
+                id: crypto.randomUUID(),
+                supplier_id,
+                product_id: product.id,
+                boutique_id: boutique_id || null,
+                supplier_price: supplier_price || null
+            }, { transaction });
+        }
+
+        await transaction.commit();
+        res.status(201).json(product);
+    } catch (error) {
+        await transaction.rollback();
+        console.error('AdminCreateProduct error:', error);
+        res.status(500).json({ error: 'Erreur lors de la création du produit par l\'admin' });
+    }
+};
+
 export const getRelatedProducts = async (req, res) => {
     try {
         const { id } = req.params;

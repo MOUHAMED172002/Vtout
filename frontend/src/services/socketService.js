@@ -12,8 +12,10 @@ let socket;
 
 export const initSocket = (userId) => {
     socket = io(SOCKET_URL, {
-        withCredentials: true
+        withCredentials: true,
+        transports: ['websocket']
     });
+
     
     if (userId) {
         socket.emit('join', userId);

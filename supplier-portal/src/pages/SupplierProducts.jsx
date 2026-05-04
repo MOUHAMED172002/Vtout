@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/clerk-shim';
 import { getMySupplierProducts } from '../services/supplierService';
+import { deleteProduct } from '../services/productService';
+
 import { Package, Search as SearchIcon, Filter, MoreVertical, Edit, Trash2, CheckCircle, Clock, XCircle, Share2, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -11,21 +13,36 @@ const SupplierProducts = () => {
   const [search, setSearch] = useState('');
   const { getToken } = useAuth();
 
+  const fetchProducts = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const data = await getMySupplierProducts(token);
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const data = await getMySupplierProducts(token);
-        setProducts(data || []);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
   }, [getToken]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.")) return;
+    try {
+      const token = await getToken();
+      await deleteProduct(id, token);
+      toast.success("Produit supprimé avec succès");
+      fetchProducts();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -136,9 +153,13 @@ const SupplierProducts = () => {
                         <a href={`/modifier-produit/${product.id}`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
                           <Edit size={18} />
                         </a>
-                        <button className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                        >
                           <Trash2 size={18} />
                         </button>
+
                         <button onClick={() => handleShare(product.id)} className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all">
                           <Share2 size={18} />
                         </button>

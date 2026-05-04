@@ -22,8 +22,10 @@ class NotificationService {
         if (this.socket) return;
 
         this.socket = io(SOCKET_URL, {
-            withCredentials: true
+            withCredentials: true,
+            transports: ['websocket']
         });
+
 
         this.socket.on('connect', () => {
             if (userId) {

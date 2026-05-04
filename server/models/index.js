@@ -131,8 +131,9 @@ ProductAttribute.hasMany(AttributeValue, { foreignKey: 'attribute_id', as: 'valu
 AttributeValue.belongsTo(ProductAttribute, { foreignKey: 'attribute_id', as: 'attribute' });
 
 // Product <-> ProductImage
-Product.hasMany(ProductImage, { foreignKey: 'product_id', as: 'images' });
+Product.hasMany(ProductImage, { foreignKey: 'product_id', as: 'images', onDelete: 'CASCADE' });
 ProductImage.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+
 
 // Profile <-> Order
 Profile.hasMany(Order, { foreignKey: 'user_id', as: 'orders' });
@@ -180,23 +181,27 @@ OrderItem.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' })
 // Favorites
 Profile.hasMany(Favorite, { foreignKey: 'user_id', as: 'favorites' });
 Favorite.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
-Product.hasMany(Favorite, { foreignKey: 'product_id', as: 'favorites' });
+Product.hasMany(Favorite, { foreignKey: 'product_id', as: 'favorites', onDelete: 'CASCADE' });
 Favorite.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 Favorite.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
+
 
 // Cart items
 Profile.hasMany(Cart, { foreignKey: 'user_id', as: 'cartItems' });
 Cart.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
-Product.hasMany(Cart, { foreignKey: 'product_id', as: 'cartItems' });
+Product.hasMany(Cart, { foreignKey: 'product_id', as: 'cartItems', onDelete: 'CASCADE' });
 Cart.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 Cart.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
 
+
 // Variants
-Product.hasMany(ProductVariant, { foreignKey: 'product_id', as: 'variants' });
+Product.hasMany(ProductVariant, { foreignKey: 'product_id', as: 'variants', onDelete: 'CASCADE' });
 ProductVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
-ProductVariant.hasMany(ProductVariantPrice, { foreignKey: 'variant_id', as: 'priceRows' });
+
+ProductVariant.hasMany(ProductVariantPrice, { foreignKey: 'variant_id', as: 'priceRows', onDelete: 'CASCADE' });
 ProductVariantPrice.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
+
 
 // Profile <-> Supplier
 Profile.hasOne(Supplier, { foreignKey: 'user_id', as: 'supplierProfile' });
@@ -210,11 +215,13 @@ SupplierProduct.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' 
 Supplier.hasMany(Product, { foreignKey: 'supplier_id', as: 'products' });
 Product.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 
-Product.hasMany(SupplierProduct, { foreignKey: 'product_id', as: 'supplierLink' });
+Product.hasMany(SupplierProduct, { foreignKey: 'product_id', as: 'supplierLink', onDelete: 'CASCADE' });
 SupplierProduct.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
-ProductVariant.hasMany(SupplierProduct, { foreignKey: 'variant_id', as: 'supplierLink' });
+
+ProductVariant.hasMany(SupplierProduct, { foreignKey: 'variant_id', as: 'supplierLink', onDelete: 'CASCADE' });
 SupplierProduct.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
+
 
 // Support Messages
 SupportMessage.belongsTo(Profile, { foreignKey: 'sender_id', as: 'sender' });
@@ -226,7 +233,8 @@ Profile.hasMany(SupportMessage, { foreignKey: 'receiver_id', as: 'receivedMessag
 Review.belongsTo(Profile, { foreignKey: 'user_id', as: 'author' });
 Profile.hasMany(Review, { foreignKey: 'user_id', as: 'reviews' });
 Review.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
-Product.hasMany(Review, { foreignKey: 'product_id', as: 'reviews' });
+Product.hasMany(Review, { foreignKey: 'product_id', as: 'reviews', onDelete: 'CASCADE' });
+
 
 // Platform Reviews
 PlatformReview.belongsTo(Profile, { foreignKey: 'user_id', as: 'author' });

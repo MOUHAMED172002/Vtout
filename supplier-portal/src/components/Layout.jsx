@@ -105,23 +105,23 @@ const Sidebar = ({ mobile, onClose }) => {
                 ))}
             </nav>
 
-            {/* Logout & Navigation Back */}
-            <div className="p-4 border-t border-white/5 space-y-2">
+            <div className="p-4 border-t border-white/5 space-y-3">
                 <button
                     onClick={() => (window.location.href = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com')}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
                 >
                     <Store size={18} />
                     <span>Retour au site</span>
                 </button>
                 <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20"
                 >
                     <LogOut size={18} />
                     <span>Se déconnecter</span>
                 </button>
             </div>
+
 
                 <div className="mt-2 space-y-1 px-4">
                     <p className="text-[8px] font-black uppercase text-white/20 mb-2">Changer de mode</p>

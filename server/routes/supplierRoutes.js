@@ -32,5 +32,7 @@ router.delete('/:id', requireAdmin, supplierController.deleteSupplier);
 // Supplier-Product relationship routes
 router.patch('/products/:id', requireAdmin, supplierController.updateSupplierProduct);
 router.delete('/products/:id', requireAdmin, supplierController.deleteSupplierProduct);
+router.post('/boutiques-admin', requireAdmin, supplierController.adminCreateBoutique);
+
 
 export default router;

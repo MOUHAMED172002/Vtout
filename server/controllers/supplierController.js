@@ -339,3 +339,21 @@ export const getAllBoutiques = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la récupération des boutiques' });
     }
 };
+
+export const adminCreateBoutique = async (req, res) => {
+    try {
+        const { supplier_id } = req.body;
+        if (!supplier_id) return res.status(400).json({ error: 'ID Fournisseur obligatoire' });
+
+        const boutique = await Boutique.create({
+            id: crypto.randomUUID(),
+            ...req.body,
+            supplier_id: supplier_id,
+            status: 'active'
+        });
+        res.status(201).json(boutique);
+    } catch (error) {
+        console.error('AdminCreateBoutique error:', error);
+        res.status(500).json({ error: 'Erreur lors de la création de la boutique par l\'admin' });
+    }
+};
