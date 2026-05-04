@@ -259,3 +259,99 @@ export const adminSyncFinancials = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la synchronisation: ' + error.message });
     }
 };
+
+export const adminGetSupplierFinancials = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const summary = await FinancialTransaction.findAll({
+            where: { user_id: userId, status: 'completed' },
+            attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
+            group: ['type']
+        });
+        
+        let balance = 0;
+        summary.forEach(s => {
+            const val = parseFloat(s.get('total') || 0);
+            if (s.type === 'earning') balance += val;
+            if (s.type === 'payout') balance -= val;
+            if (s.type === 'adjustment') balance += val;
+        });
+        
+        const transactions = await FinancialTransaction.findAll({
+            where: { user_id: userId },
+            order: [['created_at', 'DESC']],
+            limit: 50
+        });
+        
+        const payoutRequests = await PayoutRequest.findAll({
+            where: { user_id: userId },
+            order: [['created_at', 'DESC']]
+        });
+        
+        res.json({ balance, transactions, payoutRequests });
+    } catch (error) {
+        console.error('AdminGetSupplierFinancials error:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const adminGetBoutiqueStats = async (req, res) => {
+    try {
+        const { boutiqueId } = req.params;
+        
+        const items = await OrderItem.findAll({
+            include: [
+                { 
+                    model: Product, 
+                    as: 'product', 
+                    where: { boutique_id: boutiqueId },
+                    attributes: ['id', 'name']
+                },
+                { 
+                    model: Order, 
+                    as: 'order', 
+                    where: { status: 'livrée' },
+                    attributes: ['id', 'created_at']
+                }
+            ]
+        });
+        
+        let totalSales = 0;
+        let totalEarnings = 0;
+        let totalCommissions = 0;
+        
+        // Calculate based on the 10% logic in financialService
+        items.forEach(item => {
+            const price = parseFloat(item.price);
+            const qty = parseInt(item.quantity);
+            const gross = price * qty;
+            const comm = gross * 0.10; // 10% commission
+            const net = gross - comm;
+            
+            totalSales += gross;
+            totalEarnings += net;
+            totalCommissions += comm;
+        });
+        
+        res.json({
+            boutique_id: boutiqueId,
+            stats: {
+                totalSales,
+                totalEarnings,
+                totalCommissions,
+                ordersCount: new Set(items.map(i => i.order_id)).size,
+                itemsCount: items.length
+            },
+            recentTransactions: items.slice(0, 10).map(i => ({
+                order_id: i.order_id,
+                product_name: i.product?.name,
+                amount: parseFloat(i.price) * parseInt(i.quantity),
+                date: i.order?.created_at
+            }))
+        });
+    } catch (error) {
+        console.error('AdminGetBoutiqueStats error:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};

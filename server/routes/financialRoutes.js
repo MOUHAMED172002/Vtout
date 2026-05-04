@@ -11,5 +11,10 @@ router.post('/request-payout', requireAuth, financialController.requestPayout);
 // Admin uniquement
 router.get('/admin/payouts', requireAuth, requireAdmin, financialController.adminGetAllPayoutRequests);
 router.put('/admin/payouts/:id', requireAuth, requireAdmin, financialController.adminProcessPayout);
+router.get('/admin/user/:userId', requireAuth, requireAdmin, financialController.adminGetSupplierFinancials);
+router.get('/admin/boutique/:boutiqueId/stats', requireAuth, requireAdmin, financialController.adminGetBoutiqueStats);
+router.post('/admin/sync', requireAuth, requireAdmin, financialController.adminSyncFinancials);
+
+
 
 export default router;

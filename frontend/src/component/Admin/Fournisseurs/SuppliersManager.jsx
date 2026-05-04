@@ -2,12 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { getSuppliers, updateSupplierStatus, deleteSupplier } from '../../../services/supplierService';
 import { useAuth } from '../../../lib/clerk-shim';
 import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import AddBoutiqueModal from './AddBoutiqueModal';
+import SupplierWalletModal from './SupplierWalletModal';
+import { Wallet } from 'lucide-react';
+
+
 
 const SuppliersManager = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedForBoutique, setSelectedForBoutique] = useState(null);
+    const [selectedForWallet, setSelectedForWallet] = useState(null);
     const { getToken } = useAuth();
+
+
 
     const fetchSuppliers = async () => {
         try {
@@ -191,13 +200,29 @@ const SuppliersManager = () => {
                                                         <CheckCircle size={14} /> Réactiver
                                                     </button>
                                                 )}
+                                                <button
+                                                    onClick={() => setSelectedForBoutique(supplier)}
+                                                    className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all active:scale-95 flex items-center gap-2 border border-indigo-100"
+                                                    title="Créer une boutique"
+                                                >
+                                                    <Store size={14} /> + Boutique
+                                                </button>
+                                                <button
+                                                    onClick={() => setSelectedForWallet(supplier)}
+                                                    className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 active:scale-95 shadow-sm"
+                                                    title="Voir Portefeuille"
+                                                >
+                                                    <Wallet size={18} />
+                                                </button>
                                                 <button 
                                                     onClick={() => handleDelete(supplier.id)}
+
                                                     className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-100 active:scale-95 shadow-sm"
                                                     title="Supprimer"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
+
                                             </div>
                                         </td>
                                     </motion.tr>
@@ -221,7 +246,25 @@ const SuppliersManager = () => {
                     </table>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {selectedForBoutique && (
+                    <AddBoutiqueModal 
+                        supplier={selectedForBoutique}
+                        onClose={() => setSelectedForBoutique(null)}
+                        onCreated={fetchSuppliers}
+                    />
+                )}
+                {selectedForWallet && (
+                    <SupplierWalletModal 
+                        supplier={selectedForWallet}
+                        onClose={() => setSelectedForWallet(null)}
+                    />
+                )}
+            </AnimatePresence>
+
         </div>
+
     );
 };
 

@@ -5,6 +5,9 @@ import { Store, Package, MapPin, Phone, Eye, ChevronRight, LayoutGrid, Plus, Plu
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';
 import AdminAddProductModal from '../Product/AdminAddProductModal';
+import BoutiqueStatsModal from './BoutiqueStatsModal';
+import { BarChart3 } from 'lucide-react';
+
 
 const BoutiquesCatalogManager = () => {
     const [boutiques, setBoutiques] = useState([]);
@@ -12,7 +15,9 @@ const BoutiquesCatalogManager = () => {
     const [selectedBoutique, setSelectedBoutique] = useState(null);
     const [showAddBoutique, setShowAddBoutique] = useState(false);
     const [showAddProduct, setShowAddProduct] = useState(false);
+    const [showStats, setShowStats] = useState(false);
     const { getToken } = useAuth();
+
 
     const fetchBoutiques = async () => {
         try {
@@ -59,7 +64,18 @@ const BoutiquesCatalogManager = () => {
                 <div className="lg:col-span-4 space-y-4">
                     <div className="flex items-center justify-between px-4 mb-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Toutes les boutiques ({boutiques.length})</span>
+                        <button 
+                            onClick={() => {
+                                setSelectedBoutique(null); // Clear selection to show general creation
+                                setShowAddBoutique(true);
+                            }}
+                            className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"
+                            title="Nouvelle Boutique"
+                        >
+                            <Plus size={16} />
+                        </button>
                     </div>
+
                     {boutiques.map((btq) => (
                         <motion.div
                             whileHover={{ scale: 1.02 }}
@@ -112,18 +128,28 @@ const BoutiquesCatalogManager = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-4">
                                         <div className="flex items-center gap-3 bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
                                             <Phone size={16} className="text-primary" />
                                             <span className="text-sm font-black text-slate-700">{selectedBoutique.phone}</span>
                                         </div>
-                                        <button 
-                                            onClick={() => setShowAddBoutique(true)}
-                                            className="text-[10px] font-black uppercase text-primary hover:underline text-right"
-                                        >
-                                            + Ajouter une autre boutique
-                                        </button>
+                                        <div className="flex gap-2 justify-end items-center">
+                                            <button 
+                                                onClick={() => setShowStats(true)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100"
+                                            >
+                                                <BarChart3 size={14} /> Performance
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowAddBoutique(true)}
+                                                className="text-[9px] font-black uppercase text-primary hover:underline"
+                                            >
+                                                + Nouvelle boutique
+                                            </button>
+                                        </div>
                                     </div>
+
+
                                 </div>
 
                                 <div className="space-y-6">
@@ -189,13 +215,14 @@ const BoutiquesCatalogManager = () => {
 
             {/* Modals */}
             <AnimatePresence>
-                {showAddBoutique && selectedBoutique && (
+                {showAddBoutique && (
                     <AddBoutiqueModal 
-                        supplier={selectedBoutique.supplier}
+                        supplier={selectedBoutique?.supplier}
                         onClose={() => setShowAddBoutique(false)}
                         onCreated={fetchBoutiques}
                     />
                 )}
+
                 {showAddProduct && selectedBoutique && (
                     <AdminAddProductModal 
                         supplier={selectedBoutique.supplier}
@@ -204,7 +231,14 @@ const BoutiquesCatalogManager = () => {
                         onCreated={fetchBoutiques}
                     />
                 )}
+                {showStats && selectedBoutique && (
+                    <BoutiqueStatsModal 
+                        boutique={selectedBoutique}
+                        onClose={() => setShowStats(false)}
+                    />
+                )}
             </AnimatePresence>
+
         </div>
     );
 };
