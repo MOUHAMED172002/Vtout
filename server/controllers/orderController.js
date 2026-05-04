@@ -18,7 +18,7 @@ export const getMyOrders = async (req, res) => {
 
         const orders = await Order.findAll({
             where: { user_id: userId },
-            order: [[sequelize.literal('created_at'), 'DESC']]
+            order: [['created_at', 'DESC']]
         });
         res.json(orders);
     } catch (error) {
@@ -36,7 +36,7 @@ export const getMySupplierOrders = async (req, res) => {
 
         const orders = await Order.findAll({
             where: { supplier_id: supplier.id },
-            order: [[sequelize.literal('created_at'), 'DESC']],
+            order: [['created_at', 'DESC']],
             include: [
                 { model: Address, as: 'address' },
                 { 
@@ -56,7 +56,7 @@ export const getMySupplierOrders = async (req, res) => {
 export const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
-            order: [[sequelize.literal('created_at'), 'DESC']],
+            order: [['created_at', 'DESC']],
             include: [
                 { model: Profile, as: 'user', attributes: ['fullname', 'email'] },
                 { model: Address, as: 'address' },
