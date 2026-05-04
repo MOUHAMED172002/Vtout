@@ -62,19 +62,19 @@ const BoutiquesCatalogManager = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* List Section */}
                 <div className="lg:col-span-4 space-y-4">
-                    <div className="flex items-center justify-between px-4 mb-2">
+                    <div className="flex items-center justify-between px-4 mb-4">
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Toutes les boutiques ({boutiques.length})</span>
                         <button 
                             onClick={() => {
-                                setSelectedBoutique(null); // Clear selection to show general creation
+                                setSelectedBoutique(null);
                                 setShowAddBoutique(true);
                             }}
-                            className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"
-                            title="Nouvelle Boutique"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-primary/20 text-[9px] font-black uppercase tracking-widest"
                         >
-                            <Plus size={16} />
+                            <Plus size={14} /> Boutique
                         </button>
                     </div>
+
 
                     {boutiques.map((btq) => (
                         <motion.div

@@ -21,7 +21,37 @@ const strictLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+// Paths used by bots to scan for vulnerabilities (WordPress, Laravel, etc.)
+const blockedPaths = [
+    '/xmlrpc.php',
+    '/wp-admin',
+    '/wp-includes',
+    '/wp-content',
+    '/wp-login.php',
+    '/wlwmanifest.xml',
+    '/.env',
+    '/.git',
+    '/install.php',
+    '/_ignition',
+    '/vendor/phpunit',
+    '/.aws',
+    '/.vscode',
+    '/phpmyadmin'
+];
+
+export const blockExploitPaths = (req, res, next) => {
+    const url = req.originalUrl.toLowerCase();
+    if (blockedPaths.some(path => url.includes(path.toLowerCase()))) {
+        console.warn(`[SECURITY] Blocked exploit scan: ${req.method} ${req.originalUrl} from ${req.ip}`);
+        return res.status(403).json({ error: "Access Denied" });
+    }
+    next();
+};
+
 export const applySecurity = (app) => {
+    // 0. Block exploit scans early
+    app.use(blockExploitPaths);
+
     // 1. Set Security Headers
     app.use(helmet({
         crossOriginResourcePolicy: { policy: "cross-origin" },
