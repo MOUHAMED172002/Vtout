@@ -77,9 +77,8 @@ const ProtectedRoute = ({ children }) => {
     if (!isLoaded) return null;
     if (!isSignedIn) return <Navigate to="/connexion" replace />;
     
-    if (role === 'livreur' || role === 'user') {
-        return <RoleBlockModal role={role} />;
-    }
+    // We no longer block 'user' or 'livreur' here.
+    // If they don't have a supplier profile, SupplierDashboard will show them the SupplierWelcome onboarding screen.
 
     return <Layout>{children}</Layout>;
 };

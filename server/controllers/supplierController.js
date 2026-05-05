@@ -197,26 +197,8 @@ export const registerSelf = async (req, res) => {
             status: 'active'
         });
 
-        // Ne pas rétrograder un admin en simple fournisseur
-        if (!isAdmin) {
-            if (userProfile) {
-                await userProfile.update({ role: 'fournisseur' });
-            } else {
-                await Profile.create({ id: userId, role: 'fournisseur' });
-            }
-
-            try {
-                await sequelize.query(
-                    'UPDATE user SET role = :role WHERE id = :id',
-                    {
-                        replacements: { role: 'fournisseur', id: userId },
-                        type: sequelize.QueryTypes.UPDATE
-                    }
-                );
-            } catch (authError) {
-                console.warn('Could not update Better Auth user role:', authError.message);
-            }
-        }
+        // Removed role demotion/change logic. 
+        // A user stays a 'user' and simply gains a 'Supplier' profile.
 
         res.status(201).json(supplier);
     } catch (error) {

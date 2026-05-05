@@ -165,7 +165,18 @@ export const requireLivreur = async (req, res, next) => {
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth.email?.toLowerCase();
 
-        if (req.auth.role === 'livreur' || req.auth.role === 'admin' || adminEmails.includes(userEmail)) {
+        if (req.auth.role === 'admin' || adminEmails.includes(userEmail)) {
+            return next();
+        }
+
+        // Vérification du profil livreur
+        const { default: sequelizeInstance } = await import('../config/database.js');
+        const [livreur] = await sequelizeInstance.query(
+            'SELECT id FROM livreurs WHERE user_id = :userId LIMIT 1',
+            { replacements: { userId: req.auth.userId }, type: sequelizeInstance.QueryTypes.SELECT }
+        ).catch(() => []);
+
+        if (req.auth.role === 'livreur' || livreur) {
             return next();
         }
 
@@ -182,11 +193,22 @@ export const requireFournisseur = async (req, res, next) => {
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth.email?.toLowerCase();
 
-        if (req.auth.role === 'fournisseur' || req.auth.role === 'admin' || adminEmails.includes(userEmail)) {
+        if (req.auth.role === 'admin' || adminEmails.includes(userEmail)) {
             return next();
         }
 
-        return res.status(403).json({ error: 'Accès réservé aux fournisseurs' });
+        // Vérification du profil fournisseur
+        const { default: sequelizeInstance } = await import('../config/database.js');
+        const [supplier] = await sequelizeInstance.query(
+            'SELECT id FROM suppliers WHERE user_id = :userId LIMIT 1',
+            { replacements: { userId: req.auth.userId }, type: sequelizeInstance.QueryTypes.SELECT }
+        ).catch(() => []);
+
+        if (req.auth.role === 'fournisseur' || supplier) {
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Profil fournisseur inexistant' });
     } catch (err) {
         res.status(500).json({ error: "Erreur fournisseur" });
     }
