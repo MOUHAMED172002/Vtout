@@ -123,6 +123,57 @@ export const auth = betterAuth({
             }
         }
     },
+    emailVerification: {
+        sendOnSignUp: true,
+        autoSignInAfterVerification: true,
+        sendVerificationEmail: async ({ user, url }, request) => {
+            try {
+                const cfg = await getEmailConfig();
+                if (!cfg.apiKey) {
+                    console.warn('[Auth] No RESEND_API_KEY — verification email not sent.');
+                    return;
+                }
+                const resend = new Resend(cfg.apiKey);
+                const firstName = (user.name || user.email).split(' ')[0];
+                
+                const html = `
+                <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:auto;background:#f8fafc;padding:0;border-radius:24px;overflow:hidden;border:1px solid #e2e8f0;">
+                    <div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);padding:40px 40px 30px;text-align:center;">
+                        <div style="display:inline-block;background:rgba(255,255,255,0.1);border-radius:16px;padding:12px 20px;margin-bottom:20px;">
+                            <span style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Vtout Platform</span>
+                        </div>
+                        <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0;letter-spacing:-0.5px;">Vérifiez votre email</h1>
+                    </div>
+                    <div style="padding:40px;">
+                        <p style="color:#475569;font-size:16px;margin:0 0 20px;">Bonjour <strong style="color:#0f172a;">${firstName}</strong>,</p>
+                        <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 30px;">
+                            Pour finaliser la sécurisation de votre compte Vtout, cliquez sur le bouton ci-dessous :
+                        </p>
+                        <div style="text-align:center;margin:30px 0;">
+                            <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;padding:16px 40px;border-radius:14px;text-decoration:none;font-weight:800;font-size:15px;">
+                                ✉️ Vérifier mon adresse email
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+
+                const info = await resend.emails.send({
+                    from: `${cfg.fromName} Security <${cfg.fromAddress}>`,
+                    to: [user.email],
+                    subject: '✉️ Confirmez votre adresse email Vtout',
+                    html
+                });
+                
+                if (info.error) {
+                    console.error('[Auth] Verification Resend error:', info.error);
+                } else {
+                    console.log('[Auth] Verification email sent successfully to:', user.email);
+                }
+            } catch (err) {
+                console.error('[Auth] sendVerificationEmail exception:', err);
+            }
+        }
+    },
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',

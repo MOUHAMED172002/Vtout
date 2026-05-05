@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, updateProduct, mergeProducts, searchProducts } from '../../../services/productService';
+import { getProducts, updateProduct, mergeProducts, searchProducts, deleteProduct } from '../../../services/productService';
 import { useAuth } from '../../../lib/clerk-shim';
-import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -74,6 +74,22 @@ const SupplierProductsApproval = () => {
             toast.error('Erreur lors du rejet');
         }
     };
+
+    const handleDelete = async (product) => {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) return;
+        
+        try {
+            const token = await getToken();
+            await deleteProduct(product.id, token);
+            setSelectedProduct(null);
+            fetchPendingProducts();
+            toast.success('Produit supprimé définitivement');
+        } catch (error) {
+            console.error('Erreur suppression:', error);
+            toast.error('Erreur lors de la suppression');
+        }
+    };
+
 
     if (loading) {
         return (
@@ -190,7 +206,13 @@ const SupplierProductsApproval = () => {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 pt-4 text-white">
+                                    <div className="grid grid-cols-3 gap-4 pt-4 text-white">
+                                        <button
+                                            onClick={() => handleDelete(selectedProduct)}
+                                            className="flex items-center justify-center gap-2 py-5 bg-slate-800 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-slate-200"
+                                        >
+                                            <Trash2 size={14} /> Supprimer
+                                        </button>
                                         <button
                                             onClick={() => handleReject(selectedProduct)}
                                             className="flex items-center justify-center gap-2 py-5 bg-red-500 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-xl shadow-red-100"

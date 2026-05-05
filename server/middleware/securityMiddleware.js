@@ -55,7 +55,7 @@ export const applySecurity = (app) => {
     // 1. Set Security Headers
     app.use(helmet({
         crossOriginResourcePolicy: { policy: "cross-origin" },
-        contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+        contentSecurityPolicy: false, // Disabled to prevent blocking WebSockets/external APIs
     }));
 
     // 2. Prevent HTTP Parameter Pollution
