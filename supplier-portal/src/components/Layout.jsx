@@ -138,7 +138,6 @@ const Sidebar = ({ mobile, onClose }) => {
                         Mode Livreur
                     </button>
                 </div>
-            </div>
         </aside>
     );
 };
