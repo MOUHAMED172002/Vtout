@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Store, Truck } from 'lucide-react';
 import { useAuth } from '../../lib/clerk-shim';
 
-const PortalSwitcher = () => {
+const PortalSwitcher = ({ variant = 'default' }) => {
     const { isSupplier, isDelivery, isAdmin, isLoaded, isSignedIn, getToken, role } = useAuth();
     
     const MAIN_SITE_URL = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com';
@@ -72,6 +72,27 @@ const PortalSwitcher = () => {
             window.location.href = portal.url;
         }
     };
+
+    if (variant === 'sidebar') {
+        return (
+            <div className="flex flex-col gap-2 w-full">
+                {portals.map((portal) => (
+                    <button
+                        key={portal.name}
+                        onClick={() => handleSwitch(portal)}
+                        className={`flex items-center gap-4 px-4 py-3 rounded-2xl font-bold transition-all w-full border ${
+                            portal.active 
+                            ? 'bg-primary/10 text-primary border-primary/20 shadow-sm' 
+                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 border-transparent hover:border-slate-200'
+                        }`}
+                    >
+                        <portal.icon size={18} className={portal.active ? 'text-primary' : 'text-slate-400'} />
+                        <span className="text-sm">Portail {portal.name}</span>
+                    </button>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-2xl border border-slate-200 backdrop-blur-sm">

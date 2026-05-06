@@ -22,6 +22,7 @@ import NotificationsBell from "./NotificationsBell";
 import ThemeSelector from "../context/ThemeSelector";
 import avartar from "../../assets/avatar-placeholder.png";
 import { motion, AnimatePresence } from "framer-motion";
+import PortalSwitcher from "../Shared/PortalSwitcher";
 
 const NAV_ITEMS = [
   { to: "/user/dashboard", label: "Aperçu", icon: <BarChart3 size={18} /> },
@@ -99,33 +100,10 @@ export default function DashboardLayout() {
           {/* ESPACE PROFESSIONNEL SECTION */}
           {(user?.role === 'fournisseur' || user?.role === 'vendeur' || user?.role === 'livreur') && (
             <div className="mt-8 pt-8 border-t border-base-content/5">
-              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Espace Professionnel</p>
-
-              {(user?.role === 'fournisseur' || user?.role === 'vendeur') && (
-                <a
-                  href={(import.meta.env.VITE_SUPPLIER_PORTAL_URL + '/dashboard') || 'http://localhost:5174/dashboard'}
-                  className="flex items-center gap-4 px-4 py-4 rounded-2xl font-bold text-emerald-600 hover:bg-emerald-50 transition-all group"
-                >
-                  <div className="p-2 bg-emerald-100 rounded-lg group-hover:scale-110 transition-transform">
-                    <ShoppingBag size={18} />
-                  </div>
-                  <span className="text-sm">Portail Vendeur</span>
-                  <ChevronRight size={14} className="ml-auto opacity-50" />
-                </a>
-              )}
-
-              {user?.role === 'livreur' && (
-                <Link
-                  to="/delivery-rider"
-                  className="flex items-center gap-4 px-4 py-4 rounded-2xl font-bold text-rose-600 hover:bg-rose-50 transition-all group"
-                >
-                  <div className="p-2 bg-rose-100 rounded-lg group-hover:scale-110 transition-transform">
-                    <BarChart3 size={18} />
-                  </div>
-                  <span className="text-sm">Portail Livreur</span>
-                  <ChevronRight size={14} className="ml-auto opacity-50" />
-                </Link>
-              )}
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Espaces Connectés</p>
+              <div className="px-2">
+                <PortalSwitcher variant="sidebar" />
+              </div>
             </div>
           )}
         </div>

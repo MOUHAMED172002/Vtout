@@ -110,11 +110,10 @@ const Sidebar = ({ mobile, onClose }) => {
             </nav>
 
             <div className="p-4 border-t border-white/5 space-y-2">
-                <p className="text-[8px] font-black uppercase text-white/20 px-4 mb-2">Mon Espace Personnel</p>
+                <p className="text-[8px] font-black uppercase text-white/20 px-4 mb-2">Espaces Connectés</p>
                 
-                <div className="px-2 w-full flex justify-center">
-                    <PortalSwitcher />
-                </div>
+                <PortalSwitcher />
+
 
                 <button
                     onClick={handleSignOut}
@@ -250,7 +249,8 @@ const Layout = ({ children }) => {
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
                             <SearchIcon size={20} />
                         </button>
-                        {/* PortalSwitcher has been moved to the Sidebar */}
+                        <div className="hidden sm:block">
+                        </div>
                         <NotificationCenter />
                     </div>
 
