@@ -22,6 +22,7 @@ import { useAppConfig } from "../context/ConfigContext";
 import logo from "../../assets/brand/vtout-logo.png";
 import ThemeSelector from "../context/ThemeSelector";
 import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
+import NotificationCenter from "../Shared/NotificationCenter";
 
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
@@ -153,6 +154,7 @@ export default function Navbar() {
                       Boutique
                     </Link>
                   )}
+                  <NotificationCenter />
                   <UserButton afterSignOutUrl="/" />
                 </div>
               </SignedIn>
@@ -171,6 +173,9 @@ export default function Navbar() {
           <div className="flex lg:hidden items-center gap-4">
             {!isLivreur && <SearchBar />}
             {!isLivreur && <CartIcon />}
+            <SignedIn>
+              <NotificationCenter />
+            </SignedIn>
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 text-base-content"

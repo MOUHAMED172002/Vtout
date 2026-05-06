@@ -1,4 +1,4 @@
-import { Profile, sequelize } from '../models/index.js';
+import { Profile, Supplier, DeliveryPerson, sequelize } from '../models/index.js';
 import crypto from 'crypto';
 
 
@@ -122,20 +122,10 @@ export const updateProfileStatus = async (req, res) => {
 
 export const switchRole = async (req, res) => {
     try {
-        const { userId, role: currentRole } = req.auth;
+        const { userId } = req.auth;
         const { newRole } = req.body;
 
         if (!userId) return res.status(401).json({ error: 'Non authentifié' });
-        
-        // Safety: Don't allow switching IF the user is already an admin via env or database
-        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
-        const userEmail = req.auth.email?.toLowerCase();
-        
-        /* 
-        if (currentRole === 'admin' || adminEmails.includes(userEmail)) {
-             return res.status(403).json({ error: 'Les administrateurs ne peuvent pas changer de rôle via cette interface.' });
-        }
-        */
 
         const validRoles = ['user', 'fournisseur', 'livreur'];
         if (!validRoles.includes(newRole)) {
@@ -145,6 +135,34 @@ export const switchRole = async (req, res) => {
         const profile = await Profile.findByPk(userId);
         if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
 
+        // --- ONBOARDING AUTOMATIQUE ---
+        
+        if (newRole === 'fournisseur') {
+            const existingSupplier = await Supplier.findOne({ where: { user_id: userId } });
+            if (!existingSupplier) {
+                await Supplier.create({
+                    id: crypto.randomUUID(),
+                    user_id: userId,
+                    name: profile.fullname || 'Ma Boutique',
+                    email: profile.email,
+                    status: 'En attente'
+                });
+            }
+        }
+
+        if (newRole === 'livreur') {
+            const existingRider = await DeliveryPerson.findOne({ where: { user_id: userId } });
+            if (!existingRider) {
+                await DeliveryPerson.create({
+                    user_id: userId,
+                    vehicle_type: 'moto',
+                    status: 'hors_ligne',
+                    is_active: true
+                });
+            }
+        }
+
+        // Update role in both tables
         profile.role = newRole;
         await profile.save();
         
