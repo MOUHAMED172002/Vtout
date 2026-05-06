@@ -126,7 +126,8 @@ export const authMiddleware = async (req, res, next) => {
         }
         next();
     } catch (err) {
-        console.error("[authMiddleware] Global Error:", err);
+        console.error("[authMiddleware] CRITICAL Error during profile sync:", err);
+        // On ne bloque pas totalement pour permettre au moins l'accès aux routes publiques
         req.auth = { userId: null, clerkId: null };
         next();
     }

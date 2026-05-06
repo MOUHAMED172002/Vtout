@@ -397,6 +397,19 @@ sequelize.authenticate()
             // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
             const syncOptions = isProd ? { alter: false } : { alter: true };
             await sequelize.sync(syncOptions);
+            
+            // Forçage de la migration pour la colonne last_abandoned_reminder_at
+            try {
+                const [results] = await sequelize.query("SHOW COLUMNS FROM profiles LIKE 'last_abandoned_reminder_at'");
+                if (results.length === 0) {
+                    console.log("🛠️ [MIGRATION] Adding last_abandoned_reminder_at to profiles...");
+                    await sequelize.query("ALTER TABLE profiles ADD COLUMN last_abandoned_reminder_at DATETIME NULL");
+                    console.log("✅ [MIGRATION] Column added successfully.");
+                }
+            } catch (err) {
+                console.warn("⚠️ [MIGRATION] Column check/add failed (non-critical):", err.message);
+            }
+
             console.log(`✅ [BOOT] Database synced (${isProd ? 'Safe Mode' : 'Alter Mode'}).`);
         } catch (syncError) {
             console.error("❌ [BOOT] Global sync failed:", syncError.message);

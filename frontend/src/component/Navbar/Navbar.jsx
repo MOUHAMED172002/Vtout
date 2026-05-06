@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppConfig } from "../context/ConfigContext";
 import logo from "../../assets/brand/vtout-logo.png";
 import ThemeSelector from "../context/ThemeSelector";
+import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
 
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
@@ -67,6 +68,7 @@ export default function Navbar() {
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isScrolled ? "py-2 glass-nav" : "py-5 bg-transparent"
           }`}
       >
+        <EmailVerificationBanner />
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
           <Link

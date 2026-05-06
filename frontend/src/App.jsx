@@ -184,7 +184,6 @@ const AppContent = ({ products, loading }) => {
     <div className="bg-base-100 text-base-content transition-colors duration-300 overflow-hidden min-h-screen">
       <SEO />
       <ProfileSync />
-      <EmailVerificationBanner />
 
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
