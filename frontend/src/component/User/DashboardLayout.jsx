@@ -80,8 +80,6 @@ export default function DashboardLayout() {
                   : "text-base-content/70 hover:text-base-content hover:bg-base-200"
                   }`}
               >
-
-
                 <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-primary" : "text-slate-400"}`}>
                   {item.icon}
                 </div>
@@ -97,6 +95,39 @@ export default function DashboardLayout() {
               </Link>
             );
           })}
+
+          {/* ESPACE PROFESSIONNEL SECTION */}
+          {(user?.role === 'fournisseur' || user?.role === 'vendeur' || user?.role === 'livreur') && (
+            <div className="mt-8 pt-8 border-t border-base-content/5">
+              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Espace Professionnel</p>
+              
+              {(user?.role === 'fournisseur' || user?.role === 'vendeur') && (
+                <a
+                  href={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174'}
+                  className="flex items-center gap-4 px-4 py-4 rounded-2xl font-bold text-emerald-600 hover:bg-emerald-50 transition-all group"
+                >
+                  <div className="p-2 bg-emerald-100 rounded-lg group-hover:scale-110 transition-transform">
+                    <ShoppingBag size={18} />
+                  </div>
+                  <span className="text-sm">Portail Vendeur</span>
+                  <ChevronRight size={14} className="ml-auto opacity-50" />
+                </a>
+              )}
+
+              {user?.role === 'livreur' && (
+                <Link
+                  to="/delivery-rider"
+                  className="flex items-center gap-4 px-4 py-4 rounded-2xl font-bold text-rose-600 hover:bg-rose-50 transition-all group"
+                >
+                  <div className="p-2 bg-rose-100 rounded-lg group-hover:scale-110 transition-transform">
+                    <BarChart3 size={18} />
+                  </div>
+                  <span className="text-sm">Portail Livreur</span>
+                  <ChevronRight size={14} className="ml-auto opacity-50" />
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="p-6 border-t border-slate-50">

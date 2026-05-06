@@ -421,7 +421,8 @@ export const UserDropdown = () => {
                             <button
                                 onClick={async () => {
                                     await api.post('/profiles/switch-role', { newRole: 'fournisseur' });
-                                    window.location.href = '/fournisseur/dashboard';
+                                    const vendorUrl = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174';
+                                    window.location.href = vendorUrl;
                                 }}
                                 className="w-full text-left px-2 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
                             >
