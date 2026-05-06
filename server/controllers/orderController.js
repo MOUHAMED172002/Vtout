@@ -84,7 +84,11 @@ export const getOrderById = async (req, res) => {
                 },
                 { model: Address, as: 'address' },
                 { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
-                { model: Supplier, as: 'supplier', attributes: ['name', 'address_line', 'phone'] },
+                { 
+                    model: Supplier, 
+                    as: 'supplier', 
+                    attributes: req.auth?.role === 'admin' ? ['name', 'address_line', 'phone'] : ['name'] 
+                },
                 { model: DeliveryPerson, as: 'deliveryPerson', include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone'] }] }
             ]
         });

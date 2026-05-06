@@ -402,6 +402,46 @@ export const UserDropdown = () => {
                         </a>
                     </div>
 
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 px-2 py-2 space-y-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-1">Changer de mode</p>
+                        
+                        {user.role !== 'user' && (
+                            <button
+                                onClick={async () => {
+                                    await api.post('/profiles/switch-role', { newRole: 'user' });
+                                    window.location.href = '/';
+                                }}
+                                className="w-full text-left px-2 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            >
+                                ✨ Passer en mode Client
+                            </button>
+                        )}
+
+                        {(user.role !== 'fournisseur' && user.role !== 'vendeur') && (
+                            <button
+                                onClick={async () => {
+                                    await api.post('/profiles/switch-role', { newRole: 'fournisseur' });
+                                    window.location.href = '/fournisseur/dashboard';
+                                }}
+                                className="w-full text-left px-2 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                            >
+                                🏪 Passer en mode Vendeur
+                            </button>
+                        )}
+
+                        {user.role !== 'livreur' && (
+                            <button
+                                onClick={async () => {
+                                    await api.post('/profiles/switch-role', { newRole: 'livreur' });
+                                    window.location.href = '/delivery-rider';
+                                }}
+                                className="w-full text-left px-2 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                            >
+                                🏍️ Passer en mode Livreur
+                            </button>
+                        )}
+                    </div>
+
                     <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
                         <button
                             onClick={() => authClient.signOut().then(() => window.location.href = '/')}

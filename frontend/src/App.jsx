@@ -101,14 +101,6 @@ const AppContent = ({ products, loading }) => {
         return () => notificationService.disconnect();
     }, [profileUser]);
 
-    useEffect(() => {
-    // Ne pas bloquer si l'utilisateur est déjà sur une route fournisseur
-    const isSupplierRoute = location.pathname.startsWith('/fournisseur');
-    if (profileUser?.role === 'fournisseur' && !isSupplierRoute) {
-      setShowSupplierModal(true);
-    }
-  }, [profileUser, location.pathname]);
-
   const handleSupplierSignOut = async (redirectToRegister = false) => {
     await signOut();
     setShowSupplierModal(false);
@@ -140,14 +132,6 @@ const AppContent = ({ products, loading }) => {
   const SUPPLIER_PORTAL_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174';
 
   const Home = () => {
-    // Les livreurs n'ont accès qu'à leur dashboard
-    if (profileUser?.role === 'livreur') {
-      return <Navigate to="/delivery-rider" replace />;
-    }
-    // Les fournisseurs ne peuvent pas utiliser le portail client avec leur compte pro
-    if (profileUser?.role === 'fournisseur') {
-      return null; // The modal handles the UI
-    }
     return (
       <>
         <Navbar />
@@ -161,14 +145,6 @@ const AppContent = ({ products, loading }) => {
   };
 
   const PublicRoute = ({ children }) => {
-    // Livreur : uniquement son dashboard
-    if (profileUser?.role === 'livreur' && !location.pathname.startsWith('/delivery-rider')) {
-      return <Navigate to="/delivery-rider" replace />;
-    }
-    // Fournisseur : doit se déconnecter pour utiliser le portail client
-    if (profileUser?.role === 'fournisseur') {
-      return null; // Modal handles this
-    }
     return children;
   };
 
@@ -301,11 +277,6 @@ const AppContent = ({ products, loading }) => {
         </Routes>
       </AnimatePresence>
       <CookieConsent />
-      <SupplierBlockModal 
-        isOpen={showSupplierModal} 
-        onClose={() => handleSupplierSignOut(false)}
-        onAction={() => handleSupplierSignOut(true)}
-      />
     </div>
   );
 };
