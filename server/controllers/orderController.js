@@ -525,8 +525,9 @@ export const updateOrderStatus = async (req, res) => {
         // 2. Financial logging on delivery
         const isDelivered = (mappedStatus === 'livrée') && (oldStatus !== 'livrée');
         if (isDelivered) {
-            await processOrderFinancials(order);
+            await processOrderFinancials(order.id);
         }
+
 
         // 3. Handle Cancellations & Returns (Escrow protection)
         if ((mappedStatus === 'annulée' || mappedStatus === 'retournée') && (oldStatus !== 'annulée' && oldStatus !== 'retournée')) {

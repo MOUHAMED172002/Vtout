@@ -1,132 +1,141 @@
 import crypto from 'crypto';
-import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification } from '../models/index.js';
+import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order } from '../models/index.js';
+import sequelize from '../config/database.js';
 
-export const processOrderFinancials = async (order) => {
+export const processOrderFinancials = async (orderIdOrObject) => {
+    const t = await sequelize.transaction();
     try {
+        // Fetch order with lock to prevent race conditions
+        const orderId = typeof orderIdOrObject === 'string' ? orderIdOrObject : orderIdOrObject.id;
+        const order = await Order.findByPk(orderId, { 
+            transaction: t,
+            lock: true
+        });
+
+        if (!order) {
+            console.error(`[Finance] Order ${orderId} not found`);
+            await t.rollback();
+            return;
+        }
+
+        // DOUBLE SECURITY: Only process if status is 'livrée'
+        if (order.status !== 'livrée' && order.status !== 'livree') {
+            console.warn(`[Finance] Order ${orderId} is NOT delivered (${order.status}). Aborting financial processing.`);
+            await t.rollback();
+            return;
+        }
+
         console.log(`[Finance] Processing financials for order ${order.id}...`);
         
-        // Supplier Earning & Admin Profit
+        // 1. Supplier Earning
         if (order.supplier_id) {
-            const supplierProfile = await Supplier.findByPk(order.supplier_id);
-            if (supplierProfile) {
-                const existingSupplierTx = await FinancialTransaction.findOne({
-                    where: { order_id: order.id, user_id: supplierProfile.user_id, type: 'earning' }
+            const supplier = await Supplier.findByPk(order.supplier_id, { transaction: t });
+            if (supplier && supplier.user_id) {
+                const existingTx = await FinancialTransaction.findOne({
+                    where: { order_id: order.id, user_id: supplier.user_id, type: 'earning' },
+                    transaction: t
                 });
 
-                if (!existingSupplierTx) {
+                if (!existingTx) {
                     const items = await OrderItem.findAll({ 
                         where: { order_id: order.id },
-                        include: [{ model: Product, as: 'product' }]
+                        include: [{ model: Product, as: 'product' }],
+                        transaction: t
                     });
                     
                     let supplierTotal = 0;
                     let adminTotal = 0;
+                    let commissionRate = 0.10;
 
-                    let commissionRate = 0.10; // 10% par défaut
-                    try {
-                        const configRate = await Config.findOne({ where: { key: 'commission_rate' } });
-                        if (configRate && configRate.value) {
-                            commissionRate = parseFloat(configRate.value) / 100;
-                        }
-                    } catch (err) {}
+                    const configRate = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
+                    if (configRate?.value) commissionRate = parseFloat(configRate.value) / 100;
 
                     for (const item of items) {
                         const prixVendu = parseFloat(item.price);
                         const adminProfit = prixVendu * commissionRate;
-                        const exactSupplierPrice = prixVendu - adminProfit;
-
-                        supplierTotal += exactSupplierPrice * item.quantity;
+                        supplierTotal += (prixVendu - adminProfit) * item.quantity;
                         adminTotal += adminProfit * item.quantity;
                     }
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),
-                            user_id: supplierProfile.user_id,
+                            user_id: supplier.user_id,
                             order_id: order.id,
                             type: 'earning',
                             amount: supplierTotal,
-                            description: `Gains produit commande #${order.id.slice(0, 8)}`,
+                            description: `Vente #${order.id.slice(0, 8)}`,
                             status: 'completed'
-                        });
+                        }, { transaction: t });
                         
-                        if (Notification) {
-                            await Notification.create({
-                                id: crypto.randomUUID(),
-                                user_id: supplierProfile.user_id,
-                                title: 'Nouveaux gains !',
-                                message: `Vous avez gagné ${supplierTotal.toFixed(0)} F CFA pour la commande #${order.id.slice(0, 8)}.`,
-                                type: 'wallet'
-                            });
-                        }
+                        await Notification.create({
+                            id: crypto.randomUUID(),
+                            user_id: supplier.user_id,
+                            title: '💰 Nouveaux gains !',
+                            message: `Vous avez reçu ${supplierTotal.toFixed(0)} F CFA pour la commande #${order.id.slice(0, 8)}.`,
+                            type: 'wallet'
+                        }, { transaction: t });
                     }
 
+                    // Admin Commission
                     if (adminTotal > 0) {
-                        const adminProfile = await Profile.findOne({ where: { role: 'admin' } });
-                        if (adminProfile) {
+                        const admin = await Profile.findOne({ where: { role: 'admin' }, transaction: t });
+                        if (admin) {
                             await FinancialTransaction.create({
                                 id: crypto.randomUUID(),
-                                user_id: adminProfile.id,
+                                user_id: admin.id,
                                 order_id: order.id,
                                 type: 'earning',
                                 amount: adminTotal,
-                                description: `Commission vente #${order.id.slice(0, 8)}`,
+                                description: `Com. Vente #${order.id.slice(0, 8)}`,
                                 status: 'completed'
-                            });
+                            }, { transaction: t });
                         }
                     }
-                } else {
-                    console.log(`[Finance] Supplier earnings already exist for order ${order.id}. Skipping supplier part.`);
                 }
             }
         }
 
-        // Livreur Earning
-        console.log(`[Finance] Checking Livreur for order ${order.id}. delivery_person_id: ${order.delivery_person_id}, delivery_fee: ${order.delivery_fee}`);
-        
+        // 2. Livreur Earning
         if (order.delivery_person_id) {
-            const lp = await DeliveryPerson.findByPk(order.delivery_person_id);
-            if (lp) {
-                const existingLivreurTx = await FinancialTransaction.findOne({
-                    where: { order_id: order.id, user_id: lp.user_id, type: 'earning' }
+            const lp = await DeliveryPerson.findByPk(order.delivery_person_id, { transaction: t });
+            if (lp && lp.user_id) {
+                const existingLpTx = await FinancialTransaction.findOne({
+                    where: { order_id: order.id, user_id: lp.user_id, type: 'earning' },
+                    transaction: t
                 });
 
-                if (!existingLivreurTx) {
+                if (!existingLpTx) {
                     const fee = parseFloat(order.delivery_fee || 0);
-                    console.log(`[Finance] Livreur found: ${lp.id}. Fee: ${fee}`);
-
                     if (fee > 0) {
-                        console.log(`[Finance] Creating transaction for Livreur User: ${lp.user_id}`);
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),
                             user_id: lp.user_id,
                             order_id: order.id,
                             type: 'earning',
                             amount: fee,
-                            description: `Course livraison #${order.id.slice(0, 8)}`,
+                            description: `Course #${order.id.slice(0, 8)}`,
                             status: 'completed'
-                        });
-                        
-                        if (Notification) {
-                            await Notification.create({
-                                id: crypto.randomUUID(),
-                                user_id: lp.user_id,
-                                title: 'Course payée !',
-                                message: `Vous avez gagné ${fee.toFixed(0)} F CFA pour la livraison #${order.id.slice(0, 8)}.`,
-                                type: 'wallet'
-                            });
-                        }
-                    } else {
-                        console.log(`[Finance] Skipping Livreur transaction. Reason: Fee is 0 or less`);
+                        }, { transaction: t });
+
+                        await Notification.create({
+                            id: crypto.randomUUID(),
+                            user_id: lp.user_id,
+                            title: '🚚 Course payée !',
+                            message: `Votre compte a été crédité de ${fee.toFixed(0)} F CFA pour la livraison #${order.id.slice(0, 8)}.`,
+                            type: 'wallet'
+                        }, { transaction: t });
                     }
-                } else {
-                    console.log(`[Finance] Livreur earnings already exist for order ${order.id}. skipping.`);
                 }
-            } else {
-                console.log(`[Finance] Skipping Livreur transaction. Reason: Livreur not found`);
             }
         }
-    } catch (finErr) {
-        console.error("FINANCIAL LOGGING ERROR:", finErr);
+
+        await t.commit();
+        console.log(`[Finance] Financials successfully committed for order ${order.id}`);
+    } catch (error) {
+        await t.rollback();
+        console.error(`[Finance] ERROR processing order ${orderIdOrObject?.id || orderIdOrObject}:`, error);
+        throw error;
     }
 };
+
