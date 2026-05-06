@@ -18,9 +18,9 @@ router.get('/', async (req, res) => {
     }
 
     try {
-        // Look up token in verification table
+        // Look up token in verification table (case-insensitive email)
         const [row] = await sequelize.query(
-            `SELECT * FROM verification WHERE identifier = :email AND value = :token AND expiresAt > NOW() LIMIT 1`,
+            `SELECT * FROM verification WHERE LOWER(identifier) = LOWER(:email) AND value = :token AND expiresAt > NOW() LIMIT 1`,
             { replacements: { email, token }, type: sequelize.QueryTypes.SELECT }
         );
 
@@ -28,21 +28,21 @@ router.get('/', async (req, res) => {
             return res.redirect(`${frontendUrl}/auth/verify-email?status=expired`);
         }
 
-        // Mark email as verified in profiles table
-        const [updated] = await Profile.update(
-            { email_verified: true },
-            { where: { email } }
+        // Mark email as verified in profiles table (case-insensitive)
+        await sequelize.query(
+            `UPDATE profiles SET email_verified = 1 WHERE LOWER(email) = LOWER(:email)`,
+            { replacements: { email }, type: sequelize.QueryTypes.UPDATE }
         );
 
         // Also mark email verified in Better Auth's user table
         await sequelize.query(
-            `UPDATE \`user\` SET emailVerified = 1 WHERE email = :email`,
+            `UPDATE \`user\` SET emailVerified = 1 WHERE LOWER(email) = LOWER(:email)`,
             { replacements: { email }, type: sequelize.QueryTypes.UPDATE }
-        ).catch(() => {}); // non-blocking if column name differs
+        ).catch(() => {});
 
         // Clean up used token
         await sequelize.query(
-            `DELETE FROM verification WHERE identifier = :email AND value = :token`,
+            `DELETE FROM verification WHERE LOWER(identifier) = LOWER(:email) AND value = :token`,
             { replacements: { email, token }, type: sequelize.QueryTypes.DELETE }
         ).catch(() => {});
 

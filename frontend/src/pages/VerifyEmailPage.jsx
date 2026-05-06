@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, Clock, Loader2, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useProfile } from '../component/context/useProfile';
 
 const statuses = {
     success: {
@@ -44,10 +45,17 @@ const statuses = {
 
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
+    const { refreshProfile, isAuthenticated } = useProfile();
     const status = searchParams.get('status');
     const token = searchParams.get('token');
     const email = searchParams.get('email');
     const [isLoading, setIsLoading] = useState(!status); // Loading only if no status yet
+
+    useEffect(() => {
+        if (status === 'success' && isAuthenticated) {
+            refreshProfile();
+        }
+    }, [status, isAuthenticated, refreshProfile]);
 
     useEffect(() => {
         // If an old link was clicked (points to frontend instead of backend)
