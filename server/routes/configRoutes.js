@@ -4,10 +4,11 @@ import * as configController from '../controllers/configController.js';
 
 const router = express.Router();
 
-// Public/Auth
-router.get('/', configController.getAllConfigs);
-router.get('/key/:key', configController.getConfigByKey);
-router.get('/group/:group', configController.getConfigsByGroup);
+// Admin only
+router.get('/', requireAdmin, configController.getAllConfigs);
+router.get('/key/:key', requireAdmin, configController.getConfigByKey);
+router.get('/group/:group', requireAdmin, configController.getConfigsByGroup);
+
 
 // Admin
 router.post('/upsert', requireAdmin, configController.upsertConfig);

@@ -1,5 +1,6 @@
 import express from "express";
-import { Order } from "../models/index.js";
+import { Order, Payment } from "../models/index.js";
+
 
 const router = express.Router();
 const FEDAPAY_SECRET = process.env.FEDAPAY_SECRET;
@@ -10,14 +11,29 @@ if (!FEDAPAY_SECRET) {
 
 router.post("/", async (req, res) => {
   try {
-    const { order_id, amount, currency = "XOF", callback_url } = req.body;
-    if (!order_id || !amount || !callback_url) {
-      return res.status(400).json({ error: "order_id, amount and callback_url are required" });
+    const { order_id, callback_url } = req.body;
+    if (!order_id || !callback_url) {
+      return res.status(400).json({ error: "order_id and callback_url are required" });
     }
 
     // Verify order exists using Sequelize
     const order = await Order.findByPk(order_id);
     if (!order) return res.status(400).json({ error: "Order not found" });
+
+    // SECURITY: Ensure the requester is the owner of the order OR an admin
+    const requesterId = req.auth?.userId;
+    const requesterRole = req.auth?.role;
+    if (order.user_id && order.user_id !== requesterId && requesterRole !== 'admin') {
+        console.warn(`[SECURITY] Unauthorized payment attempt for order ${order_id} by user ${requesterId}`);
+        return res.status(403).json({ error: "Unauthorized: You can only pay for your own orders." });
+    }
+
+
+    // SECURITY: Use the amount from the database, NOT from the request body!
+    const finalAmount = Math.round(parseFloat(order.total_amount));
+    if (!finalAmount || finalAmount <= 0) {
+      return res.status(400).json({ error: "Invalid order amount" });
+    }
 
     // Call Fedapay API
     const fedapayResp = await fetch("https://api.fedapay.com/v1/checkout_sessions", {
@@ -27,12 +43,13 @@ router.post("/", async (req, res) => {
         Authorization: `Bearer ${FEDAPAY_SECRET}`,
       },
       body: JSON.stringify({
-        amount,
-        currency,
+        amount: finalAmount,
+        currency: "XOF",
         callback_url,
         metadata: { order_id },
       }),
     });
+
 
     const fedabody = await fedapayResp.json();
     if (!fedapayResp.ok) {
@@ -52,10 +69,11 @@ router.post("/", async (req, res) => {
         order_id,
         provider: "fedapay",
         provider_id: fedabody?.data?.id ?? fedabody?.id ?? null,
-        amount,
+        amount: finalAmount,
         status: "created",
         provider_metadata: fedabody,
       });
+
     } catch (e) {
       console.warn("Could not insert payment metadata:", e.message || e);
     }

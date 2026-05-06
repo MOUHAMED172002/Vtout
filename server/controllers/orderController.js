@@ -146,8 +146,12 @@ export const createOrder = async (req, res) => {
                 return res.status(400).json({ error: 'Connectez-vous pour utiliser votre portefeuille' });
             }
 
+            // LOCK the profile to prevent concurrent wallet payments for the same user
+            await Profile.findByPk(userId, { transaction, lock: true });
+
             // Calculate current balance ( earnings - payouts - previous wallet purchases )
             const summary = await FinancialTransaction.findAll({
+
                 where: { user_id: userId, status: 'completed' },
                 attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
                 group: ['type'],
@@ -540,7 +544,7 @@ export const updateOrderStatus = async (req, res) => {
         }
 
 
-        // 3. Handle Cancellations & Returns (Escrow protection)
+        // 3. Handle Cancellations & Returns (Escrow protection & Customer Refund)
         if ((mappedStatus === 'annulée' || mappedStatus === 'retournée') && (oldStatus !== 'annulée' && oldStatus !== 'retournée')) {
             // Re-increment stock if it was previously confirmed/deducted
             if (['confirmée', 'expédiée', 'livrée'].includes(oldStatus)) {
@@ -559,7 +563,6 @@ export const updateOrderStatus = async (req, res) => {
             }
 
             // Void any financial transactions (Supplier & Livreur earnings)
-            // This directly reduces their balance, simulating an Escrow refund
             try {
                 await FinancialTransaction.update(
                     { status: 'cancelled' },
@@ -568,7 +571,40 @@ export const updateOrderStatus = async (req, res) => {
             } catch (voidErr) {
                 console.error("FINANCIAL VOID ERROR:", voidErr);
             }
+
+            // REFUND CUSTOMER if paid via wallet
+            if (order.payment_method === 'wallet' && order.user_id) {
+                try {
+                    const debitTx = await FinancialTransaction.findOne({
+                        where: { order_id: order.id, user_id: order.user_id, type: 'payout' }
+                    });
+
+                    if (debitTx) {
+                        // Create a refund transaction (re-crediting the wallet)
+                        await FinancialTransaction.create({
+                            id: crypto.randomUUID(),
+                            user_id: order.user_id,
+                            order_id: order.id,
+                            type: 'earning', 
+                            amount: debitTx.amount,
+                            description: `Remboursement commande #${order.id.slice(0, 8)}`,
+                            status: 'completed'
+                        });
+
+                        await Notification.create({
+                            id: crypto.randomUUID(),
+                            user_id: order.user_id,
+                            title: '💰 Remboursement effectué',
+                            message: `Votre portefeuille a été recrédité de ${debitTx.amount} F CFA suite à l'annulation de votre commande.`,
+                            type: 'wallet'
+                        });
+                    }
+                } catch (refundErr) {
+                    console.error("CUSTOMER REFUND ERROR:", refundErr);
+                }
+            }
         }
+
 
         // 4. Email notification
         try {

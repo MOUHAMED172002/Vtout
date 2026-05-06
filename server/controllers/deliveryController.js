@@ -14,7 +14,8 @@ export const getAvailableOrders = async (req, res) => {
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
-                { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
+                { model: Profile, as: 'user', attributes: ['fullname'] }, // Only show name, keep phone/email hidden until assignment
+
                 {
                     model: OrderItem, as: 'items',
                     include: [
