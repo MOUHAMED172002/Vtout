@@ -219,36 +219,10 @@ const AppContent = ({ products, loading }) => {
           <Route path="/privacy" element={<PageWrapper><><Navbar /><Privacy /><Footer /></></PageWrapper>} />
           <Route path="/devenir-livreur" element={<PageWrapper><><Navbar /><DevenirLivreur /><Footer /></></PageWrapper>} />
 
-          {/* Supplier Routes */}
+          {/* Supplier Routes (Redirecting to external portal) */}
           <Route path="/fournisseur/inscription" element={<PageWrapper><SupplierRegister /></PageWrapper>} />
-          <Route path="/fournisseur/dashboard" element={
-            <PageWrapper>
-              <SignedIn>
-                {(profileUser?.role === 'fournisseur' || profileUser?.role === 'admin') ? (
-                  <SupplierDashboard />
-                ) : (
-                  <Navigate to="/fournisseur/inscription" replace />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/fournisseur/inscription" replace />
-              </SignedOut>
-            </PageWrapper>
-          } />
-          <Route path="/fournisseur/ajouter-produit" element={
-            <PageWrapper>
-              <SignedIn>
-                {(profileUser?.role === 'fournisseur' || profileUser?.role === 'admin') ? (
-                  <AddProductSupplier />
-                ) : (
-                  <Navigate to="/fournisseur/inscription" replace />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/fournisseur/inscription" replace />
-              </SignedOut>
-            </PageWrapper>
-          } />
+          <Route path="/fournisseur/dashboard" element={<Navigate to={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174'} replace />} />
+          <Route path="/fournisseur/ajouter-produit" element={<Navigate to={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174'} replace />} />
 
           <Route path="/admin/dashboard/*" element={
             <PageWrapper>

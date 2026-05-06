@@ -107,11 +107,11 @@ const Sidebar = ({ mobile, onClose }) => {
 
             <div className="p-4 border-t border-white/5 space-y-3">
                 <button
-                    onClick={() => (window.location.href = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com')}
+                    onClick={() => (window.location.href = (import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com') + '/user/dashboard')}
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
                 >
                     <Store size={18} />
-                    <span>Retour au site</span>
+                    <span>Mon Dashboard Client</span>
                 </button>
                 <button
                     onClick={handleSignOut}
