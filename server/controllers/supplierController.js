@@ -77,7 +77,24 @@ export const updateSupplier = async (req, res) => {
         if (!supplier) return res.status(404).json({ error: 'Fournisseur non trouvé' });
 
         const oldStatus = supplier.status;
-        await supplier.update(req.body);
+        await supplier.update({
+            name:             req.body.name,
+            email:            req.body.email,
+            phone:            req.body.phone,
+            address_line:     req.body.address_line,
+            status:           req.body.status,
+            is_verified:      req.body.is_verified,
+            admin_notes:      req.body.admin_notes,
+            lat:              req.body.lat,
+            lng:              req.body.lng,
+            departement_id:   req.body.departement_id,
+            departement_label:req.body.departement_label,
+            commune_id:       req.body.commune_id,
+            commune_label:    req.body.commune_label,
+            quartier_id:      req.body.quartier_id,
+            quartier_label:   req.body.quartier_label
+        });
+
 
         // Notify supplier if status changed to active or suspended
         if (status && status !== oldStatus) {

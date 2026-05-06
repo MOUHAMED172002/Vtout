@@ -515,7 +515,8 @@ export const updateProduct = async (req, res) => {
             approval_status: finalStatus,
             admin_feedback: isAdmin ? admin_feedback : undefined,
             in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : undefined,
-            boutique_id: boutique_id !== undefined ? boutique_id : undefined
+            boutique_id: isAdmin ? (boutique_id !== undefined ? boutique_id : undefined) : undefined
+
         }, {
             where: { id },
             transaction

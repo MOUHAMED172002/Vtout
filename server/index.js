@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { errorHandler } from './middleware/errorHandler.js';
 console.log("=== SERVER STARTING ===");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 import fs from "fs";
@@ -269,14 +270,8 @@ app.use("/api/resend-verification", resendVerificationRoutes);
 // Emergency Sync Route
 app.get("/api/emergency-sync", requireAuth, requireAdmin, adminSyncFinancials);
 
-app.use((err, req, res, next) => {
-    console.error('>>> [GLOBAL ERROR]:', err);
-    res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: err.message, 
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
-    });
-});
+// Centralized secure error handler (must be last middleware)
+app.use(errorHandler);
 
 
 app.get("/", (req, res) => res.send("Vtout API — Online"));

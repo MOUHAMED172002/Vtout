@@ -121,7 +121,6 @@ export const getOrderById = async (req, res) => {
         return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
 
 
-        res.json(order.toJSON());
     } catch (error) {
         console.error("GET ORDER ERROR:", error);
         res.status(500).json({ error: 'Erreur Serveur', details: error.message });
@@ -187,9 +186,11 @@ export const createOrder = async (req, res) => {
             let variantData = null;
 
             if (item.variant_price_id) {
+                // LOCK the row to prevent concurrent orders from overselling the same variant
                 const variantPrice = await ProductVariantPrice.findByPk(item.variant_price_id, {
                     include: [{ model: ProductVariant, as: 'variant' }],
-                    transaction
+                    transaction,
+                    lock: true
                 });
                 if (variantPrice) {
                     if (variantPrice.variant.product_id !== product.id) {
@@ -204,7 +205,9 @@ export const createOrder = async (req, res) => {
                     variantData = variantPrice;
                 }
             } else {
-                if (product.stock !== undefined && product.stock < item.quantity) {
+                // LOCK the product row for simple-stock products
+                const lockedProduct = await Product.findByPk(product.id, { transaction, lock: true });
+                if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock < item.quantity) {
                     await transaction.rollback();
                     return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });
                 }

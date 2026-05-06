@@ -49,12 +49,10 @@ export const getMyReviews = async (req, res) => {
         res.json(reviews);
     } catch (error) {
         console.error('[getMyReviews] ERROR CAUGHT:', error);
-        console.error('[getMyReviews] ERROR STACK:', error.stack);
         res.status(500).json({
-            error: 'Erreur lors de la récupération de vos avis',
-            details: error.message,
-            stack: error.stack
+            error: 'Erreur lors de la récupération de vos avis'
         });
+
     }
 };
 
