@@ -21,7 +21,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppConfig } from "../context/ConfigContext";
 import logo from "../../assets/brand/vtout-logo.png";
 import ThemeSelector from "../context/ThemeSelector";
+import PortalSwitcher from "../Shared/PortalSwitcher";
 import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
+
 import NotificationCenter from "../Shared/NotificationCenter";
 
 const MenuLinks = [
@@ -110,8 +112,10 @@ export default function Navbar() {
             <div className="h-6 w-px bg-base-300"></div>
 
             <div className="flex items-center gap-6">
+              <PortalSwitcher />
               <ThemeSelector />
               {!isLivreur && <SearchBar />}
+
               {!isLivreur && <CartIcon />}
               <SignedIn>
                 <div className="flex items-center gap-4 pl-2">
@@ -175,9 +179,11 @@ export default function Navbar() {
             >
               <div className="flex justify-between items-center mb-12">
                 <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain" />
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-2">
+                     <PortalSwitcher />
                      <ThemeSelector />
                   </div>
+
                   <button onClick={() => setMobileMenuOpen(false)} className="p-2 border border-base-200 rounded-full hover:bg-base-200">
                     <X size={24} />
                   </button>

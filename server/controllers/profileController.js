@@ -41,12 +41,29 @@ export const getMe = async (req, res) => {
     try {
         const { userId } = req.auth;
         if (!userId) return res.status(404).json({ error: 'Profil non trouvé' });
+        
         const profile = await Profile.findByPk(userId);
-        res.json(profile);
+        if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        // Détection des casquettes multiples
+        const hasSupplierProfile = await Supplier.findOne({ where: { user_id: userId } });
+        const hasDeliveryProfile = await DeliveryPerson.findOne({ where: { user_id: userId } });
+
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const isAdmin = profile.role === 'admin' || adminEmails.includes(profile.email?.toLowerCase());
+
+        res.json({
+            ...profile.toJSON(),
+            isSupplier: !!hasSupplierProfile,
+            isDelivery: !!hasDeliveryProfile,
+            isAdmin: isAdmin
+        });
     } catch (error) {
+        console.error('getMe error:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };
+
 
 export const updateMe = async (req, res) => {
     try {

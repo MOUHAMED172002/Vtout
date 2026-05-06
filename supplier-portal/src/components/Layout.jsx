@@ -9,7 +9,9 @@ import {
     Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
+import PortalSwitcher from './Shared/PortalSwitcher';
 import LogoText from './Shared/LogoText';
+
 
 const navLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
@@ -263,8 +265,12 @@ const Layout = ({ children }) => {
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
                             <SearchIcon size={20} />
                         </button>
+                        <div className="hidden sm:block">
+                            <PortalSwitcher />
+                        </div>
                         <NotificationCenter />
                     </div>
+
                 </header>
 
                 {/* Scrollable Page Content */}

@@ -17,21 +17,44 @@ export const authClient = createAuthClient({
 const AuthContext = createContext({
     session: null,
     user: null,
+    profile: null,
     isLoaded: false,
 });
 
 export const ClerkProvider = ({ children }) => {
     const { data, isPending } = authClient.useSession();
+    const [profile, setProfile] = React.useState(null);
 
-    // Expose global so debugging keeps working if needed
+    // Fetch enriched profile from our API when session is active
     useEffect(() => {
-        window.BetterAuthSession = data;
-    }, [data]);
+        const fetchProfile = async () => {
+            if (data?.session) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/profiles/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${data.session.id}`
+                        }
+                    });
+                    if (response.ok) {
+                        const profileData = await response.json();
+                        setProfile(profileData);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch enriched profile:", err);
+                }
+            } else {
+                setProfile(null);
+            }
+        };
+
+        fetchProfile();
+    }, [data?.session]);
 
     return (
         <AuthContext.Provider value={{
             session: data?.session || null,
             user: data?.user || null,
+            profile: profile,
             isLoaded: !isPending
         }}>
             {children}
@@ -40,37 +63,46 @@ export const ClerkProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-    const { session, user, isLoaded } = useContext(AuthContext);
+    const { session, user, profile, isLoaded } = useContext(AuthContext);
 
     const getToken = useCallback(async () => session?.id, [session?.id]);
     const signOut = useCallback(async () => await authClient.signOut(), []);
 
     const authObject = useMemo(() => ({
-        isLoaded,
+        isLoaded: isLoaded && (!!session ? !!profile : true),
         isSignedIn: !!session,
         userId: user?.id || null,
+        role: profile?.role || user?.role || 'user',
+        isSupplier: !!profile?.isSupplier,
+        isDelivery: !!profile?.isDelivery,
+        isAdmin: !!profile?.isAdmin,
         sessionId: session?.id || null,
         getToken,
         signOut,
-    }), [isLoaded, session, user?.id, getToken, signOut]);
+    }), [isLoaded, session, user?.id, profile, getToken, signOut]);
 
     return authObject;
 };
 
 export const useUser = () => {
-    const { user, isLoaded } = useContext(AuthContext);
+    const { user, profile, isLoaded } = useContext(AuthContext);
 
     const clerkUser = useMemo(() => {
         return user ? {
             id: user.id,
-            fullName: user.name,
-            firstName: user.name?.split(' ')[0] || '',
-            lastName: user.name?.split(' ').slice(1).join(' ') || '',
+            fullName: profile?.fullname || user.name,
+            firstName: (profile?.fullname || user.name)?.split(' ')[0] || '',
+            lastName: (profile?.fullname || user.name)?.split(' ').slice(1).join(' ') || '',
             primaryEmailAddress: { emailAddress: user.email },
             imageUrl: user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}`,
-            publicMetadata: { role: user.role }
+            publicMetadata: { 
+                role: profile?.role || user.role,
+                isSupplier: !!profile?.isSupplier,
+                isDelivery: !!profile?.isDelivery,
+                isAdmin: !!profile?.isAdmin
+            }
         } : null;
-    }, [user]);
+    }, [user, profile]);
 
     const userObject = useMemo(() => ({
         isLoaded,
@@ -80,6 +112,7 @@ export const useUser = () => {
 
     return userObject;
 };
+
 
 export const useClerk = () => {
     return {
