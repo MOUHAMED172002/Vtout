@@ -14,12 +14,43 @@ const PortalSwitcher = () => {
     // Don't show if they only have one role (and it's just 'user')
     if (!isSupplier && !isDelivery && !isAdmin) return null;
 
+    const portals = [
+        {
+            name: 'Acheteur',
+            role: 'user',
+            icon: ShoppingBag,
+            url: MAIN_SITE_URL,
+            active: role === 'user' && !window.location.host.includes('vendeur'),
+            hasRole: true // Everyone is a buyer
+        },
+        {
+            name: isSupplier || isAdmin ? 'Vendeur' : 'Vendre',
+            role: 'fournisseur',
+            icon: Store,
+            url: isSupplier || isAdmin ? SUPPLIER_URL + '/dashboard' : MAIN_SITE_URL + '/fournisseur/inscription',
+            active: window.location.host.includes('vendeur') || role === 'fournisseur',
+            hasRole: isSupplier || isAdmin
+        },
+        {
+            name: isDelivery || isAdmin ? 'Livreur' : 'Livrer',
+            role: 'livreur',
+            icon: Truck,
+            url: isDelivery || isAdmin ? MAIN_SITE_URL + '/delivery-rider/dashboard' : MAIN_SITE_URL + '/devenir-livreur',
+            active: window.location.pathname.includes('delivery-rider') || role === 'livreur',
+            hasRole: isDelivery || isAdmin
+        }
+    ];
+
     const handleSwitch = async (portal) => {
+        if (!portal.hasRole) {
+            window.location.href = portal.url;
+            return;
+        }
+
         try {
             const token = await getToken();
             const targetRole = portal.role;
             
-            // Only call API if role is different from current primary role
             if (role !== targetRole && targetRole !== 'admin') {
                 await fetch(`${import.meta.env.VITE_API_URL}/profiles/switch-role`, {
                     method: 'POST',
@@ -30,47 +61,15 @@ const PortalSwitcher = () => {
                     body: JSON.stringify({ newRole: targetRole })
                 });
             }
-            
             window.location.href = portal.url;
         } catch (err) {
-            console.error("Switch failed:", err);
-            window.location.href = portal.url; // Fallback to direct redirect
+            window.location.href = portal.url;
         }
     };
 
-    const portals = [
-        {
-            name: 'Acheteur',
-            role: 'user',
-            icon: ShoppingBag,
-            url: MAIN_SITE_URL,
-            active: role === 'user' && !window.location.host.includes('vendeur'),
-            show: true
-        },
-        {
-            name: 'Vendeur',
-            role: 'fournisseur',
-            icon: Store,
-            url: SUPPLIER_URL + '/dashboard',
-            active: window.location.host.includes('vendeur') || role === 'fournisseur',
-            show: isSupplier || isAdmin
-        },
-        {
-            name: 'Livreur',
-            role: 'livreur',
-            icon: Truck,
-            url: MAIN_SITE_URL + '/delivery-rider/dashboard',
-            active: window.location.pathname.includes('delivery-rider') || role === 'livreur',
-            show: isDelivery || isAdmin
-        }
-    ];
-
-    const activePortals = portals.filter(p => p.show);
-    if (activePortals.length <= 1) return null;
-
     return (
         <div className="flex items-center gap-1 bg-white/10 p-1 rounded-2xl border border-white/5 backdrop-blur-md">
-            {activePortals.map((portal) => (
+            {portals.map((portal) => (
                 <button
                     key={portal.name}
                     onClick={() => handleSwitch(portal)}
@@ -86,6 +85,7 @@ const PortalSwitcher = () => {
             ))}
         </div>
     );
+
 };
 
 

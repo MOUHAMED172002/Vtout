@@ -107,42 +107,29 @@ const Sidebar = ({ mobile, onClose }) => {
                 ))}
             </nav>
 
-            <div className="p-4 border-t border-white/5 space-y-3">
+            <div className="p-4 border-t border-white/5 space-y-2">
+                <p className="text-[8px] font-black uppercase text-white/20 px-4 mb-2">Mon Espace Personnel</p>
+                
                 <button
                     onClick={() => (window.location.href = (import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com') + '/user/dashboard')}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 transition-all border border-transparent hover:border-indigo-500/20"
                 >
-                    <Store size={18} />
-                    <span>Mon Dashboard Client</span>
+                    <ShoppingBag size={16} />
+                    <span>Dashboard Client</span>
                 </button>
+
                 <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all"
                 >
-                    <LogOut size={18} />
-                    <span>Se déconnecter</span>
+                    <LogOut size={16} />
+                    <span>Déconnexion</span>
                 </button>
             </div>
-
-
-                <div className="mt-2 space-y-1 px-4">
-                    <p className="text-[8px] font-black uppercase text-white/20 mb-2">Changer de mode</p>
-                    <button
-                        onClick={() => handleSwitchRole('user')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/5 transition-all"
-                    >
-                        Mode Client
-                    </button>
-                    <button
-                        onClick={() => handleSwitchRole('livreur')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/5 transition-all"
-                    >
-                        Mode Livreur
-                    </button>
-                </div>
         </aside>
     );
 };
+
 
 const RoleSwitcher = () => {
     const { user, isLoaded } = useUser();
