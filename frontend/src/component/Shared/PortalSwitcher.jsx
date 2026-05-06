@@ -22,24 +22,30 @@ const PortalSwitcher = () => {
             url: MAIN_SITE_URL,
             active: role === 'user' && !window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider'),
             hasRole: true
-        },
-        {
-            name: isSupplier || isAdmin ? 'Vendeur' : 'Vendre',
-            role: 'fournisseur',
-            icon: Store,
-            url: isSupplier || isAdmin ? SUPPLIER_URL + '/dashboard' : MAIN_SITE_URL + '/fournisseur/inscription',
-            active: window.location.host.includes('vendeur') || role === 'fournisseur',
-            hasRole: isSupplier || isAdmin
-        },
-        {
-            name: isDelivery || isAdmin ? 'Livreur' : 'Livrer',
-            role: 'livreur',
-            icon: Truck,
-            url: isDelivery || isAdmin ? MAIN_SITE_URL + '/delivery-rider/dashboard' : MAIN_SITE_URL + '/devenir-livreur',
-            active: window.location.pathname.includes('delivery-rider') || role === 'livreur',
-            hasRole: isDelivery || isAdmin
         }
     ];
+
+    if (isSupplier || isAdmin) {
+        portals.push({
+            name: 'Vendeur',
+            role: 'fournisseur',
+            icon: Store,
+            url: SUPPLIER_URL + '/dashboard',
+            active: window.location.host.includes('vendeur') || role === 'fournisseur',
+            hasRole: true
+        });
+    }
+
+    if (isDelivery || isAdmin) {
+        portals.push({
+            name: 'Livreur',
+            role: 'livreur',
+            icon: Truck,
+            url: MAIN_SITE_URL + '/delivery-rider/dashboard',
+            active: window.location.pathname.includes('delivery-rider') || role === 'livreur',
+            hasRole: true
+        });
+    }
 
     const handleSwitch = async (portal) => {
         if (!portal.hasRole) {
