@@ -216,10 +216,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10kb' }));
 
 app.use("/api/auth/whatsapp", authWhatsAppRoutes);
-
-app.all(["/api/auth", "/api/auth/{*any}"], (req, res) => {
-    return betterAuthMiddleware(req, res);
-});
+app.use("/api/auth", betterAuthMiddleware);
 
 // Redirection du lien de réinitialisation du backend vers le frontend
 app.get("/reset-password", (req, res) => {
