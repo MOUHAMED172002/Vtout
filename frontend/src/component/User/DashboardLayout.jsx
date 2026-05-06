@@ -97,15 +97,7 @@ export default function DashboardLayout() {
             );
           })}
 
-          {/* ESPACE PROFESSIONNEL SECTION */}
-          {(user?.role === 'fournisseur' || user?.role === 'vendeur' || user?.role === 'livreur') && (
-            <div className="mt-8 pt-8 border-t border-base-content/5">
-              <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Espaces Connectés</p>
-              <div className="px-2">
-                <PortalSwitcher variant="sidebar" />
-              </div>
-            </div>
-          )}
+
         </div>
 
         <div className="p-6 border-t border-slate-50">
@@ -149,6 +141,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-4 md:gap-8">
+            <PortalSwitcher />
             <ThemeSelector />
             <div className="flex items-center gap-3">
               <div className="p-3 bg-slate-50 rounded-2xl text-slate-600 hover:bg-slate-100 transition-all cursor-pointer relative group">

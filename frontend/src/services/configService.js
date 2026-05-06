@@ -1,7 +1,7 @@
 import api from './api';
 
 export const getAllConfigs = async () => {
-    const { data } = await api.get('/configs');
+    const { data } = await api.get('/configs/public');
     return data;
 };
 

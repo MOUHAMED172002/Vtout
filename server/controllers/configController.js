@@ -2,6 +2,24 @@ import { Config } from '../models/index.js';
 import { sendTestEmail } from '../services/mailService.js';
 
 
+import { Op } from 'sequelize';
+
+export const getPublicConfigs = async (req, res) => {
+    try {
+        // Exclure les clés sensibles
+        const configs = await Config.findAll({
+            where: {
+                group: {
+                    [Op.notIn]: ['cloudinary', 'whatsapp', 'secrets']
+                }
+            }
+        });
+        res.json(configs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 export const getAllConfigs = async (req, res) => {
     try {
         const configs = await Config.findAll();

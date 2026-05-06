@@ -4,6 +4,9 @@ import * as configController from '../controllers/configController.js';
 
 const router = express.Router();
 
+// Public configs for frontend
+router.get('/public', configController.getPublicConfigs);
+
 // Admin only
 router.get('/', requireAdmin, configController.getAllConfigs);
 router.get('/key/:key', requireAdmin, configController.getConfigByKey);
