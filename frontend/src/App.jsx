@@ -131,6 +131,17 @@ const AppContent = ({ products, loading }) => {
 
   const SUPPLIER_PORTAL_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174';
 
+  const ExternalRedirect = ({ url }) => {
+    useEffect(() => {
+      window.location.replace(url);
+    }, [url]);
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-base-100">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  };
+
   const Home = () => {
     return (
       <>
@@ -221,8 +232,8 @@ const AppContent = ({ products, loading }) => {
 
           {/* Supplier Routes (Redirecting to external portal) */}
           <Route path="/fournisseur/inscription" element={<PageWrapper><SupplierRegister /></PageWrapper>} />
-          <Route path="/fournisseur/dashboard" element={<Navigate to={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174'} replace />} />
-          <Route path="/fournisseur/ajouter-produit" element={<Navigate to={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'http://localhost:5174'} replace />} />
+          <Route path="/fournisseur/dashboard" element={<ExternalRedirect url={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com'} />} />
+          <Route path="/fournisseur/ajouter-produit" element={<ExternalRedirect url={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com'} />} />
 
           <Route path="/admin/dashboard/*" element={
             <PageWrapper>
