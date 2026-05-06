@@ -128,7 +128,36 @@ export const createOrder = async (req, res) => {
             return res.status(400).json({ error: 'Le panier est vide' });
         }
 
+        // --- WALLET PAYMENT CHECK ---
+        if (payment_method === 'wallet') {
+            if (!userId) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Connectez-vous pour utiliser votre portefeuille' });
+            }
+
+            // Calculate current balance ( earnings - payouts - previous wallet purchases )
+            const summary = await FinancialTransaction.findAll({
+                where: { user_id: userId, status: 'completed' },
+                attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
+                group: ['type'],
+                transaction
+            });
+
+            let balance = 0;
+            summary.forEach(s => {
+                const val = parseFloat(s.get('total') || 0);
+                if (s.type === 'earning') balance += val;
+                if (s.type === 'payout') balance -= val;
+                if (s.type === 'adjustment') balance += val;
+            });
+
+            // Calculate current total for validation (re-calculating subtotal + delivery - discount)
+            // Note: Full subtotal calculation logic is below, but we need a rough check here or move this after subtotal calc.
+            // Let's move the wallet check after subtotal and discount calculations for accuracy.
+        }
+
         let subtotal = 0;
+
         const enrichedItems = [];
 
         // 1. Initial Validation & Stock Check
@@ -279,7 +308,50 @@ export const createOrder = async (req, res) => {
             await validatedCoupon.increment('used_count', { by: 1, transaction });
         }
 
+        // --- FINAL WALLET DEBIT ---
+        if (payment_method === 'wallet') {
+            const grandTotal = createdOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+            
+            // Re-fetch balance inside transaction to be sure
+            const summary = await FinancialTransaction.findAll({
+                where: { user_id: userId, status: 'completed' },
+                attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
+                group: ['type'],
+                transaction
+            });
+
+            let currentBalance = 0;
+            summary.forEach(s => {
+                const val = parseFloat(s.get('total') || 0);
+                if (s.type === 'earning') currentBalance += val;
+                if (s.type === 'payout') currentBalance -= val;
+                if (s.type === 'adjustment') currentBalance += val;
+            });
+
+            if (currentBalance < grandTotal) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Solde insuffisant pour finaliser cet achat.' });
+            }
+
+            // Create Payout transaction for the purchase
+            await FinancialTransaction.create({
+                id: crypto.randomUUID(),
+                user_id: userId,
+                type: 'payout',
+                amount: grandTotal,
+                description: `Achat Vtout - Commande #${createdOrders[0].id.slice(0, 8)}`,
+                status: 'completed',
+                order_id: createdOrders[0].id
+            }, { transaction });
+
+            // Mark orders as paid
+            for (const order of createdOrders) {
+                await order.update({ payment_status: 'payé' }, { transaction });
+            }
+        }
+
         await transaction.commit();
+
 
         const mainOrder = createdOrders[0];
         let totalCartAmount = createdOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);

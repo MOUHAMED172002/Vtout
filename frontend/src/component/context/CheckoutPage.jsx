@@ -7,7 +7,8 @@ import { createOrder, updateOrderStatus } from "../../services/orderService";
 import { createAddress } from "../../services/addressService";
 import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
-import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap } from "lucide-react";
+import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap, Wallet } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();
@@ -29,6 +30,21 @@ export default function CheckoutPage() {
   const [discount, setDiscount] = useState(0);
   const [isValidating, setIsValidating] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+        getToken().then(token => {
+            fetch(`${import.meta.env.VITE_API_URL}/financials/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => setWalletBalance(data.balance || 0))
+            .catch(err => console.error("Balance fetch error:", err));
+        });
+    }
+  }, [user]);
+
 
   // Update delivery fee when address changes
   useEffect(() => {
@@ -161,8 +177,9 @@ export default function CheckoutPage() {
           addressObj: address,
           items: itemsFromCart,
           total: finalTotal,
-          paymentMethod: "delivery",
+          paymentMethod: paymentMethod,
           coupon: appliedCoupon?.code
+
         });
         await refreshCart();
         setStep(4);
@@ -336,7 +353,29 @@ export default function CheckoutPage() {
                         <p className="text-sm text-base-content/60 font-bold mt-1">MTN, Moov, Carte bancaire</p>
                       </div>
                     </button>
+
+                    {!isGuest && (
+                      <button
+                        onClick={() => setPaymentMethod('wallet')}
+                        disabled={walletBalance < finalTotal}
+                        className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'wallet' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-emerald-500/30 hover:bg-emerald-50/10'} ${walletBalance < finalTotal ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                      >
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'bg-emerald-500 text-white rotate-3' : 'bg-emerald-50 text-emerald-400'}`}>
+                          <Wallet size={28} />
+                        </div>
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <p className="font-black text-xl text-base-content">Portefeuille Vtout</p>
+                            <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full uppercase">Solde: {walletBalance.toLocaleString()} F</span>
+                          </div>
+                          <p className="text-sm text-base-content/60 font-bold mt-1">
+                            {walletBalance < finalTotal ? "Solde insuffisant" : "Paiement instantané avec vos gains"}
+                          </p>
+                        </div>
+                      </button>
+                    )}
                   </div>
+
 
                   <div className="pt-10 flex justify-between gap-4 border-t border-gray-50">
                     <button onClick={() => setStep(2)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
