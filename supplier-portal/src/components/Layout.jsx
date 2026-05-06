@@ -88,7 +88,7 @@ const Sidebar = ({ mobile, onClose }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/20 px-4 mb-3">Menu</p>
                 {navLinks.map(({ to, icon: Icon, label }) => (
                     <NavLink
