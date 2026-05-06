@@ -213,8 +213,9 @@ export const sendEmailVerification = async (profile) => {
     if (!profile?.email) return;
 
     // Build verification URL using Better Auth's built-in endpoint
-    const backendUrl = process.env.BACKEND_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000';
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Build verification URL safely to avoid double /api
+    const rawBackend = process.env.BACKEND_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000';
+    const cleanBackend = rawBackend.replace(/\/api\/auth\/?$/, '').replace(/\/api\/?$/, '');
 
     // Generate a simple random token (32 hex chars)
     const token = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -234,10 +235,9 @@ export const sendEmailVerification = async (profile) => {
         );
     } catch (err) {
         console.warn('[sendEmailVerification] Token storage failed (table may not exist):', err.message);
-        // Non-blocking — continue to send email anyway with a link to the page
     }
 
-    const verifyUrl = `${backendUrl}/api/verify-email?token=${token}&email=${encodeURIComponent(profile.email)}`;
+    const verifyUrl = `${cleanBackend}/api/verify-email?token=${token}&email=${encodeURIComponent(profile.email)}`;
     const firstName = (profile.fullname || profile.email).split(' ')[0];
 
     const html = `
