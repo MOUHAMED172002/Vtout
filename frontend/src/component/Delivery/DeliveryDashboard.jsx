@@ -32,6 +32,7 @@ import {
     AlertOctagon
 } from "lucide-react";
 import NotificationCenter from "../Shared/NotificationCenter";
+import PortalSwitcher from "../Shared/PortalSwitcher";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import api from "../../services/api";
@@ -370,12 +371,9 @@ export default function DeliveryDashboard() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => window.location.href = '/user/dashboard'}
-                        className="hidden md:flex items-center gap-2 px-6 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                    >
-                        <User size={14} /> Mon Compte Client
-                    </button>
+                    <div className="hidden md:block">
+                        <PortalSwitcher />
+                    </div>
                     <NotificationCenter />
                     <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
                         <button

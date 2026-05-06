@@ -21,7 +21,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppConfig } from "../context/ConfigContext";
 import logo from "../../assets/brand/vtout-logo.png";
 import ThemeSelector from "../context/ThemeSelector";
-import ThemeSelector from "../context/ThemeSelector";
 import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
 
 import NotificationCenter from "../Shared/NotificationCenter";

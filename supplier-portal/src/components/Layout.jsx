@@ -112,13 +112,9 @@ const Sidebar = ({ mobile, onClose }) => {
             <div className="p-4 border-t border-white/5 space-y-2">
                 <p className="text-[8px] font-black uppercase text-white/20 px-4 mb-2">Mon Espace Personnel</p>
                 
-                <button
-                    onClick={() => (window.location.href = (import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com') + '/user/dashboard')}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 transition-all border border-transparent hover:border-indigo-500/20"
-                >
-                    <ShoppingBag size={16} />
-                    <span>Dashboard Client</span>
-                </button>
+                <div className="px-2 w-full flex justify-center">
+                    <PortalSwitcher />
+                </div>
 
                 <button
                     onClick={handleSignOut}
@@ -254,9 +250,7 @@ const Layout = ({ children }) => {
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
                             <SearchIcon size={20} />
                         </button>
-                        <div className="hidden sm:block">
-                            <PortalSwitcher />
-                        </div>
+                        {/* PortalSwitcher has been moved to the Sidebar */}
                         <NotificationCenter />
                     </div>
 
