@@ -6,6 +6,7 @@ import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import SimilarProducts from "./SimilarProducts";
 import ProductReviews from "./ProductReviews";
+import FrequentlyBoughtTogether from "./FrequentlyBoughtTogether";
 
 import { toast } from "react-hot-toast";
 import { uniq } from "lodash";
@@ -450,6 +451,11 @@ export default function ProductPages() {
           <div className="prose prose-sm md:prose-lg max-w-none text-gray-600 leading-relaxed">
             {product.description}
           </div>
+        </div>
+
+        {/* Frequently Bought Together */}
+        <div className="mt-12 md:mt-16 mb-8 md:mb-12">
+          <FrequentlyBoughtTogether productId={product.id} limit={4} />
         </div>
 
         {/* Reviews Section - Always visible to allow "Be the first to review" message */}

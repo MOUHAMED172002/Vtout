@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { getProductReviews } from "../../services/reviewService";
 import ProductReviewsModal from "./ProductReviewsModal";
-import { Star } from "lucide-react";
+import { Star, ShieldCheck } from "lucide-react";
 
 function Stars({ value }) {
   const v = Math.round(Number(value) || 0);
@@ -72,9 +72,16 @@ export default function ProductReviews({ productId }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-black text-slate-900 truncate">{r.author?.fullname || "Client anonyme"}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {r.createdAt || r.created_at ? new Date(r.createdAt || r.created_at).toLocaleDateString("fr-FR") : ""}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {r.createdAt || r.created_at ? new Date(r.createdAt || r.created_at).toLocaleDateString("fr-FR") : ""}
+                    </p>
+                    {r.is_verified && (
+                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                        <ShieldCheck size={10} /> Achat Vérifié
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <Stars value={r.rating} />
               </div>

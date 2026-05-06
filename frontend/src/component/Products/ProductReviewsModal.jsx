@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getProductReviews } from "../../services/reviewService";
+import { ShieldCheck } from "lucide-react";
 
 function Stars({ value }) {
   const v = Math.round(Number(value) || 0);
@@ -84,17 +85,22 @@ export default function ProductReviewsModal({ productId, onClose }) {
                 >
                   <div className="flex md:flex-col items-center gap-4 min-w-[120px]">
                     <div className="w-16 h-16 rounded-3xl bg-white border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm">
-                      {r.user?.avatar_url ? (
-                        <img src={r.user.avatar_url} alt={r.user?.fullname || "U"} className="w-full h-full object-cover" />
+                      {r.author?.avatar_url ? (
+                        <img src={r.author.avatar_url} alt={r.author?.fullname || "U"} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xl font-black text-primary">{(r.user?.fullname && r.user.fullname.charAt(0)) || "U"}</span>
+                        <span className="text-xl font-black text-primary">{(r.author?.fullname && r.author.fullname.charAt(0)) || "U"}</span>
                       )}
                     </div>
-                    <div className="text-center md:text-center flex-1">
-                      <p className="text-sm font-black text-slate-900 truncate max-w-[100px]">{r.user?.fullname || "Client"}</p>
+                    <div className="text-center md:text-center flex-1 flex flex-col items-center">
+                      <p className="text-sm font-black text-slate-900 truncate max-w-[100px]">{r.author?.fullname || "Client"}</p>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         {r.createdAt || r.created_at ? new Date(r.createdAt || r.created_at).toLocaleDateString("fr-FR") : ""}
                       </p>
+                      {r.is_verified && (
+                        <span className="mt-1.5 flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">
+                          <ShieldCheck size={12} /> Achat Vérifié
+                        </span>
+                      )}
                     </div>
                   </div>
 

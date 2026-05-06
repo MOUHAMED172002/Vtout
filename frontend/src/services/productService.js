@@ -20,6 +20,11 @@ export const getRelatedProducts = async (id) => {
     return data;
 };
 
+export const getFrequentlyBoughtTogether = async (id) => {
+    const { data } = await api.get(`/products/${id}/bought-together`);
+    return data;
+};
+
 export const createProduct = async (productData, token) => {
     const { data } = await api.post('/products', productData, {
         headers: { Authorization: `Bearer ${token}` }

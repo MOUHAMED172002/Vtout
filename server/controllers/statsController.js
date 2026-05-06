@@ -29,7 +29,12 @@ export const getDashboardStats = async (req, res) => {
 
         // 1. Stats de base & Gains
         try {
-            const orders30 = await Order.findAll({ where: { createdAt: { [Op.gte]: since } } });
+            const orders30 = await Order.findAll({ 
+                where: { 
+                    createdAt: { [Op.gte]: since },
+                    status: ['livree', 'livrée']
+                } 
+            });
             stats.revenue = orders30.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
             stats.orders = orders30.length;
             stats.customers = new Set(orders30.map(o => o.user_id)).size;
@@ -80,7 +85,10 @@ export const getDashboardStats = async (req, res) => {
                     [sequelize.fn('SUM', sequelize.col('total_amount')), 'total'],
                     [sequelize.fn('COUNT', sequelize.col('id')), 'count']
                 ],
-                where: { createdAt: { [Op.gte]: since } },
+                where: { 
+                    createdAt: { [Op.gte]: since },
+                    status: ['livree', 'livrée']
+                },
                 group: [sequelize.fn('DATE', sequelize.col('created_at'))],
                 order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
             });
@@ -248,7 +256,7 @@ export const getSupplierStats = async (req, res) => {
             where: {
                 supplier_id: supplier.id,
                 createdAt: { [Op.gte]: since },
-                status: { [Op.ne]: 'annulée' }
+                status: ['livree', 'livrée']
             },
             attributes: [
                 [sequelize.fn('SUM', sequelize.col('total_amount')), 'revenue'],

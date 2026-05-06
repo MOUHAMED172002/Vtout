@@ -80,6 +80,22 @@ import seedBlogs from "./seedBlogs.js";
 import { adminSyncFinancials } from "./controllers/financialController.js";
 import { Config, SupportMessage } from "./models/index.js";
 import { runMasterSeed } from "./masterSeed.js";
+import { processAbandonedCarts } from "./services/abandonedCartService.js";
+
+// --- BACKGROUND JOBS ---
+const startJobs = () => {
+    console.log("⏰ [JOBS] Démarrage des tâches de fond...");
+    
+    // Relance des paniers abandonnés (toutes les heures)
+    setInterval(() => {
+        processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts:", err));
+    }, 60 * 60 * 1000);
+
+    // Premier passage 1 minute après le démarrage
+    setTimeout(() => {
+        processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts (Initial):", err));
+    }, 60 * 1000);
+};
 
 // Webhooks & Special routes
 import createFedapay from "./api/create-fedapay.js";
@@ -396,6 +412,7 @@ sequelize.authenticate()
         }
         
         await runMasterSeed();
+        startJobs();
     })
     .catch(err => {
         console.error("❌ [DB] Database connection failed:", err.message);

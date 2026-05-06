@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, updateProduct, mergeProducts, searchProducts, deleteProduct } from '../../../services/productService';
 import { useAuth } from '../../../lib/clerk-shim';
-import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -132,11 +132,17 @@ const SupplierProductsApproval = () => {
                                         >
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
-                                                    <img
-                                                        src={product.images?.[0]?.image_url || 'https://via.placeholder.com/50'}
-                                                        alt={product.name}
-                                                        className="w-12 h-12 rounded-xl object-cover bg-slate-100"
-                                                    />
+                                                    {product.images?.[0]?.image_url ? (
+                                                        <img
+                                                            src={product.images[0].image_url}
+                                                            alt={product.name}
+                                                            className="w-12 h-12 rounded-xl object-cover bg-slate-100 shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                                                            <Package size={20} className="text-slate-300" />
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <p className="text-sm font-black text-slate-900">{product.name}</p>
                                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{product.category?.name}</p>

@@ -267,15 +267,21 @@ export default function AddressSelector({
                   onChange={(e) => {
                     const val = e.target.value;
                     setPhoneRaw(val);
-                    if (val.replace(/[^\d]/g, "").length >= 8) setPhoneError(null);
+                    // Validation simple : 8 chiffres minimum sans l'indicateur, ou format international complet
+                    const digits = val.replace(/[^\d]/g, "");
+                    if (digits.length >= 8) setPhoneError(null);
                   }}
                   onBlur={handlePhoneBlur}
-                  placeholder="Ex: 61 00 00 00"
-                  className={`w-full h-14 bg-white border rounded-2xl pl-16 pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-slate-900 ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-slate-200 focus:border-primary focus:ring-primary/5'}`}
+                  placeholder="Ex: 61000000 ou +228..."
+                  className={`w-full h-14 bg-white border rounded-2xl pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-slate-900 ${
+                    phoneRaw.startsWith('+') ? 'pl-6' : 'pl-16'
+                  } ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-slate-200 focus:border-primary focus:ring-primary/5'}`}
                 />
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <span className="text-slate-400 font-bold">+229</span>
-                </div>
+                {!phoneRaw.startsWith('+') && (
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <span className="text-slate-400 font-bold">+229</span>
+                  </div>
+                )}
                 {isPhoneValid && !phoneError && <Check size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500" />}
               </div>
               {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}

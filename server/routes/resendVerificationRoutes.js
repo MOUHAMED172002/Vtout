@@ -28,12 +28,12 @@ router.post('/', authMiddleware, requireAuth, async (req, res) => {
 
         // Vérification anti-spam : ne pas envoyer plus d'un email toutes les 2 minutes
         const [existingToken] = await sequelize.query(
-            `SELECT id FROM verification WHERE identifier = :email AND expiresAt > DATE_ADD(NOW(), INTERVAL 23 HOUR) AND expiresAt <= DATE_ADD(NOW(), INTERVAL 24 HOUR) LIMIT 1`,
+            `SELECT id FROM verification WHERE identifier = :email AND expiresAt > DATE_ADD(NOW(), INTERVAL 1438 MINUTE) AND expiresAt <= DATE_ADD(NOW(), INTERVAL 24 HOUR) LIMIT 1`,
             { replacements: { email }, type: sequelize.QueryTypes.SELECT }
         ).catch(() => []);
 
         if (existingToken) {
-            return res.status(429).json({ error: 'Un email a déjà été envoyé récemment. Veuillez patienter.' });
+            return res.status(429).json({ error: 'Un email a déjà été envoyé très récemment. Veuillez patienter 2 minutes.' });
         }
 
         // Envoi de l'email

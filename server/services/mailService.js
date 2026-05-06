@@ -213,7 +213,7 @@ export const sendEmailVerification = async (profile) => {
     if (!profile?.email) return;
 
     // Build verification URL using Better Auth's built-in endpoint
-    const baseUrl = process.env.BETTER_AUTH_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.BACKEND_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000';
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
     // Generate a simple random token (32 hex chars)
@@ -237,7 +237,7 @@ export const sendEmailVerification = async (profile) => {
         // Non-blocking — continue to send email anyway with a link to the page
     }
 
-    const verifyUrl = `${frontendUrl}/auth/verify-email?token=${token}&email=${encodeURIComponent(profile.email)}`;
+    const verifyUrl = `${backendUrl}/api/verify-email?token=${token}&email=${encodeURIComponent(profile.email)}`;
     const firstName = (profile.fullname || profile.email).split(' ')[0];
 
     const html = `

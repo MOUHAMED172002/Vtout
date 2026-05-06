@@ -45,10 +45,21 @@ const statuses = {
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
     const status = searchParams.get('status');
+    const token = searchParams.get('token');
+    const email = searchParams.get('email');
     const [isLoading, setIsLoading] = useState(!status); // Loading only if no status yet
 
-    // If user landed here without a status (direct navigation), show the "check your email" state
-    if (!status && !isLoading) {
+    useEffect(() => {
+        // If an old link was clicked (points to frontend instead of backend)
+        // Redirect it to the backend endpoint so it can be verified.
+        if (token && email && !status) {
+            const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            window.location.href = `${backendUrl}/api/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+        }
+    }, [token, email, status]);
+
+    // If user landed here without a status (direct navigation) and no token
+    if (!status && !token && !isLoading) {
         return <PendingState />;
     }
 

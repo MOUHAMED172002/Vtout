@@ -814,3 +814,74 @@ export const getRelatedProducts = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la récupération des produits similaires' });
     }
 };
+
+export const getFrequentlyBoughtTogether = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { OrderItem } = await import('../models/index.js');
+        
+        // Find all orders that contain this product
+        const ordersWithProduct = await OrderItem.findAll({
+            where: { product_id: id },
+            attributes: ['order_id'],
+            raw: true
+        });
+
+        if (!ordersWithProduct.length) {
+            return res.json([]);
+        }
+
+        const orderIds = ordersWithProduct.map(oi => oi.order_id);
+
+        // Find other products in those same orders
+        const otherItems = await OrderItem.findAll({
+            where: {
+                order_id: { [Op.in]: orderIds },
+                product_id: { [Op.ne]: id } // exclude the product itself
+            },
+            attributes: [
+                'product_id',
+                [sequelize.fn('COUNT', sequelize.col('product_id')), 'freq']
+            ],
+            group: ['product_id'],
+            order: [[sequelize.col('freq'), 'DESC']],
+            limit: 4,
+            raw: true
+        });
+
+        if (!otherItems.length) {
+            return res.json([]);
+        }
+
+        const topProductIds = otherItems.map(item => item.product_id);
+
+        // Fetch product details
+        const products = await Product.findAll({
+            where: {
+                id: { [Op.in]: topProductIds },
+                approval_status: 'approved',
+                price: { [Op.gt]: 0 },
+                [Op.and]: [
+                    sequelize.literal(`(
+                        \`Product\`.stock > 0
+                        OR EXISTS (
+                            SELECT 1 FROM \`product_variant_prices\` AS pvp
+                            INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                            WHERE pv.product_id = \`Product\`.id
+                            AND pvp.stock > 0
+                        )
+                    )`)
+                ]
+            },
+            include: [
+                { model: Category, as: 'category' },
+                { model: ProductImage, as: 'images' }
+            ]
+        });
+
+        res.json(products);
+    } catch (error) {
+        console.error('getFrequentlyBoughtTogether error:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des produits achetés ensemble' });
+    }
+};

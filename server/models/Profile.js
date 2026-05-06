@@ -76,6 +76,10 @@ const Profile = sequelize.define('Profile', {
     clerk_raw: {
         type: DataTypes.JSON,
         defaultValue: {}
+    },
+    last_abandoned_reminder_at: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'profiles',

@@ -6,25 +6,42 @@ import { Config } from '../models/index.js';
  * Green API s'attend au format international (sans le +) suivi de @c.us
  */
 const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    
+    // 1. Enlever tout ce qui n'est pas un chiffre
     let clean = phone.replace(/\D/g, '');
     
-    // Si c'est un numéro international commençant par 22901...
-    if (clean.startsWith('22901') && clean.length === 12) {
-        clean = '229' + clean.substring(5);
+    // 2. Gérer le cas où l'utilisateur commence par 00 (ex: 00229...)
+    if (phone.startsWith('00')) {
+        clean = clean.substring(2);
     }
-    // Si c'est un numéro local Bénin à 10 chiffres commençant par 01
-    else if (clean.length === 10 && clean.startsWith('01')) {
-        clean = '229' + clean.substring(2);
-    }
-    // Si c'est un numéro local Bénin à 8 chiffres, on ajoute 229
-    else if (clean.length === 8 && !clean.startsWith('229')) {
-        clean = `229${clean}`;
-    }
-    // Cas où le numéro est déjà 229XXXXXXXX (8 chiffres après 229)
-    else if (clean.startsWith('229') && clean.length === 11) {
-        // Déjà bon
+
+    // 3. Cas spécifiques au Bénin (S'il n'y a pas d'indicateur détecté au début)
+    // On considère que si le numéro fait 8 ou 10 chiffres et ne commence pas par un indicateur connu, c'est du local Bénin
+    
+    // Si c'est un numéro local Bénin à 10 chiffres commençant par 01 (nouveau format)
+    if (clean.length === 10 && clean.startsWith('01')) {
+        return '229' + clean.substring(2);
     }
     
+    // Si c'est un numéro local Bénin à 8 chiffres (ancien format)
+    if (clean.length === 8) {
+        return '229' + clean;
+    }
+
+    // Cas spécifique : certains saisissent 229 + 01 + numéro (12 chiffres)
+    if (clean.startsWith('22901') && clean.length === 12) {
+        return '229' + clean.substring(5);
+    }
+
+    // 4. Si le numéro est déjà au format international (plus de 10 chiffres)
+    // On le laisse tel quel (Green API s'occupera du reste)
+    // Exemple: 228... (Togo), 225... (CI), 33... (France)
+    if (clean.length >= 11) {
+        return clean;
+    }
+    
+    // Par défaut, si on ne sait pas, on renvoie le nettoyé
     return clean;
 };
 
