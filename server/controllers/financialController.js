@@ -62,17 +62,29 @@ export const getMyFinancials = async (req, res) => {
 };
 
 export const requestPayout = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const userId = req.auth.userId;
         const { amount, payment_method, payment_details, save_details } = req.body;
         
-        if (!amount || amount <= 0) return res.status(400).json({ error: 'Montant invalide' });
+        if (!amount || amount <= 0) {
+            await t.rollback();
+            return res.status(400).json({ error: 'Montant invalide' });
+        }
+
+        // LOCK the profile to prevent concurrent payout requests for the same user
+        const profile = await Profile.findByPk(userId, { transaction: t, lock: true });
+        if (!profile) {
+            await t.rollback();
+            return res.status(404).json({ error: 'Profil non trouvé' });
+        }
         
-        // check balance
+        // Calculate current balance (all earnings - all payouts)
         const summary = await FinancialTransaction.findAll({
             where: { user_id: userId, status: 'completed' },
             attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
-            group: ['type']
+            group: ['type'],
+            transaction: t
         });
         
         let balance = 0;
@@ -83,29 +95,26 @@ export const requestPayout = async (req, res) => {
             if (s.type === 'adjustment') balance += val;
         });
 
-        // SECURITE: Déduire les demandes de retrait déjà en attente ou approuvées (non payées)
+        // Deduct pending or approved payouts
         const pendingPayouts = await PayoutRequest.sum('amount', {
-            where: { user_id: userId, status: ['pending', 'approved'] }
+            where: { user_id: userId, status: ['pending', 'approved'] },
+            transaction: t
         });
         
         const availableBalance = balance - (pendingPayouts || 0);
         
-        let status = 'pending';
-        let admin_notes = null;
-        
         if (availableBalance < amount) {
-            return res.status(400).json({ error: 'Solde disponible insuffisant (Fonds en attente inclus)' });
+            await t.rollback();
+            return res.status(400).json({ error: 'Solde disponible insuffisant (incluant vos demandes en cours)' });
         }
-        
-        const profile = await Profile.findByPk(userId);
 
-        if (save_details && profile) {
+        if (save_details) {
             const metadata = { ...(profile.metadata || {}) };
             metadata.payout_info = {
                 method: payment_method,
                 details: payment_details
             };
-            await profile.update({ metadata });
+            await profile.update({ metadata }, { transaction: t });
         }
         
         const payoutRequest = await PayoutRequest.create({
@@ -115,16 +124,18 @@ export const requestPayout = async (req, res) => {
             amount,
             payment_method,
             payment_details,
-            status,
-            admin_notes
-        });
+            status: 'pending'
+        }, { transaction: t });
         
+        await t.commit();
         res.status(201).json(payoutRequest);
     } catch (error) {
+        if (t) await t.rollback();
         console.error('RequestPayout error:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        res.status(500).json({ error: 'Erreur lors de la demande de retrait' });
     }
 };
+
 
 export const adminGetAllPayoutRequests = async (req, res) => {
     try {
@@ -139,24 +150,34 @@ export const adminGetAllPayoutRequests = async (req, res) => {
 };
 
 export const adminProcessPayout = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { status, admin_notes } = req.body; // approved, paid, rejected
         
-        const payout = await PayoutRequest.findByPk(id);
-        if (!payout) return res.status(404).json({ error: 'Demande non trouvée' });
+        const payout = await PayoutRequest.findByPk(id, { transaction: t });
+        if (!payout) {
+            await t.rollback();
+            return res.status(404).json({ error: 'Demande non trouvée' });
+        }
         
         const oldStatus = payout.status;
-        await payout.update({ status, admin_notes, processed_at: new Date() });
+
+        // LOCK the user profile to ensure balance is stable during processing
+        await Profile.findByPk(payout.user_id, { transaction: t, lock: true });
+
+        await payout.update({ status, admin_notes, processed_at: new Date() }, { transaction: t });
         
-        // If transitioning to 'paid' (or 'approved' depending on policy), record the transaction
+        // If transitioning to 'paid', record the final transaction
         if (status === 'paid' && oldStatus !== 'paid') {
-            // SECURITE: Revérifier le solde de l'utilisateur avant le paiement final (Race Condition prevention)
+            // Re-calculate balance inside the transaction
             const summary = await FinancialTransaction.findAll({
                 where: { user_id: payout.user_id, status: 'completed' },
                 attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
-                group: ['type']
+                group: ['type'],
+                transaction: t
             });
+
             let currentBalance = 0;
             summary.forEach(s => {
                 const val = parseFloat(s.get('total') || 0);
@@ -166,8 +187,9 @@ export const adminProcessPayout = async (req, res) => {
             });
 
             if (currentBalance < payout.amount) {
-                await payout.update({ status: 'rejected', admin_notes: 'Solde insuffisant au moment du paiement' });
-                return res.status(400).json({ error: 'Opération bloquée: Le solde de cet utilisateur est devenu insuffisant.' });
+                await t.rollback();
+                // We don't update to rejected automatically here, we just block the admin action
+                return res.status(400).json({ error: 'Solde insuffisant pour confirmer ce paiement.' });
             }
 
             await FinancialTransaction.create({
@@ -177,15 +199,18 @@ export const adminProcessPayout = async (req, res) => {
                 amount: payout.amount,
                 description: `Retrait ${payout.id.slice(0,8)}`,
                 status: 'completed'
-            });
+            }, { transaction: t });
         }
         
+        await t.commit();
         res.json(payout);
     } catch (error) {
+        if (t) await t.rollback();
         console.error('AdminProcessPayout error:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        res.status(500).json({ error: 'Erreur lors du traitement du retrait' });
     }
 };
+
 
 export const adminSyncFinancials = async (req, res) => {
     try {

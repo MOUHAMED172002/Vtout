@@ -98,17 +98,28 @@ export const getOrderById = async (req, res) => {
         // Security check: Only owner, assigned supplier/rider, or admin can see the order
         const userId = req.auth?.userId;
         const role = req.auth?.role;
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const isAdmin = role === 'admin' || adminEmails.includes(req.auth?.email?.toLowerCase());
 
-        // If it's a guest order (no user_id), only admin or the creator (via future token) should see it.
-        // For now, we restrict to Admin to prevent public leakage of guest PII.
-        if (!order.user_id) {
-            if (role !== 'admin') {
-                return res.status(403).json({ error: 'Accès restreint. Seul un administrateur peut voir les commandes invités pour le moment.' });
-            }
-        } else if (order.user_id !== userId && role !== 'admin') {
-            // If it's a registered user's order, check ownership
-            return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
+        if (isAdmin) return res.json(order.toJSON());
+
+        // 1. Check if user is the owner
+        if (order.user_id && order.user_id === userId) return res.json(order.toJSON());
+
+        // 2. Check if user is the assigned supplier
+        if (userId) {
+            const supplier = await Supplier.findOne({ where: { user_id: userId } });
+            if (supplier && order.supplier_id === supplier.id) return res.json(order.toJSON());
         }
+
+        // 3. Check if user is the assigned rider
+        if (userId) {
+            const rider = await DeliveryPerson.findOne({ where: { user_id: userId } });
+            if (rider && order.delivery_person_id === rider.id) return res.json(order.toJSON());
+        }
+
+        return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
+
 
         res.json(order.toJSON());
     } catch (error) {

@@ -4,6 +4,14 @@ import { Address } from '../models/index.js';
 export const getUserAddresses = async (req, res) => {
     try {
         const { userId } = req.params;
+        const requesterId = req.auth?.userId;
+        const requesterRole = req.auth?.role;
+
+        // Security check: Only the owner or an admin can access these addresses
+        if (requesterId !== userId && requesterRole !== 'admin') {
+            return res.status(403).json({ error: 'Accès non autorisé' });
+        }
+
         const addresses = await Address.findAll({
             where: { user_id: userId }
         });
