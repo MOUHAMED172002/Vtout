@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, Clock, Trash2, ChevronRight, X } from 'lucide-react';
+import { Bell, Check, Clock, Trash2, ChevronRight, X, Store, Truck, Wallet, ShoppingBag } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import { useAuth } from '../clerk-shim';
@@ -85,13 +86,22 @@ const NotificationCenter = () => {
     };
 
     const getIcon = (type) => {
+        // Detection based on type keywords
+        const isSeller = type?.includes('seller') || type === 'order_vendeur';
+        const isDelivery = type?.includes('delivery');
+        const isWallet = type === 'financial' || type === 'wallet';
+
+        if (isSeller) return <div className="p-2 bg-amber-100 text-amber-600 rounded-lg" title="Vendeur"><Store size={16} /></div>;
+        if (isDelivery) return <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg" title="Livreur"><Truck size={16} /></div>;
+        if (isWallet) return <div className="p-2 bg-green-100 text-green-600 rounded-lg" title="Finances"><Wallet size={16} /></div>;
+
         switch (type) {
-            case 'order': return <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Clock size={16} /></div>;
-            case 'financial': return <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><Check size={16} /></div>;
-            case 'system': return <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Bell size={16} /></div>;
+            case 'order': return <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg" title="Achat"><ShoppingBag size={16} /></div>;
+            case 'system': return <div className="p-2 bg-rose-100 text-rose-600 rounded-lg" title="Système"><Bell size={16} /></div>;
             default: return <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Bell size={16} /></div>;
         }
     };
+
 
     return (
         <div className="relative" ref={dropdownRef}>

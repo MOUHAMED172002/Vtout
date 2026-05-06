@@ -10,7 +10,9 @@ import {
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import PortalSwitcher from './Shared/PortalSwitcher';
+import MobileBottomNav from './Shared/MobileBottomNav';
 import LogoText from './Shared/LogoText';
+
 
 
 const navLinks = [
@@ -261,12 +263,14 @@ const Layout = ({ children }) => {
                 </header>
 
                 {/* Scrollable Page Content */}
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto pb-32 md:pb-0">
                     {children}
                 </main>
                 <RoleSwitcher />
+                <MobileBottomNav />
             </div>
         </div>
+
     );
 };
 

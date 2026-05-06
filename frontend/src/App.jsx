@@ -36,6 +36,8 @@ import CookieConsent from './component/Shared/CookieConsent';
 import SupportChat from './component/Shared/SupportChat';
 import SupplierBlockModal from './component/Shared/SupplierBlockModal';
 import EmailVerificationBanner from './component/Shared/EmailVerificationBanner';
+import MobileBottomNav from './component/Shared/MobileBottomNav';
+
 
 // --- Pages/Routes ---
 import ProductsList from './component/Products/ProductsList';
@@ -168,7 +170,8 @@ const AppContent = ({ products, loading }) => {
   }
 
   return (
-    <div className="bg-base-100 text-base-content transition-colors duration-300 overflow-hidden min-h-screen">
+    <div className="bg-base-100 text-base-content transition-colors duration-300 overflow-hidden min-h-screen pb-32 lg:pb-0">
+
       <SEO />
       <ProfileSync />
 
@@ -261,8 +264,10 @@ const AppContent = ({ products, loading }) => {
           <Route path="*" element={<PageWrapper><NotFoundPage /></PageWrapper>} />
         </Routes>
       </AnimatePresence>
+      <MobileBottomNav />
       <CookieConsent />
     </div>
+
   );
 };
 
