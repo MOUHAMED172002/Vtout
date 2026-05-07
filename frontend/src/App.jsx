@@ -18,7 +18,6 @@ import Hero from './component/Hero/Hero';
 import Category from './component/Category/Category';
 import Category2 from './component/Category/Category2';
 import Services from './component/Services/Services';
-import Banner from './component/Banner/Banner';
 import Blogs from './component/Blogs/Blogs';
 import Partners from './component/Partners/Partners';
 import Footer from './component/Footer/Footer';
@@ -68,27 +67,6 @@ import SupplierRegister from './component/Supplier/SupplierRegister';
 import SupplierDashboard from './component/Supplier/SupplierDashboard';
 import AddProductSupplier from './component/Supplier/AddProductSupplier';
 
-const BannerData = {
-  discount: '30% OFF',
-  title: 'Fine Smile',
-  date: '10 Jan to 28 Jan',
-  image: headphone,
-  title2: 'Air Solo Bass',
-  title3: 'Winter Sale',
-  title4: 'Promotion exclusive sur notre gamme audio premium.',
-  bgcolor: '#f42c37'
-};
-
-const BannerData2 = {
-  discount: '30% OFF',
-  title: 'Fine Smile',
-  date: '18 Jan to 28 Jan',
-  image: SmartWatch,
-  title2: 'Smart Solo',
-  title3: 'Winter Sale',
-  title4: 'La technologie à votre poignet au meilleur prix.',
-  bgcolor: '#2dcc6f'
-};
 
 const AppContent = ({ products, loading }) => {
   const location = useLocation();
@@ -150,9 +128,7 @@ const AppContent = ({ products, loading }) => {
         <Navbar />
         <Hero />
         <Category />
-        <Banner data={BannerData} />
         <ProductGrid products={products} showButton={true} loading={loading} />
-        <Banner data={BannerData2} />
         <Services />
         <Footer />
       </>
