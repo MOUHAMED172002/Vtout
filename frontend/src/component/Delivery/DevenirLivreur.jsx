@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft } from "lucide-react";
+import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft, User as UserIcon } from "lucide-react";
 import { useAuth, useUser, SignIn, SignUp } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
 import { toast } from "react-hot-toast";
@@ -242,7 +242,7 @@ export default function DevenirLivreur() {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nom Complet</label>
                                             <div className="relative">
-                                                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <UserIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                                 <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.fullname} onChange={e => setForm({ ...form, fullname: e.target.value })} />
                                             </div>
                                         </div>

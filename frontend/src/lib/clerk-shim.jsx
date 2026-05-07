@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { authClient } from './auth-client';
+import api from '../services/api';
 
 const AuthContext = createContext({
     session: null,
@@ -17,14 +18,13 @@ export const ClerkProvider = ({ children }) => {
         const fetchProfile = async () => {
             if (data?.session) {
                 try {
-                    const response = await fetch(`${authClient.options.baseURL.replace('/auth', '')}/profiles/me`, {
+                    const response = await api.get('/profiles/me', {
                         headers: {
                             'Authorization': `Bearer ${data.session.id}`
                         }
                     });
-                    if (response.ok) {
-                        const profileData = await response.json();
-                        setProfile(profileData);
+                    if (response.data) {
+                        setProfile(response.data);
                     } else {
                         // Fallback to basic user profile if DB fetch fails
                         setProfile({ role: 'user' });
