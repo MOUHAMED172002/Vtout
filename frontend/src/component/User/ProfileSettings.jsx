@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "../../lib/clerk-shim";
 import { getMyProfile, updateMyProfile } from "../../services/userService";
 import { uploadSingleImage } from "../../services/uploadService";
-import { authClient } from "../../lib/clerk-shim";
+import { authClient } from "../../lib/auth-client";
 import toast from "react-hot-toast";
 import { Camera, Lock, Mail, Phone, User as UserIcon, Shield, Loader, Save, Check, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";

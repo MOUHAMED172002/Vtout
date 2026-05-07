@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { authClient } from '../../lib/clerk-shim';
+import { authClient } from '../../lib/auth-client';
 import { Lock, ArrowRight, Loader, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
