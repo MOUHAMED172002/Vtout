@@ -193,7 +193,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/delivery-rider/*" element={
             <PageWrapper>
               <SignedIn>
-                {profileUser?.role === 'livreur' || profileUser?.role === 'admin' ? (
+                {profileUser?.isDelivery || profileUser?.isAdmin ? (
                   <DeliveryRoutes />
                 ) : (
                   <Navigate to="/" replace />
@@ -219,7 +219,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/admin/dashboard/*" element={
             <PageWrapper>
               <SignedIn>
-                {profileUser?.role === 'admin' ? <AdminLayout /> : <Navigate to="/" replace />}
+                {profileUser?.isAdmin ? <AdminLayout /> : <Navigate to="/" replace />}
               </SignedIn>
             </PageWrapper>
           } />

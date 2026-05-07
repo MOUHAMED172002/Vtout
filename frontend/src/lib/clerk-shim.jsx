@@ -38,9 +38,13 @@ export const ClerkProvider = ({ children }) => {
                     if (response.ok) {
                         const profileData = await response.json();
                         setProfile(profileData);
+                    } else {
+                        // Fallback to basic user profile if DB fetch fails
+                        setProfile({ role: 'user' });
                     }
                 } catch (err) {
                     console.error("Failed to fetch enriched profile:", err);
+                    setProfile({ role: 'user' });
                 }
             } else {
                 setProfile(null);
@@ -73,9 +77,9 @@ export const useAuth = () => {
         isSignedIn: !!session,
         userId: user?.id || null,
         role: profile?.role || user?.role || 'user',
-        isSupplier: !!profile?.isSupplier,
-        isDelivery: !!profile?.isDelivery,
-        isAdmin: !!profile?.isAdmin,
+        isSupplier: !!profile?.isSupplier || !!profile?.Supplier,
+        isDelivery: !!profile?.isDelivery || !!profile?.DeliveryPerson,
+        isAdmin: !!profile?.isAdmin || profile?.role === 'admin',
         sessionId: session?.id || null,
         getToken,
         signOut,
