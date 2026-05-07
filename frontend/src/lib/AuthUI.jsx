@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { authClient, useAuth } from './clerk-shim';
+import { authClient } from './auth-client';
+import { useAuth } from './clerk-shim';
 import { Mail, Lock, User, Github, Facebook, ArrowRight, Loader, Eye, EyeOff, MessageCircle, Smartphone, ChevronLeft } from 'lucide-react';
 import api from '../services/api';
 import PhoneInput from 'react-phone-number-input';

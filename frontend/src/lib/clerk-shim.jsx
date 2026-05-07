@@ -1,18 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useCallback } from 'react';
-import { createAuthClient } from 'better-auth/react';
-import { AuthUI, UserDropdown } from './AuthUI';
-
-let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-if (API_BASE_URL.startsWith('/')) {
-    API_BASE_URL = window.location.origin + API_BASE_URL;
-}
-
-// console.log("[clerk-shim] Using API_BASE_URL:", API_BASE_URL);
-
-export const authClient = createAuthClient({
-    baseURL: API_BASE_URL + '/auth',
-    plugins: []
-});
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { authClient } from './auth-client';
 
 const AuthContext = createContext({
     session: null,
@@ -30,7 +17,7 @@ export const ClerkProvider = ({ children }) => {
         const fetchProfile = async () => {
             if (data?.session) {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/profiles/me`, {
+                    const response = await fetch(`${authClient.options.baseURL.replace('/auth', '')}/profiles/me`, {
                         headers: {
                             'Authorization': `Bearer ${data.session.id}`
                         }
@@ -136,6 +123,8 @@ export const SignedOut = ({ children }) => {
     if (!isLoaded || isSignedIn) return null;
     return <>{children}</>;
 };
+
+import { AuthUI, UserDropdown } from './AuthUI';
 
 export const SignIn = () => <AuthUI mode="signIn" />;
 export const SignUp = () => <AuthUI mode="signUp" />;
