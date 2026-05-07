@@ -26,7 +26,6 @@ export default function DevenirLivreur() {
             navigate('/delivery-rider');
         }
     }, [isSignedIn, profileUser, navigate]);
-    const [accountConfirmed, setAccountConfirmed] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -167,43 +166,7 @@ export default function DevenirLivreur() {
                                 </motion.div>
                             )}
 
-                            {step === 1 && isSignedIn && !accountConfirmed && (
-                                <motion.div
-                                    key="confirm-account"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="space-y-10 py-4"
-                                >
-                                    <div className="p-10 bg-gradient-to-br from-primary/5 to-transparent rounded-[3rem] border border-primary/10 flex flex-col items-center text-center space-y-8">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
-                                            <div className="relative w-32 h-32 bg-white rounded-full p-1 shadow-2xl border-4 border-white">
-                                                <img src={user?.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Salut, {user?.fullName} !</h2>
-                                            <p className="text-slate-500 font-bold text-lg max-w-sm mx-auto leading-relaxed">Voulez-vous utiliser ce compte pour devenir livreur ?</p>
-                                        </div>
-                                        <div className="flex flex-col w-full max-w-sm gap-4 pt-4">
-                                            <button 
-                                                onClick={() => setAccountConfirmed(true)} 
-                                                className="w-full py-5 bg-primary text-white rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.03] active:scale-95 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-3"
-                                            >
-                                                Oui, Continuer <ArrowRight size={18} />
-                                            </button>
-                                            <button 
-                                                onClick={() => signOut()} 
-                                                className="text-xs font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest py-3 flex items-center justify-center gap-2"
-                                            >
-                                                Utiliser un autre compte
-                                            </button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {step === 1 && isSignedIn && accountConfirmed && (
+                            {step === 1 && isSignedIn && (
                                 <motion.div
                                     key="terms"
                                     initial={{ opacity: 0, x: 20 }}
@@ -213,7 +176,6 @@ export default function DevenirLivreur() {
                                     <div className="space-y-8">
                                         <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                                             <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Conditions d'admission</h2>
-                                            <button onClick={() => setAccountConfirmed(false)} className="px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors">Retour</button>
                                         </div>
                                         <div className="grid gap-5">
                                             {policies.length > 0 ? (
