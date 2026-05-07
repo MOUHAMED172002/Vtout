@@ -48,6 +48,8 @@ export default function Navbar() {
   const isDelivery = !!profileUser?.isDelivery;
   const isAdmin = !!profileUser?.isAdmin;
 
+  const dashboardLink = isAdmin ? "/admin/dashboard" : "/user/dashboard";
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);

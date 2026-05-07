@@ -177,8 +177,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
-      name: '', description: '', category_id: '', price: '', old_price: '',
-      stock: 0, variants: [], is_flash_sale: false, flash_sale_end: '',
+      stock: 0, variants: [],
       supplier_price: '', approval_status: 'En attente', admin_feedback: ''
     }
   });
@@ -260,9 +259,6 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       price:           initialProduct.price         || '',
       old_price:       initialProduct.old_price     || '',
       stock:           initialProduct.stock         || 0,
-      is_flash_sale:   initialProduct.is_flash_sale || false,
-      flash_sale_end:  initialProduct.flash_sale_end
-        ? new Date(initialProduct.flash_sale_end).toISOString().slice(0, 16) : '',
       approval_status: initialProduct.approval_status || 'En attente',
       admin_feedback:  initialProduct.admin_feedback  || '',
       supplier_price:  initialProduct.supplier_price  || '',
@@ -394,8 +390,6 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
         stock:           parseInt(data.stock)      || 0,
         category_id:     parseInt(data.category_id),
         images:          finalImages,
-        is_flash_sale:   data.is_flash_sale,
-        flash_sale_end:  data.is_flash_sale ? data.flash_sale_end : null,
         approval_status: data.approval_status,
         admin_feedback:  data.admin_feedback,
         supplier_price:  parseFloat(data.supplier_price) || null,
@@ -520,33 +514,6 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                   className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/5 outline-none resize-none" />
               </div>
 
-              {/* Flash Sale */}
-              <div className="md:col-span-2 p-8 bg-rose-50 rounded-[2.5rem] border border-rose-100 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200">
-                      <Star size={18} fill="currentColor" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black text-rose-900 uppercase tracking-widest">Offre Flash</h4>
-                      <p className="text-[9px] font-bold text-rose-400 uppercase tracking-widest">Créez de l'urgence</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" {...register('is_flash_sale')} className="sr-only peer" />
-                    <div className="w-12 h-7 bg-rose-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-[23px] after:w-[23px] after:transition-all peer-checked:bg-rose-500" />
-                  </label>
-                </div>
-                <AnimatePresence>
-                  {watch('is_flash_sale') && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-rose-400 block mb-2">Date de fin</label>
-                      <input type="datetime-local" {...register('flash_sale_end')}
-                        className="w-full bg-white border border-rose-100 rounded-2xl px-6 py-4 text-sm font-bold text-rose-900 outline-none" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
 
               {/* Modération */}
               <div className="md:col-span-2 p-8 bg-slate-900 rounded-[2.5rem] border border-slate-800 space-y-6 text-white shadow-2xl">

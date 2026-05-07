@@ -123,8 +123,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       old_price: '',
       stock: 0,
       variants: [],
-      is_flash_sale: false,
-      flash_sale_end: '',
       supplier_note: ''
     }
   });
@@ -461,8 +459,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         stock: parseInt(data.stock) || 0,
         category_id: parseInt(data.category_id),
         images: uploadedImages,
-        is_flash_sale: data.is_flash_sale,
-        flash_sale_end: data.is_flash_sale ? data.flash_sale_end : null,
         supplier_note: data.supplier_note || null,
         variants: (data.variants || []).map(v => ({
           ...v,

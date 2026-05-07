@@ -23,7 +23,6 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
     maxPrice: 500000,
     attributes: {},
     sort: "recent",
-    isFlashSale: false,
   });
 
   const [selectedAttrId, setSelectedAttrId] = useState("");
@@ -97,7 +96,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
   };
 
   const clearFilters = () => {
-    setFilters({ category_id: "", minPrice: 0, maxPrice: 500000, attributes: {}, sort: "recent", isFlashSale: false });
+    setFilters({ category_id: "", minPrice: 0, maxPrice: 500000, attributes: {}, sort: "recent" });
     setSelectedAttrId("");
   };
 

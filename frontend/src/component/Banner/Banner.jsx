@@ -88,7 +88,7 @@ const Banner = ({ data }) => {
                         </motion.div>
 
                         <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tighter leading-none uppercase">
-                            {data?.title || 'Flash Sale'}
+                            {data?.title || 'Offre Spéciale'}
                         </h2>
 
                         <p className="text-slate-900/60 font-bold text-sm leading-relaxed">
@@ -159,7 +159,7 @@ const Banner = ({ data }) => {
                                 {data?.title2 || 'Collection'}
                             </p>
                             <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mt-1">
-                                {data?.title3 || 'Ventes Flash'}
+                                {data?.title3 || 'Ventes Spéciales'}
                             </h3>
                         </div>
 
