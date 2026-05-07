@@ -68,6 +68,10 @@ export default function DashboardLayout() {
           </Link>
         </div>
 
+        <div className="px-8 mb-6">
+          <PortalSwitcher />
+        </div>
+
         <div className="flex-1 px-6 space-y-1 overflow-y-auto custom-scrollbar pt-4">
           <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Compte Client</p>
           {NAV_ITEMS.map((item) => {
@@ -220,6 +224,10 @@ export default function DashboardLayout() {
                 <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-slate-400 hover:text-slate-900">
                   <CloseIcon size={24} />
                 </button>
+              </div>
+
+              <div className="px-8 py-4 border-b border-slate-50">
+                <PortalSwitcher />
               </div>
 
               <div className="flex-1 p-6 space-y-2 overflow-y-auto">

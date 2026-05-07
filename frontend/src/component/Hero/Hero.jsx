@@ -48,7 +48,7 @@ const Hero = () => {
     useEffect(() => {
         const fetchHeroConfig = async () => {
             try {
-                const { data } = await api.get('/configs');
+                const { data } = await api.get('/configs/public');
                 const heroConfig = data.find(c => c.key === 'hero_carousel');
                 if (heroConfig && heroConfig.value) {
                     setHeroData(JSON.parse(heroConfig.value));

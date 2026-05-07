@@ -73,6 +73,10 @@ const Sidebar = ({ mobile, onClose }) => {
                 )}
             </div>
 
+            <div className="px-8 py-4">
+                <PortalSwitcher />
+            </div>
+
 
             {/* User Info */}
             <div className="p-6 mx-4 my-4 bg-white/5 rounded-2xl flex items-center gap-3">

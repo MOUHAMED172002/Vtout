@@ -19,7 +19,7 @@ export default function About() {
   React.useEffect(() => {
     const fetchAboutConfig = async () => {
       try {
-        const { data } = await api.get('/configs');
+        const { data } = await api.get('/configs/public');
         const teamConfig = data.find(c => c.key === 'about_team');
         if (teamConfig && teamConfig.value) {
           setTeam(JSON.parse(teamConfig.value));

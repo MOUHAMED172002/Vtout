@@ -73,6 +73,7 @@ import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/clerk-shim";
 import { useNavigate } from "react-router-dom";
+import PortalSwitcher from "../Shared/PortalSwitcher";
 
 
 const AdminLayout = () => {
@@ -292,6 +293,10 @@ const AdminLayout = () => {
             </button>
           </div>
 
+          <div className="px-8 mb-6">
+            <PortalSwitcher />
+          </div>
+
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
@@ -445,6 +450,8 @@ const AdminLayout = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            <PortalSwitcher />
 
             <button className="relative p-2.5 lg:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
               <Bell size={20} />
