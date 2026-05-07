@@ -193,8 +193,6 @@ export default function DeliveryDashboard() {
     const hasDebt = unremittedCashAmount > 0;
     const isFullyBlocked = hasDebt && activeOrders.length === 0;
 
-    // --- REAL-TIME BEACON (Commented out) ---
-    /*
     useEffect(() => {
         let interval;
         if (isOnline && activeOrders.length > 0) {
@@ -229,7 +227,6 @@ export default function DeliveryDashboard() {
             if (interval) clearInterval(interval);
         };
     }, [isOnline, activeOrders.length, myself?.id, clerkUser?.id, getToken]);
-    */
 
     const handleToggleOnline = async () => {
         try {
@@ -371,9 +368,7 @@ export default function DeliveryDashboard() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="hidden md:block">
-                        <PortalSwitcher />
-                    </div>
+                    <PortalSwitcher />
                     <NotificationCenter />
                     <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
                         <button

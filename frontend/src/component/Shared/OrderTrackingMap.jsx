@@ -43,11 +43,9 @@ function ChangeView({ center }) {
 }
 
 export default function OrderTrackingMap({ orderId, customerPos, supplierPos }) {
-    // const [riderPos, setRiderPos] = useState(null);
-    const riderPos = null; // Désactivé temporairement
+    const [riderPos, setRiderPos] = useState(null);
 
     useEffect(() => {
-        /* 
         // Listen for rider location updates via socket
         const handleLocationUpdate = (data) => {
             if (data.orderId === orderId && data.lat && data.lng) {
@@ -60,7 +58,6 @@ export default function OrderTrackingMap({ orderId, customerPos, supplierPos }) 
         return () => {
             notificationService.off(`order_update_${orderId}`, handleLocationUpdate);
         };
-        */
     }, [orderId]);
 
     const center = customerPos || supplierPos || [6.3667, 2.4333]; // Default to Cotonou
@@ -85,11 +82,11 @@ export default function OrderTrackingMap({ orderId, customerPos, supplierPos }) 
                     </Marker>
                 )}
 
-                {/* riderPos && (
+                {riderPos && (
                     <Marker position={riderPos} icon={riderIcon}>
                         <Popup>Le livreur est ici</Popup>
                     </Marker>
-                ) */}
+                )}
             </MapContainer>
             
             <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur px-4 py-2 rounded-xl border border-slate-200 shadow-lg text-[10px] font-bold uppercase tracking-widest text-slate-500">

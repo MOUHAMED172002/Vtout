@@ -39,38 +39,45 @@ const generateInvoiceTemplate = (order, items) => {
     `).join('');
 
     return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #333; text-align: center;">Reçus - Commande #${order.id.slice(0, 8)}</h2>
-        <p>Bonjour <strong>${order.guest_name || 'Client'}</strong>,</p>
-        <p>Merci pour votre commande sur notre boutique. Voici les détails de votre achat :</p>
-        
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-                <tr style="background-color: #f8f8f8;">
-                    <th style="padding: 10px; text-align: left;">Produit</th>
-                    <th style="padding: 10px; text-align: center;">Qté</th>
-                    <th style="padding: 10px; text-align: right;">Prix</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${itemsHtml}
-            </tbody>
-        </table>
-        
-        <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
-            Total: ${Number(order.total_amount).toLocaleString('fr-FR')} F
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 0; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+        <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-bottom: 1px solid #eee;">
+            <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 40px; width: auto;" onerror="this.style.display='none'">
+            <h1 style="margin: 10px 0 0; color: #0f172a; font-size: 20px; font-weight: 900;">VTOUT</h1>
+        </div>
+        <div style="padding: 30px;">
+            <h2 style="color: #333; text-align: center; margin-top: 0;">Reçus - Commande #${order.id.slice(0, 8)}</h2>
+            <p>Bonjour <strong>${order.guest_name || 'Client'}</strong>,</p>
+            <p>Merci pour votre commande sur notre boutique. Voici les détails de votre achat :</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <thead>
+                    <tr style="background-color: #f8f8f8;">
+                        <th style="padding: 10px; text-align: left;">Produit</th>
+                        <th style="padding: 10px; text-align: center;">Qté</th>
+                        <th style="padding: 10px; text-align: right;">Prix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+            
+            <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
+                Total: ${Number(order.total_amount).toLocaleString('fr-FR')} F
+            </div>
+            
+            <div style="margin-top: 30px; padding: 20px; background-color: #fff9eb; border: 1px solid #ffeeba; border-radius: 10px; text-align: center;">
+                <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Code de validation de livraison :</strong></p>
+                <h1 style="margin: 10px 0 0 0; color: #856404; font-size: 32px; letter-spacing: 5px;">${order.delivery_code || '----'}</h1>
+                <p style="margin: 10px 0 0 0; font-size: 11px; color: #856404;">Veuillez communiquer ce code au livreur uniquement lorsque vous recevez vos articles.</p>
+            </div>
         </div>
         
-        <div style="margin-top: 30px; padding: 20px; background-color: #fff9eb; border: 1px solid #ffeeba; border-radius: 10px; text-align: center;">
-            <p style="margin: 0; font-size: 14px; color: #856404;"><strong>Code de validation de livraison :</strong></p>
-            <h1 style="margin: 10px 0 0 0; color: #856404; font-size: 32px; letter-spacing: 5px;">${order.delivery_code || '----'}</h1>
-            <p style="margin: 10px 0 0 0; font-size: 11px; color: #856404;">Veuillez communiquer ce code au livreur uniquement lorsque vous recevez vos articles.</p>
+        <div style="padding: 20px; background-color: #f8fafc; border-top: 1px solid #eee; text-align: center;">
+            <p style="font-size: 11px; color: #777; margin: 0;">
+                Cette facture a été générée automatiquement. © ${new Date().getFullYear()} Vtout.
+            </p>
         </div>
-        
-        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-        <p style="font-size: 12px; color: #777; text-align: center;">
-            Cette facture a été générée automatiquement. Si vous avez des questions, contactez notre support.
-        </p>
     </div>
     `;
 };
@@ -98,13 +105,21 @@ const templates = {
         </div>
     `,
     statusUpdate: (order, statusLabel) => `
-        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0;">
-            <h2 style="color: #0f172a; font-size: 22px;">Votre commande évolue !</h2>
-            <p style="color: #64748b;">Bonjour ${order.guest_name || 'Client'}, le statut de votre commande <strong>#${order.id.slice(0, 8)}</strong> est désormais :</p>
-            <div style="background-color: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; color: #0f172a; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;">
-                ${statusLabel}
+        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 0; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; background-color: white;">
+            <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 35px; width: auto;" onerror="this.style.display='none'">
             </div>
-            <p style="color: #64748b; margin-top: 20px;">Merci de votre confiance.</p>
+            <div style="padding: 40px;">
+                <h2 style="color: #0f172a; font-size: 22px; margin-top: 0;">Votre commande évolue !</h2>
+                <p style="color: #64748b;">Bonjour ${order.guest_name || 'Client'}, le statut de votre commande <strong>#${order.id.slice(0, 8)}</strong> est désormais :</p>
+                <div style="background-color: #f1f5f9; padding: 25px; border-radius: 16px; text-align: center; font-weight: 900; color: #0f172a; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; border: 1px solid #e2e8f0;">
+                    ${statusLabel}
+                </div>
+                <p style="color: #64748b; margin-top: 30px; font-size: 14px;">Merci de votre confiance.</p>
+            </div>
+            <div style="padding: 20px; background-color: #f8fafc; text-align: center; border-top: 1px solid #e2e8f0;">
+                 <p style="color: #94a3b8; font-size: 11px; margin: 0;">© Vtout Platform</p>
+            </div>
         </div>
     `,
     productApproval: (product, status, feedback) => `
@@ -246,7 +261,7 @@ export const sendEmailVerification = async (profile) => {
         <!-- Header -->
         <div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);padding:40px 40px 30px;text-align:center;">
             <div style="display:inline-block;background:rgba(255,255,255,0.1);border-radius:16px;padding:12px 20px;margin-bottom:20px;">
-                <span style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Vtout Platform</span>
+                <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 30px; width: auto; filter: brightness(0) invert(1);" onerror="this.style.display='none'">
             </div>
             <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0;letter-spacing:-0.5px;">Vérifiez votre email</h1>
             <p style="color:#94a3b8;font-size:14px;margin:12px 0 0;">Un clic suffit pour sécuriser votre compte.</p>

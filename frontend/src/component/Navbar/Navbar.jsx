@@ -43,10 +43,10 @@ export default function Navbar() {
   const firstLetter = appName.charAt(0);
   const restOfName = appName.slice(1);
 
-  // Dynamic Dashboard Link - Always client dashboard for users/sellers/riders
-  const dashboardLink = profileUser?.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
-
-  const isLivreur = profileUser?.role === "livreur";
+  // Capability-based role flags from enriched profile
+  const isSupplier = !!profileUser?.isSupplier;
+  const isDelivery = !!profileUser?.isDelivery;
+  const isAdmin = !!profileUser?.isAdmin;
 
   // Handle scroll effect
   useEffect(() => {
@@ -78,14 +78,14 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               src={getConfig('site_logo') || logo} 
               alt={appName} 
-              className="h-10 md:h-14 w-auto object-contain transition-transform" 
+              className="h-10 md:h-14 w-auto object-contain transition-transform mix-blend-multiply dark:mix-blend-normal dark:bg-white/90 dark:p-1.5 dark:rounded-xl" 
             />
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
             <ul className="flex items-center gap-8">
-              {!isLivreur && MenuLinks.map((item) => (
+              {MenuLinks.map((item) => (
                 <li key={item.id}>
                   <motion.div
                     whileHover={{ scale: 1.1, y: -2 }}
@@ -101,9 +101,9 @@ export default function Navbar() {
                   </motion.div>
                 </li>
               ))}
-              {isLivreur && (
+              {(isDelivery || isSupplier) && (
                 <li>
-                  <span className="text-sm font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-4 py-2 rounded-xl">Espace Livreur</span>
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">Mode Pro</span>
                 </li>
               )}
             </ul>
@@ -112,13 +112,12 @@ export default function Navbar() {
 
             <div className="flex items-center gap-6">
               <ThemeSelector />
-              {!isLivreur && <SearchBar />}
-
-              {!isLivreur && <CartIcon />}
+              <SearchBar />
+              <CartIcon />
               <SignedIn>
                 <div className="flex items-center gap-4 pl-2">
                   <Link
-                    to={dashboardLink}
+                    to={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                     className="text-sm font-black text-base-content hover:text-primary transition-colors flex items-center gap-2"
                   >
                     <LayoutDashboard size={18} />
@@ -142,8 +141,8 @@ export default function Navbar() {
 
           {/* Mobile Right Controls */}
           <div className="flex lg:hidden items-center gap-4">
-            {!isLivreur && <SearchBar />}
-            {!isLivreur && <CartIcon />}
+            <SearchBar />
+            <CartIcon />
             <SignedIn>
               <NotificationCenter />
             </SignedIn>
@@ -176,7 +175,7 @@ export default function Navbar() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-12">
-                <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain" />
+                <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain mix-blend-multiply" />
                   <div className="flex flex-col items-end gap-2">
                      <ThemeSelector />
                   </div>
@@ -188,7 +187,7 @@ export default function Navbar() {
 
               <nav className="flex-1 space-y-8">
                 <ul className="space-y-6">
-                  {!isLivreur && MenuLinks.map((item) => (
+                  {MenuLinks.map((item) => (
                     <li key={item.id}>
                       <Link
                         to={item.link}
@@ -202,11 +201,6 @@ export default function Navbar() {
                       </Link>
                     </li>
                   ))}
-                  {isLivreur && (
-                    <li className="p-6 bg-rose-50 rounded-[2rem] border border-rose-100">
-                      <p className="text-rose-500 font-black text-center uppercase tracking-tighter text-2xl">Mode Livreur Actif</p>
-                    </li>
-                  )}
                 </ul>
 
                 <SignedIn>

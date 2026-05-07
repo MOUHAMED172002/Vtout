@@ -379,12 +379,12 @@ const AdminLayout = () => {
       <main className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? "lg:ml-72" : ""}`}>
         {/* Top Header */}
         <header className="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
               className={`lg:hidden p-2 bg-slate-50 text-slate-900 rounded-xl transition-opacity ${isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </button>
             <div className="hidden sm:block">
               <h2 className="text-lg lg:text-2xl font-black tracking-tighter text-slate-900 flex items-center">
@@ -421,7 +421,7 @@ const AdminLayout = () => {
             <div className="sm:hidden">
               <button 
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600"
+                className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600"
               >
                 <Search size={20} />
               </button>
@@ -451,35 +451,36 @@ const AdminLayout = () => {
               </AnimatePresence>
             </div>
 
-            <PortalSwitcher />
+            <div className="hidden sm:block">
+              <PortalSwitcher />
+            </div>
 
-            <button className="relative p-2.5 lg:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 lg:top-3 lg:right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+            <button className="relative p-2 lg:p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
             </button>
 
-            <div className="flex items-center gap-3 pl-2 lg:pl-4 border-l border-slate-100">
+            <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-slate-100">
               <div className="text-right hidden xl:block">
                 <p className="text-sm font-black text-slate-900 leading-none">Admin Vtout</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Super Admin</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-slate-100 rounded-2xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
-                  <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
-                </div>
-                <button 
-                  onClick={async () => {
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-slate-100 rounded-xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
+                <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
+              </div>
+              <button 
+                onClick={async () => {
+                  if (window.confirm("Déconnexion ?")) {
                     await signOut();
                     window.location.href = "/";
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all border border-rose-100 shadow-sm font-bold text-xs"
-                  title="Se déconnecter"
-                >
-                  <LogOut size={16} />
-                  <span>Déconnexion</span>
-                </button>
-
-              </div>
+                  }
+                }}
+                className="hidden sm:flex items-center gap-2 px-3 py-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-all border border-rose-100 font-bold text-[10px] uppercase"
+                title="Se déconnecter"
+              >
+                <LogOut size={14} />
+                <span>Déconnexion</span>
+              </button>
             </div>
 
           </div>

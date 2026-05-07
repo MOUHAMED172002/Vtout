@@ -1,6 +1,7 @@
 import { Supplier, SupplierProduct, Product, ProductVariant, Profile, Boutique, sequelize } from '../models/index.js';
 import crypto from 'crypto';
 import { sendSupplierApprovalNotification } from '../services/mailService.js';
+import { notifySupplierStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
 
 export const getAllSuppliers = async (req, res) => {
     try {
@@ -102,6 +103,14 @@ export const updateSupplier = async (req, res) => {
             if (email) {
                 sendSupplierApprovalNotification(email, supplier, status).catch(err => 
                     console.error('Failed to send supplier notification:', err)
+                );
+            }
+            
+            // WhatsApp Notification
+            const phone = supplier.phone || supplier.user?.phone;
+            if (phone) {
+                notifySupplierStatusUpdate(phone, status).catch(err => 
+                    console.error('Failed to send WhatsApp supplier notification:', err)
                 );
             }
         }
@@ -214,8 +223,8 @@ export const registerSelf = async (req, res) => {
             status: 'active'
         });
 
-        // Removed role demotion/change logic. 
-        // A user stays a 'user' and simply gains a 'Supplier' profile.
+        // Notify Admin of new registration
+        notifyAdmin(`🏢 *Nouveau Fournisseur !*\nUne boutique "${shopName}" vient d'être enregistrée par ${userProfile?.fullname || userEmailStr}.\nNuméro : ${phone}`).catch(() => {});
 
         res.status(201).json(supplier);
     } catch (error) {

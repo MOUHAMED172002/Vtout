@@ -44,34 +44,40 @@ export async function generateInvoicePDF(order) {
         const ColorTextGray = [108, 117, 125];
         const ColorWhite = [255, 255, 255];
 
-        // ── 1. HEADER (Logo & Banner) ──
-        doc.setFillColor(...ColorBlue);
-        doc.triangle(MX, MY, MX + 5, MY - 5, MX + 10, MY, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(22);
-        doc.setTextColor(...ColorDark);
-        doc.text("VTOUT", MX + 15, MY + 3);
-        doc.setFontSize(9);
-        doc.setTextColor(...ColorTextGray);
-        doc.text("NOUS VENDONS TOUT", MX + 15, MY + 8);
+        // ── 1. HEADER (Logo & Branding) ──
+        try {
+            // Attempt to add a small blue geometric accent
+            doc.setFillColor(...ColorBlue);
+            doc.rect(0, 0, 15, H, "F"); // Side accent bar
 
-        // Banner
-        const bannerW = 80;
-        const bannerH = 20;
-        doc.setFillColor(...ColorBlue);
-        doc.path([
-            { op: 'm', c: [W - bannerW, 10] },
-            { op: 'l', c: [W, 10] },
-            { op: 'l', c: [W, 10 + bannerH] },
-            { op: 'l', c: [W - bannerW + 8, 10 + bannerH] },
-            { op: 'l', c: [W - bannerW, 10 + bannerH / 2] },
-            { op: 'h', c: [] }
-        ]).fill();
+            // Branding text instead of triangle if logo fails
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(28);
+            doc.setTextColor(...ColorDark);
+            doc.text("VTOUT", MX + 5, MY + 5);
+            doc.setFontSize(10);
+            doc.setTextColor(...ColorTextGray);
+            doc.text("PLATEFORME DE COMMERCE MODERNE", MX + 5, MY + 12);
+            
+            // If we had a base64 logo, we would add it here:
+            // doc.addImage(logoBase64, 'PNG', MX, MY, 40, 15);
+        } catch (e) {
+            console.warn("Header branding failed:", e);
+        }
+
+        // Banner / Title Box
+        const bannerW = 90;
+        const bannerH = 25;
+        doc.setFillColor(...ColorDark);
+        doc.roundedRect(W - bannerW - 10, 15, bannerW, bannerH, 3, 3, "F");
+        
         doc.setTextColor(...ColorWhite);
-        doc.setFontSize(18);
-        doc.text("FACTURE CLIENT", W - MX, 19, { align: "right" });
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("FACTURE CLIENT", W - MX - 5, 26, { align: "right" });
         doc.setFontSize(8);
-        doc.text(`ID FOURNISSEUR: ${(order.supplier_id || "INTERNE").slice(0, 13).toUpperCase()}`, W - MX, 26, { align: "right" });
+        doc.setFont("helvetica", "normal");
+        doc.text(`NUMÉRO: #${(order.id || "").slice(0, 8).toUpperCase()}`, W - MX - 5, 33, { align: "right" });
 
         // ── 2. INFO SECTION ──
         let currentY = 55;

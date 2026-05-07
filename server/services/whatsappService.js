@@ -162,6 +162,44 @@ export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, statu
 };
 
 /**
+ * Alerter le fournisseur du statut de son compte/boutique
+ */
+export const notifySupplierStatusUpdate = async (supplierPhone, status) => {
+    const { notifSupplier } = await getWhatsAppConfigs();
+    if (!notifSupplier || !supplierPhone) return;
+
+    const messages = {
+        'active': '🎉 *Félicitations !* Votre compte fournisseur Vtout a été approuvé. Vous pouvez maintenant commencer à vendre.',
+        'suspendu': '⚠️ *Alerte :* Votre compte fournisseur Vtout a été temporairement suspendu. Veuillez contacter l\'administration.',
+        'rejeté': '❌ *Désolé :* Votre demande d\'inscription comme fournisseur Vtout a été rejetée.',
+    };
+    const message = messages[status] || `Votre statut fournisseur est maintenant : *${status}*`;
+    return sendWhatsAppMessage(supplierPhone, message);
+};
+
+/**
+ * Alerter le livreur du statut de sa vérification
+ */
+export const notifyDelivererStatusUpdate = async (delivererPhone, isVerified) => {
+    const { notifDeliverer } = await getWhatsAppConfigs();
+    if (!notifDeliverer || !delivererPhone) return;
+
+    const message = isVerified 
+        ? '✅ *Félicitations !* Votre compte livreur Vtout a été vérifié. Vous pouvez maintenant prendre des courses.' 
+        : '⏳ *Vtout :* Votre compte livreur est actuellement en attente de vérification.';
+    return sendWhatsAppMessage(delivererPhone, message);
+};
+
+/**
+ * Alerter le client/vendeur d'une réponse au support
+ */
+export const notifySupportReply = async (phone, ticketId) => {
+    if (!phone) return;
+    const message = `💬 *VTOUT : Nouveau message support*\nNous avons répondu à votre demande (Ticket #${ticketId.slice(0, 8)}).\nConsultez votre tableau de bord pour voir la réponse.`;
+    return sendWhatsAppMessage(phone, message);
+};
+
+/**
  * Alerter l'administrateur (plusieurs possibles)
  */
 export const notifyAdmin = async (message) => {

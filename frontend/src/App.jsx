@@ -150,7 +150,9 @@ const AppContent = ({ products, loading }) => {
         <Navbar />
         <Hero />
         <Category />
+        <Banner data={BannerData} />
         <ProductGrid products={products} showButton={true} loading={loading} />
+        <Banner data={BannerData2} />
         <Services />
         <Footer />
       </>
@@ -216,7 +218,7 @@ const AppContent = ({ products, loading }) => {
             <PageWrapper>
               <SignedIn>
                 {profileUser?.role === 'livreur' || profileUser?.role === 'admin' ? (
-                  <><Navbar /><DeliveryRoutes /></>
+                  <DeliveryRoutes />
                 ) : (
                   <Navigate to="/" replace />
                 )}

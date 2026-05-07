@@ -304,14 +304,12 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
-/* 
     socket.on('driver_location', (data) => {
         if (data.orderId) {
             io.emit(`order_update_${data.orderId}`, data);
         }
         io.emit('admin_driver_update', data);
     });
-*/
 
     socket.on('send_message', async (data) => {
         try {

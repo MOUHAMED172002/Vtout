@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import PortalSwitcher from './Shared/PortalSwitcher';
-import MobileBottomNav from './Shared/MobileBottomNav';
 import LogoText from './Shared/LogoText';
 
 
@@ -127,61 +126,6 @@ const Sidebar = ({ mobile, onClose }) => {
 };
 
 
-const RoleSwitcher = () => {
-    const { user, isLoaded } = useUser();
-    const { getToken } = useAuth();
-    const [show, setShow] = useState(false);
-
-    useEffect(() => {
-        if (isLoaded && user && user.publicMetadata?.role === 'user') {
-            setShow(true);
-        }
-    }, [isLoaded, user]);
-
-    const handleSwitch = async () => {
-        try {
-            const token = await getToken();
-            await api.post('/profiles/switch-role', { newRole: 'fournisseur' }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Votre profil marchand est maintenant activé !");
-            setShow(false);
-            window.location.reload();
-        } catch (err) {
-            toast.error("Action impossible");
-        }
-    };
-
-    if (!show) return null;
-
-    return (
-        <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-8 left-8 right-8 md:left-auto md:right-8 md:w-96 z-[9999] bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border border-white/10"
-        >
-            <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center shrink-0">
-                    <Store size={24} />
-                </div>
-                <div>
-                    <h4 className="text-sm font-black uppercase tracking-widest text-indigo-400">Vendre sur Vtout</h4>
-                    <p className="text-xs font-medium text-white/60 leading-relaxed mt-1">
-                        Vous êtes connecté avec un compte client. Souhaitez-vous activer votre profil marchand pour commencer à vendre sur Vtout ?
-                    </p>
-                </div>
-            </div>
-            <div className="flex gap-3">
-                <button onClick={() => setShow(false)} className="flex-1 py-3 px-4 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                    Plus tard
-                </button>
-                <button onClick={handleSwitch} className="flex-1 py-3 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20">
-                    Activer
-                </button>
-            </div>
-        </motion.div>
-    );
-};
 
 const Layout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -248,7 +192,7 @@ const Layout = ({ children }) => {
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
                             <SearchIcon size={20} />
                         </button>
-                        <div className="hidden sm:block">
+                        <div className="">
                             <PortalSwitcher />
                         </div>
                         <NotificationCenter />
@@ -257,11 +201,9 @@ const Layout = ({ children }) => {
                 </header>
 
                 {/* Scrollable Page Content */}
-                <main className="flex-1 overflow-y-auto pb-32 md:pb-0">
+                <main className="flex-1 overflow-y-auto">
                     {children}
                 </main>
-                <RoleSwitcher />
-                <MobileBottomNav />
             </div>
         </div>
 

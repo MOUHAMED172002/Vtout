@@ -26,68 +26,58 @@ const PortalSwitcher = () => {
     // Only show switcher if user has more than just the basic 'user' role
     if (!isSupplier && !isDelivery && !isAdmin) return null;
 
+    // PORTAL LOGIC: Filter based on actual user capabilities (profiles)
     const allPortals = [];
 
-    // Always add Buyer
+    // 1. Buyer Portal (Always available)
+    const isBuyerPortalActive = !window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider');
     allPortals.push({
         id: 'user',
         name: 'Acheteur',
         icon: ShoppingBag,
         url: MAIN_SITE_URL + '/user/dashboard',
-        isActive: role === 'user' && !window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider'),
+        isActive: isBuyerPortalActive,
         color: 'text-primary',
         bg: 'bg-primary/10'
     });
 
-    // Add Seller if they have the role
+    // 2. Seller Portal (Only if isSupplier or Admin)
     if (isSupplier || isAdmin) {
+        const isSellerPortalActive = window.location.host.includes('vendeur');
         allPortals.push({
             id: 'fournisseur',
             name: 'Vendeur',
             icon: Store,
             url: SUPPLIER_URL + '/dashboard',
-            isActive: window.location.host.includes('vendeur') || role === 'fournisseur',
+            isActive: isSellerPortalActive,
             color: 'text-emerald-600',
             bg: 'bg-emerald-100'
         });
     }
 
-    // Add Delivery if they have the role
+    // 3. Delivery Portal (Only if isDelivery or Admin)
     if (isDelivery || isAdmin) {
+        const isDeliveryPortalActive = window.location.pathname.includes('delivery-rider');
         allPortals.push({
             id: 'livreur',
             name: 'Livreur',
             icon: Truck,
             url: MAIN_SITE_URL + '/delivery-rider/dashboard',
-            isActive: window.location.pathname.includes('delivery-rider') || role === 'livreur',
+            isActive: isDeliveryPortalActive,
             color: 'text-rose-600',
             bg: 'bg-rose-100'
         });
     }
 
+    // Determine current and available portals
     const currentPortal = allPortals.find(p => p.isActive) || allPortals[0];
     const availablePortals = allPortals.filter(p => !p.isActive);
 
-    const handleSwitch = async (portal) => {
+    const handleSwitch = (portal) => {
         setIsOpen(false);
-        try {
-            const token = await getToken();
-            const targetRole = portal.id;
-            
-            if (role !== targetRole && targetRole !== 'admin') {
-                await fetch(`${import.meta.env.VITE_API_URL}/profiles/switch-role`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ newRole: targetRole })
-                });
-            }
-            window.location.href = portal.url;
-        } catch (err) {
-            window.location.href = portal.url;
-        }
+        // Direct navigation. Role switching in DB is removed as backend 
+        // now checks profiles (isSupplier/isDelivery) regardless of session role.
+        window.location.href = portal.url;
     };
 
     if (availablePortals.length === 0) return null;

@@ -1,4 +1,5 @@
 import { SupportMessage, Profile, sequelize } from '../models/index.js';
+import { notifySupportReply } from '../services/whatsappService.js';
 import { Op } from 'sequelize';
 
 
@@ -15,6 +16,15 @@ export const sendMessage = async (req, res) => {
             conversation_id: conversation_id || `${sender_id}_admin`,
             attachment_url
         });
+
+        // WhatsApp Notification if sender is Admin
+        const senderProfile = await Profile.findByPk(sender_id);
+        if (senderProfile && senderProfile.role === 'admin' && receiver_id) {
+            const receiverProfile = await Profile.findByPk(receiver_id);
+            if (receiverProfile && receiverProfile.phone) {
+                notifySupportReply(receiverProfile.phone, message.id).catch(() => {});
+            }
+        }
 
         res.status(201).json(message);
     } catch (error) {

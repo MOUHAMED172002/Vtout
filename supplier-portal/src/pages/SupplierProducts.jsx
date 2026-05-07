@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/clerk-shim';
-import { getMySupplierProducts } from '../services/supplierService';
+import { getMySupplierProducts, updateProductStock } from '../services/supplierService';
 import { deleteProduct } from '../services/productService';
 
 import { Package, Search as SearchIcon, Filter, MoreVertical, Edit, Trash2, CheckCircle, Clock, XCircle, Share2, Info } from 'lucide-react';
@@ -29,6 +29,17 @@ const SupplierProducts = () => {
   useEffect(() => {
     fetchProducts();
   }, [getToken]);
+
+  const handleStockUpdate = async (productId, newStock) => {
+    try {
+      const token = await getToken();
+      await updateProductStock(productId, newStock, token);
+      setProducts(products.map(p => p.id === productId ? { ...p, stock: newStock } : p));
+      toast.success("Stock mis à jour");
+    } catch (error) {
+      toast.error("Erreur mise à jour stock");
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.")) return;
@@ -106,6 +117,7 @@ const SupplierProducts = () => {
               <tr className="bg-slate-50/50">
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Produit</th>
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Prix Gros</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Stock</th>
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                 <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
               </tr>
@@ -136,6 +148,17 @@ const SupplierProducts = () => {
                     </td>
                     <td className="px-8 py-6">
                       <span className="text-sm font-black text-slate-900">{product.supplier_price?.toLocaleString()} F</span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 group/stock">
+                        <input 
+                            type="number"
+                            defaultValue={product.stock || 0}
+                            onBlur={(e) => handleStockUpdate(product.id, parseInt(e.target.value))}
+                            className="w-16 bg-slate-50 border-none rounded-lg px-2 py-1 text-sm font-black text-slate-900 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        />
+                        <div className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-emerald-500' : product.stock > 0 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                      </div>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-2">

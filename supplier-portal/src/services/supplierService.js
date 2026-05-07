@@ -57,3 +57,9 @@ export const updateSupplierProductStatus = async (productId, statusData, token) 
     });
     return data;
 };
+export const updateProductStock = async (productId, stock, token) => {
+    const { data } = await api.put(`/products/${productId}`, { stock }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};

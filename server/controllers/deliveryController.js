@@ -1,6 +1,7 @@
 import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, ProductVariant, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
+import { notifyDelivererStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
 
 
 export const getAvailableOrders = async (req, res) => {
@@ -323,6 +324,14 @@ export const verifyLivreur = async (req, res) => {
                 }
             );
         }
+        
+        // WhatsApp Notification
+        const phone = deliveryPerson.phone || profile?.phone;
+        if (phone) {
+            notifyDelivererStatusUpdate(phone, is_verified).catch(err => 
+                console.error('Failed to send WhatsApp deliverer notification:', err)
+            );
+        }
 
         res.json({ message: 'Statut mis à jour et rôle synchronisé' });
     } catch (error) {
@@ -387,6 +396,9 @@ export const registerLivreur = async (req, res) => {
         }
 
         res.json({ message: 'Demande d\'inscription envoyée. En attente de vérification.', deliveryPerson });
+        
+        // Notify Admin
+        notifyAdmin(`🛵 *Nouveau Livreur !*\n${fullname || 'Un utilisateur'} vient de s'inscrire comme livreur.\nNuméro : ${phone || 'Inconnu'}`).catch(() => {});
     } catch (error) {
         console.error("REGISTER LIVREUR ERROR:", error);
         res.status(500).json({ error: 'Erreur lors de l\'enregistrement', details: error.message });

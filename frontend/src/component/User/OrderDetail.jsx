@@ -386,8 +386,7 @@ export default function OrderDetail() {
           </div>
         )}
 
-        {/* ── REAL-TIME TRACKING MAP (Commented out) ── */}
-        {/* normalizedStatus === 'expediee' && (
+        {normalizedStatus === 'expediee' && (
           <div className="px-10 md:px-14 py-10 border-b border-slate-100 space-y-6">
             <div className="flex items-center justify-between">
                <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -400,11 +399,11 @@ export default function OrderDetail() {
             </div>
             <OrderTrackingMap 
                 orderId={order.id} 
-                customerPos={order.address ? [order.address.latitude || 6.3667, order.address.longitude || 2.4333] : null}
-                supplierPos={order.supplier ? [order.supplier.latitude || 6.37, order.supplier.longitude || 2.44] : null}
+                customerPos={order.address?.lat ? [parseFloat(order.address.lat), parseFloat(order.address.lng)] : null}
+                supplierPos={order.supplier?.lat ? [parseFloat(order.supplier.lat), parseFloat(order.supplier.lng)] : null}
             />
           </div>
-        ) */}
+        )}
 
         {/* ── Body ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12">

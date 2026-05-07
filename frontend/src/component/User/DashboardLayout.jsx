@@ -126,13 +126,13 @@ export default function DashboardLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-80">
         {/* Header */}
-        <header className="h-24 bg-base-100/80 backdrop-blur-xl border-b border-base-content/10 flex items-center justify-between px-6 md:px-12 sticky top-0 z-40 transition-all duration-300">
-          <div className="flex items-center gap-6 flex-1">
+        <header className="h-20 lg:h-24 bg-base-100/80 backdrop-blur-xl border-b border-base-content/10 flex items-center justify-between px-4 md:px-12 sticky top-0 z-40 transition-all duration-300">
+          <div className="flex items-center gap-2 md:gap-6 flex-1">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-3 text-base-content bg-base-200 rounded-xl hover:bg-base-300 transition-colors"
+              className="lg:hidden p-2 text-base-content bg-base-200 rounded-xl hover:bg-base-300 transition-colors"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
             <div className="hidden lg:block relative max-w-md w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none" size={18} />
@@ -144,19 +144,21 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 md:gap-8">
-            <PortalSwitcher />
+          <div className="flex items-center gap-2 md:gap-8">
+            <div className="hidden sm:block">
+              <PortalSwitcher />
+            </div>
             <ThemeSelector />
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-slate-50 rounded-2xl text-slate-600 hover:bg-slate-100 transition-all cursor-pointer relative group">
+            <div className="flex items-center gap-2">
+              <div className="p-2 md:p-3 bg-base-200 rounded-xl text-base-content/70 hover:bg-base-300 transition-all cursor-pointer relative group">
                 <NotificationsBell />
               </div>
             </div>
 
-            <div className="h-10 w-px bg-slate-100 hidden sm:block"></div>
+            <div className="h-8 w-px bg-base-content/10 hidden sm:block"></div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="text-right hidden xl:block">
                 <p className="text-sm font-black text-base-content group-hover:text-primary transition-colors truncate max-w-[150px]">
                   {user?.fullname || "Client Vtout"}
                 </p>
@@ -167,11 +169,11 @@ export default function DashboardLayout() {
               </div>
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="w-14 h-14 rounded-2xl p-1 bg-white shadow-xl shadow-slate-200/50 border border-slate-100"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl p-0.5 md:p-1 bg-white shadow-lg border border-base-content/5"
               >
                 <img
                   src={user?.avatar_url || avartar}
-                  className="w-full h-full object-cover rounded-xl"
+                  className="w-full h-full object-cover rounded-[10px] md:rounded-xl"
                   alt="avatar"
                 />
               </motion.div>
