@@ -4,7 +4,7 @@ import { getMyProfile, updateMyProfile } from "../../services/userService";
 import { uploadSingleImage } from "../../services/uploadService";
 import { authClient } from "../../lib/clerk-shim";
 import toast from "react-hot-toast";
-import { Camera, Lock, Mail, Phone, User, Shield, Loader, Save, Check, ChevronRight } from "lucide-react";
+import { Camera, Lock, Mail, Phone, User as UserIcon, Shield, Loader, Save, Check, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ProfileSettings() {
@@ -190,7 +190,7 @@ export default function ProfileSettings() {
             <div className="mb-8 pl-4 border-b border-gray-100 dark:border-gray-800 pb-4">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
                 <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl mr-3">
-                  <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <UserIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 Informations du compte
               </h3>
@@ -201,7 +201,7 @@ export default function ProfileSettings() {
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Nom complet</label>
                 <div className="relative group/input">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within/input:text-indigo-500 transition-colors">
-                    <User className="w-5 h-5" />
+                    <UserIcon className="w-5 h-5" />
                   </div>
                   <input
                     type="text"

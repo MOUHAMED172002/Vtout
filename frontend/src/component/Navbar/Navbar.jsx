@@ -4,7 +4,7 @@ import {
   Home,
   ShoppingBag,
   Info,
-  User,
+  User as UserIcon,
   Menu,
   X,
   Search,

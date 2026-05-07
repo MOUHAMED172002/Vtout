@@ -22,7 +22,7 @@ import {
   PackageCheck,
   XCircle,
   Store,
-  User
+  User as UserIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -582,7 +582,7 @@ export default function OrderDetail() {
                       {order.deliveryPerson.profile?.avatar_url ? (
                         <img src={order.deliveryPerson.profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <User size={30} />
+                        <UserIcon size={30} />
                       )}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-white rounded-lg flex items-center justify-center border-2 border-white shadow-sm">

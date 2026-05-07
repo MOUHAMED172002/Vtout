@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authClient } from './auth-client';
 import { useAuth } from './clerk-shim';
-import { Mail, Lock, User, Github, Facebook, ArrowRight, Loader, Eye, EyeOff, MessageCircle, Smartphone, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Github, Facebook, ArrowRight, Loader, Eye, EyeOff, MessageCircle, Smartphone, ChevronLeft } from 'lucide-react';
 import api from '../services/api';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -156,7 +156,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 {!isSign && !isForgotPath && (
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <User className="h-5 w-5 text-gray-400" />
+                                            <UserIcon className="h-5 w-5 text-gray-400" />
                                         </div>
                                         <input
                                             type="text"
@@ -227,7 +227,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     <>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <User className="h-5 w-5 text-gray-400" />
+                                                <UserIcon className="h-5 w-5 text-gray-400" />
                                             </div>
                                             <input
                                                 type="text"
