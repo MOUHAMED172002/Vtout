@@ -173,7 +173,7 @@ export const requireLivreur = async (req, res, next) => {
         // Vérification du profil livreur
         const { default: sequelizeInstance } = await import('../config/database.js');
         const [livreur] = await sequelizeInstance.query(
-            'SELECT id FROM livreurs WHERE user_id = :userId LIMIT 1',
+            'SELECT id FROM delivery_persons WHERE user_id = :userId LIMIT 1',
             { replacements: { userId: req.auth.userId }, type: sequelizeInstance.QueryTypes.SELECT }
         ).catch(() => []);
 

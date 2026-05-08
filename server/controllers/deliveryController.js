@@ -28,7 +28,7 @@ export const getAvailableOrders = async (req, res) => {
                     ]
                 }
             ],
-            order: [[sequelize.literal('created_at'), 'ASC']]
+            order: [['created_at', 'ASC']]
         });
         res.json(orders);
     } catch (error) {
@@ -168,7 +168,7 @@ export const getMyDeliveries = async (req, res) => {
                     ]
                 }
             ],
-            order: [[sequelize.literal('updated_at'), 'DESC']]
+            order: [['updated_at', 'DESC']]
         });
         res.json(orders);
     } catch (error) {
