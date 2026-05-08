@@ -118,70 +118,79 @@ const NotificationCenter = () => {
 
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-4 w-80 md:w-96 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-50 overflow-hidden"
-                    >
-                        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{unreadCount} non lues</p>
-                            </div>
-                            {unreadCount > 0 && (
-                                <button 
-                                    onClick={markAllRead}
-                                    className="text-[10px] font-black uppercase text-primary hover:underline tracking-widest"
-                                >
-                                    Tout marquer lu
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="max-h-[400px] overflow-y-auto">
-                            {notifications.length === 0 ? (
-                                <div className="py-12 text-center space-y-4">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
-                                        <Bell size={32} />
-                                    </div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Aucune notification</p>
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9998] lg:hidden"
+                            onClick={() => setIsOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                            className="fixed bottom-4 left-4 right-4 lg:absolute lg:bottom-auto lg:left-auto lg:right-0 lg:mt-4 w-auto lg:w-96 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-[9999] overflow-hidden flex flex-col max-h-[85vh]"
+                        >
+                            <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{unreadCount} non lues</p>
                                 </div>
-                            ) : (
-                                notifications.map(notif => (
-                                    <div 
-                                        key={notif.id}
-                                        onClick={() => !notif.is_read && markAsRead(notif.id)}
-                                        className={`p-5 border-b border-slate-50 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notif.is_read ? 'bg-indigo-50/30' : ''}`}
+                                {unreadCount > 0 && (
+                                    <button 
+                                        onClick={markAllRead}
+                                        className="text-[10px] font-black uppercase text-primary hover:underline tracking-widest"
                                     >
-                                        <div className="shrink-0">
-                                            {getIcon(notif.type)}
+                                        Tout marquer lu
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="overflow-y-auto flex-grow custom-scrollbar">
+                                {notifications.length === 0 ? (
+                                    <div className="py-12 text-center space-y-4">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
+                                            <Bell size={32} />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-black text-slate-900' : 'font-bold text-slate-500'}`}>
-                                                    {notif.title}
-                                                </p>
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 transition-all"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-                                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{notif.message}</p>
-                                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
-                                                {new Date(notif.createdAt).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        {!notif.is_read && (
-                                            <div className="w-2 h-2 bg-primary rounded-full absolute right-4 top-1/2 -translate-y-1/2"></div>
-                                        )}
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Aucune notification</p>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </motion.div>
+                                ) : (
+                                    notifications.map(notif => (
+                                        <div 
+                                            key={notif.id}
+                                            onClick={() => !notif.is_read && markAsRead(notif.id)}
+                                            className={`p-5 border-b border-slate-50 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notif.is_read ? 'bg-indigo-50/30' : ''}`}
+                                        >
+                                            <div className="shrink-0">
+                                                {getIcon(notif.type)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <p className={`text-sm leading-tight ${!notif.is_read ? 'font-black text-slate-900' : 'font-bold text-slate-500'}`}>
+                                                        {notif.title}
+                                                    </p>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
+                                                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 transition-all"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1 line-clamp-2">{notif.message}</p>
+                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
+                                                    {new Date(notif.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            {!notif.is_read && (
+                                                <div className="w-2 h-2 bg-primary rounded-full absolute right-4 top-1/2 -translate-y-1/2"></div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </div>
