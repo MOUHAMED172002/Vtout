@@ -7,29 +7,15 @@ import { useAuth } from '../../lib/clerk-shim';
 const PortalSwitcher = () => {
     const { isSupplier, isDelivery, isAdmin, isLoaded, isSignedIn, getToken, role } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    
+
     const MAIN_SITE_URL = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com';
     const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     if (!isLoaded || !isSignedIn) return null;
-
-    // Only show switcher if user has more than just the basic 'user' role
     if (!isSupplier && !isDelivery && !isAdmin) return null;
 
     const allPortals = [];
 
-    // Always add Buyer
     allPortals.push({
         id: 'user',
         name: 'Acheteur',
@@ -40,7 +26,6 @@ const PortalSwitcher = () => {
         bg: 'bg-primary/10'
     });
 
-    // Add Seller if they have the role
     if (isSupplier || isAdmin) {
         allPortals.push({
             id: 'fournisseur',
@@ -53,7 +38,6 @@ const PortalSwitcher = () => {
         });
     }
 
-    // Add Delivery if they have the role
     if (isDelivery || isAdmin) {
         allPortals.push({
             id: 'livreur',
@@ -74,14 +58,10 @@ const PortalSwitcher = () => {
         try {
             const token = await getToken();
             const targetRole = portal.id;
-            
             if (role !== targetRole && targetRole !== 'admin') {
                 await fetch(`${import.meta.env.VITE_API_URL}/profiles/switch-role`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ newRole: targetRole })
                 });
             }
@@ -93,89 +73,103 @@ const PortalSwitcher = () => {
 
     if (availablePortals.length === 0) return null;
 
+    // AnimatePresence MUST be inside createPortal
+    const modal = (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    <motion.div
+                        key="ps-backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 999998 }}
+                        onClick={() => setIsOpen(false)}
+                    />
+                    <motion.div
+                        key="ps-modal"
+                        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                        style={{
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '90%',
+                            maxWidth: '440px',
+                            maxHeight: '85vh',
+                            zIndex: 999999,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            borderRadius: '2.5rem',
+                            overflow: 'hidden',
+                        }}
+                        className="bg-base-100 shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10"
+                    >
+                        {/* Header */}
+                        <div className="p-6 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
+                            <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
+                            <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-300 rounded-full transition-colors text-base-content/40">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Portal list */}
+                        <div className="p-4 space-y-2 overflow-y-auto flex-grow">
+                            {availablePortals.map((portal) => (
+                                <button
+                                    key={portal.id}
+                                    onClick={() => handleSwitch(portal)}
+                                    className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
+                                >
+                                    <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
+                                        <portal.icon size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-black text-base text-base-content group-hover:text-primary transition-colors">
+                                            Espace {portal.name}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Ouvrir le portail</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-base-content/5 shrink-0">
+                            <button
+                                onClick={() => { setIsOpen(false); window.location.href = MAIN_SITE_URL + '/user/dashboard/settings'; }}
+                                className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
+                            >
+                                <div className="p-3 rounded-2xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-black text-sm text-base-content/70 group-hover:text-base-content transition-colors">Paramètres du profil</span>
+                                    <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Gérer mon compte</span>
+                                </div>
+                            </button>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+
     return (
-        <div className="relative z-[9999]" ref={dropdownRef}>
+        <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-base-100 border border-base-content/10 hover:border-primary/30 rounded-xl sm:rounded-2xl shadow-sm transition-all"
+                className="flex items-center gap-2 px-3 py-2 bg-base-100 border border-base-content/10 hover:border-primary/30 rounded-xl shadow-sm transition-all"
             >
                 <div className={`p-1.5 rounded-xl ${currentPortal.bg} ${currentPortal.color}`}>
                     <currentPortal.icon size={16} strokeWidth={2.5} />
                 </div>
-                <div className="flex flex-col items-start hidden xs:flex">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-base-content/40 leading-none">Espace actuel</span>
-                    <span className="text-sm font-bold text-base-content leading-tight">{currentPortal.name}</span>
-                </div>
                 <ChevronDown size={14} className={`text-base-content/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
-
-            <AnimatePresence>
-                {isOpen && createPortal(
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999998]"
-                            onClick={() => setIsOpen(false)}
-                        />
-                        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="pointer-events-auto w-full max-w-[500px] bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
-                            >
-                            <div className="p-6 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
-                                <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
-                                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-300 rounded-full transition-colors text-base-content/40">
-                                    <X size={18} />
-                                </button>
-                            </div>
-                            <div className="p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                                {availablePortals.map((portal) => (
-                                    <button
-                                        key={portal.id}
-                                        onClick={() => handleSwitch(portal)}
-                                        className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
-                                    >
-                                        <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
-                                            <portal.icon size={24} strokeWidth={2.5} />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-black text-base text-base-content group-hover:text-primary transition-colors">
-                                                Espace {portal.name}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Ouvrir le portail</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="p-4 border-t border-base-content/5 mt-auto shrink-0 bg-base-50/50">
-                                <button
-                                    onClick={() => {
-                                        setIsOpen(false);
-                                        window.location.href = MAIN_SITE_URL + '/user/dashboard/settings';
-                                    }}
-                                    className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
-                                >
-                                    <div className="p-3 rounded-2xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-black text-base text-base-content/70 group-hover:text-base-content transition-colors">
-                                            Paramètres du profil
-                                        </span>
-                                        <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Gérer mon compte</span>
-                                    </div>
-                                </button>
-                            </div>
-                            </motion.div>
-                        </div>
-                    </>,
-                    document.body
-                )}
-            </AnimatePresence>
+            {createPortal(modal, document.body)}
         </div>
     );
 };
