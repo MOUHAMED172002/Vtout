@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Check, Clock, Trash2, ChevronRight, X, Store, Truck, Wallet, ShoppingBag } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -117,16 +118,16 @@ const NotificationCenter = () => {
             </button>
 
             <AnimatePresence>
-                {isOpen && (
+                {isOpen && createPortal(
                     <>
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99998]"
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999998]"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
+                        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -194,12 +195,12 @@ const NotificationCenter = () => {
                                         </div>
                                     ))
                                 )}
+                                </motion.div>
                             </div>
-                        </motion.div>
-                    </div>
-                </>
-            )}
-        </AnimatePresence>
+                        </>,
+                    document.body
+                )}
+            </AnimatePresence>
     </div>
 );
 };

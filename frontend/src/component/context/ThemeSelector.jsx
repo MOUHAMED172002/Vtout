@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from './ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Palette, Check, Sparkles, X } from 'lucide-react';
@@ -20,16 +21,16 @@ const ThemeSelector = () => {
             </motion.button>
 
             <AnimatePresence>
-                {isOpen && (
+                {isOpen && createPortal(
                     <>
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[99998] bg-slate-900/60 backdrop-blur-md"
+                            className="fixed inset-0 z-[999998] bg-slate-900/60 backdrop-blur-md"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
+                        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -37,7 +38,7 @@ const ThemeSelector = () => {
                                 style={{ perspective: "1000px" }}
                                 className="pointer-events-auto w-full max-w-[450px] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 flex flex-col max-h-[90vh] overflow-hidden"
                             >
-                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-content/5">
+                            <div className="flex items-center justify-between p-6 pb-4 border-b border-base-content/5">
                                 <div className="flex items-center gap-3">
                                     <Sparkles className="text-primary" size={20} />
                                     <h3 className="font-black text-sm uppercase tracking-[0.2em] text-base-content">Univers Visuel</h3>
@@ -47,7 +48,7 @@ const ThemeSelector = () => {
                                 </button>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2 flex-grow">
+                            <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar p-6 pt-0 flex-grow">
                                 {themes.map((t) => (
                                     <button
                                         key={t}
@@ -78,12 +79,13 @@ const ThemeSelector = () => {
                                 ))}
                             </div>
                             
-                            <p className="mt-6 text-[9px] font-bold text-base-content/40 text-center uppercase tracking-widest">
+                            <p className="p-4 pt-0 text-[9px] font-bold text-base-content/40 text-center uppercase tracking-widest">
                                 Expérience Vtout 3.0
                             </p>
                             </motion.div>
                         </div>
-                    </>
+                    </>,
+                    document.body
                 )}
             </AnimatePresence>
         </div>
