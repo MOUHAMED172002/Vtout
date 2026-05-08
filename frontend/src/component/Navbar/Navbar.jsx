@@ -24,6 +24,7 @@ import ThemeSelector from "../context/ThemeSelector";
 import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
 
 import NotificationCenter from "../Shared/NotificationCenter";
+import PortalSwitcher from "../Shared/PortalSwitcher";
 
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
@@ -80,7 +81,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               src={getConfig('site_logo') || logo} 
               alt={appName} 
-              className="h-10 md:h-14 w-auto object-contain transition-transform mix-blend-multiply dark:mix-blend-normal" 
+              className="h-10 md:h-14 w-auto object-contain transition-transform mix-blend-multiply" 
             />
           </Link>
 
@@ -113,6 +114,7 @@ export default function Navbar() {
             <div className="h-6 w-px bg-base-300"></div>
 
             <div className="flex items-center gap-6">
+              <PortalSwitcher />
               <ThemeSelector />
               <SearchBar />
               <CartIcon />
@@ -179,6 +181,7 @@ export default function Navbar() {
               <div className="flex justify-between items-center mb-12">
                 <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain mix-blend-multiply" />
                   <div className="flex flex-col items-end gap-2">
+                     <PortalSwitcher />
                      <ThemeSelector />
                   </div>
 

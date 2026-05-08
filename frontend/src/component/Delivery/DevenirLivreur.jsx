@@ -109,7 +109,7 @@ export default function DevenirLivreur() {
     };
 
     return (
-        <div className="bg-slate-50 min-h-screen py-20 px-4 relative overflow-hidden">
+        <div className="bg-base-200 min-h-screen py-20 px-4 relative overflow-hidden">
             {/* Premium design background elements */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-600/10 transform -skew-y-6 sm:skew-y-0 sm:-rotate-3"></div>
 
@@ -122,15 +122,15 @@ export default function DevenirLivreur() {
                     >
                         <Truck size={40} />
                     </motion.div>
-                    <h1 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tighter leading-tight">Devenir <span className="text-primary underline decoration-indigo-200">Livreur.</span></h1>
-                    <p className="text-gray-500 font-bold max-w-md mx-auto text-lg">Rejoignez la plus grande flotte de livraison au Bénin et boostez vos revenus.</p>
+                    <h1 className="text-5xl md:text-6xl font-black text-base-content tracking-tighter leading-tight">Devenir <span className="text-primary underline decoration-primary/20">Livreur.</span></h1>
+                    <p className="text-base-content/60 font-bold max-w-md mx-auto text-lg">Rejoignez la plus grande flotte de livraison au Bénin et boostez vos revenus.</p>
                 </div>
 
                 <div className="relative">
                     {/* Skewed decorative background */}
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 shadow-lg transform -skew-y-2 sm:skew-y-0 sm:rotate-2 sm:rounded-[4rem] opacity-20"></div>
 
-                    <div className="relative backdrop-blur-2xl bg-white/80 border border-white/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 overflow-hidden">
+                    <div className="relative backdrop-blur-2xl bg-base-100/80 border border-base-content/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 overflow-hidden">
                         <AnimatePresence mode="wait">
                             {step === 1 && !isSignedIn && (
                                 <motion.div
@@ -143,23 +143,23 @@ export default function DevenirLivreur() {
                                     <div className="flex justify-center gap-4">
                                         <button
                                             onClick={() => setAuthMode('signUp')}
-                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-base-200 text-base-content/40 hover:bg-base-300'}`}
                                         >
                                             S'inscrire
                                         </button>
                                         <button
                                             onClick={() => setAuthMode('signIn')}
-                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                            className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-base-200 text-base-content/40 hover:bg-base-300'}`}
                                         >
                                             Se Connecter
                                         </button>
                                     </div>
 
                                     <div className="text-center space-y-2">
-                                        <h2 className="text-4xl font-black tracking-tighter text-slate-900">
+                                        <h2 className="text-4xl font-black tracking-tighter text-base-content">
                                             {authMode === 'signUp' ? 'Créer mon profil' : 'Bon retour !'}
                                         </h2>
-                                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">
+                                        <p className="text-base-content/40 font-black uppercase tracking-[0.2em] text-[10px]">
                                             {authMode === 'signUp' ? 'Étape 1 : Authentification' : 'Accès à votre espace Livreur'}
                                         </p>
                                     </div>
@@ -178,20 +178,18 @@ export default function DevenirLivreur() {
                                     className="space-y-10"
                                 >
                                     <div className="space-y-8">
-                                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-                                            <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Conditions d'admission</h2>
-                                        </div>
+                                            <h2 className="text-3xl font-black text-base-content tracking-tighter uppercase">Conditions d'admission</h2>
                                         <div className="grid gap-5">
                                             {policies.length > 0 ? (
                                                 policies.map((p) => (
-                                                    <div key={p.id} className="group p-8 bg-slate-50/50 rounded-3xl border border-slate-100 hover:border-primary/30 transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-100">
+                                                    <div key={p.id} className="group p-8 bg-base-200/50 rounded-3xl border border-base-content/10 hover:border-primary/30 transition-all hover:bg-base-100 hover:shadow-xl hover:shadow-base-content/5">
                                                         <div className="flex items-center gap-4 mb-3">
                                                             <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                                                                 <CheckCircle2 size={20} />
                                                             </div>
-                                                            <p className="font-black text-gray-900 tracking-tight">{p.title}</p>
+                                                            <p className="font-black text-base-content tracking-tight">{p.title}</p>
                                                         </div>
-                                                        <div className="text-sm font-bold text-gray-500 leading-relaxed pl-14 opacity-80">
+                                                        <div className="text-sm font-bold text-base-content/60 leading-relaxed pl-14 opacity-80">
                                                             {p.content}
                                                         </div>
                                                     </div>
@@ -215,7 +213,7 @@ export default function DevenirLivreur() {
                                                 checked={acceptedTerms}
                                                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                                             />
-                                            <span className="text-gray-700 font-bold group-hover:text-primary transition-colors">J'accepte les conditions de partenariat d'Vtout</span>
+                                            <span className="text-base-content/80 font-bold group-hover:text-primary transition-colors">J'accepte les conditions de partenariat d'Vtout</span>
                                         </label>
                                         <button
                                             disabled={!acceptedTerms}
@@ -239,7 +237,7 @@ export default function DevenirLivreur() {
                                         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                             <FileText size={24} />
                                         </div>
-                                        <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Détails de Profil</h2>
+                                        <h2 className="text-3xl font-black text-base-content tracking-tighter uppercase">Détails de Profil</h2>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -247,19 +245,19 @@ export default function DevenirLivreur() {
                                             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nom Complet</label>
                                             <div className="relative">
                                                 <UserIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.fullname} onChange={e => setForm({ ...form, fullname: e.target.value })} />
+                                                <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.fullname} onChange={e => setForm({ ...form, fullname: e.target.value })} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">WhatsApp</label>
                                             <div className="relative">
                                                 <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                                                <input type="tel" className="w-full pl-12 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+229 00 00 00 00" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Type de véhicule</label>
-                                            <select className="w-full px-6 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none appearance-none" value={form.vehicle_type} onChange={e => setForm({ ...form, vehicle_type: e.target.value })}>
+                                            <select className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none appearance-none text-base-content" value={form.vehicle_type} onChange={e => setForm({ ...form, vehicle_type: e.target.value })}>
                                                 <option value="moto">Moto (Zémidjan)</option>
                                                 <option value="car">Voiture</option>
                                                 <option value="bicycle">Vélo / À pied</option>
@@ -267,7 +265,7 @@ export default function DevenirLivreur() {
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Modèle du véhicule</label>
-                                            <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none" value={form.vehicle_model} onChange={e => setForm({ ...form, vehicle_model: e.target.value })} placeholder="Ex: Haojue 110" />
+                                            <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.vehicle_model} onChange={e => setForm({ ...form, vehicle_model: e.target.value })} placeholder="Ex: Haojue 110" />
                                         </div>
                                     </div>
 
@@ -275,7 +273,7 @@ export default function DevenirLivreur() {
                                         <label className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] ml-1 block">Zones de service <span className="text-primary">({(form.service_zones || []).length})</span></label>
                                         <div className="relative">
                                             <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" />
-                                            <input type="text" placeholder="Rechercher une commune..." value={zoneSearch} onChange={e => setZoneSearch(e.target.value)} className="w-full pl-14 h-16 rounded-3xl font-bold bg-slate-50 border border-slate-200 focus:border-primary focus:bg-white transition-all outline-none shadow-inner" />
+                                            <input type="text" placeholder="Rechercher une commune..." value={zoneSearch} onChange={e => setZoneSearch(e.target.value)} className="w-full pl-14 h-16 rounded-3xl font-bold bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none shadow-inner text-base-content" />
                                         </div>
 
                                         <div className="bg-slate-50/50 rounded-[2rem] p-8 max-h-[400px] overflow-y-auto border border-slate-100 space-y-8 shadow-inner custom-scrollbar">
@@ -295,7 +293,7 @@ export default function DevenirLivreur() {
                                                                     const newZones = zones.includes(zone) ? zones.filter(z => z !== zone) : [...zones, zone];
                                                                     setForm({ ...form, service_zones: newZones });
                                                                 }}
-                                                                className={`px-5 py-3 rounded-2xl font-black text-xs transition-all border ${form.service_zones?.includes(zone) ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-white border-slate-100 text-slate-400 hover:border-primary/30 hover:text-primary hover:bg-primary/5'}`}
+                                                                className={`px-5 py-3 rounded-2xl font-black text-xs transition-all border ${form.service_zones?.includes(zone) ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-base-100 border-base-content/10 text-base-content/40 hover:border-primary/30 hover:text-primary hover:bg-primary/5'}`}
                                                             >
                                                                 {zone}
                                                             </button>

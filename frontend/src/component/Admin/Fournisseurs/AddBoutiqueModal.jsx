@@ -193,11 +193,11 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Téléphone Direct</label>
-                            <input {...register('phone')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                            <input type="tel" {...register('phone')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Lien WhatsApp</label>
-                            <input {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                            <input type="tel" {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                     </div>
 

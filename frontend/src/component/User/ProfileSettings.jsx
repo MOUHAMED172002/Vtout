@@ -234,11 +234,11 @@ export default function ProfileSettings() {
                     <Phone className="w-5 h-5" />
                   </div>
                   <input
-                    type="text"
+                    type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                     className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all font-medium text-gray-900 dark:text-white"
-                    placeholder="+229 ... (Bénin par défaut)"
+                    placeholder="+229 00 00 00 00"
                   />
                 </div>
                 <p className="text-[10px] text-gray-400 italic">Ajoutez l'indicateur (ex: +228) pour les numéros hors Bénin.</p>

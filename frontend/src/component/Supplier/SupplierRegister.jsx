@@ -277,7 +277,7 @@ const SupplierRegister = () => {
                                             value={formData.whatsapp}
                                             onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
                                             className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20 transition-all"
-                                            placeholder="+229 ..."
+                                            placeholder="+229 00 00 00 00"
                                         />
                                     </div>
                                 </div>
