@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from './ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, Check, Sparkles } from 'lucide-react';
+import { Palette, Check, Sparkles, X } from 'lucide-react';
 
 const ThemeSelector = () => {
     const { theme, setTheme, themes } = useTheme();
@@ -36,9 +36,14 @@ const ThemeSelector = () => {
                             style={{ perspective: "1000px" }}
                             className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),450px)] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 z-[1001] p-6 flex flex-col max-h-[85vh]"
                         >
-                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-content/5">
-                                <Sparkles className="text-primary" size={20} />
-                                <h3 className="font-black text-sm uppercase tracking-[0.2em] text-base-content">Univers Visuel</h3>
+                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-content/5">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="text-primary" size={20} />
+                                    <h3 className="font-black text-sm uppercase tracking-[0.2em] text-base-content">Univers Visuel</h3>
+                                </div>
+                                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-200 rounded-full transition-colors text-base-content/30">
+                                    <X size={18} />
+                                </button>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2 flex-grow">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Store, Truck, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Store, Truck, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '../../lib/clerk-shim';
 
 const PortalSwitcher = () => {
