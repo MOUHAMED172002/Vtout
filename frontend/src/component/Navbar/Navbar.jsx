@@ -80,7 +80,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               src={getConfig('site_logo') || logo} 
               alt={appName} 
-              className="h-10 md:h-14 w-auto object-contain transition-transform mix-blend-multiply dark:mix-blend-normal dark:bg-white/90 dark:p-1.5 dark:rounded-xl" 
+              className="h-10 md:h-14 w-auto object-contain transition-transform mix-blend-multiply dark:mix-blend-normal" 
             />
           </Link>
 
