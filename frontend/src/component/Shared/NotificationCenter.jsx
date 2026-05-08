@@ -195,9 +195,10 @@ const NotificationCenter = () => {
                                         </div>
                                     ))
                                 )}
-                                </motion.div>
                             </div>
-                        </>,
+                        </motion.div>
+                    </div>
+                </>,
                     document.body
                 )}
             </AnimatePresence>
