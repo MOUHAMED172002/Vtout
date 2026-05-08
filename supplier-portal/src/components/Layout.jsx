@@ -192,9 +192,7 @@ const Layout = ({ children }) => {
                         <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
                             <SearchIcon size={20} />
                         </button>
-                        <div className="">
-                            <PortalSwitcher />
-                        </div>
+
                         <NotificationCenter />
                     </div>
 

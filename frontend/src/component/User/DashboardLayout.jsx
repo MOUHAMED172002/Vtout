@@ -145,9 +145,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-8">
-            <div className="hidden sm:block">
-              <PortalSwitcher />
-            </div>
+
             <ThemeSelector />
             <div className="flex items-center gap-2">
               <div className="p-2 md:p-3 bg-base-200 rounded-xl text-base-content/70 hover:bg-base-300 transition-all cursor-pointer relative group">

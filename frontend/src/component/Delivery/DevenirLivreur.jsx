@@ -20,10 +20,14 @@ export default function DevenirLivreur() {
     const [step, setStep] = useState(1);
     const [authMode, setAuthMode] = useState('signUp');
 
-    // Redirect active livreurs
+    // Redirect active livreurs or show pending status for registered ones
     React.useEffect(() => {
-        if (isSignedIn && profileUser?.role === 'livreur') {
+        if (!isSignedIn || !profileUser) return;
+
+        if (profileUser.role === 'livreur') {
             navigate('/delivery-rider');
+        } else if (profileUser.isDelivery) {
+            setStep(3); // Already registered, show pending screen
         }
     }, [isSignedIn, profileUser, navigate]);
     const [acceptedTerms, setAcceptedTerms] = useState(false);

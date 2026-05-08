@@ -74,6 +74,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/clerk-shim";
 import { useNavigate } from "react-router-dom";
 import PortalSwitcher from "../Shared/PortalSwitcher";
+import ThemeSelector from "../context/ThemeSelector";
 
 
 const AdminLayout = () => {
@@ -451,8 +452,8 @@ const AdminLayout = () => {
               </AnimatePresence>
             </div>
 
-            <div className="hidden sm:block">
-              <PortalSwitcher />
+            <div className="flex items-center gap-2 lg:gap-4">
+              <ThemeSelector />
             </div>
 
             <button className="relative p-2 lg:p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">

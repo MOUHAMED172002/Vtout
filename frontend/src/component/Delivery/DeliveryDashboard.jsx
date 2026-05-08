@@ -35,6 +35,7 @@ import NotificationCenter from "../Shared/NotificationCenter";
 import PortalSwitcher from "../Shared/PortalSwitcher";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import ThemeSelector from "../context/ThemeSelector";
 import api from "../../services/api";
 
 export default function DeliveryDashboard() {
@@ -368,6 +369,7 @@ export default function DeliveryDashboard() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <ThemeSelector />
                     <PortalSwitcher />
                     <NotificationCenter />
                     <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
@@ -399,7 +401,7 @@ export default function DeliveryDashboard() {
 
             {/* Tabs Layout */}
             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/10 overflow-hidden">
-                <div className="flex border-b border-slate-50 p-4 gap-4">
+                <div className="flex border-b border-slate-50 p-4 gap-4 overflow-x-auto custom-scrollbar">
                     <button
                         onClick={() => {
                             setTab("available");

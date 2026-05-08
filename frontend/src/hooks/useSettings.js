@@ -18,7 +18,7 @@ export const useSettings = () => {
 
         const fetchSettings = async () => {
             try {
-                const res = await axios.get(`${API_URL}/configs`);
+                const res = await axios.get(`${API_URL}/configs/public`);
                 const data = res.data.reduce((acc, curr) => {
                     acc[curr.key] = curr.value;
                     return acc;
