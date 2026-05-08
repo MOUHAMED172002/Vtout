@@ -6,10 +6,13 @@ import AddressSelector from '../context/AddressSelector';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2 } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell } from 'lucide-react';
+import PortalSwitcher from '../Shared/PortalSwitcher';
+import ThemeSelector from '../context/ThemeSelector';
+import NotificationCenter from '../Shared/NotificationCenter';
 
 const SupplierDashboard = () => {
-    const { user, getToken } = useAuth();
+    const { user, getToken, signOut } = useAuth();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [updatingLocation, setUpdatingLocation] = useState(false);
@@ -103,17 +106,39 @@ const SupplierDashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-12 space-y-12">
             {/* Top Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.fullName || user?.firstName}</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Espace Gestion Fournisseur</p>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full justify-between lg:justify-start">
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.fullName || user?.firstName}</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Espace Gestion Fournisseur</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <ThemeSelector />
+                        <PortalSwitcher />
+                        <NotificationCenter />
+                    </div>
                 </div>
-                <button
-                    onClick={() => navigate('/fournisseur/ajouter-produit')}
-                    className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
-                >
-                    <Plus size={18} /> Ajouter un Produit
-                </button>
+                
+                <div className="flex items-center gap-3 w-full lg:w-auto">
+                    <button
+                        onClick={() => navigate('/fournisseur/ajouter-produit')}
+                        className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
+                    >
+                        <Plus size={18} /> Produit
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("Déconnexion ?")) {
+                                await signOut();
+                                window.location.href = "/";
+                            }
+                        }}
+                        className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100"
+                        title="Se déconnecter"
+                    >
+                        <LogOut size={18} />
+                    </button>
+                </div>
             </div>
 
             {/* Stats Grid */}

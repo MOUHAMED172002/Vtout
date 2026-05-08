@@ -75,6 +75,7 @@ import { useAuth } from "../../lib/clerk-shim";
 import { useNavigate } from "react-router-dom";
 import PortalSwitcher from "../Shared/PortalSwitcher";
 import ThemeSelector from "../context/ThemeSelector";
+import NotificationCenter from "../Shared/NotificationCenter";
 
 
 const AdminLayout = () => {
@@ -294,9 +295,7 @@ const AdminLayout = () => {
             </button>
           </div>
 
-          <div className="px-8 mb-6">
-            <PortalSwitcher />
-          </div>
+          {/* Portal Switcher removed from here, moved to header */}
 
 
           {/* Navigation */}
@@ -453,13 +452,12 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
+              <div className="hidden sm:block">
+                <PortalSwitcher />
+              </div>
               <ThemeSelector />
+              <NotificationCenter />
             </div>
-
-            <button className="relative p-2 lg:p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
-              <Bell size={18} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
 
             <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-slate-100">
               <div className="text-right hidden xl:block">
@@ -476,11 +474,11 @@ const AdminLayout = () => {
                     window.location.href = "/";
                   }
                 }}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-all border border-rose-100 font-bold text-[10px] uppercase"
+                className="flex items-center justify-center p-2 lg:px-3 lg:py-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all border border-rose-100 font-bold text-[10px] uppercase gap-2"
                 title="Se déconnecter"
               >
-                <LogOut size={14} />
-                <span>Déconnexion</span>
+                <LogOut size={18} className="lg:w-3.5 lg:h-3.5" />
+                <span className="hidden lg:inline">Déconnexion</span>
               </button>
             </div>
 
