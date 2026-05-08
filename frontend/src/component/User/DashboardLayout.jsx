@@ -68,9 +68,7 @@ export default function DashboardLayout() {
           </Link>
         </div>
 
-        <div className="px-8 mb-6">
-          <PortalSwitcher />
-        </div>
+        {/* Portal Switcher moved to header */}
 
         <div className="flex-1 px-6 space-y-1 overflow-y-auto custom-scrollbar pt-4">
           <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Compte Client</p>
@@ -146,8 +144,9 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-2 md:gap-8">
 
-            <ThemeSelector />
             <div className="flex items-center gap-2">
+              <ThemeSelector />
+              <PortalSwitcher />
               <div className="p-2 md:p-3 bg-base-200 rounded-xl text-base-content/70 hover:bg-base-300 transition-all cursor-pointer relative group">
                 <NotificationsBell />
               </div>
@@ -226,9 +225,7 @@ export default function DashboardLayout() {
                 </button>
               </div>
 
-              <div className="px-8 py-4 border-b border-slate-50">
-                <PortalSwitcher />
-              </div>
+              {/* Portal Switcher moved to header */}
 
               <div className="flex-1 p-6 space-y-2 overflow-y-auto">
                 {NAV_ITEMS.map((item) => {

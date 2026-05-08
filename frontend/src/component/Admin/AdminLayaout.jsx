@@ -452,9 +452,7 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
-              <div className="hidden sm:block">
-                <PortalSwitcher />
-              </div>
+              <PortalSwitcher />
               <ThemeSelector />
               <NotificationCenter />
             </div>
