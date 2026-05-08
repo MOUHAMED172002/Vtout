@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../lib/clerk-shim";
-import { getLivreursList, verifyLivreur } from "../../../services/deliveryService";
+import { getLivreursList, verifyLivreur, deleteLivreur } from "../../../services/deliveryService";
 import toast from "react-hot-toast";
 import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText } from "lucide-react";
 
@@ -37,6 +37,18 @@ export default function LivreurManager() {
             fetchLivreurs();
         } catch (err) {
             toast.error("Erreur de modification");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Voulez-vous vraiment supprimer ce dossier de livreur ? Cette action est irréversible.")) return;
+        try {
+            const token = await getToken();
+            await deleteLivreur(token, id);
+            toast.success("Dossier supprimé");
+            fetchLivreurs();
+        } catch (err) {
+            toast.error("Erreur lors de la suppression");
         }
     };
 
@@ -273,8 +285,9 @@ export default function LivreurManager() {
                                                         <Check size={16} /> Approuver
                                                     </button>
                                                     <button
-                                                        className="w-12 h-12 bg-white text-rose-500 border border-rose-100 rounded-2xl flex items-center justify-center hover:bg-rose-50 transition-all"
-                                                        title="Refuser"
+                                                        onClick={() => handleDelete(l.id)}
+                                                        className="w-12 h-12 bg-white text-rose-500 border border-rose-100 rounded-2xl flex items-center justify-center hover:bg-rose-50 active:scale-90 transition-all"
+                                                        title="Supprimer la demande"
                                                     >
                                                         <X size={20} />
                                                     </button>

@@ -100,3 +100,10 @@ export const confirmCashRemitted = async (token, deliveryPersonId) => {
     });
     return res.data;
 };
+
+export const deleteLivreur = async (token, id) => {
+    const res = await api.delete(`/delivery/admin/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+};

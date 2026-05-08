@@ -20,7 +20,8 @@ export default function DeliveryRoutes() {
 
     return (
         <Routes>
-            <Route index element={<DeliveryDashboard />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DeliveryDashboard />} />
             <Route path="policies" element={<DeliveryPolicies />} />
             {/* Potential sub-routes: history, profile, earnings */}
         </Routes>

@@ -339,6 +339,31 @@ export const verifyLivreur = async (req, res) => {
     }
 };
 
+export const deleteLivreur = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deliveryPerson = await DeliveryPerson.findByPk(id);
+        if (!deliveryPerson) return res.status(404).json({ error: 'Livreur non trouvé' });
+
+        const profile = await Profile.findByPk(deliveryPerson.user_id);
+        if (profile && profile.role === 'livreur') {
+            await profile.update({ role: 'user' });
+            await sequelize.query(
+                'UPDATE user SET role = :role WHERE id = :id',
+                {
+                    replacements: { role: 'user', id: deliveryPerson.user_id },
+                    type: sequelize.QueryTypes.UPDATE
+                }
+            );
+        }
+
+        await deliveryPerson.destroy();
+        res.json({ message: 'Demande/Profil livreur supprimé avec succès' });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la suppression', details: error.message });
+    }
+};
+
 export const adminAssignOrder = async (req, res) => {
     try {
         const { orderId, deliveryPersonId } = req.body;

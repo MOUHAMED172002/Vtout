@@ -34,7 +34,7 @@ const PortalSwitcher = () => {
         name: 'Acheteur',
         icon: ShoppingBag,
         url: MAIN_SITE_URL + '/user/dashboard',
-        isActive: role === 'user' && !window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider'),
+        isActive: window.location.pathname.startsWith('/user/') || (!window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider') && !window.location.pathname.startsWith('/admin')),
         color: 'text-primary',
         bg: 'bg-primary/10'
     });
@@ -46,7 +46,7 @@ const PortalSwitcher = () => {
             name: 'Vendeur',
             icon: Store,
             url: SUPPLIER_URL + '/dashboard',
-            isActive: window.location.host.includes('vendeur') || role === 'fournisseur',
+            isActive: window.location.host.includes('vendeur'),
             color: 'text-emerald-600',
             bg: 'bg-emerald-100'
         });
@@ -59,7 +59,7 @@ const PortalSwitcher = () => {
             name: 'Livreur',
             icon: Truck,
             url: MAIN_SITE_URL + '/delivery-rider/dashboard',
-            isActive: window.location.pathname.includes('delivery-rider') || role === 'livreur',
+            isActive: window.location.pathname.includes('delivery-rider'),
             color: 'text-rose-600',
             bg: 'bg-rose-100'
         });

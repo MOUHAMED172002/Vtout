@@ -27,6 +27,7 @@ router.post('/update-zones', requireAuth, requireLivreur, deliveryController.upd
 
 router.get('/admin/list', requireAuth, requireAdmin, deliveryController.getLivreursList);
 router.post('/admin/verify/:id', requireAuth, requireAdmin, deliveryController.verifyLivreur);
+router.delete('/admin/:id', requireAuth, requireAdmin, deliveryController.deleteLivreur);
 router.post('/admin/assign', requireAuth, requireAdmin, deliveryController.adminAssignOrder);
 router.post('/admin/confirm-cash', requireAuth, requireAdmin, deliveryController.confirmCashRemitted);
 router.get('/admin/stats', requireAuth, requireAdmin, deliveryController.getDeliveryStatsAdmin);
