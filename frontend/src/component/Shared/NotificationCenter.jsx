@@ -123,28 +123,33 @@ const NotificationCenter = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9998] md:hidden"
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99998]"
                             onClick={() => setIsOpen(false)}
                         />
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                            className="fixed bottom-4 left-4 right-4 md:absolute md:bottom-auto md:left-auto md:right-0 md:mt-4 w-auto md:w-96 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-[9999] overflow-hidden flex flex-col max-h-[85vh]"
+                            initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+                            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+                            exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+                            className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),500px)] bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-slate-100 z-[99999] overflow-hidden flex flex-col max-h-[85vh]"
                         >
                             <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
                                 <div>
                                     <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{unreadCount} non lues</p>
                                 </div>
-                                {unreadCount > 0 && (
-                                    <button 
-                                        onClick={markAllRead}
-                                        className="text-[10px] font-black uppercase text-primary hover:underline tracking-widest"
-                                    >
-                                        Tout marquer lu
+                                <div className="flex items-center gap-4">
+                                    {unreadCount > 0 && (
+                                        <button 
+                                            onClick={markAllRead}
+                                            className="text-[10px] font-black uppercase text-primary hover:underline tracking-widest"
+                                        >
+                                            Tout marquer lu
+                                        </button>
+                                    )}
+                                    <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-300">
+                                        <X size={20} />
                                     </button>
-                                )}
+                                </div>
                             </div>
 
                             <div className="overflow-y-auto flex-grow custom-scrollbar">

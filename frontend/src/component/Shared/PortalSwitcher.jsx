@@ -115,49 +115,58 @@ const PortalSwitcher = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998] md:hidden"
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99998]"
                             onClick={() => setIsOpen(false)}
                         />
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                            className="fixed bottom-4 left-4 right-4 md:absolute md:bottom-auto md:left-auto md:right-0 md:mt-2 md:w-64 bg-base-100 rounded-[2rem] md:rounded-2xl shadow-2xl shadow-base-content/10 border border-base-content/10 z-[99999] overflow-hidden flex flex-col max-h-[80vh]"
+                            initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+                            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+                            exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),400px)] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 z-[99999] overflow-hidden flex flex-col max-h-[80vh]"
                         >
-                            <div className="p-4 md:p-3 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
+                            <div className="p-6 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
+                                <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
+                                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-300 rounded-full transition-colors text-base-content/40">
+                                    <X size={18} />
+                                </button>
                             </div>
-                            <div className="p-2 space-y-1 overflow-y-auto">
+                            <div className="p-4 space-y-2 overflow-y-auto custom-scrollbar">
                                 {availablePortals.map((portal) => (
                                     <button
                                         key={portal.id}
                                         onClick={() => handleSwitch(portal)}
-                                        className="w-full flex items-center gap-4 md:gap-3 px-4 md:px-3 py-4 md:py-3 rounded-2xl md:rounded-xl hover:bg-base-200 transition-colors group text-left"
+                                        className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
                                     >
-                                        <div className={`p-3 md:p-2 rounded-2xl md:rounded-xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
-                                            <portal.icon size={20} strokeWidth={2.5} />
+                                        <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
+                                            <portal.icon size={24} strokeWidth={2.5} />
                                         </div>
-                                        <span className="font-bold text-base md:text-sm text-base-content/70 group-hover:text-base-content transition-colors">
-                                            Espace {portal.name}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="font-black text-base text-base-content group-hover:text-primary transition-colors">
+                                                Espace {portal.name}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Ouvrir le portail</span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
-                            <div className="p-2 border-t border-base-content/5 mt-1 shrink-0">
+                            <div className="p-4 border-t border-base-content/5 mt-auto shrink-0 bg-base-50/50">
                                 <button
                                     onClick={() => {
                                         setIsOpen(false);
                                         window.location.href = MAIN_SITE_URL + '/user/dashboard/settings';
                                     }}
-                                    className="w-full flex items-center gap-4 md:gap-3 px-4 md:px-3 py-4 md:py-3 rounded-2xl md:rounded-xl hover:bg-base-200 transition-colors group text-left"
+                                    className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
                                 >
-                                    <div className="p-3 md:p-2 rounded-2xl md:rounded-xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <div className="p-3 rounded-2xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                     </div>
-                                    <span className="font-bold text-base md:text-sm text-base-content/70 group-hover:text-base-content transition-colors">
-                                        Paramètres du profil
-                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className="font-black text-base text-base-content/70 group-hover:text-base-content transition-colors">
+                                            Paramètres du profil
+                                        </span>
+                                        <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Gérer mon compte</span>
+                                    </div>
                                 </button>
                             </div>
                         </motion.div>
