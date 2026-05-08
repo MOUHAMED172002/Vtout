@@ -29,13 +29,14 @@ const ThemeSelector = () => {
                             className="fixed inset-0 z-[1000] bg-slate-900/60 backdrop-blur-md"
                             onClick={() => setIsOpen(false)}
                         />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-                            exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            style={{ perspective: "1000px" }}
-                            className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),450px)] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 z-[1001] p-6 flex flex-col max-h-[85vh]"
-                        >
+                        <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                style={{ perspective: "1000px" }}
+                                className="pointer-events-auto w-full max-w-[450px] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 flex flex-col max-h-[90vh] overflow-hidden"
+                            >
                             <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-content/5">
                                 <div className="flex items-center gap-3">
                                     <Sparkles className="text-primary" size={20} />
@@ -80,7 +81,8 @@ const ThemeSelector = () => {
                             <p className="mt-6 text-[9px] font-bold text-base-content/40 text-center uppercase tracking-widest">
                                 Expérience Vtout 3.0
                             </p>
-                        </motion.div>
+                            </motion.div>
+                        </div>
                     </>
                 )}
             </AnimatePresence>

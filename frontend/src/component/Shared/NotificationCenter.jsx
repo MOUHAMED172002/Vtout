@@ -126,12 +126,13 @@ const NotificationCenter = () => {
                             className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99998]"
                             onClick={() => setIsOpen(false)}
                         />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-                            exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),500px)] bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-slate-100 z-[99999] overflow-hidden flex flex-col max-h-[85vh]"
-                        >
+                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="pointer-events-auto w-full max-w-[500px] bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+                            >
                             <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
                                 <div>
                                     <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>

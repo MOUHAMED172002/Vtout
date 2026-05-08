@@ -118,13 +118,13 @@ const PortalSwitcher = () => {
                             className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[99998]"
                             onClick={() => setIsOpen(false)}
                         />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-                            exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="fixed top-1/2 left-1/2 w-[min(calc(100vw-2rem),400px)] bg-base-100 rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10 z-[99999] overflow-hidden flex flex-col max-h-[80vh]"
-                        >
+                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="pointer-events-auto w-full max-w-[500px] bg-white rounded-[2.5rem] shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+                            >
                             <div className="p-6 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
                                 <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
                                 <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-300 rounded-full transition-colors text-base-content/40">
@@ -169,7 +169,8 @@ const PortalSwitcher = () => {
                                     </div>
                                 </button>
                             </div>
-                        </motion.div>
+                            </motion.div>
+                        </div>
                     </>
                 )}
             </AnimatePresence>
