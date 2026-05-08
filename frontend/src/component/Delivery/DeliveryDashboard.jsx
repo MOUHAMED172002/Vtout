@@ -54,7 +54,6 @@ export default function DeliveryDashboard() {
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutMethod, setPayoutMethod] = useState('momo');
     const [paymentDetails, setPaymentDetails] = useState('');
-    const [paymentDetails, setPaymentDetails] = useState('');
     const [saveDetails, setSaveDetails] = useState(false);
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [vehicleData, setVehicleData] = useState({ vehicle_type: '', vehicle_model: '', license_plate: '' });
