@@ -85,49 +85,45 @@ const NotificationCenter = () => {
     const modal = (
         <AnimatePresence>
             {isOpen && (
-                <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
                     <motion.div
                         key="notif-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 999998 }}
+                        style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)' }}
                         onClick={() => setIsOpen(false)}
                     />
                     <motion.div
                         key="notif-modal"
-                        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         style={{
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '90%',
-                            maxWidth: '500px',
-                            maxHeight: '85vh',
-                            zIndex: 999999,
+                            position: 'relative',
+                            width: '100%',
+                            maxWidth: '480px',
+                            maxHeight: '80vh',
                             display: 'flex',
                             flexDirection: 'column',
-                            borderRadius: '2.5rem',
+                            borderRadius: '2rem',
                             overflow: 'hidden',
                             background: 'white',
-                            boxShadow: '0 20px 70px rgba(0,0,0,0.3)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                             border: '1px solid #f1f5f9',
                         }}
                     >
                         {/* Header */}
-                        <div style={{ padding: '1.5rem', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                             <div>
                                 <h3 style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#0f172a', margin: 0 }}>Notifications</h3>
                                 <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8', marginTop: '0.25rem' }}>{unreadCount} non lues</p>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 {unreadCount > 0 && (
                                     <button onClick={markAllRead} style={{ fontSize: '0.625rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-primary, #6366f1)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                                        Tout marquer lu
+                                        Tout lu
                                     </button>
                                 )}
                                 <button onClick={() => setIsOpen(false)} style={{ padding: '0.5rem', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#cbd5e1' }}>
@@ -137,11 +133,11 @@ const NotificationCenter = () => {
                         </div>
 
                         {/* List */}
-                        <div style={{ overflowY: 'auto', flexGrow: 1 }}>
+                        <div style={{ overflowY: 'auto', flexGrow: 1, padding: '0.5rem' }}>
                             {notifications.length === 0 ? (
-                                <div style={{ padding: '3rem', textAlign: 'center' }}>
-                                    <div style={{ width: '4rem', height: '4rem', background: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#e2e8f0' }}>
-                                        <Bell size={32} />
+                                <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                                    <div style={{ width: '3.5rem', height: '3.5rem', background: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: '#e2e8f0' }}>
+                                        <Bell size={24} />
                                     </div>
                                     <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8' }}>Aucune notification</p>
                                 </div>
@@ -150,12 +146,23 @@ const NotificationCenter = () => {
                                     <div
                                         key={notif.id}
                                         onClick={() => !notif.is_read && markAsRead(notif.id)}
-                                        style={{ padding: '1.25rem', borderBottom: '1px solid #f8fafc', display: 'flex', gap: '1rem', cursor: 'pointer', background: !notif.is_read ? 'rgba(238,242,255,0.4)' : 'white', position: 'relative' }}
+                                        style={{ 
+                                            padding: '1rem', 
+                                            margin: '0.25rem',
+                                            borderRadius: '1.25rem',
+                                            display: 'flex', 
+                                            gap: '1rem', 
+                                            cursor: 'pointer', 
+                                            background: !notif.is_read ? 'rgba(238,242,255,0.5)' : 'transparent', 
+                                            position: 'relative',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        className="hover:bg-slate-50"
                                     >
                                         <div style={{ flexShrink: 0 }}>{getIcon(notif.type)}</div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                                <p style={{ fontSize: '0.875rem', lineHeight: 1.4, fontWeight: notif.is_read ? 700 : 900, color: notif.is_read ? '#64748b' : '#0f172a', margin: 0 }}>
+                                                <p style={{ fontSize: '0.8125rem', lineHeight: 1.4, fontWeight: notif.is_read ? 700 : 900, color: notif.is_read ? '#64748b' : '#0f172a', margin: 0 }}>
                                                     {notif.title}
                                                 </p>
                                                 <button
@@ -165,20 +172,20 @@ const NotificationCenter = () => {
                                                     <Trash2 size={12} />
                                                 </button>
                                             </div>
-                                            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>{notif.message}</p>
-                                            <p style={{ fontSize: '0.5625rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#e2e8f0', marginTop: '0.5rem' }}>
+                                            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.125rem', lineHeight: 1.5 }}>{notif.message}</p>
+                                            <p style={{ fontSize: '0.5rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#cbd5e1', marginTop: '0.5rem' }}>
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
                                         {!notif.is_read && (
-                                            <div style={{ width: '0.5rem', height: '0.5rem', background: 'var(--color-primary, #6366f1)', borderRadius: '50%', position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                                            <div style={{ width: '0.375rem', height: '0.375rem', background: 'var(--color-primary, #6366f1)', borderRadius: '50%', position: 'absolute', right: '0.75rem', top: '1.25rem' }} />
                                         )}
                                     </div>
                                 ))
                             )}
                         </div>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );

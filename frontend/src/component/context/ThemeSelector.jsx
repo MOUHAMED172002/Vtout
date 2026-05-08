@@ -12,36 +12,32 @@ const ThemeSelector = () => {
     const modal = (
         <AnimatePresence>
             {isOpen && (
-                <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
                     <motion.div
                         key="theme-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 999998 }}
+                        style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)' }}
                         onClick={() => setIsOpen(false)}
                     />
                     <motion.div
                         key="theme-modal"
-                        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         style={{
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '90%',
+                            position: 'relative',
+                            width: '100%',
                             maxWidth: '450px',
-                            maxHeight: '85vh',
-                            zIndex: 999999,
+                            maxHeight: '80vh',
                             display: 'flex',
                             flexDirection: 'column',
-                            borderRadius: '2.5rem',
+                            borderRadius: '2rem',
                             overflow: 'hidden',
                         }}
-                        className="bg-base-100 shadow-[0_20px_70px_rgba(0,0,0,0.3)] border border-base-content/10"
+                        className="bg-base-100 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-base-content/10"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 pb-4 border-b border-base-content/5 shrink-0">
@@ -87,7 +83,7 @@ const ThemeSelector = () => {
                             Expérience Vtout 3.0
                         </p>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );
