@@ -18,7 +18,7 @@ import {
   X as CloseIcon
 } from "lucide-react";
 import { useProfile } from "../context/useProfile";
-import NotificationsBell from "./NotificationsBell";
+import NotificationCenter from "../Shared/NotificationCenter";
 import ThemeSelector from "../context/ThemeSelector";
 import avartar from "../../assets/avatar-placeholder.png";
 import { motion, AnimatePresence } from "framer-motion";
@@ -147,9 +147,7 @@ export default function DashboardLayout() {
             <div className="flex items-center gap-2">
               <ThemeSelector />
               <PortalSwitcher />
-              <div className="p-2 md:p-3 bg-base-200 rounded-xl text-base-content/70 hover:bg-base-300 transition-all cursor-pointer relative group">
-                <NotificationsBell />
-              </div>
+              <NotificationCenter />
             </div>
 
             <div className="h-8 w-px bg-base-content/10 hidden sm:block"></div>
