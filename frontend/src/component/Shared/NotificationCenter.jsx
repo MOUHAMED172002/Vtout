@@ -196,11 +196,12 @@ const NotificationCenter = () => {
                                 )}
                             </div>
                         </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-        </div>
-    );
+                    </div>
+                </>
+            )}
+        </AnimatePresence>
+    </div>
+);
 };
 
 export default NotificationCenter;

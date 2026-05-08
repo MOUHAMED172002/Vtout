@@ -26,10 +26,10 @@ const ThemeSelector = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] bg-slate-900/60 backdrop-blur-md"
+                            className="fixed inset-0 z-[99998] bg-slate-900/60 backdrop-blur-md"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 pointer-events-none">
+                        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
