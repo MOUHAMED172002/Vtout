@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Truck, ShieldCheck, FileText, ChevronRight, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft, User as UserIcon } from "lucide-react";
+import { Truck, ShieldCheck, FileText, ChevronRight, Loader2, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft, User as UserIcon } from "lucide-react";
 import { useAuth, useUser, SignIn, SignUp } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
 import { toast } from "react-hot-toast";
@@ -19,7 +19,7 @@ export default function DevenirLivreur() {
 
     const [step, setStep] = useState(1);
     const [authMode, setAuthMode] = useState('signUp');
-    
+
     // Redirect active livreurs
     React.useEffect(() => {
         if (isSignedIn && profileUser?.role === 'livreur') {
@@ -97,7 +97,7 @@ export default function DevenirLivreur() {
             try {
                 const parsed = JSON.parse(err.message);
                 if (parsed.error) msg = parsed.error;
-            } catch(e) {}
+            } catch (e) { }
             toast.error(msg);
         } finally {
             setLoading(false);
@@ -111,9 +111,9 @@ export default function DevenirLivreur() {
 
             <div className="max-w-4xl mx-auto relative z-10">
                 <div className="text-center mb-12 space-y-4">
-                    <motion.div 
-                        initial={{ scale: 0 }} 
-                        animate={{ scale: 1 }} 
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
                         className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 rotate-12 shadow-xl shadow-primary/5"
                     >
                         <Truck size={40} />
@@ -137,13 +137,13 @@ export default function DevenirLivreur() {
                                     className="space-y-10"
                                 >
                                     <div className="flex justify-center gap-4">
-                                        <button 
+                                        <button
                                             onClick={() => setAuthMode('signUp')}
                                             className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
                                         >
                                             S'inscrire
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setAuthMode('signIn')}
                                             className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
                                         >
@@ -159,7 +159,7 @@ export default function DevenirLivreur() {
                                             {authMode === 'signUp' ? 'Étape 1 : Authentification' : 'Accès à votre espace Livreur'}
                                         </p>
                                     </div>
-                                    
+
                                     <div className="max-w-md mx-auto">
                                         {authMode === 'signUp' ? <SignUp /> : <SignIn />}
                                     </div>
@@ -364,7 +364,8 @@ export default function DevenirLivreur() {
                 </div>
             </div>
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
