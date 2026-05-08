@@ -103,7 +103,7 @@ const ThemeSelector = () => {
                 <Palette size={18} className="text-primary" />
                 <span className="hidden lg:inline">Thème</span>
             </motion.button>
-            {createPortal(modal, document.body)}
+            {typeof document !== 'undefined' && createPortal(modal, document.body)}
         </div>
     );
 };

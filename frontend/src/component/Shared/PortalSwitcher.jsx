@@ -169,7 +169,7 @@ const PortalSwitcher = () => {
                 </div>
                 <ChevronDown size={14} className={`text-base-content/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
-            {createPortal(modal, document.body)}
+            {typeof document !== 'undefined' && createPortal(modal, document.body)}
         </div>
     );
 };

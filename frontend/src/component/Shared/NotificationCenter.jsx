@@ -184,7 +184,7 @@ const NotificationCenter = () => {
     );
 
     return (
-        <div className="hidden sm:block relative">
+        <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-3 rounded-2xl bg-base-200 border border-base-content/10 shadow-sm text-base-content/50 hover:text-base-content hover:shadow-md transition-all"
@@ -196,7 +196,7 @@ const NotificationCenter = () => {
                     </span>
                 )}
             </button>
-            {createPortal(modal, document.body)}
+            {typeof document !== 'undefined' && createPortal(modal, document.body)}
         </div>
     );
 };

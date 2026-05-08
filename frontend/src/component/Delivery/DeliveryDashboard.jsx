@@ -400,9 +400,7 @@ export default function DeliveryDashboard() {
                     <div className="flex items-center gap-2 mr-auto lg:mr-0">
                         <ThemeSelector />
                         <PortalSwitcher />
-                        <div className="hidden sm:block">
-                            <NotificationCenter />
-                        </div>
+                        <NotificationCenter />
                     </div>
                     <div className="flex items-center gap-4 bg-base-100 p-1.5 md:p-2 rounded-2xl md:rounded-3xl border border-base-content/10 shadow-sm w-full sm:w-auto">
                         <button
