@@ -7,6 +7,8 @@ import AddressSelector from '../context/AddressSelector';
 import SupplierBlockModal from '../Shared/SupplierBlockModal';
 import { registerSelfSupplier } from '../../services/supplierService';
 import api from '../../services/api';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const SupplierRegister = () => {
     const [step, setStep] = useState(1);
@@ -258,13 +260,16 @@ const SupplierRegister = () => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">Téléphone Principal</label>
                                         <div className="relative">
-                                            <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input
-                                                type="tel"
+                                            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none z-10">
+                                                <Phone className="h-4 w-4 text-slate-400" />
+                                            </div>
+                                            <PhoneInput
+                                                international
+                                                defaultCountry="BJ"
                                                 value={formData.phone}
-                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                className="w-full bg-slate-50 border-none rounded-3xl pl-16 pr-8 py-5 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20 transition-all"
-                                                placeholder="+229 ..."
+                                                onChange={(val) => setFormData({ ...formData, phone: val })}
+                                                className="w-full bg-slate-50 border-none rounded-3xl pl-14 pr-8 py-3.5 font-black text-sm text-slate-900 focus-within:ring-2 focus-within:ring-primary/20 transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full"
+                                                placeholder="+229 00 00 00 00"
                                             />
                                         </div>
                                     </div>
@@ -272,13 +277,19 @@ const SupplierRegister = () => {
                                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 px-4 flex items-center gap-2">
                                             <MessageCircle size={14} /> WhatsApp
                                         </label>
-                                        <input
-                                            type="tel"
-                                            value={formData.whatsapp}
-                                            onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                                            className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20 transition-all"
-                                            placeholder="+229 00 00 00 00"
-                                        />
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none z-10">
+                                                <MessageCircle className="h-4 w-4 text-slate-400" />
+                                            </div>
+                                            <PhoneInput
+                                                international
+                                                defaultCountry="BJ"
+                                                value={formData.whatsapp}
+                                                onChange={(val) => setFormData({ ...formData, whatsapp: val })}
+                                                className="w-full bg-slate-50 border-none rounded-3xl pl-14 pr-8 py-3.5 font-black text-sm text-slate-900 focus-within:ring-2 focus-within:ring-primary/20 transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full"
+                                                placeholder="+229 00 00 00 00"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -286,13 +297,19 @@ const SupplierRegister = () => {
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 px-4 flex items-center gap-2">
                                         <CreditCard size={14} /> Numéro Mobile Money (Momo Pay)
                                     </label>
-                                    <input
-                                        type="tel"
-                                        value={formData.momoNumber}
-                                        onChange={(e) => setFormData({ ...formData, momoNumber: e.target.value })}
-                                        className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20 transition-all"
-                                        placeholder="Numéro pour vos règlements..."
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none z-10">
+                                            <CreditCard className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                        <PhoneInput
+                                            international
+                                            defaultCountry="BJ"
+                                            value={formData.momoNumber}
+                                            onChange={(val) => setFormData({ ...formData, momoNumber: val })}
+                                            className="w-full bg-slate-50 border-none rounded-3xl pl-14 pr-8 py-3.5 font-black text-sm text-slate-900 focus-within:ring-2 focus-within:ring-primary/20 transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full"
+                                            placeholder="+229 00 00 00 00"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

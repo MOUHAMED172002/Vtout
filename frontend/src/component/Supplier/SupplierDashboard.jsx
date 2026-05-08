@@ -17,6 +17,8 @@ const SupplierDashboard = () => {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
+    const [boutiqueData, setBoutiqueData] = useState({ name: '', whatsapp: '', momo_number: '' });
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -26,6 +28,9 @@ const SupplierDashboard = () => {
                 // Fetch profile
                 const prof = await getMySupplierProfile(token);
                 setProfile(prof);
+                if (prof) {
+                    setBoutiqueData({ name: prof.name || '', whatsapp: prof.whatsapp || '', momo_number: prof.momo_number || '' });
+                }
 
                 const prods = await getMySupplierProducts(token);
                 setProducts(prods.slice(0, 5));
@@ -72,6 +77,20 @@ const SupplierDashboard = () => {
             toast.error("Échec de la mise à jour de l'adresse");
         } finally {
             setUpdatingLocation(false);
+        }
+    };
+
+    const handleBoutiqueUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const token = await getToken();
+            await updateMySupplierProfile(boutiqueData, token);
+            setProfile(prev => ({ ...prev, ...boutiqueData }));
+            toast.success("Informations de la boutique mises à jour !");
+            setShowBoutiqueModal(false);
+        } catch (err) {
+            console.error(err);
+            toast.error("Échec de la mise à jour");
         }
     };
 
@@ -154,6 +173,44 @@ const SupplierDashboard = () => {
 
                 {/* Orders / Notifications */}
                 <div className="space-y-8">
+                    {/* Boutique Info Section */}
+                    <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
+                                    <Package size={24} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-xl font-black tracking-tighter">Informations Boutique</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Nom et contacts</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowBoutiqueModal(true)}
+                                className="p-3 bg-slate-50 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all"
+                                title="Modifier la boutique"
+                            >
+                                <Edit2 size={18} />
+                            </button>
+                        </div>
+                        {profile && (
+                            <div className="space-y-4 p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 relative group overflow-hidden">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Nom de la boutique</p>
+                                    <p className="text-lg font-black text-slate-900 leading-tight">{profile.name || "Ma Boutique"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Numéro WhatsApp</p>
+                                    <p className="text-sm font-bold text-emerald-600">{profile.whatsapp || "Non renseigné"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Mobile Money</p>
+                                    <p className="text-sm font-bold text-amber-600">{profile.momo_number || "Non renseigné"}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Location Management Section */}
                     <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
                         <div className="flex justify-between items-center">
@@ -303,6 +360,79 @@ const SupplierDashboard = () => {
                                 onCancel={() => setShowAddressModal(false)}
                                 requirePhone={true}
                             />
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {showBoutiqueModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden p-10 space-y-8"
+                        >
+                            <div className="flex justify-between items-center border-b border-slate-50 pb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
+                                        <Package size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tighter">Boutique</h3>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mise à jour</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowBoutiqueModal(false)}
+                                    className="p-3 bg-slate-50 hover:bg-rose-50 hover:text-rose-500 text-slate-400 rounded-2xl transition-all"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleBoutiqueUpdate} className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 pl-4">Nom de la boutique</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={boutiqueData.name}
+                                        onChange={(e) => setBoutiqueData({ ...boutiqueData, name: e.target.value })}
+                                        className="w-full bg-slate-50 border-none rounded-3xl px-6 py-4 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20"
+                                        placeholder="Ma Jolie Boutique"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 pl-4">Numéro WhatsApp</label>
+                                    <input
+                                        type="text"
+                                        value={boutiqueData.whatsapp}
+                                        onChange={(e) => setBoutiqueData({ ...boutiqueData, whatsapp: e.target.value })}
+                                        className="w-full bg-slate-50 border-none rounded-3xl px-6 py-4 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20"
+                                        placeholder="+229..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 pl-4">Numéro Mobile Money</label>
+                                    <input
+                                        type="text"
+                                        value={boutiqueData.momo_number}
+                                        onChange={(e) => setBoutiqueData({ ...boutiqueData, momo_number: e.target.value })}
+                                        className="w-full bg-slate-50 border-none rounded-3xl px-6 py-4 font-black text-sm text-slate-900 focus:ring-2 focus:ring-primary/20"
+                                        placeholder="+229..."
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/30 hover:bg-slate-900 transition-all"
+                                >
+                                    Enregistrer
+                                </button>
+                            </form>
                         </motion.div>
                     </motion.div>
                 )}

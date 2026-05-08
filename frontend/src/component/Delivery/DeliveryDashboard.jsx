@@ -29,7 +29,8 @@ import {
     X,
     Banknote,
     RefreshCcw,
-    AlertOctagon
+    AlertOctagon,
+    Edit2
 } from "lucide-react";
 import NotificationCenter from "../Shared/NotificationCenter";
 import PortalSwitcher from "../Shared/PortalSwitcher";
@@ -53,7 +54,10 @@ export default function DeliveryDashboard() {
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutMethod, setPayoutMethod] = useState('momo');
     const [paymentDetails, setPaymentDetails] = useState('');
+    const [paymentDetails, setPaymentDetails] = useState('');
     const [saveDetails, setSaveDetails] = useState(false);
+    const [showVehicleModal, setShowVehicleModal] = useState(false);
+    const [vehicleData, setVehicleData] = useState({ vehicle_type: '', vehicle_model: '', license_plate: '' });
 
     const abortControllerRef = useRef(null);
     const isFetchingRef = useRef(false);
@@ -113,6 +117,11 @@ export default function DeliveryDashboard() {
                 if (me && !controller.signal.aborted) {
                     setMyself(me);
                     setIsOnline(me.status !== 'hors_ligne');
+                    setVehicleData({
+                        vehicle_type: me.vehicle_type || '',
+                        vehicle_model: me.vehicle_model || '',
+                        license_plate: me.license_plate || ''
+                    });
                 }
             } catch (err) {
                 if (err.name !== 'CanceledError' && err.message !== 'Request aborted') {
@@ -182,7 +191,7 @@ export default function DeliveryDashboard() {
             setShowPayoutModal(false);
             loadData();
         } catch (err) {
-            toast.error(err.message);
+            toast.error(err.response?.data?.error || err.message);
         }
     };
     const activeOrders = Array.isArray(myOrders) ? myOrders.filter(o => ['expediee', 'expédiée', 'confirmee', 'confirmée', 'assignee', 'assignée'].includes(o.status)) : [];
@@ -249,6 +258,26 @@ export default function DeliveryDashboard() {
             setMyself({ ...myself, service_zones: zones });
         } catch (err) {
             toast.error("Erreur de mise à jour");
+        }
+    };
+
+    const handleVehicleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const token = await getToken();
+            // registerLivreur also acts as an update endpoint if the user already exists
+            await api.post("/delivery/register", {
+                vehicle_type: vehicleData.vehicle_type,
+                vehicle_model: vehicleData.vehicle_model,
+                license_plate: vehicleData.license_plate,
+                service_zones: myself?.service_zones || []
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            
+            toast.success("Informations du véhicule mises à jour");
+            setMyself({ ...myself, ...vehicleData });
+            setShowVehicleModal(false);
+        } catch (err) {
+            toast.error("Erreur de mise à jour du véhicule");
         }
     };
 
@@ -728,9 +757,17 @@ export default function DeliveryDashboard() {
                                     <div className="p-4 md:p-10 space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                             <div className="space-y-6">
-                                                <h3 className="text-xl font-black text-base-content flex items-center gap-3">
-                                                    <Truck className="text-primary" /> Mon Véhicule
-                                                </h3>
+                                                <div className="flex justify-between items-center">
+                                                    <h3 className="text-xl font-black text-base-content flex items-center gap-3">
+                                                        <Truck className="text-primary" /> Mon Véhicule
+                                                    </h3>
+                                                    <button 
+                                                        onClick={() => setShowVehicleModal(true)}
+                                                        className="p-3 bg-base-200 text-base-content/40 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </button>
+                                                </div>
                                                 <div className="bg-base-200 p-6 rounded-3xl border border-base-content/10 space-y-4">
                                                     <div className="flex justify-between items-center border-b border-white pb-4">
                                                         <span className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">Type</span>
@@ -948,6 +985,86 @@ export default function DeliveryDashboard() {
                     </div>
                 )}
             </AnimatePresence>
+            
+            <AnimatePresence>
+                {showVehicleModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-base-100 w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden p-10 space-y-8"
+                        >
+                            <div className="flex justify-between items-center border-b border-base-content/5 pb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                                        <Truck size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tighter">Mon Véhicule</h3>
+                                        <p className="text-[10px] text-base-content/40 font-bold uppercase tracking-widest">Mise à jour</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowVehicleModal(false)}
+                                    className="p-3 bg-base-200 hover:bg-rose-50 hover:text-rose-500 text-base-content/40 rounded-2xl transition-all"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleVehicleUpdate} className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-2 pl-4">Type de véhicule</label>
+                                    <select
+                                        value={vehicleData.vehicle_type}
+                                        onChange={(e) => setVehicleData({ ...vehicleData, vehicle_type: e.target.value })}
+                                        className="w-full bg-base-200 border-none rounded-3xl px-6 py-4 font-black text-sm text-base-content focus:ring-2 focus:ring-primary/20"
+                                    >
+                                        <option value="moto">Moto</option>
+                                        <option value="voiture">Voiture</option>
+                                        <option value="camionnette">Camionnette</option>
+                                        <option value="velo">Vélo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-2 pl-4">Modèle</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={vehicleData.vehicle_model}
+                                        onChange={(e) => setVehicleData({ ...vehicleData, vehicle_model: e.target.value })}
+                                        className="w-full bg-base-200 border-none rounded-3xl px-6 py-4 font-black text-sm text-base-content focus:ring-2 focus:ring-primary/20"
+                                        placeholder="Ex: Bajaj Boxer 150"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-2 pl-4">Immatriculation</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={vehicleData.license_plate}
+                                        onChange={(e) => setVehicleData({ ...vehicleData, license_plate: e.target.value })}
+                                        className="w-full bg-base-200 border-none rounded-3xl px-6 py-4 font-black text-sm text-base-content focus:ring-2 focus:ring-primary/20"
+                                        placeholder="Ex: AB 1234 RB"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/30 hover:bg-neutral hover:text-neutral-content transition-all"
+                                >
+                                    Enregistrer
+                                </button>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Debug Info (Support) */}
             <div className="fixed bottom-4 left-4 z-[100] bg-neutral/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
                 <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">

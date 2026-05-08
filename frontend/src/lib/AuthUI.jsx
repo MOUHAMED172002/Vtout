@@ -26,10 +26,12 @@ export const AuthUI = ({ mode = 'signIn' }) => {
         const saved = sessionStorage.getItem('vtout_auth_state');
         if (saved) {
             try {
-                const { mode, ph, nm } = JSON.parse(saved);
+                const { mode, ph, nm, wp, savedOtp } = JSON.parse(saved);
                 if (mode) setWhatsappMode(mode);
                 if (ph) setPhone(ph);
                 if (nm) setName(nm);
+                if (wp) setWhatsappPassword(wp);
+                if (savedOtp) setOtp(savedOtp);
             } catch (e) {}
         }
     }, []);
@@ -39,12 +41,14 @@ export const AuthUI = ({ mode = 'signIn' }) => {
             sessionStorage.setItem('vtout_auth_state', JSON.stringify({
                 mode: whatsappMode,
                 ph: phone,
-                nm: name
+                nm: name,
+                wp: whatsappPassword,
+                savedOtp: otp
             }));
         } else {
             sessionStorage.removeItem('vtout_auth_state');
         }
-    }, [whatsappMode, phone, name]);
+    }, [whatsappMode, phone, name, whatsappPassword, otp]);
 
 
     const handleSubmit = async (e) => {

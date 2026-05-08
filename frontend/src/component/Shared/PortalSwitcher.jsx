@@ -110,33 +110,58 @@ const PortalSwitcher = () => {
 
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-56 bg-base-100 rounded-2xl shadow-xl shadow-base-content/5 border border-base-content/10 overflow-hidden"
-                    >
-                        <div className="p-3 bg-base-200/50 border-b border-base-content/5">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
-                        </div>
-                        <div className="p-2 space-y-1">
-                            {availablePortals.map((portal) => (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99998] lg:hidden"
+                            onClick={() => setIsOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed bottom-4 left-4 right-4 lg:absolute lg:bottom-auto lg:left-auto lg:right-0 lg:mt-2 lg:w-64 bg-base-100 rounded-[2rem] lg:rounded-2xl shadow-2xl shadow-base-content/10 border border-base-content/10 z-[99999] overflow-hidden flex flex-col max-h-[80vh]"
+                        >
+                            <div className="p-4 lg:p-3 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
+                            </div>
+                            <div className="p-2 space-y-1 overflow-y-auto">
+                                {availablePortals.map((portal) => (
+                                    <button
+                                        key={portal.id}
+                                        onClick={() => handleSwitch(portal)}
+                                        className="w-full flex items-center gap-4 lg:gap-3 px-4 lg:px-3 py-4 lg:py-3 rounded-2xl lg:rounded-xl hover:bg-base-200 transition-colors group text-left"
+                                    >
+                                        <div className={`p-3 lg:p-2 rounded-2xl lg:rounded-xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
+                                            <portal.icon size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <span className="font-bold text-base lg:text-sm text-base-content/70 group-hover:text-base-content transition-colors">
+                                            Espace {portal.name}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="p-2 border-t border-base-content/5 mt-1 shrink-0">
                                 <button
-                                    key={portal.id}
-                                    onClick={() => handleSwitch(portal)}
-                                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-base-200/50 transition-colors group text-left"
+                                    onClick={() => {
+                                        setIsOpen(false);
+                                        window.location.href = MAIN_SITE_URL + '/user/dashboard/settings';
+                                    }}
+                                    className="w-full flex items-center gap-4 lg:gap-3 px-4 lg:px-3 py-4 lg:py-3 rounded-2xl lg:rounded-xl hover:bg-base-200 transition-colors group text-left"
                                 >
-                                    <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
-                                        <portal.icon size={16} strokeWidth={2.5} />
+                                    <div className="p-3 lg:p-2 rounded-2xl lg:rounded-xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                     </div>
-                                    <span className="font-bold text-sm text-base-content/70 group-hover:text-base-content transition-colors">
-                                        Espace {portal.name}
+                                    <span className="font-bold text-base lg:text-sm text-base-content/70 group-hover:text-base-content transition-colors">
+                                        Paramètres du profil
                                     </span>
                                 </button>
-                            ))}
-                        </div>
-                    </motion.div>
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </div>

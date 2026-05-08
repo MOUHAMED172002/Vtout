@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../lib/clerk-shim";
 import { getLivreursList, verifyLivreur, deleteLivreur } from "../../../services/deliveryService";
 import toast from "react-hot-toast";
-import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText } from "lucide-react";
+import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText, Trash2 } from "lucide-react";
 
 export default function LivreurManager() {
     const { getToken } = useAuth();
@@ -286,10 +286,10 @@ export default function LivreurManager() {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(l.id)}
-                                                        className="w-12 h-12 bg-white text-rose-500 border border-rose-100 rounded-2xl flex items-center justify-center hover:bg-rose-50 active:scale-90 transition-all"
-                                                        title="Supprimer la demande"
+                                                        className="flex items-center gap-2 bg-rose-50 text-rose-500 border border-rose-100 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white active:scale-95 transition-all"
+                                                        title="Rejeter et supprimer la demande"
                                                     >
-                                                        <X size={20} />
+                                                        <Trash2 size={16} /> Rejeter
                                                     </button>
                                                 </>
                                             ) : (

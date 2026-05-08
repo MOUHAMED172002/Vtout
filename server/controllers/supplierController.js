@@ -124,8 +124,14 @@ export const updateSupplier = async (req, res) => {
 
 export const deleteSupplier = async (req, res) => {
     try {
+        const { id } = req.params;
+        
+        // Supprimer les entités dépendantes pour éviter les erreurs de contrainte de clé étrangère
+        await Boutique.destroy({ where: { supplier_id: id } });
+        await SupplierProduct.destroy({ where: { supplier_id: id } });
+        
         const deleted = await Supplier.destroy({
-            where: { id: req.params.id }
+            where: { id }
         });
         if (!deleted) return res.status(404).json({ error: 'Fournisseur non trouvé' });
         res.json({ message: 'Fournisseur supprimé' });

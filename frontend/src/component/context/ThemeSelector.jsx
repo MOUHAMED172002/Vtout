@@ -22,13 +22,19 @@ const ThemeSelector = () => {
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        <div className="fixed inset-0 z-[400]" onClick={() => setIsOpen(false)}></div>
                         <motion.div
-                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[400] bg-slate-900/40 backdrop-blur-sm lg:hidden"
+                            onClick={() => setIsOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                            exit={{ opacity: 0, y: 50, scale: 0.95 }}
                             style={{ perspective: "1000px" }}
-                            className="fixed bottom-0 left-0 right-0 md:absolute md:bottom-auto md:left-auto md:right-0 md:top-full mt-4 w-full md:w-72 bg-base-100 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.2)] md:shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-t md:border border-base-content/10 z-[410] p-6 pb-10 md:pb-6 flex flex-col max-h-[85vh] md:max-h-none"
+                            className="fixed bottom-4 left-4 right-4 lg:absolute lg:bottom-auto lg:left-auto lg:right-0 lg:top-full mt-4 w-auto lg:w-72 bg-base-100 rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl lg:shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-base-content/10 z-[410] p-6 pb-6 lg:pb-6 flex flex-col max-h-[85vh] lg:max-h-none"
                         >
                             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-content/5">
                                 <Sparkles className="text-primary" size={20} />

@@ -45,6 +45,20 @@ export const getMe = async (req, res) => {
         const profile = await Profile.findByPk(userId);
         if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
 
+        // Synchronize email_verified from better-auth user table if needed
+        if (!profile.email_verified) {
+            const [users] = await sequelize.query(`SELECT emailVerified FROM \`user\` WHERE id = :id`, {
+                replacements: { id: userId }
+            });
+            if (users && users.length > 0) {
+                const isVerified = !!users[0].emailVerified;
+                if (isVerified) {
+                    profile.email_verified = true;
+                    await profile.save();
+                }
+            }
+        }
+
         // Détection des casquettes multiples
         const hasSupplierProfile = await Supplier.findOne({ where: { user_id: userId } });
         const hasDeliveryProfile = await DeliveryPerson.findOne({ where: { user_id: userId } });
@@ -84,6 +98,15 @@ export const updateMe = async (req, res) => {
         if (avatar_url !== undefined) profile.avatar_url = avatar_url;
 
         await profile.save();
+
+        // Propagate updates to Supplier and DeliveryPerson if they exist
+        const updates = {};
+        if (phone !== undefined) updates.phone = phone;
+
+        if (Object.keys(updates).length > 0) {
+            await Supplier.update(updates, { where: { user_id: userId } });
+            await DeliveryPerson.update(updates, { where: { user_id: userId } });
+        }
         res.json(profile);
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
