@@ -301,7 +301,7 @@ export default function DeliveryDashboard() {
 
 
     return (
-        <div className="relative space-y-10 lg:p-10 bg-[#F8FAFC] min-h-screen">
+        <div className="relative space-y-6 md:space-y-10 p-4 md:p-10 bg-[#F8FAFC] min-h-screen">
             <AnimatePresence>
                 {isFullyBlocked && (
                     <motion.div
@@ -359,23 +359,25 @@ export default function DeliveryDashboard() {
             )}
 
             {/* Header Statique Livreur */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div>
                     <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em] mb-2">
                         <Activity size={14} /> LIVE CENTER
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Bienvenue, <span className="text-primary">{clerkUser?.firstName || "Rider"}</span></h1>
-                    <p className="text-slate-500 font-bold mt-1">Gérez vos courses en temps réel.</p>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Bienvenue, <span className="text-primary">{clerkUser?.firstName || "Rider"}</span></h1>
+                    <p className="text-slate-500 font-bold mt-1 text-sm md:text-base">Gérez vos courses en temps réel.</p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <ThemeSelector />
-                    <PortalSwitcher />
-                    <NotificationCenter />
-                    <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <div className="flex items-center gap-2 mr-auto lg:mr-0">
+                        <ThemeSelector />
+                        <PortalSwitcher />
+                        <NotificationCenter />
+                    </div>
+                    <div className="flex items-center gap-4 bg-white p-1.5 md:p-2 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm w-full sm:w-auto">
                         <button
                             onClick={handleToggleOnline}
-                            className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-400'}`}
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-400'}`}
                         >
                             <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-300'}`}></div>
                             {isOnline ? "Disponible" : "Hors Ligne"}
@@ -385,14 +387,14 @@ export default function DeliveryDashboard() {
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {stats.map((s, idx) => (
-                    <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center justify-between group hover:border-primary/30 transition-all">
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
-                            <p className="text-3xl font-black text-slate-900">{s.value}</p>
+                    <div key={idx} className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex flex-col md:flex-row items-start md:items-center justify-between group hover:border-primary/30 transition-all gap-4">
+                        <div className="space-y-1 md:space-y-2">
+                            <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
+                            <p className="text-xl md:text-3xl font-black text-slate-900">{s.value}</p>
                         </div>
-                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                        <div className="w-10 h-10 md:w-16 md:h-16 bg-slate-50 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-2xl group-hover:scale-110 transition-transform self-end md:self-auto">
                             {s.icon}
                         </div>
                     </div>
@@ -400,14 +402,14 @@ export default function DeliveryDashboard() {
             </div>
 
             {/* Tabs Layout */}
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/10 overflow-hidden">
-                <div className="flex border-b border-slate-50 p-4 gap-4 overflow-x-auto custom-scrollbar">
+            <div className="bg-white rounded-3xl md:rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/10 overflow-hidden">
+                <div className="flex border-b border-slate-50 p-2 md:p-4 gap-2 md:gap-4 overflow-x-auto custom-scrollbar no-scrollbar">
                     <button
                         onClick={() => {
                             setTab("available");
                             if (tab === 'available') loadData();
                         }}
-                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'available' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'available' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         Disponibles ({availableOrders.length})
                     </button>
@@ -416,7 +418,7 @@ export default function DeliveryDashboard() {
                             setTab("active");
                             if (tab === 'active') loadData();
                         }}
-                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'active' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'active' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         En cours ({activeOrders.length})
                     </button>
@@ -425,7 +427,7 @@ export default function DeliveryDashboard() {
                             setTab("history");
                             if (tab === 'history') loadData();
                         }}
-                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'history' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                        className={`flex-none min-w-[100px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'history' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         Historique
                     </button>
@@ -434,7 +436,7 @@ export default function DeliveryDashboard() {
                             setTab("profile");
                             if (tab === 'profile') loadData();
                         }}
-                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         ZONES & INFOS
                     </button>
@@ -443,7 +445,7 @@ export default function DeliveryDashboard() {
                             setTab("wallet");
                             if (tab === 'wallet') loadData();
                         }}
-                        className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
+                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-400 hover:bg-slate-50'}`}
                     >
                         PORTEFEUILLE
                     </button>
@@ -461,7 +463,7 @@ export default function DeliveryDashboard() {
                     </button>
                 </div>
 
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                     <AnimatePresence mode="wait">
                         {loading ? (
                             <motion.div
@@ -504,7 +506,7 @@ export default function DeliveryDashboard() {
                                         </div>
                                     ) : (
                                         availableOrders.map(order => (
-                                            <div key={order.id} className="bg-slate-50 rounded-3xl p-8 border border-slate-100 flex flex-col lg:flex-row items-center justify-between gap-8 group hover:bg-white hover:shadow-xl transition-all duration-500">
+                                            <div key={order.id} className="bg-slate-50 rounded-3xl p-6 md:p-8 border border-slate-100 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 md:gap-8 group hover:bg-white hover:shadow-xl transition-all duration-500">
                                                 <div className="flex items-center gap-6 w-full lg:w-auto">
                                                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:rotate-12 transition-transform">
                                                         <Package size={28} />
@@ -569,7 +571,7 @@ export default function DeliveryDashboard() {
                                         </div>
                                     ) : (
                                         activeOrders.map(order => (
-                                            <div key={order.id} className="bg-white rounded-3xl p-8 border-2 border-primary/20 shadow-xl shadow-primary/5 space-y-8">
+                                            <div key={order.id} className="bg-white rounded-3xl p-6 md:p-8 border-2 border-primary/20 shadow-xl shadow-primary/5 space-y-6 md:space-y-8">
                                                 <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                                                     <div className="space-y-3">
                                                         <div className="flex items-center gap-2">
@@ -721,7 +723,7 @@ export default function DeliveryDashboard() {
                                 )}
 
                                 {tab === 'profile' && myself && (
-                                    <div className="p-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="p-4 md:p-10 space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                             <div className="space-y-6">
                                                 <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
@@ -807,9 +809,9 @@ export default function DeliveryDashboard() {
                                 )}
 
                                 {tab === 'wallet' && (
-                                    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
-                                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                                    <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-slate-900 rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden">
+                                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-8">
                                                 <div>
                                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Solde Disponible</p>
                                                     <h2 className="text-5xl font-black">{Number(walletStats?.balance || 0).toLocaleString()} <span className="text-xl text-primary">F</span></h2>
@@ -823,12 +825,12 @@ export default function DeliveryDashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                            <div className="space-y-6">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+                                            <div className="space-y-4 md:space-y-6">
                                                 <h3 className="text-lg font-black text-slate-900">Demandes de retrait</h3>
                                                 <div className="space-y-4">
                                                     {(walletStats?.payoutRequests || []).map(p => (
-                                                        <div key={p.id} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+                                                        <div key={p.id} className="bg-slate-50 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 flex justify-between items-center">
                                                             <div>
                                                                 <p className="font-black text-slate-900">{Number(p.amount).toLocaleString()} F</p>
                                                                 <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
@@ -840,12 +842,12 @@ export default function DeliveryDashboard() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="space-y-6">
+                                            <div className="space-y-4 md:space-y-6">
                                                 <h3 className="text-lg font-black text-slate-900">Dernières transactions</h3>
                                                 <div className="space-y-4">
                                                     {(walletStats?.transactions || []).map(t => (
-                                                        <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center hover:shadow-lg transition-shadow">
-                                                            <div className="flex items-center gap-4">
+                                                        <div key={t.id} className="bg-white p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 flex justify-between items-center hover:shadow-lg transition-shadow">
+                                                            <div className="flex items-center gap-3 md:gap-4">
                                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t.type === 'earning' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
                                                                     <Banknote size={18} />
                                                                 </div>
@@ -880,7 +882,7 @@ export default function DeliveryDashboard() {
                         />
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl relative z-10 space-y-8"
+                            className="bg-white w-full max-w-lg rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 shadow-2xl relative z-10 space-y-6 md:space-y-8"
                         >
                             <div className="space-y-2">
                                 <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Retrait d'argent</h3>
