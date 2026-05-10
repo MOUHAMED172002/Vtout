@@ -94,7 +94,7 @@ export default function FaqList() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-8 pb-8 text-slate-600 text-sm md:text-base leading-relaxed font-medium">
+                        <div className="whitespace-pre-line px-8 pb-8 text-slate-600 text-sm md:text-base leading-relaxed font-medium">
                           {item.answer}
                         </div>
                       </motion.div>
