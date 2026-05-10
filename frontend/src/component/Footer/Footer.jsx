@@ -15,7 +15,7 @@ const FooterLinks = [
 ];
 
 const FooterNav = [
-    { title: "Le Mag", link: "/mag" },
+    { title: "Blog", link: "/mag" },
     { title: "Supports", link: "/#" },
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
@@ -173,7 +173,13 @@ const Footer = () => {
                             <ShieldCheck size={16} className="text-green-500" /> Paiements 100% sécurisés
                         </div>
                         <div className="hidden md:block h-3 w-px bg-base-300"></div>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de confidentialité</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de livraison</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de retours et de remboursement </Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique des produits interdits</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de résolution des litiges</Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Condition livreur </Link>
+                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Condition vendeur</Link>
                         <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">CGV</Link>
                         <div className="hidden md:block h-3 w-px bg-base-300"></div>
                     </div>
