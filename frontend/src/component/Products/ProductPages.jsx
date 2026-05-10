@@ -448,7 +448,7 @@ export default function ProductPages() {
             <h3 className="text-2xl md:text-3xl font-black text-gray-800">Détails du produit</h3>
             <div className="h-px flex-1 bg-gray-100"></div>
           </div>
-          <div className="prose prose-sm md:prose-lg max-w-none text-gray-600 leading-relaxed">
+          <div className="prose whitespace-pre-line prose-sm md:prose-lg max-w-none text-gray-600 leading-relaxed">
             {product.description}
           </div>
         </div>
