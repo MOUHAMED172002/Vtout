@@ -98,7 +98,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             category_id: initialData.category_id || '',
             boutique_id: initialData.boutique_id || '',
             variants: initialData.variants || [],
-            supplier_price: initialData.supplier_price || initialData.price || '',
+            supplier_price: initialData.price || initialData.supplier_price || '',
             stock: initialData.stock || 0,
             supplier_note: initialData.supplier_note || ''
         } : {
@@ -511,12 +511,12 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8 shadow-inner">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Prix de vente final (FCFA)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Prix de vente public (FCFA)</label>
                                         <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 10000" />
                                     </div>
                                     {globalSupplierPrice && (
                                         <div className="px-4 py-3 bg-white/50 rounded-2xl flex justify-between items-center">
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Votre gain net (estimation) :</span>
+                                            <span className="text-[9px] font-black uppercase text-slate-400">Votre gain net (estimation {commissionRate}%) :</span>
                                             <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
                                         </div>
                                     )}
@@ -567,7 +567,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black uppercase text-slate-400">Prix</label>
+                                                            <label className="text-[9px] font-black uppercase text-slate-400">Prix de vente public</label>
                                                             <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
                                                         </div>
                                                         <div className="space-y-1">

@@ -79,20 +79,44 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   // ── Price Logic ──
   const getProductDisplayPrice = () => {
-    const bPrice = Number(product?.price || 0);
-    const bOldPrice = Number(product?.old_price || 0);
+    if (!product) return { currentPrice: 0, oldPrice: 0, isSale: false, discountPercent: 0 };
 
-    // Check first variant
-    const firstVariantPrice = product?.variants?.[0]?.priceRows?.[0];
-    const vPrice = firstVariantPrice ? Number(firstVariantPrice.price || 0) : 0;
-    const vOldPrice = firstVariantPrice ? Number(firstVariantPrice.old_price || 0) : 0;
+    // 1. Check all variants for a valid price
+    let minVariantPrice = Infinity;
+    let minVariantOldPrice = 0;
+    let foundVariant = false;
 
-    // Priority: Variant Price > Base Price > Supplier Price (Fallback)
-    let finalCurrent = vPrice > 0 ? vPrice : bPrice;
-    let finalOld = vOldPrice > 0 ? vOldPrice : bOldPrice;
+    if (product.variants && product.variants.length > 0) {
+      product.variants.forEach(v => {
+        const pRow = v.priceRows?.[0];
+        const p = Number(pRow?.price || 0);
+        if (p > 0 && p < minVariantPrice) {
+          minVariantPrice = p;
+          minVariantOldPrice = Number(pRow?.old_price || 0);
+          foundVariant = true;
+        }
+      });
+    }
 
-    if (finalCurrent <= 0) {
-      finalCurrent = Number(product?.supplier_price || 0);
+    // 2. Base Prices
+    const bPrice = Number(product.price || 0);
+    const bOldPrice = Number(product.old_price || 0);
+    const sPrice = Number(product.supplier_price || 0);
+
+    // 3. Final Decision Logic (matches ProductPages.jsx)
+    let finalCurrent = 0;
+    let finalOld = 0;
+
+    if (foundVariant) {
+      finalCurrent = minVariantPrice;
+      finalOld = minVariantOldPrice;
+    } else if (bPrice > 0) {
+      finalCurrent = bPrice;
+      finalOld = bOldPrice;
+    } else {
+      // Last resort fallback
+      finalCurrent = sPrice;
+      finalOld = bOldPrice;
     }
 
     return {

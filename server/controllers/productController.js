@@ -398,12 +398,20 @@ export const createProduct = async (req, res) => {
                 }
 
                 // Add Supplier Link for this variant
+                // Calculate variant supplier price if missing or to enforce rate
+                let vFinalPrice = v.price || price || 0;
+                let vSupplierPrice = v.supplier_price;
+                
+                if (vSupplierPrice === undefined) {
+                    vSupplierPrice = Math.round(vFinalPrice * (1 - commissionRate));
+                }
+
                 await SupplierProduct.create({
                     supplier_id: finalSupplierId,
                     product_id: productId,
                     variant_id: variantId,
                     supplier_sku: v.sku || null,
-                    supplier_price: v.supplier_price || v.price || supplier_price || price || 0,
+                    supplier_price: vSupplierPrice,
                     available: true,
                     approval_status: finalStatus
                 }, { transaction });
@@ -622,7 +630,7 @@ export const updateProduct = async (req, res) => {
                             product_id: id,
                             variant_id: newVariant.id,
                             supplier_sku: link.supplier_sku || null,
-                            supplier_price: link.supplier_price || v.price || price,
+                            supplier_price: link.supplier_price || Math.round((v.price || price || 0) * (1 - commissionRate)),
                             available: true
                         };
                     });
