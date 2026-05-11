@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (user) {
         getToken().then(token => {
-            fetch(`${import.meta.env.VITE_API_URL}/financials/me`, {
+            fetch(`${import.meta.env.VITE_API_URL}/financials/my-status`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             .then(res => res.json())

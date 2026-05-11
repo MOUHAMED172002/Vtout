@@ -180,6 +180,35 @@ export default function ProductPages() {
     }
   }, [matchedVariant, productImages, attributeValueImages, selectedAttributes, product]);
 
+  const allImages = useMemo(() => {
+    return uniq([
+      ...variants.map((v) => v.priceRows?.[0]?.image_url).filter(Boolean),
+      ...productImages,
+    ]);
+  }, [variants, productImages]);
+
+  const mobileScrollRef = useRef(null);
+
+  useEffect(() => {
+    if (mobileScrollRef.current && allImages.length > 0) {
+      const idx = allImages.indexOf(activeMainImage);
+      if (idx !== -1) {
+        const container = mobileScrollRef.current;
+        const width = container.clientWidth;
+        // Don't smooth scroll on initial render to prevent jumpy effects
+        container.scrollTo({ left: idx * width, behavior: 'smooth' });
+      }
+    }
+  }, [activeMainImage, allImages]);
+
+  const handleMobileScroll = useCallback((e) => {
+    const container = e.target;
+    const index = Math.round(container.scrollLeft / container.clientWidth);
+    if (allImages[index] && allImages[index] !== activeMainImage) {
+      setActiveMainImage(allImages[index]);
+    }
+  }, [allImages, activeMainImage]);
+
   const { addToCart } = useCart();
 
   const handleAddToCart = async () => {
@@ -239,27 +268,53 @@ export default function ProductPages() {
           {/* Gallery - 7 cols on LG */}
           <div className="lg:col-span-7 space-y-4">
             <div className="relative aspect-square md:aspect-auto md:h-[600px] bg-gray-50 rounded-2xl md:rounded-[2rem] overflow-hidden border border-gray-100 group">
+              {/* Mobile Carousel */}
+              <div 
+                ref={mobileScrollRef}
+                onScroll={handleMobileScroll}
+                className="md:hidden flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+              >
+                {allImages.map((src, i) => (
+                  <div key={i} className="min-w-full h-full flex-shrink-0 snap-center relative">
+                    <img
+                      src={src}
+                      className="w-full h-full object-contain p-4 mix-blend-multiply"
+                      alt={`${product.name} - Vue ${i + 1}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Desktop Main Image */}
               <img
                 src={activeMainImage}
-                className="w-full h-full object-contain p-4 md:p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
+                className="hidden md:block w-full h-full object-contain p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
                 alt={product.name}
               />
+
               <button
                 onClick={toggleFav}
-                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all ${isFav ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white/80 text-gray-800 hover:bg-white'}`}
+                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all z-10 ${isFav ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white/80 text-gray-800 hover:bg-white'}`}
               >
                 {isFav ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
               </button>
+              
+              {/* Mobile Pagination Dots */}
+              <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 pointer-events-none">
+                {allImages.map((src, i) => (
+                  <div 
+                    key={i} 
+                    className={`h-1.5 rounded-full transition-all ${activeMainImage === src ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300'}`}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Thumbnails */}
-            <div className="flex items-center gap-2 py-1">
-              <button className="hidden md:flex btn btn-circle btn-xs btn-ghost" onClick={() => thumbsRef.current.scrollLeft -= 100}><ChevronLeft size={16} /></button>
+            {/* Thumbnails (Desktop Only) */}
+            <div className="hidden md:flex items-center gap-2 py-1">
+              <button className="btn btn-circle btn-xs btn-ghost" onClick={() => thumbsRef.current.scrollLeft -= 100}><ChevronLeft size={16} /></button>
               <div ref={thumbsRef} className="flex-1 flex gap-3 overflow-x-auto scrollbar-hide py-1 px-1 snap-x">
-                {uniq([
-                  ...variants.map((v) => v.priceRows?.[0]?.image_url).filter(Boolean),
-                  ...productImages,
-                ]).map((src, i) => (
+                {allImages.map((src, i) => (
                   <button
                     key={i}
                     type="button"
@@ -276,7 +331,7 @@ export default function ProductPages() {
                   </button>
                 ))}
               </div>
-              <button className="hidden md:flex btn btn-circle btn-xs btn-ghost" onClick={() => thumbsRef.current.scrollLeft += 100}><ChevronRight size={16} /></button>
+              <button className="btn btn-circle btn-xs btn-ghost" onClick={() => thumbsRef.current.scrollLeft += 100}><ChevronRight size={16} /></button>
             </div>
           </div>
 

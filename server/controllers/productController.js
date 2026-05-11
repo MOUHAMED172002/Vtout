@@ -433,16 +433,20 @@ export const updateProduct = async (req, res) => {
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
         } = req.body;
 
-        if (!variants || variants.length === 0) {
-            if (stock === undefined || stock === null || stock === '') {
-                await transaction.rollback();
-                return res.status(400).json({ error: 'Le stock est obligatoire pour ce produit.' });
-            }
-        } else {
-            for (const v of variants) {
-                if (v.stock === undefined || v.stock === null || v.stock === '') {
+        const isApprovalOnly = Object.keys(req.body).every(k => ['approval_status', 'price', 'admin_feedback', 'isAdmin'].includes(k));
+
+        if (!isApprovalOnly) {
+            if (!variants || variants.length === 0) {
+                if (stock === undefined || stock === null || stock === '') {
                     await transaction.rollback();
-                    return res.status(400).json({ error: 'Le stock est obligatoire pour chaque variante.' });
+                    return res.status(400).json({ error: 'Le stock est obligatoire pour ce produit.' });
+                }
+            } else {
+                for (const v of variants) {
+                    if (v.stock === undefined || v.stock === null || v.stock === '') {
+                        await transaction.rollback();
+                        return res.status(400).json({ error: 'Le stock est obligatoire pour chaque variante.' });
+                    }
                 }
             }
         }
@@ -501,23 +505,24 @@ export const updateProduct = async (req, res) => {
         }
 
         // 1. Update base product
-        const [updatedRows] = await Product.update({
+        const updatePayload = {
             name,
             description,
-            price: finalPrice,
-            old_price: old_price,
-            stock: stock || 0,
             category_id,
-            is_flash_sale: (isSupplier && !isAdmin) ? productToEdit.is_flash_sale : (is_flash_sale !== undefined ? is_flash_sale : undefined),
-            flash_sale_end: (isSupplier && !isAdmin) ? productToEdit.flash_sale_end : (flash_sale_end !== undefined ? flash_sale_end : undefined),
-            supplier_id: isAdmin ? supplier_id : undefined,
-            supplier_price: supplier_price,
-            approval_status: finalStatus,
-            admin_feedback: isAdmin ? admin_feedback : undefined,
-            in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : undefined,
-            boutique_id: isAdmin ? (boutique_id !== undefined ? boutique_id : undefined) : undefined
+            approval_status: finalStatus
+        };
+        if (finalPrice !== undefined) updatePayload.price = finalPrice;
+        if (old_price !== undefined) updatePayload.old_price = old_price;
+        if (stock !== undefined) updatePayload.stock = stock;
+        if (is_flash_sale !== undefined && (!isSupplier || isAdmin)) updatePayload.is_flash_sale = is_flash_sale;
+        if (flash_sale_end !== undefined && (!isSupplier || isAdmin)) updatePayload.flash_sale_end = flash_sale_end;
+        if (isAdmin && supplier_id !== undefined) updatePayload.supplier_id = supplier_id;
+        if (supplier_price !== undefined) updatePayload.supplier_price = supplier_price;
+        if (isAdmin && admin_feedback !== undefined) updatePayload.admin_feedback = admin_feedback;
+        if (in_stock_supplier !== undefined) updatePayload.in_stock_supplier = in_stock_supplier;
+        if (isAdmin && boutique_id !== undefined) updatePayload.boutique_id = boutique_id;
 
-        }, {
+        const [updatedRows] = await Product.update(updatePayload, {
             where: { id },
             transaction
         });
