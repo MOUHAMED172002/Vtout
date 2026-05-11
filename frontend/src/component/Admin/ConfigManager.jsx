@@ -62,6 +62,40 @@ const ConfigManager = () => {
                 });
             }
 
+            // Gestion des frais de livraison dynamiques
+            if (!uniqueData.find(c => c.key === 'base_delivery_fee')) {
+                uniqueData.push({
+                    key: 'base_delivery_fee',
+                    value: '1000',
+                    group: 'marketplace',
+                    description: 'Frais de livraison de base (intégrés dans le prix produit)'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'intra_department_fee')) {
+                uniqueData.push({
+                    key: 'intra_department_fee',
+                    value: '500',
+                    group: 'marketplace',
+                    description: 'Supplément livraison (communes diff. même département)'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'inter_department_fee')) {
+                uniqueData.push({
+                    key: 'inter_department_fee',
+                    value: '1000',
+                    group: 'marketplace',
+                    description: 'Supplément livraison (départements différents)'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'crossing_fees')) {
+                uniqueData.push({
+                    key: 'crossing_fees',
+                    value: JSON.stringify({ "1-2": 1500, "1-3": 2000 }),
+                    group: 'marketplace',
+                    description: 'Matrice des tarifs par croisement de départements (JSON: {"id1-id2": prix})'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'hero_carousel')) {
                 uniqueData.push({
                     key: 'hero_carousel',

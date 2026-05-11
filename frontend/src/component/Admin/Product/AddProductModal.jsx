@@ -24,11 +24,13 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 import CategorySearchModal from '../../Shared/CategorySearchModal';
 
+const DELIVERY_FEE = 1000;
+
 const baseSteps = [
   { id: 'info', title: 'Informations', icon: Info },
   { id: 'images', title: 'Images', icon: ImageIcon },
   { id: 'variants', title: 'Variantes', icon: Layers },
-  { id: 'suppliers', title: 'Logistique', icon: Truck },
+  { id: 'suppliers', title: 'Prix & Stock', icon: Truck },
 ];
 
 const InlineAdder = ({ label, onAdd, loading }) => {
@@ -148,11 +150,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (watchPrice && commissionRate) {
-      const calculated = Math.round(parseFloat(watchPrice) * (1 - commissionRate / 100));
-      if (calculated !== parseFloat(globalSupplierPrice)) {
-        setIsInternalPriceChange(true);
-        setGlobalSupplierPrice(calculated.toString());
-      }
+        // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
+        const publicPrice = parseFloat(watchPrice);
+        const calculated = Math.round((publicPrice * (1 - commissionRate / 100)) - DELIVERY_FEE);
+        
+        if (calculated !== parseFloat(globalSupplierPrice)) {
+            setIsInternalPriceChange(true);
+            setGlobalSupplierPrice(calculated.toString());
+        }
     }
   }, [watchPrice, commissionRate]);
 
@@ -163,11 +168,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (globalSupplierPrice && commissionRate) {
-      const calculated = Math.round(parseFloat(globalSupplierPrice) / (1 - commissionRate / 100));
-      if (calculated !== parseFloat(watchPrice)) {
-        setIsInternalPriceChange(true);
-        setValue('price', calculated);
-      }
+        // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
+        const supplierPrice = parseFloat(globalSupplierPrice);
+        const calculated = Math.round((supplierPrice + DELIVERY_FEE) / (1 - commissionRate / 100));
+        
+        if (calculated !== parseFloat(watchPrice)) {
+            setIsInternalPriceChange(true);
+            setValue('price', calculated);
+        }
     }
   }, [globalSupplierPrice, commissionRate]);
 
@@ -764,13 +772,47 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     </div>
                   )}
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Prix de gros (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400">Net Fournisseur (Votre gain)</label>
                     <div className="relative">
                       <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Accordé (FCFA)" />
                       <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-indigo-300">FCFA</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Breakdown Visualizer */}
+                {globalSupplierPrice && (
+                  <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Sparkles size={16} className="text-primary" />
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net</p>
+                            <p className="text-sm font-black">{Number(globalSupplierPrice).toLocaleString()} F</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
+                            <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
+                            <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
+                        </div>
+                        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+                            <p className="text-[9px] font-bold text-primary uppercase">Prix Client Final</p>
+                            <p className="text-base font-black text-primary">{Number(watchPrice).toLocaleString()} F</p>
+                        </div>
+                    </div>
+                    <div className="pt-2 flex items-start gap-2">
+                        <Info size={12} className="text-slate-400 mt-0.5" />
+                        <p className="text-[9px] font-bold text-slate-400 leading-relaxed italic">
+                            Le client verra ce produit avec le badge <span className="text-emerald-600 uppercase">"Livraison Offerte"</span>. Les frais de livraison de 1 000 F sont inclus dans le prix final.
+                        </p>
+                    </div>
+                  </div>
+                )}
 
                 {isSupplier && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

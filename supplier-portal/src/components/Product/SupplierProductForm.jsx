@@ -290,6 +290,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
 
             if (processedVariants && processedVariants.length > 0) {
                 const minVariantPrice = Math.min(...processedVariants.map(v => v.price));
+                const minVariantPrice = Math.min(...processedVariants.map(v => v.supplier_price));
                 finalPrice = minVariantPrice > 0 ? minVariantPrice : 0;
                 calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
             }
@@ -300,7 +301,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 category_id: parseInt(data.category_id),
                 images: uploadedImages,
                 supplier_note: data.supplier_note,
-                price: finalPrice,
+                price: finalPrice + 1000,
                 supplier_price: calculatedSupplierPrice,
                 stock: parseInt(data.stock) || 0,
                 status: 'draft',
@@ -511,19 +512,30 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8 shadow-inner">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Prix de vente public (FCFA)</label>
-                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 10000" />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Votre prix de vente souhaité (FCFA)</label>
+                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
                                     </div>
-                                    {globalSupplierPrice && (
-                                        <div className="px-4 py-3 bg-white/50 rounded-2xl flex justify-between items-center">
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Votre gain net (estimation {commissionRate}%) :</span>
-                                            <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
+                                    <div className="space-y-2 px-4">
+                                        <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
+                                            <span>Frais de livraison (Inclus) :</span>
+                                            <span className="text-indigo-500">+ 1 000 F</span>
                                         </div>
-                                    )}
+                                        <div className="flex justify-between items-center text-xs font-black text-slate-900 pt-2 border-t border-indigo-100">
+                                            <span>Prix affiché aux clients :</span>
+                                            <span className="text-lg text-primary">{globalSupplierPrice ? (Number(globalSupplierPrice) + 1000).toLocaleString() : '1 000'} F</span>
+                                        </div>
+                                        {globalSupplierPrice && (
+                                            <div className="mt-4 p-3 bg-emerald-50 rounded-2xl flex justify-between items-center border border-emerald-100">
+                                                <span className="text-[9px] font-black uppercase text-emerald-600">Votre gain net ({100 - commissionRate}%) :</span>
+                                                <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
                                     <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                    <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut 1 000 F pour le livreur. Le client verra "Livraison Gratuite".</p>
                                 </div>
                             </div>
                             )}
@@ -564,17 +576,19 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                         {Object.entries(v.combination).map(([a, val], i) => (
                                                             <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">{a}: {val}</span>
                                                         ))}
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                                                    <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black uppercase text-slate-400">Prix de vente public</label>
+                                                            <label className="text-[9px] font-black uppercase text-slate-400">Votre prix souhaité</label>
                                                             <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
+                                                            <div className="text-[8px] font-bold text-slate-400 mt-1">
+                                                                + 1 000 F Livr. = <span className="text-primary">{(Number(watch(`variants.${idx}.supplier_price`)) + 1000).toLocaleString()} F</span>
+                                                            </div>
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black uppercase text-slate-400">Stock</label>
                                                             <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black" placeholder="Stock" />
                                                         </div>
-                                                    </div>
+                                                    </div>                      </div>
                                                 </div>
                                             </div>
                                         ))}

@@ -1,4 +1,4 @@
-import { Cart, Product, ProductImage } from '../models/index.js';
+import { Cart, Product, ProductImage, Boutique } from '../models/index.js';
 
 
 export const getMyCart = async (req, res) => {
@@ -9,7 +9,10 @@ export const getMyCart = async (req, res) => {
             include: [{
                 model: Product,
                 as: 'product',
-                include: [{ model: ProductImage, as: 'images' }]
+                include: [
+                    { model: ProductImage, as: 'images' },
+                    { model: Boutique, as: 'boutique' }
+                ]
             }]
         });
         res.json(cartItems);

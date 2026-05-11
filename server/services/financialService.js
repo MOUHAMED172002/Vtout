@@ -50,12 +50,14 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                     const configRate = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
                     if (configRate?.value) commissionRate = parseFloat(configRate.value) / 100;
 
+                    let subtotal = 0;
                     for (const item of items) {
-                        const prixVendu = parseFloat(item.price);
-                        const adminProfit = prixVendu * commissionRate;
-                        supplierTotal += (prixVendu - adminProfit) * item.quantity;
-                        adminTotal += adminProfit * item.quantity;
+                        subtotal += parseFloat(item.price) * item.quantity;
                     }
+
+                    let adminTotal = subtotal * commissionRate;
+                    const deliveryFee = parseFloat(order.delivery_fee || 0);
+                    supplierTotal = subtotal - adminTotal - deliveryFee;
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({

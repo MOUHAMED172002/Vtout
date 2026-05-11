@@ -176,7 +176,10 @@ export const createOrder = async (req, res) => {
 
         // 1. Initial Validation & Stock Check
         for (const item of items) {
-            const product = await Product.findByPk(item.product_id, { transaction });
+            const product = await Product.findByPk(item.product_id, { 
+                include: [{ model: Boutique, as: 'boutique' }],
+                transaction 
+            });
             if (!product) {
                 await transaction.rollback();
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
@@ -260,15 +263,63 @@ export const createOrder = async (req, res) => {
         }
 
         // 4. Create individual orders per supplier
+        const customerAddress = await Address.findByPk(address_id, { transaction });
+
+        // Load configuration for fees
+        const configs = await Config.findAll({ 
+            where: { key: ['base_delivery_fee', 'intra_department_fee', 'inter_department_fee', 'crossing_fees'] },
+            transaction 
+        });
+        const configMap = configs.reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
+        
+        const BASE_FEE = parseFloat(configMap['base_delivery_fee'] || 1000);
+        const INTRA_DEPT_FEE = parseFloat(configMap['intra_department_fee'] || 500);
+        const INTER_DEPT_FEE = parseFloat(configMap['inter_department_fee'] || 1000);
+        
+        let CROSSING_FEES = {};
+        try {
+            CROSSING_FEES = configMap['crossing_fees'] ? JSON.parse(configMap['crossing_fees']) : {};
+        } catch (e) {
+            console.error("Error parsing crossing_fees config", e);
+        }
+
         for (const sId of supplierIds) {
             const supplierItems = itemsBySupplier[sId];
             const actualSupplierId = sId === 'no_supplier' ? null : sId;
             let sSubtotal = supplierItems.reduce((sum, si) => sum + (si.unitPrice * si.item.quantity), 0);
             
-            let sDeliveryFee = 1000; 
+            // Calcul dynamique des frais de livraison
+            let supplement = 0;
+            const firstProductBoutique = supplierItems[0].product.boutique;
+
+            if (firstProductBoutique && customerAddress) {
+                if (String(firstProductBoutique.commune_id) === String(customerAddress.commune_id)) {
+                    // Même commune : Supplément 0
+                    supplement = 0;
+                } else if (String(firstProductBoutique.departement_id) === String(customerAddress.departement_id)) {
+                    // Même département, communes différentes : +500 F
+                    supplement = INTRA_DEPT_FEE;
+                } else {
+                    // Départements différents : Chercher dans la matrice ou utiliser le défaut
+                    const crossingKey = `${firstProductBoutique.departement_id}-${customerAddress.departement_id}`;
+                    const reverseKey = `${customerAddress.departement_id}-${firstProductBoutique.departement_id}`;
+                    
+                    if (CROSSING_FEES[crossingKey] !== undefined) {
+                        supplement = parseFloat(CROSSING_FEES[crossingKey]);
+                    } else if (CROSSING_FEES[reverseKey] !== undefined) {
+                        supplement = parseFloat(CROSSING_FEES[reverseKey]);
+                    } else {
+                        supplement = INTER_DEPT_FEE;
+                    }
+                }
+            }
+
+            let sDeliveryFee = BASE_FEE + supplement; 
             const orderShareOfSubtotal = subtotal > 0 ? (sSubtotal / subtotal) : 1;
             const sDiscount = totalDiscount * orderShareOfSubtotal;
-            const sTotal = (sSubtotal - sDiscount) + sDeliveryFee;
+            
+            // Le total payé par le client inclut le sous-total (qui a déjà le BASE_FEE intégré) + le supplément dynamique
+            const sTotal = (sSubtotal - sDiscount) + supplement;
             
             const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
             const orderId = crypto.randomUUID();

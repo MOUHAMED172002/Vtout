@@ -31,6 +31,29 @@ export default function CheckoutPage() {
   const [isValidating, setIsValidating] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [feesConfig, setFeesConfig] = useState({ intra: 500, inter: 1000, crossing: {} });
+  const [isDynamicFeeLoading, setIsDynamicFeeLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch delivery fee configs from public API
+    fetch(`${import.meta.env.VITE_API_URL}/configs/public`)
+      .then(res => res.json())
+      .then(data => {
+        const configMap = (data || []).reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
+        
+        let crossing = {};
+        try {
+            crossing = configMap['crossing_fees'] ? JSON.parse(configMap['crossing_fees']) : {};
+        } catch (e) { console.error("Crossing fees parse error", e); }
+
+        setFeesConfig({
+          intra: parseFloat(configMap['intra_department_fee'] ?? 500),
+          inter: parseFloat(configMap['inter_department_fee'] ?? 1000),
+          crossing
+        });
+      })
+      .catch(err => console.error("[Checkout] Error fetching configs:", err));
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -48,13 +71,54 @@ export default function CheckoutPage() {
 
   // Update delivery fee when address changes
   useEffect(() => {
-    if (address && address.is_valid) {
-      // Frais de livraison figés à 1000 F par ligne de produit
-      setDeliveryFee(1000 * itemsFromCart.length);
-    } else {
+    if (!address || !address.is_valid || itemsFromCart.length === 0) {
       setDeliveryFee(0);
+      return;
     }
-  }, [address]);
+
+    setIsDynamicFeeLoading(true);
+    
+    // Group items by supplier to calculate one supplement per supplier boutique
+    const suppliers = {};
+    itemsFromCart.forEach(it => {
+        // Find boutique info. Check nested product first, then item itself
+        const product = it.product || it;
+        const boutique = product.boutique;
+        const sId = product.supplier_id || boutique?.supplier_id || 'default';
+        if (!suppliers[sId]) {
+            suppliers[sId] = boutique;
+        }
+    });
+
+    let totalSupplement = 0;
+    Object.values(suppliers).forEach(boutique => {
+        if (!boutique) return;
+        
+        // Dynamic Supplement Logic:
+        // 1. Same Commune: 0 F (Included in base price)
+        // 2. Different Commune, Same Department: Intra-Dept Fee (default 500)
+        // 3. Different Department: Inter-Dept Matrix or default
+        if (String(boutique.commune_id) === String(address.commune_id)) {
+            // Livraison incluse (0 supplémentaire)
+        } else if (String(boutique.departement_id) === String(address.departement_id)) {
+            totalSupplement += feesConfig.intra;
+        } else {
+            const key = `${boutique.departement_id}-${address.departement_id}`;
+            const reverseKey = `${address.departement_id}-${boutique.departement_id}`;
+            
+            if (feesConfig.crossing[key] !== undefined) {
+                totalSupplement += parseFloat(feesConfig.crossing[key]);
+            } else if (feesConfig.crossing[reverseKey] !== undefined) {
+                totalSupplement += parseFloat(feesConfig.crossing[reverseKey]);
+            } else {
+                totalSupplement += feesConfig.inter;
+            }
+        }
+    });
+
+    setDeliveryFee(totalSupplement);
+    setIsDynamicFeeLoading(false);
+  }, [address, itemsFromCart, feesConfig]);
 
   const incoming = location?.state || {};
   const itemsFromCart = incoming.items || [];
@@ -422,14 +486,25 @@ export default function CheckoutPage() {
 
               <div className="space-y-6 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar relative z-10">
                 {itemsFromCart.map((it, idx) => (
-                  <div key={idx} className="flex justify-between items-center gap-4 group/item">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-black text-sm leading-tight text-slate-900 mb-1 truncate group-hover/item:text-primary transition-colors">{it.name || "Produit"}</p>
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
+                  <div key={idx} className="flex flex-col gap-1 py-2 border-b border-slate-50 last:border-0 group/item">
+                    <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                            <p className="font-black text-sm leading-tight text-slate-900 mb-1 truncate group-hover/item:text-primary transition-colors">{it.name || "Produit"}</p>
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
+                        </div>
+                        <span className="font-black text-slate-900 text-sm bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 italic transition-transform group-hover/item:-translate-x-1">
+                            {((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F
+                        </span>
                     </div>
-                    <span className="font-black text-slate-900 text-sm bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 italic transition-transform group-hover/item:-translate-x-1">
-                      {((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F
-                    </span>
+                    {/* Boutique Location Transparency */}
+                    {(it.product?.boutique || it.boutique) && (
+                        <div className="flex items-center gap-2 mt-1">
+                            <MapPin size={10} className="text-primary" />
+                            <p className="text-[9px] font-bold text-slate-400 italic">
+                                Expédié depuis : <span className="text-slate-600">{(it.product?.boutique?.commune_label || it.boutique?.commune_label)}, {(it.product?.boutique?.quartier_label || it.boutique?.quartier_label)}</span>
+                            </p>
+                        </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -469,9 +544,19 @@ export default function CheckoutPage() {
                         </div>
                     )}
                     <div className="flex justify-between text-slate-400 font-bold text-sm">
-                        <span>Livraison</span>
+                        <div className="flex flex-col">
+                            <span>Livraison</span>
+                            {address?.is_valid && deliveryFee === 0 && (
+                                <span className="text-[10px] text-emerald-500 font-black uppercase tracking-tighter">
+                                    Offerte
+                                </span>
+                            )}
+                        </div>
                         {address?.is_valid ? (
-                            <span className="text-primary font-black">{deliveryFee.toLocaleString()} F</span>
+                            <div className="text-right">
+                                <span className="text-primary font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
+                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-slate-400">Frais de zone</p>}
+                            </div>
                         ) : (
                             <span className="text-[10px] font-black uppercase text-slate-300 italic">Attente adresse</span>
                         )}

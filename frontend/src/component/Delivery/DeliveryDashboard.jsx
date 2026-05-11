@@ -570,8 +570,8 @@ export default function DeliveryDashboard() {
 
                                                 <div className="flex items-center gap-8 w-full lg:w-auto justify-between border-t lg:border-t-0 lg:border-l border-base-content/10 pt-6 lg:pt-0 lg:pl-8">
                                                     <div className="space-y-1">
-                                                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Commission Est.</p>
-                                                        <p className="text-2xl font-black text-base-content">1,500 F</p>
+                                                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Gain Course</p>
+                                                        <p className="text-2xl font-black text-primary">{(order.delivery_fee || 1000).toLocaleString()} F</p>
                                                     </div>
                                                     <button
                                                         onClick={() => handleAssign(order.id)}
@@ -744,7 +744,10 @@ export default function DeliveryDashboard() {
                                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
-                                                <p className="font-black text-slate-900">{Number(order.total_amount).toLocaleString()} F</p>
+                                                <div className="text-right">
+                                                    <p className="font-black text-slate-900 text-sm">{Number(order.delivery_fee || 0).toLocaleString()} F</p>
+                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Gain encaissé</p>
+                                                </div>
                                             </div>
                                         ))
                                     )

@@ -160,8 +160,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
         />
 
         {/* Glassmorphism Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2 z-4">
-          {finalDiscount > 0 && (
+        <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+          {isSaleActive && (
             <motion.span
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -170,7 +170,10 @@ export default function ProductCard({ product, onFavoriteChange }) {
               -{finalDiscount}%
             </motion.span>
           )}
-
+          <div className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-widest flex items-center gap-1.5">
+            <Truck size={12} strokeWidth={3} />
+            Livraison Offerte
+          </div>
         </div>
 
         {/* Favorite Button */}

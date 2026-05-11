@@ -24,6 +24,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 import { uploadSingleImage } from '../../../services/uploadService';
 import CategorySearchModal from '../../Shared/CategorySearchModal';
 
+const DELIVERY_FEE = 1000;
+
 // ─── Étapes ───────────────────────────────────────────────────────────────────
 const steps = [
   { id: 'info',      title: 'Informations',  icon: Info      },
@@ -226,11 +228,12 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchPrice && commissionRate) {
-      const calculated = Math.round(parseFloat(watchPrice) * (1 - commissionRate / 100));
-      if (calculated !== parseFloat(watchSupplierPrice)) {
-        setIsInternalPriceChange(true);
-        setValue('supplier_price', calculated);
-      }
+        // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
+        const calculated = Math.round((parseFloat(watchPrice) * (1 - commissionRate / 100)) - DELIVERY_FEE);
+        if (calculated !== parseFloat(watchSupplierPrice)) {
+            setIsInternalPriceChange(true);
+            setValue('supplier_price', calculated);
+        }
     }
   }, [watchPrice, commissionRate]);
 
@@ -241,11 +244,12 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchSupplierPrice && commissionRate) {
-      const calculated = Math.round(parseFloat(watchSupplierPrice) / (1 - commissionRate / 100));
-      if (calculated !== parseFloat(watchPrice)) {
-        setIsInternalPriceChange(true);
-        setValue('price', calculated);
-      }
+        // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
+        const calculated = Math.round((parseFloat(watchSupplierPrice) + DELIVERY_FEE) / (1 - commissionRate / 100));
+        if (calculated !== parseFloat(watchPrice)) {
+            setIsInternalPriceChange(true);
+            setValue('price', calculated);
+        }
     }
   }, [watchSupplierPrice, commissionRate]);
 
@@ -628,6 +632,41 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-2xl font-black text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
                   <span className="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-black text-slate-300">FCFA</span>
                 </div>
+
+                {/* Breakdown Visualizer */}
+                {watchSupplierPrice && (
+                    <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Sparkles size={16} className="text-indigo-500" />
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn.</p>
+                                <p className="text-sm font-black">{Number(watchSupplierPrice).toLocaleString()} F</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
+                                <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
+                                <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
+                            </div>
+                            <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                                <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
+                                <p className="text-base font-black text-indigo-500">{Number(watchPrice).toLocaleString()} F</p>
+                            </div>
+                        </div>
+                        <div className="pt-2 flex items-start gap-2">
+                            <Info size={12} className="text-slate-400 mt-0.5" />
+                            <p className="text-[9px] font-bold text-slate-400 leading-relaxed italic">
+                                Le client verra ce produit avec le badge <span className="text-emerald-600 uppercase">"Livraison Offerte"</span>. Les frais de livraison de 1 000 F sont inclus dans le prix final.
+                            </p>
+                        </div>
+                    </div>
+                )}
+                
                 <p className="text-[10px] font-bold text-slate-400">
                   ✏️ Modifiez ce montant pour corriger le prix négocié avec le fournisseur.
                 </p>
