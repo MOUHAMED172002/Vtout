@@ -147,15 +147,15 @@ export default function ProductPages() {
     // 1. Base Prices
     const bPrice = Number(product?.price || 0);
     const bOldPrice = Number(product?.old_price || 0);
-    const sPrice = Number(product?.supplier_price || 0);
 
-    // 2. Matched Variant Price
+    // 2. Matched Variant Price (when user selects a variant)
     const matchedP = matchedVariant?.priceRows?.[0];
     const vPrice = Number(matchedP?.price || 0);
     const vOldPrice = Number(matchedP?.old_price || 0);
     
     // 3. Logic: If we have a matched variant, use it. 
-    // Otherwise, use Base Price. If Base is 0, fallback to Supplier Price.
+    // Otherwise, use Base Public Price. 
+    // supplier_price is the NET amount for the supplier - NEVER displayed to customers.
     let finalCurrent = 0;
     let finalOld = 0;
 
@@ -166,7 +166,8 @@ export default function ProductPages() {
       finalCurrent = bPrice;
       finalOld = bOldPrice;
     } else {
-      finalCurrent = sPrice;
+      // Absolute last resort - should not happen in normal conditions
+      finalCurrent = Number(product?.supplier_price || 0);
       finalOld = bOldPrice;
     }
 

@@ -81,12 +81,11 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const getProductDisplayPrice = () => {
     if (!product) return { currentPrice: 0, oldPrice: 0, isSale: false, discountPercent: 0 };
 
-    // 1. Base Prices (Public selling price)
+    // 1. Base Public Prices (price = public selling price set by supplier)
     const bPrice = Number(product.price || 0);
     const bOldPrice = Number(product.old_price || 0);
-    const sPrice = Number(product.supplier_price || 0);
 
-    // 2. Variant Prices (as fallback if base price is 0)
+    // 2. Variant Public Prices (as fallback if base price is 0)
     let minVariantPrice = Infinity;
     let minVariantOldPrice = 0;
     let foundVariant = false;
@@ -95,6 +94,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
       product.variants.forEach(v => {
         const pRow = v.priceRows?.[0];
         const p = Number(pRow?.price || 0);
+        // Use the variant's PUBLIC price (not supplier net price)
         if (p > 0 && p < minVariantPrice) {
           minVariantPrice = p;
           minVariantOldPrice = Number(pRow?.old_price || 0);
@@ -103,7 +103,9 @@ export default function ProductCard({ product, onFavoriteChange }) {
       });
     }
 
-    // 3. Final Decision Logic (Priority: Base > Variant > Supplier)
+    // 3. Final Decision Logic
+    // Priority: Base Public Price > Variant Public Price > Last resort fallback
+    // supplier_price = NET amount after commission deduction - NEVER shown to customers
     let finalCurrent = 0;
     let finalOld = 0;
 
@@ -114,7 +116,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
       finalCurrent = minVariantPrice;
       finalOld = minVariantOldPrice;
     } else {
-      finalCurrent = sPrice;
+      // Absolute last resort - should not happen normally
+      finalCurrent = Number(product.supplier_price || 0);
       finalOld = bOldPrice;
     }
 
