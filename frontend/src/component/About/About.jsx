@@ -1,6 +1,6 @@
 import React from "react";
-import { Star, ShieldCheck, Truck, MessageCircle, Heart, Users, Target, Rocket } from "lucide-react";
-import { motion } from "framer-motion";
+import { Star, ShieldCheck, Truck, MessageCircle, Heart, Users, Target, Rocket, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 export default function About() {
@@ -15,6 +15,7 @@ export default function About() {
   const [title, setTitle] = React.useState("Notre Histoire");
   const [tagline, setTagline] = React.useState("L'excellence au service de votre style.");
   const [mission, setMission] = React.useState("Depuis notre création, notre mission est de démocratiser le luxe et la qualité premium. Nous sélectionnons chaque pièce avec une rigueur absolue pour vous offrir uniquement le meilleur du marché.");
+  const [showFullHistory, setShowFullHistory] = React.useState(false);
 
   React.useEffect(() => {
     const fetchAboutConfig = async () => {
@@ -81,9 +82,19 @@ export default function About() {
               {/* Long Story Column */}
               <div className="lg:col-span-8 space-y-12">
                 <div className="prose prose-slate max-w-none">
-                  <p className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium md:columns-2 gap-12 selection:bg-primary/10">
+                  <p className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium selection:bg-primary/10">
                     <span className="text-6xl font-black text-primary float-left mr-4 mt-2 h-12 flex items-center leading-none">"</span>
-                    {mission}
+                    {mission.length > 250 ? (
+                      <>
+                        {mission.substring(0, 250)}...
+                        <button 
+                          onClick={() => setShowFullHistory(true)}
+                          className="ml-2 text-primary font-black uppercase text-xs tracking-widest hover:underline inline-flex items-center gap-1"
+                        >
+                          Lire la suite <Rocket size={12} />
+                        </button>
+                      </>
+                    ) : mission}
                   </p>
                 </div>
                 
@@ -204,6 +215,54 @@ export default function About() {
           </div>
         </div>
       </section>
+      {/* Full History Modal */}
+      <AnimatePresence>
+        {showFullHistory && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowFullHistory(false)}
+              className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white rounded-[3rem] w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-white/20"
+            >
+              <div className="p-8 md:p-12 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div className="space-y-1">
+                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">L'Histoire de {title.split(' ')[0]}</h2>
+                  <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{tagline}</p>
+                </div>
+                <button 
+                  onClick={() => setShowFullHistory(false)} 
+                  className="p-4 bg-white rounded-2xl hover:bg-slate-50 transition-all shadow-sm border border-slate-100 group"
+                >
+                  <X size={24} className="text-slate-400 group-hover:text-primary transition-colors" />
+                </button>
+              </div>
+              <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar">
+                <div className="prose prose-slate max-w-none">
+                  <p className="text-xl md:text-2xl text-slate-600 leading-[1.6] font-medium md:columns-2 gap-16 selection:bg-primary/10 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-4 first-letter:float-left">
+                    {mission}
+                  </p>
+                </div>
+              </div>
+              <div className="p-8 border-t border-slate-100 bg-slate-50/30 flex justify-center">
+                <button 
+                  onClick={() => setShowFullHistory(false)}
+                  className="btn btn-primary rounded-2xl px-12 h-14 font-black"
+                >
+                  Fermer la lecture
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
