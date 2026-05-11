@@ -79,59 +79,56 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   // ── Price Logic ──
   const getProductDisplayPrice = () => {
-    if (!product) return { currentPrice: 0, oldPrice: 0, isSale: false, discountPercent: 0 };
+    if (!product) return { currentPrice: 0, basePrice: 0, isSale: false, discountPercent: 0 };
 
-    // 1. Base Public Prices (price = public selling price set by supplier)
+    // 1. Base Public Price (the real selling price set by supplier)
     const bPrice = Number(product.price || 0);
-    const bOldPrice = Number(product.old_price || 0);
 
-    // 2. Variant Public Prices (as fallback if base price is 0)
+    // 2. Lowest Variant Public Price (as alternate/sale price)
     let minVariantPrice = Infinity;
-    let minVariantOldPrice = 0;
     let foundVariant = false;
 
     if (product.variants && product.variants.length > 0) {
       product.variants.forEach(v => {
-        const pRow = v.priceRows?.[0];
-        const p = Number(pRow?.price || 0);
-        // Use the variant's PUBLIC price (not supplier net price)
+        const p = Number(v.priceRows?.[0]?.price || 0);
         if (p > 0 && p < minVariantPrice) {
           minVariantPrice = p;
-          minVariantOldPrice = Number(pRow?.old_price || 0);
           foundVariant = true;
         }
       });
     }
 
-    // 3. Final Decision Logic
-    // Priority: Base Public Price > Variant Public Price > Last resort fallback
-    // supplier_price = NET amount after commission deduction - NEVER shown to customers
+    // 3. Final Decision
+    // - If variants exist AND cheapest variant < bPrice → show variant price with bPrice crossed out (sale!)
+    // - If bPrice > 0 and no cheaper variant → just show bPrice (no strikethrough needed)
+    // - Last resort fallback only if both are 0
     let finalCurrent = 0;
-    let finalOld = 0;
+    let finalBase = bPrice; // bPrice is always the reference / strikethrough candidate
 
-    if (bPrice > 0) {
+    if (bPrice > 0 && foundVariant && minVariantPrice < bPrice) {
+      // Variant is cheaper than base → treat as a promotion
+      finalCurrent = minVariantPrice;
+    } else if (bPrice > 0) {
       finalCurrent = bPrice;
-      finalOld = bOldPrice;
     } else if (foundVariant) {
       finalCurrent = minVariantPrice;
-      finalOld = minVariantOldPrice;
+      finalBase = 0; // No base to compare against
     } else {
-      // Absolute last resort - should not happen normally
       finalCurrent = Number(product.supplier_price || 0);
-      finalOld = bOldPrice;
     }
 
+    const isSale = finalBase > finalCurrent && finalCurrent > 0;
     return {
       currentPrice: finalCurrent,
-      oldPrice: finalOld,
-      isSale: finalOld > finalCurrent && finalCurrent > 0,
-      discountPercent: (finalOld > finalCurrent && finalCurrent > 0)
-        ? Math.round(((finalOld - finalCurrent) / finalOld) * 100)
+      basePrice: finalBase,
+      isSale,
+      discountPercent: isSale
+        ? Math.round(((finalBase - finalCurrent) / finalBase) * 100)
         : 0
     };
   };
 
-  const { currentPrice, oldPrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
+  const { currentPrice, basePrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
   const showOldPrice = isSaleActive;
 
   // ── Deterministic Sales Count (Visual only) ──
@@ -255,7 +252,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
         <div className="flex items-baseline gap-2">
           <span className="text-2xl font-black text-base-content tracking-tighter">{formatPrice(currentPrice)} <span className="text-xs text-primary font-black uppercase ml-0.5">F</span></span>
           {showOldPrice && (
-            <span className="text-xs text-base-content/50 line-through decoration-base-content/20 font-bold">{formatPrice(oldPrice)} F</span>
+            <span className="text-xs text-base-content/50 line-through decoration-base-content/20 font-bold">{formatPrice(basePrice)} F</span>
           )}
         </div>
 
