@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Eye, Star, Zap } from "lucide-react";
+import { ShoppingCart, Eye, Star, Zap, Truck } from "lucide-react";
 import { useAuth, useUser } from "../../lib/clerk-shim";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
