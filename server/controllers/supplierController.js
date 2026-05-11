@@ -1,4 +1,4 @@
-import { Supplier, SupplierProduct, Product, ProductVariant, Profile, Boutique, sequelize } from '../models/index.js';
+import { Supplier, SupplierProduct, Product, ProductVariant, ProductVariantPrice, ProductImage, Category, Profile, Boutique, sequelize } from '../models/index.js';
 import crypto from 'crypto';
 import { sendSupplierApprovalNotification } from '../services/mailService.js';
 import { notifySupplierStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
@@ -290,8 +290,16 @@ export const getMyProducts = async (req, res) => {
 
         const products = await Product.findAll({
             where: { supplier_id: supplier.id },
-            attributes: { exclude: ['price', 'old_price'] },
-            include: ['images', { model: Category, as: 'category' }]
+            include: [
+                { model: ProductImage, as: 'images' },
+                { model: Category, as: 'category', attributes: ['id', 'name'] },
+                { 
+                    model: ProductVariant, 
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                }
+            ],
+            order: [['created_at', 'DESC']]
         });
         res.json(products);
     } catch (error) {
