@@ -152,7 +152,7 @@ const BlogDetail = () => {
             {blog.title}
           </h1>
 
-          <p className="text-xl text-slate-500 font-medium leading-relaxed italic border-l-4 border-indigo-500 pl-6">
+          <p className="text-xl text-slate-500 font-medium leading-relaxed italic border-l-4 border-indigo-500 pl-6 whitespace-pre-line">
             {blog.summary}
           </p>
 

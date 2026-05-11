@@ -73,7 +73,7 @@ const Blogs = () => {
                 <h3 className='font-black text-xl text-slate-900 group-hover:text-primary transition-colors leading-tight'>
                   {data.title}
                 </h3>
-                <p className='line-clamp-2 text-sm text-slate-500 font-medium leading-relaxed'>
+                <p className='line-clamp-2 text-sm text-slate-500 font-medium leading-relaxed whitespace-pre-line'>
                   {data.summary}
                 </p>
                 <div className="flex items-center gap-2 pt-2">

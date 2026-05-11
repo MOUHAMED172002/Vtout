@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Truck, RotateCcw, Lock, FileText, ChevronRight, HelpCircle } from "lucide-react";
 import { getPolicies } from "../../services/contentService";
@@ -16,6 +17,7 @@ export default function PolicyPage() {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     fetchData();
@@ -25,13 +27,30 @@ export default function PolicyPage() {
     try {
       const data = await getPolicies();
       setPolicies(data);
-      if (data.length > 0) setActiveTab(data[0].id);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (policies.length > 0) {
+      const searchParams = new URLSearchParams(location.search);
+      const tabParam = searchParams.get('tab');
+      
+      if (tabParam) {
+        const matchingPolicy = policies.find(p => p.title.toLowerCase().includes(tabParam.toLowerCase()));
+        if (matchingPolicy) {
+          setActiveTab(matchingPolicy.id);
+        } else if (!activeTab) {
+          setActiveTab(policies[0].id);
+        }
+      } else if (!activeTab) {
+        setActiveTab(policies[0].id);
+      }
+    }
+  }, [location.search, policies]);
 
   const activePolicy = policies.find(p => p.id === activeTab);
 

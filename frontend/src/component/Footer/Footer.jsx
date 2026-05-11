@@ -23,14 +23,14 @@ const FooterNav = [
 ];
 
 const PolicyLinks = [
-    { title: "Confidentialité", link: "/Policy" },
-    { title: "Livraison", link: "/Policy" },
-    { title: "Retours", link: "/Policy" },
-    { title: "Produits Interdits", link: "/Policy" },
-    { title: "Litiges", link: "/Policy" },
-    { title: "Condition Livreur", link: "/Policy" },
-    { title: "Condition Vendeur", link: "/Policy" },
-    { title: "CGV", link: "/Policy" },
+    { title: "Confidentialité", link: "/Policy?tab=Confidentialité" },
+    { title: "Livraison", link: "/Policy?tab=Livraison" },
+    { title: "Retours", link: "/Policy?tab=Retours" },
+    { title: "Produits Interdits", link: "/Policy?tab=Interdits" },
+    { title: "Litiges", link: "/Policy?tab=Litiges" },
+    { title: "Condition Livreur", link: "/Policy?tab=Livreur" },
+    { title: "Condition Vendeur", link: "/Policy?tab=Vendeur" },
+    { title: "CGV", link: "/Policy?tab=CGV" },
 ];
 
 const Footer = () => {

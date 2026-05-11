@@ -331,7 +331,7 @@ export default function ProductPages() {
             <div className="divider opacity-50"></div>
 
             {/* Description Short */}
-            <p className="text-gray-500 leading-relaxed text-base md:text-lg">
+            <p className="text-gray-500 leading-relaxed text-base md:text-lg whitespace-pre-line">
               {product.description?.slice(0, 200)}...
             </p>
 

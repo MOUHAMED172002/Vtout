@@ -112,7 +112,7 @@ const PlatformReviews = () => {
 
                             <div className="relative mb-8">
                                 <Quote className="absolute -top-4 -left-4 text-slate-100 group-hover:text-primary/5 transition-colors" size={48} />
-                                <p className="relative text-slate-700 font-medium leading-relaxed italic">
+                                <p className="relative text-slate-700 font-medium leading-relaxed italic whitespace-pre-line">
                                     "{review.comment}"
                                 </p>
                             </div>

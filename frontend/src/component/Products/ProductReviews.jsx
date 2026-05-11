@@ -86,7 +86,7 @@ export default function ProductReviews({ productId }) {
                 <Stars value={r.rating} />
               </div>
 
-              {r.body && <p className="text-sm text-slate-600 leading-relaxed italic">"{r.body}"</p>}
+              {r.body && <p className="text-sm text-slate-600 leading-relaxed italic whitespace-pre-line">"{r.body}"</p>}
 
               {Array.isArray(r.images) && r.images.length > 0 && (
                 <div className="flex gap-2">
