@@ -18,10 +18,23 @@ export const getAllProducts = async (req, res) => {
             if (approval_status) where.approval_status = approval_status;
         } else {
             where.approval_status = 'approved';
-            where.price = { [Op.gt]: 0 }; // Safeguard: don't show products with 0 price to users
+            
+            where[Op.and] = where[Op.and] || [];
+            // Safeguard: show if price > 0 OR supplier_price > 0 OR variant price > 0
+            where[Op.and].push({
+                [Op.or]: [
+                    { price: { [Op.gt]: 0 } },
+                    { supplier_price: { [Op.gt]: 0 } },
+                    sequelize.literal(`EXISTS (
+                        SELECT 1 FROM \`product_variant_prices\` AS pvp
+                        INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                        WHERE pv.product_id = \`Product\`.id
+                        AND pvp.price > 0
+                    )`)
+                ]
+            });
             
             // Filter out-of-stock products
-            where[Op.and] = where[Op.and] || [];
             where[Op.and].push(
                 sequelize.literal(`(
                     \`Product\`.stock > 0

@@ -182,7 +182,7 @@ export const createOrder = async (req, res) => {
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
             }
 
-            let unitPrice = parseFloat(product.price || 0);
+            let unitPrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
             if (item.variant_price_id) {

@@ -79,16 +79,21 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   // ── Price Logic ──
   const getProductDisplayPrice = () => {
-    const bPrice = Number(product?.price) > 0 ? Number(product?.price) : Number(product?.supplier_price || 0);
+    const bPrice = Number(product?.price || 0);
     const bOldPrice = Number(product?.old_price || 0);
 
-    // Check first variant if base price is 0
+    // Check first variant
     const firstVariantPrice = product?.variants?.[0]?.priceRows?.[0];
-    const vPrice = firstVariantPrice ? (Number(firstVariantPrice.price) > 0 ? Number(firstVariantPrice.price) : Number(product?.supplier_price || 0)) : 0;
-    const vOldPrice = firstVariantPrice ? Number(firstVariantPrice.old_price) : 0;
+    const vPrice = firstVariantPrice ? Number(firstVariantPrice.price || 0) : 0;
+    const vOldPrice = firstVariantPrice ? Number(firstVariantPrice.old_price || 0) : 0;
 
-    const finalCurrent = bPrice > 0 ? bPrice : vPrice;
-    const finalOld = bOldPrice > 0 ? bOldPrice : vOldPrice;
+    // Priority: Variant Price > Base Price > Supplier Price (Fallback)
+    let finalCurrent = vPrice > 0 ? vPrice : bPrice;
+    let finalOld = vOldPrice > 0 ? vOldPrice : bOldPrice;
+
+    if (finalCurrent <= 0) {
+      finalCurrent = Number(product?.supplier_price || 0);
+    }
 
     return {
       currentPrice: finalCurrent,
