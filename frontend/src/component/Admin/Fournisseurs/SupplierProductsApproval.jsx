@@ -35,11 +35,9 @@ const SupplierProductsApproval = () => {
     const handleApprove = async (product) => {
         try {
             const token = await getToken();
-            const finalPrice = product.supplier_price || 0;
             
             await updateProduct(product.id, {
                 approval_status: 'approved',
-                price: finalPrice, 
                 admin_feedback: feedback || 'Produit approuvé.',
                 isAdmin: 'true' // Explicitly pass admin flag
             }, token);
@@ -114,7 +112,7 @@ const SupplierProductsApproval = () => {
                             <thead>
                                 <tr className="bg-slate-50/50">
                                     <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Produit</th>
-                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Prix Fournisseur</th>
+                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Prix Public / Payout</th>
                                     <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Actions</th>
                                 </tr>
                             </thead>
@@ -150,7 +148,8 @@ const SupplierProductsApproval = () => {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <p className="text-sm font-black text-indigo-600">{product.supplier_price || 0} FCFA</p>
+                                                <p className="text-sm font-black text-indigo-600">{product.price || 0} FCFA</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gain: {product.supplier_price || 0} FCFA</p>
                                             </td>
                                             <td className="px-8 py-6 text-right">
                                                 <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-primary transition-colors shadow-sm">
@@ -191,14 +190,14 @@ const SupplierProductsApproval = () => {
 
                                 <div className="space-y-6">
                                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col gap-2">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Prix Fournisseur</span>
+                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Gain Fournisseur (Payout)</span>
                                         <span className="text-xl font-black text-slate-900">{selectedProduct.supplier_price} <span className="text-sm text-slate-400">FCFA</span></span>
                                     </div>
 
                                     <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100 flex flex-col gap-2">
                                         <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Prix Final (Public)</span>
-                                        <span className="text-xl font-black text-indigo-600">{selectedProduct.supplier_price} <span className="text-sm text-indigo-300">FCFA</span></span>
-                                        <p className="text-[9px] font-bold text-indigo-300 uppercase tracking-[0.1em] italic mt-1">Conformément au prix fournisseur.</p>
+                                        <span className="text-xl font-black text-indigo-600">{selectedProduct.price} <span className="text-sm text-indigo-300">FCFA</span></span>
+                                        <p className="text-[9px] font-bold text-indigo-300 uppercase tracking-[0.1em] italic mt-1">Le prix affiché aux clients.</p>
                                     </div>
 
                                     <div className="space-y-3">

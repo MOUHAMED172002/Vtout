@@ -312,9 +312,10 @@ export const createProduct = async (req, res) => {
         let finalPrice = price;
         let calculatedSupplierPrice = supplier_price;
 
-        if (finalPrice && !calculatedSupplierPrice) {
+        // Strictly enforce commission rate calculation on backend
+        if (finalPrice !== undefined) {
             calculatedSupplierPrice = Math.round(finalPrice * (1 - commissionRate));
-        } else if (!finalPrice && calculatedSupplierPrice) {
+        } else if (calculatedSupplierPrice !== undefined && !finalPrice) {
             finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
         }
 
@@ -485,16 +486,18 @@ export const updateProduct = async (req, res) => {
             if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
         } catch (err) { console.error('Erreur commission rate', err); }
 
-        if (supplier_price !== undefined && (isSupplier || isAdmin)) {
-            // If selling price (price) is updated, re-calculate supplier_price
-            if (price !== undefined && price !== productToEdit.price) {
-                supplier_price = Math.round(price * (1 - commissionRate));
+        if (isSupplier && !isAdmin) {
+            if (finalPrice !== undefined) {
+                supplier_price = Math.round(finalPrice * (1 - commissionRate));
+            }
+        } else {
+            // For admins, allow explicit supplier_price, but sync if missing
+            if (finalPrice !== undefined && supplier_price === undefined) {
+                supplier_price = Math.round(finalPrice * (1 - commissionRate));
+            } else if (finalPrice === undefined && supplier_price !== undefined) {
+                finalPrice = Math.round(supplier_price / (1 - commissionRate));
             }
         }
-        
-        // Final fallback to ensure they are synced if one is missing
-        if (finalPrice && !supplier_price) supplier_price = Math.round(finalPrice * (1 - commissionRate));
-        if (!finalPrice && supplier_price) finalPrice = Math.round(supplier_price / (1 - commissionRate));
 
         // Sync approval_status to SupplierProduct if it changed
         if (finalStatus) {

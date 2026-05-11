@@ -159,11 +159,16 @@ export default function ProductPages() {
     };
   }, [matchedVariant, product]);
 
+  const isProgrammaticScrollRef = useRef(false);
+
   // Update image when selection or matchedVariant changes
   useEffect(() => {
     if (matchedVariant) {
       const image = matchedVariant.priceRows?.[0]?.image_url || (product?.image_url || productImages[0]) || null;
-      if (image) setActiveMainImage(image);
+      if (image && image !== activeMainImage) {
+        isProgrammaticScrollRef.current = true;
+        setActiveMainImage(image);
+      }
     } else {
       const keys = Object.keys(selectedAttributes);
       let chosen = null;
@@ -176,7 +181,10 @@ export default function ProductPages() {
         }
       }
       if (!chosen) chosen = product?.image_url || productImages[0] || null;
-      if (chosen) setActiveMainImage(chosen);
+      if (chosen && chosen !== activeMainImage) {
+        isProgrammaticScrollRef.current = true;
+        setActiveMainImage(chosen);
+      }
     }
   }, [matchedVariant, productImages, attributeValueImages, selectedAttributes, product]);
 
@@ -192,11 +200,11 @@ export default function ProductPages() {
   useEffect(() => {
     if (mobileScrollRef.current && allImages.length > 0) {
       const idx = allImages.indexOf(activeMainImage);
-      if (idx !== -1) {
+      if (idx !== -1 && isProgrammaticScrollRef.current) {
         const container = mobileScrollRef.current;
         const width = container.clientWidth;
-        // Don't smooth scroll on initial render to prevent jumpy effects
         container.scrollTo({ left: idx * width, behavior: 'smooth' });
+        isProgrammaticScrollRef.current = false;
       }
     }
   }, [activeMainImage, allImages]);
@@ -319,6 +327,7 @@ export default function ProductPages() {
                     key={i}
                     type="button"
                     onClick={() => {
+                      isProgrammaticScrollRef.current = true;
                       setActiveMainImage(src);
                       const v = variants.find((vv) => vv.priceRows?.[0]?.image_url === src);
                       if (v && v.combination) {
