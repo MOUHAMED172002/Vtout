@@ -676,11 +676,21 @@ export const deleteProduct = async (req, res) => {
             }
         }
 
+        const OrderItem = (await import('../models/OrderItem.js')).default;
+        const hasOrders = await OrderItem.findOne({ where: { product_id: id } });
+
+        if (hasOrders) {
+            return res.status(400).json({ 
+                error: 'Ce produit ne peut pas être supprimé car il a déjà été commandé.',
+                details: 'Veuillez plutôt mettre le stock à 0 pour le rendre indisponible.' 
+            });
+        }
+
         await Product.destroy({ where: { id } });
         res.json({ message: 'Produit supprimé' });
     } catch (error) {
         console.error('DeleteProduct error:', error);
-        res.status(500).json({ error: 'Erreur lors de la suppression' });
+        res.status(500).json({ error: 'Erreur lors de la suppression', details: error.message });
     }
 };
 

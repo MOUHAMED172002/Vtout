@@ -121,16 +121,17 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     useEffect(() => {
         const fetchInitialData = async () => {
             const token = await getToken();
-            const [catData, boutData, attrData, commData] = await Promise.all([
+            const [catData, boutData, attrData] = await Promise.all([
                 getCategories(),
                 import('../../services/supplierService').then(s => s.getMyBoutiques(token)),
-                getAttributes(),
-                axios.get(`${API_URL}/configs/key/commission_rate`).catch(e => ({ data: { value: 10 } }))
+                getAttributes()
             ]);
             setCategories(catData || []);
             setBoutiques(boutData || []);
             setAvailableAttributes(attrData || []);
-            if (commData.data && commData.data.value) setCommissionRate(parseFloat(commData.data.value));
+            const commData = await axios.get(`${API_URL}/configs/public`).catch(e => ({ data: [] }));
+            const commissionConfig = commData.data.find(c => c.key === 'commission_rate');
+            if (commissionConfig && commissionConfig.value) setCommissionRate(parseFloat(commissionConfig.value));
             if (boutData && boutData.length > 0 && !initialData?.boutique_id) {
                 setValue('boutique_id', boutData[0].id);
             }

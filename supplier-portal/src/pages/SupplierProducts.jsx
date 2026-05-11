@@ -3,11 +3,13 @@ import { useAuth } from '../components/clerk-shim';
 import { getMySupplierProducts, updateProductStock } from '../services/supplierService';
 import { deleteProduct } from '../services/productService';
 
+import { useNavigate } from 'react-router-dom';
 import { Package, Search as SearchIcon, Filter, MoreVertical, Edit, Trash2, CheckCircle, Clock, XCircle, Share2, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const SupplierProducts = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -50,7 +52,8 @@ const SupplierProducts = () => {
       fetchProducts();
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error("Erreur lors de la suppression");
+      const msg = error.response?.data?.error || "Erreur lors de la suppression";
+      toast.error(msg);
     }
   };
 
@@ -142,7 +145,7 @@ const SupplierProducts = () => {
                         </div>
                         <div>
                           <p className="text-sm font-black text-slate-900">{product.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category_id || 'Electronique'}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category?.name || 'Général'}</p>
                         </div>
                       </div>
                     </td>
@@ -173,9 +176,13 @@ const SupplierProducts = () => {
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <a href={`/modifier-produit/${product.id}`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
+                        <button 
+                          onClick={() => navigate(`/edit-product/${product.id}`)} 
+                          className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                          title="Modifier le produit"
+                        >
                           <Edit size={18} />
-                        </a>
+                        </button>
                         <button 
                           onClick={() => handleDelete(product.id)}
                           className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"

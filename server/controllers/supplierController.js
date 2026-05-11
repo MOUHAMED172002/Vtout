@@ -291,7 +291,7 @@ export const getMyProducts = async (req, res) => {
         const products = await Product.findAll({
             where: { supplier_id: supplier.id },
             attributes: { exclude: ['price', 'old_price'] },
-            include: ['images']
+            include: ['images', { model: Category, as: 'category' }]
         });
         res.json(products);
     } catch (error) {
