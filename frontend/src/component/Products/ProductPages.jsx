@@ -331,7 +331,7 @@ export default function ProductPages() {
             <div className="divider opacity-50"></div>
 
             {/* Description Short */}
-            <p className="text-gray-500 leading-relaxed text-base md:text-lg whitespace-pre-line">
+            <p className="text-gray-500 leading-relaxed text-base md:text-lg whitespace-pre-wrap">
               {product.description?.slice(0, 200)}...
             </p>
 
@@ -448,7 +448,7 @@ export default function ProductPages() {
             <h3 className="text-2xl md:text-3xl font-black text-gray-800">Détails du produit</h3>
             <div className="h-px flex-1 bg-gray-100"></div>
           </div>
-          <div className="prose whitespace-pre-line prose-sm md:prose-lg max-w-none text-gray-600 leading-relaxed">
+          <div className="prose whitespace-pre-wrap prose-sm md:prose-lg max-w-none text-gray-600 leading-relaxed">
             {product.description}
           </div>
         </div>

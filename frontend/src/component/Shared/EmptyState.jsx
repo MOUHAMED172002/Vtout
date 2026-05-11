@@ -27,7 +27,7 @@ export default function EmptyState({
             </div>
             <div className="space-y-2">
                 <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{title}</h3>
-                <p className="text-slate-500 font-bold leading-relaxed whitespace-pre-line">{description}</p>
+                <p className="text-slate-500 font-bold leading-relaxed whitespace-pre-wrap">{description}</p>
             </div>
             {actionLabel && (
                 <Link

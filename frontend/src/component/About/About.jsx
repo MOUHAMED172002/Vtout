@@ -82,7 +82,7 @@ export default function About() {
               {/* Long Story Column */}
               <div className="lg:col-span-8 space-y-12">
                 <div className="prose prose-slate max-w-none">
-                  <p className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium selection:bg-primary/10 whitespace-pre-line">
+                  <p className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium selection:bg-primary/10 whitespace-pre-wrap">
                     <span className="text-6xl font-black text-primary float-left mr-4 mt-2 h-12 flex items-center leading-none">"</span>
                     {mission.length > 250 ? (
                       <>
@@ -246,7 +246,7 @@ export default function About() {
               </div>
               <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar">
                 <div className="prose prose-slate max-w-none">
-                  <p className="text-xl md:text-2xl text-slate-600 leading-[1.6] font-medium md:columns-2 gap-16 selection:bg-primary/10 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-4 first-letter:float-left whitespace-pre-line">
+                  <p className="text-xl md:text-2xl text-slate-600 leading-[1.6] font-medium md:columns-2 gap-16 selection:bg-primary/10 first-letter:text-7xl first-letter:font-black first-letter:text-primary first-letter:mr-4 first-letter:float-left whitespace-pre-wrap">
                     {mission}
                   </p>
                 </div>
