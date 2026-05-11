@@ -97,7 +97,10 @@ export default function PolicyPage() {
               return (
                 <button
                   key={p.id}
-                  onClick={() => setActiveTab(p.id)}
+                  onClick={() => {
+                    setActiveTab(p.id);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className={`w-full flex items-center justify-between p-6 rounded-[2rem] transition-all group ${activeTab === p.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/20 scale-[1.02]' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
                 >
                   <div className="flex items-center gap-4">

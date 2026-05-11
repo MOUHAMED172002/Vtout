@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Instagram, Facebook, MapPin, Phone, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppConfig } from '../context/ConfigContext';
 import { FaTiktok, FaWhatsapp } from 'react-icons/fa';
 import ThemeSelector from '../context/ThemeSelector';
 import LogoText from '../Shared/LogoText';
+import { getPolicies } from '../../services/contentService';
 
 const FooterLinks = [
     { title: "Accueil", link: "/" },
@@ -22,22 +23,28 @@ const FooterNav = [
     { title: "Politique de confidentialité", link: "/privacy" },
 ];
 
-const PolicyLinks = [
-    { title: "Confidentialité", link: "/Policy?tab=Confidentialité" },
-    { title: "Livraison", link: "/Policy?tab=Livraison" },
-    { title: "Retours", link: "/Policy?tab=Retours" },
-    { title: "Produits Interdits", link: "/Policy?tab=Interdits" },
-    { title: "Litiges", link: "/Policy?tab=Litiges" },
-    { title: "Condition Livreur", link: "/Policy?tab=Livreur" },
-    { title: "Condition Vendeur", link: "/Policy?tab=Vendeur" },
-    { title: "CGV", link: "/Policy?tab=CGV" },
-];
-
 const Footer = () => {
     const { getConfig } = useAppConfig();
     const appName = getConfig('APP_NAME', 'VTOUT');
-    const firstLetter = appName.charAt(0);
-    const restOfName = appName.slice(1);
+    const [policyLinks, setPolicyLinks] = useState([]);
+
+    useEffect(() => {
+        const fetchPolicies = async () => {
+            try {
+                const data = await getPolicies();
+                if (data && data.length > 0) {
+                    const links = data.map(p => ({
+                        title: p.title,
+                        link: `/Policy?tab=${encodeURIComponent(p.title)}`
+                    }));
+                    setPolicyLinks(links);
+                }
+            } catch (error) {
+                console.error("Failed to load policies in footer", error);
+            }
+        };
+        fetchPolicies();
+    }, []);
 
     const socials = {
         facebook: getConfig('FACEBOOK'),
@@ -45,6 +52,10 @@ const Footer = () => {
         tiktok: getConfig('TIKTOK'),
         twitter: getConfig('TWITTER'),
         whatsapp: getConfig('WHATSAPP'),
+    };
+
+    const handleLinkClick = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
@@ -57,11 +68,11 @@ const Footer = () => {
 
                     {/* Brand Section */}
                     <div className="space-y-6">
-                        <Link to="/" className="group flex items-center">
+                        <Link to="/" onClick={handleLinkClick} className="group flex items-center">
                             <LogoText className="text-3xl" />
                         </Link>
                         <p className="text-base-content/70 leading-relaxed max-w-xs">
-                            Votre destination shopping unique au Bénin. Comme notre nom l'indique, chez {appName}, on vend tout .
+                            Votre destination shopping unique au Bénin. Comme notre nom l'indique, chez {appName}, on vend tout.
                         </p>
                         <div className="flex gap-4">
                             {socials.instagram && (
@@ -99,7 +110,7 @@ const Footer = () => {
                                             {data.title}
                                         </a>
                                     ) : (
-                                        <Link to={data.link} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                        <Link to={data.link} onClick={handleLinkClick} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
                                             <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                                             {data.title}
                                         </Link>
@@ -124,7 +135,7 @@ const Footer = () => {
                                             {data.title}
                                         </button>
                                     ) : (
-                                        <Link to={data.link} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
+                                        <Link to={data.link} onClick={handleLinkClick} className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group">
                                             <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                                             {data.title}
                                         </Link>
@@ -193,15 +204,16 @@ const Footer = () => {
 
                     {/* Policy Links Section */}
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap lg:justify-end items-center gap-x-8 gap-y-6 lg:gap-x-6 lg:gap-y-2">
-                        {PolicyLinks.map((item, index) => (
+                        {policyLinks.map((item, index) => (
                             <React.Fragment key={index}>
                                 <Link 
                                     to={item.link} 
+                                    onClick={handleLinkClick}
                                     className="text-base-content/40 hover:text-primary text-[10px] font-bold uppercase tracking-widest transition-all text-center lg:text-right"
                                 >
                                     {item.title}
                                 </Link>
-                                {index < PolicyLinks.length - 1 && (
+                                {index < policyLinks.length - 1 && (
                                     <div className="hidden lg:block w-1 h-1 rounded-full bg-base-content/20"></div>
                                 )}
                             </React.Fragment>
