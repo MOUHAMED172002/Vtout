@@ -2,6 +2,7 @@ import express from 'express';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 import * as disputeController from '../controllers/disputeController.js';
 import * as financialController from '../controllers/financialController.js';
+import { fixVariantPrices } from '../controllers/productController.js';
 
 const router = express.Router();
 
@@ -11,5 +12,8 @@ router.patch('/disputes/:id', requireAuth, requireAdmin, disputeController.updat
 
 // Maintenance / Sync - Temporairement public pour débloquer le terminal
 router.get('/sync-financials', requireAuth, requireAdmin, financialController.adminSyncFinancials);
+
+// Price Migration - Fix stale variant prices (admin only)
+router.post('/fix-variant-prices', requireAuth, requireAdmin, fixVariantPrices);
 
 export default router;

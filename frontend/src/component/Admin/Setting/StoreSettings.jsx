@@ -1,16 +1,19 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../lib/clerk-shim";
 import { getConfigsByGroup, upsertConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
-import { Settings, Globe, Share2, Shield, Save, Loader2, Link2, MapPin } from "lucide-react";
+import { Settings, Globe, Share2, Shield, Save, Loader2, Link2, MapPin, Wrench, CheckCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import AddressSelector from "../../context/AddressSelector";
+import api from "../../../services/api";
 
 export default function StoreSettings() {
   const { getToken } = useAuth();
   const [configs, setConfigs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState(null);
 
   // Grouped inputs
   const [branding, setBranding] = useState({ APP_NAME: "Vtout", LOGO_URL: "" });
@@ -63,6 +66,25 @@ export default function StoreSettings() {
       toast.error("Erreur de sauvegarde");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFixVariantPrices = async () => {
+    if (!window.confirm("⚠️ Cette action va mettre à jour les prix des variantes en base de données pour les aligner sur le prix public du produit. Continuer ?")) return;
+    setMigrating(true);
+    setMigrationResult(null);
+    try {
+      const token = await getToken();
+      const { data } = await api.post('/admin/fix-variant-prices', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMigrationResult(data);
+      toast.success(`✅ ${data.fixed} variante(s) corrigée(s) !`);
+    } catch (err) {
+      toast.error("Erreur lors de la migration des prix");
+      console.error(err);
+    } finally {
+      setMigrating(false);
     }
   };
 
@@ -191,6 +213,65 @@ export default function StoreSettings() {
         </div>
       </motion.div>
 
+      {/* MAINTENANCE SECTION */}
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-amber-100 space-y-8">
+        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+          <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center">
+            <Wrench size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tighter">Maintenance des Données</h2>
+            <p className="text-xs text-slate-400 font-bold mt-1">Outils de correction et de synchronisation de la base de données</p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 space-y-4">
+          <div>
+            <h3 className="font-black text-slate-800 text-sm">Corriger les prix des variantes</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Certaines variantes en base de données peuvent avoir des prix taxés (ancienne méthode). 
+              Cet outil aligne automatiquement les prix des variantes sur le <strong>prix public</strong> du produit parent.
+            </p>
+          </div>
+          
+          <button
+            onClick={handleFixVariantPrices}
+            disabled={migrating}
+            className="flex items-center gap-3 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-amber-200"
+          >
+            {migrating ? <Loader2 className="animate-spin" size={16} /> : <Wrench size={16} />}
+            {migrating ? "Migration en cours..." : "Lancer la correction des prix"}
+          </button>
+
+          {migrationResult && (
+            <div className={`p-5 rounded-2xl border text-sm font-bold space-y-3 ${migrationResult.fixed > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+              <div className="flex items-center gap-2">
+                {migrationResult.fixed > 0 ? <CheckCircle size={18} className="text-emerald-500" /> : <AlertTriangle size={18} className="text-slate-400" />}
+                <span>{migrationResult.message}</span>
+              </div>
+              <div className="text-xs font-bold text-slate-500 grid grid-cols-2 gap-2">
+                <span>✅ Variantes corrigées : <strong className="text-slate-800">{migrationResult.fixed}</strong></span>
+                <span>⏩ Déjà corrects : <strong className="text-slate-800">{migrationResult.skipped}</strong></span>
+              </div>
+              {migrationResult.details?.length > 0 && (
+                <details className="text-[10px] text-slate-400 cursor-pointer">
+                  <summary className="font-black uppercase tracking-widest">Voir le détail ({migrationResult.details.length})</summary>
+                  <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                    {migrationResult.details.map((d, i) => (
+                      <div key={i} className="flex justify-between gap-2 py-1 border-b border-slate-100">
+                        <span className="truncate">{d.product_name}</span>
+                        <span className="shrink-0">{d.old_price} F → <strong>{d.new_price} F</strong></span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+
     </div>
   );
 }
+

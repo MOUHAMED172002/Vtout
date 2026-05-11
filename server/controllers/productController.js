@@ -925,3 +925,69 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la récupération des produits achetés ensemble' });
     }
 };
+
+/**
+ * ADMIN MIGRATION: Fix stale variant prices
+ * For each product with a valid public price (product.price > 0),
+ * update all its variant prices to match, if the variant price is lower than the product price.
+ * This corrects old data where variant prices were set to the taxed/net amount.
+ */
+export const fixVariantPrices = async (req, res) => {
+    try {
+        // Fetch all products that have a public price > 0 and have variants
+        const products = await Product.findAll({
+            where: { price: { [Op.gt]: 0 } },
+            include: [
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                }
+            ]
+        });
+
+        let fixed = 0;
+        let skipped = 0;
+        const details = [];
+
+        for (const product of products) {
+            const publicPrice = parseFloat(product.price);
+            if (!product.variants || product.variants.length === 0) {
+                skipped++;
+                continue;
+            }
+
+            for (const variant of product.variants) {
+                for (const priceRow of (variant.priceRows || [])) {
+                    const variantPrice = parseFloat(priceRow.price || 0);
+                    // Fix if variant price is significantly lower than product public price (likely taxed)
+                    if (variantPrice > 0 && variantPrice < publicPrice * 0.98) {
+                        await priceRow.update({ price: publicPrice });
+                        details.push({
+                            product_id: product.id,
+                            product_name: product.name,
+                            variant_id: variant.id,
+                            old_price: variantPrice,
+                            new_price: publicPrice
+                        });
+                        fixed++;
+                    } else {
+                        skipped++;
+                    }
+                }
+            }
+        }
+
+        console.log(`[Price Fix] Fixed: ${fixed}, Skipped: ${skipped}`);
+        res.json({
+            message: `Migration terminée. ${fixed} prix de variantes corrigés.`,
+            fixed,
+            skipped,
+            details
+        });
+    } catch (error) {
+        console.error('fixVariantPrices error:', error);
+        res.status(500).json({ error: 'Erreur lors de la migration des prix', details: error.message });
+    }
+};
+
