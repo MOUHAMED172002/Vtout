@@ -15,6 +15,11 @@ import { checkFavorite, addFavorite, removeFavorite } from "../../services/favor
 import { useCart } from "../context/CartContext";
 
 export default function ProductPages() {
+  const formatPrice = (v) => {
+    if (v == null) return "0";
+    return Number(v).toLocaleString("fr-FR");
+  };
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { getToken } = useAuth();
