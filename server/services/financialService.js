@@ -55,7 +55,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         subtotal += parseFloat(item.price) * item.quantity;
                     }
 
-                    let adminTotal = subtotal * commissionRate;
+                    adminTotal = subtotal * commissionRate;
                     const deliveryFee = parseFloat(order.delivery_fee || 0);
                     supplierTotal = subtotal - adminTotal - deliveryFee;
 
