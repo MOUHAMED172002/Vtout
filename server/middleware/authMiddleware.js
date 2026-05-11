@@ -47,7 +47,7 @@ export const authMiddleware = async (req, res, next) => {
                                         id: userRow.id,
                                         email: userRow.email,
                                         name: userRow.name,
-                                        role: userRow.role || 'user'
+                                        role: (userRow.role || 'user').trim()
                                     },
                                     session: row
                                 };
@@ -61,7 +61,7 @@ export const authMiddleware = async (req, res, next) => {
         }
 
         if (session && session.user) {
-            const roleFromAuth = session.user.role || 'user';
+            const roleFromAuth = (session.user.role || 'user').trim();
 
             // ── ATOMIC findOrCreate — prevents SequelizeUniqueConstraintError (ER_DUP_ENTRY)
             // caused by concurrent requests racing to create the same profile row.
@@ -92,8 +92,9 @@ export const authMiddleware = async (req, res, next) => {
 
             } else {
                 // Existing profile — sync role if it changed
-                if (session.user.role && profile.role !== session.user.role) {
-                    profile.role = session.user.role;
+                const cleanRole = session.user.role ? session.user.role.trim() : null;
+                if (cleanRole && profile.role !== cleanRole) {
+                    profile.role = cleanRole;
                     await profile.save();
                 }
 
