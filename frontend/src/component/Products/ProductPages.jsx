@@ -144,18 +144,35 @@ export default function ProductPages() {
   }, [variants, selectedAttributes]);
 
   const displayPrice = useMemo(() => {
-    // Ensure we work with numbers for calculation and formatting
-    const matchedP = matchedVariant?.priceRows?.[0];
-    const vPrice = Number(matchedP?.price);
-    const vOldPrice = Number(matchedP?.old_price);
+    // 1. Base Prices
+    const bPrice = Number(product?.price || 0);
+    const bOldPrice = Number(product?.old_price || 0);
+    const sPrice = Number(product?.supplier_price || 0);
 
-    const fallbackPrice = Number(product?.price) > 0 ? Number(product.price) : Number(product?.supplier_price || 0);
-    const fallbackOldPrice = Number(product?.old_price) || 0;
+    // 2. Matched Variant Price
+    const matchedP = matchedVariant?.priceRows?.[0];
+    const vPrice = Number(matchedP?.price || 0);
+    const vOldPrice = Number(matchedP?.old_price || 0);
     
-    // Priority: Matched Variant Price > Product Global Price > Supplier Price
+    // 3. Logic: If we have a matched variant, use it. 
+    // Otherwise, use Base Price. If Base is 0, fallback to Supplier Price.
+    let finalCurrent = 0;
+    let finalOld = 0;
+
+    if (vPrice > 0) {
+      finalCurrent = vPrice;
+      finalOld = vOldPrice;
+    } else if (bPrice > 0) {
+      finalCurrent = bPrice;
+      finalOld = bOldPrice;
+    } else {
+      finalCurrent = sPrice;
+      finalOld = bOldPrice;
+    }
+
     return {
-      current: vPrice > 0 ? vPrice : fallbackPrice,
-      old: vOldPrice > 0 ? vOldPrice : fallbackOldPrice
+      current: finalCurrent,
+      old: finalOld
     };
   }, [matchedVariant, product]);
 

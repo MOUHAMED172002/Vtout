@@ -81,7 +81,12 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const getProductDisplayPrice = () => {
     if (!product) return { currentPrice: 0, oldPrice: 0, isSale: false, discountPercent: 0 };
 
-    // 1. Check all variants for a valid price
+    // 1. Base Prices (Public selling price)
+    const bPrice = Number(product.price || 0);
+    const bOldPrice = Number(product.old_price || 0);
+    const sPrice = Number(product.supplier_price || 0);
+
+    // 2. Variant Prices (as fallback if base price is 0)
     let minVariantPrice = Infinity;
     let minVariantOldPrice = 0;
     let foundVariant = false;
@@ -98,23 +103,17 @@ export default function ProductCard({ product, onFavoriteChange }) {
       });
     }
 
-    // 2. Base Prices
-    const bPrice = Number(product.price || 0);
-    const bOldPrice = Number(product.old_price || 0);
-    const sPrice = Number(product.supplier_price || 0);
-
-    // 3. Final Decision Logic (matches ProductPages.jsx)
+    // 3. Final Decision Logic (Priority: Base > Variant > Supplier)
     let finalCurrent = 0;
     let finalOld = 0;
 
-    if (foundVariant) {
-      finalCurrent = minVariantPrice;
-      finalOld = minVariantOldPrice;
-    } else if (bPrice > 0) {
+    if (bPrice > 0) {
       finalCurrent = bPrice;
       finalOld = bOldPrice;
+    } else if (foundVariant) {
+      finalCurrent = minVariantPrice;
+      finalOld = minVariantOldPrice;
     } else {
-      // Last resort fallback
       finalCurrent = sPrice;
       finalOld = bOldPrice;
     }
