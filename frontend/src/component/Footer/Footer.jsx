@@ -20,7 +20,17 @@ const FooterNav = [
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
     { title: "Politique de confidentialité", link: "/privacy" },
+];
 
+const PolicyLinks = [
+    { title: "Confidentialité", link: "/Policy" },
+    { title: "Livraison", link: "/Policy" },
+    { title: "Retours", link: "/Policy" },
+    { title: "Produits Interdits", link: "/Policy" },
+    { title: "Litiges", link: "/Policy" },
+    { title: "Condition Livreur", link: "/Policy" },
+    { title: "Condition Vendeur", link: "/Policy" },
+    { title: "CGV", link: "/Policy" },
 ];
 
 const Footer = () => {
@@ -164,24 +174,38 @@ const Footer = () => {
 
                 </div>
 
-                <div className="pt-10 border-t border-base-200 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="text-base-content/50 text-sm font-medium">
-                        © {new Date().getFullYear()} <LogoText className="text-sm ml-1" />. Tous droits réservés.
-                    </p>
-                    <div className="flex items-center gap-6 text-base-content/50 text-xs font-bold uppercase tracking-widest">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck size={16} className="text-green-500" /> Paiements 100% sécurisés
+                <div className="pt-10 border-t border-base-200 flex flex-col lg:flex-row justify-between items-center gap-12">
+                    
+                    {/* Copyright & Trust Section */}
+                    <div className="flex flex-col items-center lg:items-start gap-6">
+                        <div className="flex flex-col items-center lg:flex-row gap-3 lg:gap-4">
+                            <LogoText className="text-2xl" />
+                            <div className="hidden lg:block w-px h-4 bg-base-300"></div>
+                            <p className="text-base-content/50 text-sm font-medium">
+                                © {new Date().getFullYear()} Tous droits réservés.
+                            </p>
                         </div>
-                        <div className="hidden md:block h-3 w-px bg-base-300"></div>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de confidentialité</Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de livraison</Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de retours et de remboursement </Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique des produits interdits</Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Politique de résolution des litiges</Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Condition livreur </Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">Condition vendeur</Link>
-                        <Link to="/Policy" className="hover:text-base-content cursor-pointer transition-colors">CGV</Link>
-                        <div className="hidden md:block h-3 w-px bg-base-300"></div>
+                        <div className="flex items-center gap-3 px-4 py-2 bg-base-200/50 border border-base-300/50 rounded-2xl text-base-content/60 text-[10px] font-black uppercase tracking-[0.2em]">
+                            <ShieldCheck size={16} className="text-success" />
+                            <span>Paiements 100% sécurisés</span>
+                        </div>
+                    </div>
+
+                    {/* Policy Links Section */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap lg:justify-end items-center gap-x-8 gap-y-6 lg:gap-x-6 lg:gap-y-2">
+                        {PolicyLinks.map((item, index) => (
+                            <React.Fragment key={index}>
+                                <Link 
+                                    to={item.link} 
+                                    className="text-base-content/40 hover:text-primary text-[10px] font-bold uppercase tracking-widest transition-all text-center lg:text-right"
+                                >
+                                    {item.title}
+                                </Link>
+                                {index < PolicyLinks.length - 1 && (
+                                    <div className="hidden lg:block w-1 h-1 rounded-full bg-base-content/20"></div>
+                                )}
+                            </React.Fragment>
+                        ))}
                     </div>
                 </div>
             </div>

@@ -47,53 +47,81 @@ export default function About() {
   }, []);
   return (
     <div className="bg-white min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section - Redesigned for Long Content */}
       <section className="relative pt-32 pb-24 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4 opacity-60"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-100 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 opacity-40"></div>
+
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">À Propos de nous</span>
+          <div className="flex flex-col gap-16 md:gap-24">
+            
+            {/* 1. Brand Header */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 border-b border-slate-100 pb-16">
+              <div className="space-y-6 lg:max-w-3xl">
+                <div className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">À Propos de nous</span>
+                </div>
+                <h1 className="text-7xl md:text-[10rem] font-black text-slate-900 tracking-tighter leading-[0.85]">
+                  {title.split(' ')[0]} <br />
+                  <span className="text-slate-200">{title.split(' ').slice(1).join(' ')}</span>
+                </h1>
               </div>
-              <h1 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-[0.95]">
-                {title.split(' ')[0]} <br />
-                <span className="text-slate-300">{title.split(' ').slice(1).join(' ')}</span>
-              </h1>
-              <p className="text-2xl font-bold text-slate-400 max-w-lg">{tagline}</p>
-              <p className="text-lg text-slate-500 leading-relaxed max-w-xl font-medium">
-                {mission}
-              </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <button onClick={() => navigate('/products')} className="btn btn-primary rounded-2xl px-10 h-16 font-black text-lg shadow-xl shadow-primary/20"> Explorer la collection</button>
-                <button
-                  onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
-                  className="btn btn-ghost rounded-2xl px-10 h-16 font-black text-lg border-2 border-slate-100"
-                >
-                  Contactez-nous
-                </button>
+              <div className="lg:max-w-md lg:text-right space-y-4">
+                <p className="text-3xl md:text-4xl font-bold text-slate-400 leading-tight">
+                  {tagline}
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6">
-              {stats.map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100 flex items-center gap-8 group hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500"
-                >
-                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</p>
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-600">{stat.label}</p>
-                  </div>
-                </motion.div>
-              ))}
+            {/* 2. Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+              
+              {/* Long Story Column */}
+              <div className="lg:col-span-8 space-y-12">
+                <div className="prose prose-slate max-w-none">
+                  <p className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium md:columns-2 gap-12 selection:bg-primary/10">
+                    <span className="text-6xl font-black text-primary float-left mr-4 mt-2 h-12 flex items-center leading-none">"</span>
+                    {mission}
+                  </p>
+                </div>
+                
+                <div className="flex flex-wrap gap-6 pt-6">
+                  <button onClick={() => navigate('/products')} className="group relative overflow-hidden btn btn-primary rounded-2xl px-12 h-16 font-black text-lg shadow-2xl shadow-primary/30">
+                    <span className="relative z-10">Explorer la collection</span>
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  </button>
+                  <button
+                    onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                    className="btn btn-ghost rounded-2xl px-12 h-16 font-black text-lg border-2 border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all"
+                  >
+                    Contactez-nous
+                  </button>
+                </div>
+              </div>
+
+              {/* Stats Sidebar */}
+              <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6">
+                {stats.map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 flex items-center gap-6 group hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500"
+                  >
+                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                      {React.cloneElement(stat.icon, { size: 24 })}
+                    </div>
+                    <div>
+                      <p className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">{stat.label}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
             </div>
           </div>
         </div>
