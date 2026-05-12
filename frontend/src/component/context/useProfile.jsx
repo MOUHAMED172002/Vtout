@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useUser, useAuth } from "../../lib/clerk-shim";
+import { useUser, useAuth } from "../../lib/AuthHooks";
 import api from "../../services/api";
 
 const ProfileContext = createContext();
