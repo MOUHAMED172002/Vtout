@@ -189,16 +189,18 @@ const AppContent = ({ products, loading }) => {
 
           {/* Delivery Rider Dashboard */}
           <Route path="/delivery-rider/*" element={
-              <SignedIn>
-                {profileUser?.isDelivery || profileUser?.isAdmin ? (
-                  <DeliveryRoutes />
-                ) : (
-                  <Navigate to="/" replace />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/auth/connexion" replace />
-              </SignedOut>
+              <>
+                <SignedIn>
+                  {profileUser?.isDelivery || profileUser?.isAdmin ? (
+                    <DeliveryRoutes />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )}
+                </SignedIn>
+                <SignedOut>
+                  <Navigate to="/auth/connexion" replace />
+                </SignedOut>
+              </>
           } />
 
           <Route path="/user/address" element={<PublicRoute><><Navbar /><AddressSelector /></></PublicRoute>} />
@@ -222,12 +224,14 @@ const AppContent = ({ products, loading }) => {
           <Route path="/order-confirmation/:orderId" element={<><Navbar /><GuestOrderConfirmationPage /><Footer /></>} />
           <Route path="/orders" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/orders/:id" element={
-              <SignedIn>
-                <OrderDetail />
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/auth/connexion" replace />
-              </SignedOut>
+              <>
+                <SignedIn>
+                  <OrderDetail />
+                </SignedIn>
+                <SignedOut>
+                  <Navigate to="/auth/connexion" replace />
+                </SignedOut>
+              </>
           } />
 
           {/* Catch-all 404 */}
