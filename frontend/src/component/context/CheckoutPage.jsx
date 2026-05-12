@@ -292,14 +292,11 @@ export default function CheckoutPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-8 space-y-8">
-            <AnimatePresence mode="wait">
+            <div className="lg:col-span-8 space-y-8">
               {/* STEP 1 — Guest Info (only for unauthenticated users) */}
               {step === 1 && isGuest && (
-                <motion.div
+                <div
                   key="step1"
-                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
                   className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-content/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8 md:space-y-10"
                 >
                   <div className="flex items-center gap-6">
@@ -342,15 +339,12 @@ export default function CheckoutPage() {
                       Continuer <ChevronRight className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {step === 2 && (
-                <motion.div
+                <div
                   key="step2"
-                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
                   className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
                 >
                   <div className="flex items-center gap-6">
@@ -371,15 +365,12 @@ export default function CheckoutPage() {
                       Continuer <ChevronRight className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {step === 3 && (
-                <motion.div
+                <div
                   key="step3"
-                  initial={{ opacity: 0, x: -20, scale: 0.98 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
                   className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
                 >
                   <div className="flex items-center gap-6">
@@ -451,14 +442,12 @@ export default function CheckoutPage() {
                       {loading ? <span className="loading loading-spinner"></span> : "Confirmer la commande"}
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {((step === 3 && !isGuest) || step === 4) ? (
-                <motion.div
+                <div
                   key="step4"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
                   className="bg-white p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto md:scale-125 mb-2 md:mb-4">
@@ -469,9 +458,9 @@ export default function CheckoutPage() {
                     <p className="text-sm md:text-gray-500 font-medium max-w-[250px] md:max-w-sm mx-auto leading-relaxed">Votre commande a été enregistrée avec succès. Redirection en cours…</p>
                   </div>
                   <div className="pt-6 md:pt-8 loading loading-dots loading-md md:loading-lg text-primary"></div>
-                </motion.div>
+                </div>
               ) : null}
-            </AnimatePresence>
+            </div>
           </div>
 
           {/* Sidebar Summary */}

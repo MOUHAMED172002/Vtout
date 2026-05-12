@@ -154,45 +154,41 @@ const AppContent = ({ products, loading }) => {
       <SEO />
       <ProfileSync />
 
-      <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+          <Route path="/" element={<Home />} />
 
           {/* Public Routes restricted for Livreur */}
-          <Route path="/categories" element={<PublicRoute><PageWrapper><><Navbar /><Category2 /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/products" element={<PublicRoute><PageWrapper><><Navbar /><ProductGrid /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/products/:id" element={<PublicRoute><PageWrapper><><Navbar /><ProductPages /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/products-liste" element={<PublicRoute><PageWrapper><><Navbar /><ProductsList /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/about" element={<PublicRoute><PageWrapper><><Navbar /><About /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/cartpage" element={<PublicRoute><PageWrapper><><Navbar /><CartPage /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/checkout" element={<PublicRoute><PageWrapper><><Navbar /><CheckoutPage /><Footer /></></PageWrapper></PublicRoute>} />
-          <Route path="/temoignages" element={<PageWrapper><><Navbar /><PlatformReviews /><Footer /></></PageWrapper>} />
+          <Route path="/categories" element={<PublicRoute><><Navbar /><Category2 /><Footer /></></PublicRoute>} />
+          <Route path="/products" element={<PublicRoute><><Navbar /><ProductGrid /><Footer /></></PublicRoute>} />
+          <Route path="/products/:id" element={<PublicRoute><><Navbar /><ProductPages /><Footer /></></PublicRoute>} />
+          <Route path="/products-liste" element={<PublicRoute><><Navbar /><ProductsList /><Footer /></></PublicRoute>} />
+          <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
+          <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
+          <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
+          <Route path="/temoignages" element={<><Navbar /><PlatformReviews /><Footer /></>} />
 
           {/* Auth Routes */}
-          <Route path="/auth/inscription/*" element={<PageWrapper><><Navbar /><Register /><Footer /></></PageWrapper>} />
-          <Route path="/auth/connexion/*" element={<PageWrapper><><Navbar /><Login /><Footer /></></PageWrapper>} />
-          <Route path="/reset-password" element={<PageWrapper><><Navbar /><ResetPassword /><Footer /></></PageWrapper>} />
+          <Route path="/auth/inscription/*" element={<><Navbar /><Register /><Footer /></>} />
+          <Route path="/auth/connexion/*" element={<><Navbar /><Login /><Footer /></>} />
+          <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
           <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/blog/:slug" element={<PageWrapper><BlogDetail /></PageWrapper>} />
-          <Route path="/mag" element={<PageWrapper><MagPage /></PageWrapper>} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
+          <Route path="/mag" element={<MagPage />} />
 
           {/* User Dashboard - Restricted for Livreur */}
           <Route path="/user/dashboard/*" element={
             <PublicRoute>
-              <PageWrapper>
                 <SignedIn>
                   <DashboardRoutes />
                 </SignedIn>
                 <SignedOut>
                   <Navigate to="/auth/connexion" replace />
                 </SignedOut>
-              </PageWrapper>
             </PublicRoute>
           } />
 
           {/* Delivery Rider Dashboard */}
           <Route path="/delivery-rider/*" element={
-            <PageWrapper>
               <SignedIn>
                 {profileUser?.isDelivery || profileUser?.isAdmin ? (
                   <DeliveryRoutes />
@@ -203,46 +199,40 @@ const AppContent = ({ products, loading }) => {
               <SignedOut>
                 <Navigate to="/auth/connexion" replace />
               </SignedOut>
-            </PageWrapper>
           } />
 
-          <Route path="/user/address" element={<PublicRoute><PageWrapper><><Navbar /><AddressSelector /></></PageWrapper></PublicRoute>} />
-          <Route path="/Faq" element={<PageWrapper><><Navbar /><FaqList /><Footer /></></PageWrapper>} />
-          <Route path="/Policy" element={<PageWrapper><><Navbar /><PolicyPage /><Footer /></></PageWrapper>} />
-          <Route path="/privacy" element={<PageWrapper><><Navbar /><Privacy /><Footer /></></PageWrapper>} />
-          <Route path="/devenir-livreur" element={<PageWrapper><><Navbar /><DevenirLivreur /><Footer /></></PageWrapper>} />
+          <Route path="/user/address" element={<PublicRoute><><Navbar /><AddressSelector /></></PublicRoute>} />
+          <Route path="/Faq" element={<><Navbar /><FaqList /><Footer /></>} />
+          <Route path="/Policy" element={<><Navbar /><PolicyPage /><Footer /></>} />
+          <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />
+          <Route path="/devenir-livreur" element={<><Navbar /><DevenirLivreur /><Footer /></>} />
 
           {/* Supplier Routes (Redirecting to external portal) */}
-          <Route path="/fournisseur/inscription" element={<PageWrapper><SupplierRegister /></PageWrapper>} />
+          <Route path="/fournisseur/inscription" element={<SupplierRegister />} />
           <Route path="/fournisseur/dashboard" element={<ExternalRedirect url={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com'} />} />
           <Route path="/fournisseur/ajouter-produit" element={<ExternalRedirect url={import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com'} />} />
 
           <Route path="/admin/dashboard/*" element={
-            <PageWrapper>
               <SignedIn>
                 {profileUser?.isAdmin ? <AdminLayout /> : <Navigate to="/" replace />}
               </SignedIn>
-            </PageWrapper>
           } />
 
           <Route path="/admin/Dashboard/*" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/order-confirmation/:orderId" element={<PageWrapper><><Navbar /><GuestOrderConfirmationPage /><Footer /></></PageWrapper>} />
+          <Route path="/order-confirmation/:orderId" element={<><Navbar /><GuestOrderConfirmationPage /><Footer /></>} />
           <Route path="/orders" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/orders/:id" element={
-            <PageWrapper>
               <SignedIn>
                 <OrderDetail />
               </SignedIn>
               <SignedOut>
                 <Navigate to="/auth/connexion" replace />
               </SignedOut>
-            </PageWrapper>
           } />
 
           {/* Catch-all 404 */}
-          <Route path="*" element={<PageWrapper><NotFoundPage /></PageWrapper>} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </AnimatePresence>
 
       <CookieConsent />
     </div>
