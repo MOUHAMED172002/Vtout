@@ -69,6 +69,10 @@ export default function CheckoutPage() {
   }, [user]);
 
 
+  const incoming = location?.state || {};
+  const itemsFromCart = incoming.items || [];
+  const totalFromCart = incoming.total || 0;
+
   // Update delivery fee when address changes
   useEffect(() => {
     if (!address || !address.is_valid || itemsFromCart.length === 0) {
@@ -119,10 +123,6 @@ export default function CheckoutPage() {
     setDeliveryFee(totalSupplement);
     setIsDynamicFeeLoading(false);
   }, [address, itemsFromCart, feesConfig]);
-
-  const incoming = location?.state || {};
-  const itemsFromCart = incoming.items || [];
-  const totalFromCart = incoming.total || 0;
 
   useEffect(() => {
     if (itemsFromCart.length === 0) {
