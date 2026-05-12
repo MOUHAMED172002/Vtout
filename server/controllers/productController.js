@@ -95,6 +95,17 @@ export const getAllProducts = async (req, res) => {
                             SELECT AVG(rating) FROM reviews WHERE reviews.product_id = Product.id
                         )`),
                         'average_rating'
+                    ],
+                    [
+                        sequelize.literal(`(
+                            COALESCE((
+                                SELECT SUM(pvp.stock) 
+                                FROM product_variant_prices AS pvp
+                                INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = Product.id
+                            ), \`Product\`.stock)
+                        )`),
+                        'total_stock'
                     ]
                 ]
             },
@@ -138,6 +149,17 @@ export const getProductById = async (req, res) => {
                             SELECT AVG(rating) FROM reviews WHERE reviews.product_id = Product.id
                         )`),
                         'average_rating'
+                    ],
+                    [
+                        sequelize.literal(`(
+                            COALESCE((
+                                SELECT SUM(pvp.stock) 
+                                FROM product_variant_prices AS pvp
+                                INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = Product.id
+                            ), \`Product\`.stock)
+                        )`),
+                        'total_stock'
                     ]
                 ]
             },
@@ -190,6 +212,21 @@ export const searchProducts = async (req, res) => {
                 [Op.or]: [
                     { name: { [Op.like]: `%${q}%` } },
                     { description: { [Op.like]: `%${q}%` } }
+                ]
+            },
+            attributes: {
+                include: [
+                    [
+                        sequelize.literal(`(
+                            COALESCE((
+                                SELECT SUM(pvp.stock) 
+                                FROM product_variant_prices AS pvp
+                                INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = Product.id
+                            ), \`Product\`.stock)
+                        )`),
+                        'total_stock'
+                    ]
                 ]
             },
             include: [
@@ -306,10 +343,36 @@ export const createProduct = async (req, res) => {
         if (!finalSupplierId && req.auth?.userId) {
             const supplierProfile = await Supplier.findOne({ where: { user_id: req.auth.userId } });
             if (supplierProfile) {
-                if (isSupplier && supplierProfile.status !== 'active') {
-                    await transaction.rollback();
-                    return res.status(403).json({ error: 'Votre compte fournisseur doit être approuvé par l’administrateur avant d’ajouter des produits.' });
+                if (isSupplier) {
+                    if (supplierProfile.status !== 'active') {
+                        await transaction.rollback();
+                        return res.status(403).json({ error: 'Votre compte fournisseur doit être approuvé par l’administrateur avant d’ajouter des produits.' });
+                    }
+
+                    // Check selected boutique completeness
+                    if (!boutique_id) {
+                        await transaction.rollback();
+                        return res.status(400).json({ error: 'Veuillez sélectionner une boutique pour ce produit.' });
+                    }
+
+                    const boutique = await Boutique.findOne({ where: { id: boutique_id, supplier_id: supplierProfile.id } });
+                    if (!boutique) {
+                        await transaction.rollback();
+                        return res.status(404).json({ error: 'Boutique non trouvée ou ne vous appartient pas.' });
+                    }
+
+                    const isBoutiqueComplete = boutique.name && boutique.phone && boutique.address_line && 
+                                              boutique.departement_id && boutique.commune_id && boutique.quartier_id;
+                    
+                    if (!isBoutiqueComplete) {
+                        await transaction.rollback();
+                        return res.status(403).json({ 
+                            error: 'Boutique incomplète', 
+                            details: `Les informations de la boutique "${boutique.name}" sont incomplètes (Adresse, Téléphone, Ville/Quartier). Veuillez les mettre à jour.` 
+                        });
+                    }
                 }
+                
                 finalSupplierId = supplierProfile.id;
                 // Suppliers always start with 'En attente' unless they are admins
                 if (isSupplier) finalStatus = 'En attente';

@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import AddressSelector from './Shared/AddressSelector';
 import { createBoutique } from '../services/supplierService';
 
-export default function BoutiqueModal({ isOpen, onClose, onSuccess }) {
+export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData = null }) {
     const { getToken } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -25,6 +25,24 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess }) {
         lng: 2.4183
     });
 
+    React.useEffect(() => {
+        if (initialData) {
+            setFormData({
+                ...initialData,
+                lat: initialData.lat || 6.3654,
+                lng: initialData.lng || 2.4183
+            });
+        } else {
+            setFormData({
+                name: '', phone: '', whatsapp: '', momo_number: '', address_line: '',
+                departement_id: null, departement_label: '',
+                commune_id: null, commune_label: '',
+                quartier_id: null, quartier_label: '',
+                lat: 6.3654, lng: 2.4183
+            });
+        }
+    }, [initialData, isOpen]);
+
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
@@ -34,12 +52,21 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess }) {
         setLoading(true);
         try {
             const token = await getToken();
-            await createBoutique(formData, token);
-            toast.success("Boutique ajoutée avec succès !");
+            if (initialData?.id) {
+                // Update
+                await api.patch(`/suppliers/me/boutiques/${initialData.id}`, formData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                toast.success("Boutique mise à jour !");
+            } else {
+                // Create
+                await createBoutique(formData, token);
+                toast.success("Boutique ajoutée avec succès !");
+            }
             onSuccess();
             onClose();
         } catch (err) {
-            toast.error("Erreur lors de la création de la boutique");
+            toast.error(initialData?.id ? "Erreur lors de la mise à jour" : "Erreur lors de la création");
         } finally {
             setLoading(false);
         }
@@ -66,8 +93,8 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess }) {
                             <Store size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tighter">Nouvelle Boutique</h3>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter un point de vente</p>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tighter">{initialData ? "Modifier Boutique" : "Nouvelle Boutique"}</h3>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{initialData ? "Mettre à jour les infos" : "Ajouter un point de vente"}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
@@ -136,7 +163,7 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess }) {
                             disabled={loading}
                             className="w-full py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
                         >
-                            {loading ? <span className="loading loading-spinner"></span> : "Confirmer l'ajout"}
+                            {loading ? <span className="loading loading-spinner"></span> : initialData ? "Enregistrer les modifications" : "Confirmer l'ajout"}
                         </button>
                     </div>
                 </form>

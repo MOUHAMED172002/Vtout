@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getSuppliers, updateSupplierStatus, deleteSupplier } from '../../../services/supplierService';
+import { getSuppliers, updateSupplierStatus, deleteSupplier, notifyIncompleteSuppliers } from '../../../services/supplierService';
 import { useAuth } from "../../../lib/AuthHooks";;
-import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus, Bell, UserPlus, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';
 import SupplierWalletModal from './SupplierWalletModal';
@@ -11,6 +11,7 @@ import { Wallet, UserPlus } from 'lucide-react';
 const SuppliersManager = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [notifying, setNotifying] = useState(false);
     const [showAddSupplier, setShowAddSupplier] = useState(false);
     const [selectedForBoutique, setSelectedForBoutique] = useState(null);
     const [selectedForWallet, setSelectedForWallet] = useState(null);
@@ -59,6 +60,20 @@ const SuppliersManager = () => {
         }
     };
 
+    const handleNotifyIncomplete = async () => {
+        try {
+            setNotifying(true);
+            const token = await getToken();
+            const res = await notifyIncompleteSuppliers(token);
+            alert(res.message);
+        } catch (error) {
+            console.error('Erreur notification:', error);
+            alert('Erreur lors de l\'envoi des notifications');
+        } finally {
+            setNotifying(false);
+        }
+    };
+
     const getStatusBadge = (status) => {
         const s = status?.toLowerCase() || '';
         if (s === 'active' || s === 'actif') {
@@ -103,12 +118,22 @@ const SuppliersManager = () => {
                 <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-base-content mb-1">Gestion des Marchands</h2>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[9px] lg:text-[10px]">Validation et suivi des partenaires</p>
-                    <button 
-                        onClick={() => setShowAddSupplier(true)}
-                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 text-[10px] font-black uppercase tracking-widest"
-                    >
-                        <UserPlus size={16} /> Nouveau Marchand
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={handleNotifyIncomplete}
+                            disabled={notifying}
+                            className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-amber-500/20 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                        >
+                            <Bell size={16} className={notifying ? 'animate-bounce' : ''} /> 
+                            {notifying ? 'Envoi...' : 'Relancer Profils Incomplets'}
+                        </button>
+                        <button 
+                            onClick={() => setShowAddSupplier(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 text-[10px] font-black uppercase tracking-widest"
+                        >
+                            <UserPlus size={16} /> Nouveau Marchand
+                        </button>
+                    </div>
                 </div>
             </div>
 

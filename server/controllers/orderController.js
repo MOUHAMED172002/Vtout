@@ -646,7 +646,7 @@ export const updateOrderStatus = async (req, res) => {
                     const items = await OrderItem.findAll({ where: { order_id: order.id } });
                     for (const item of items) {
                         if (item.variant_id) {
-                            await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                            await ProductVariantPrice.increment('stock', { by: item.quantity, where: { variant_id: item.variant_id } });
                         } else {
                             await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
                         }

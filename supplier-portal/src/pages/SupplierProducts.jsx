@@ -58,17 +58,17 @@ const SupplierProducts = () => {
   };
 
 
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleShare = (productId) => {
     const url = `${window.location.protocol}//${window.location.hostname}:5173/produit/${productId}`;
     if (navigator.share) {
-        navigator.share({ title: 'Découvrez ce produit', url }).catch(() => {});
+      navigator.share({ title: 'Découvrez ce produit', url }).catch(() => { });
     } else {
-        navigator.clipboard.writeText(url);
-        toast.success('Lien copié !');
+      navigator.clipboard.writeText(url);
+      toast.success('Lien copié !');
     }
   };
 
@@ -98,12 +98,12 @@ const SupplierProducts = () => {
           <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Mes Produits</h1>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Gérez votre catalogue d'articles</p>
         </div>
-        
+
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Rechercher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -119,7 +119,7 @@ const SupplierProducts = () => {
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Produit</th>
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Prix Gros</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Prix de vente</th>
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Stock</th>
                 <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                 <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
@@ -128,10 +128,10 @@ const SupplierProducts = () => {
             <tbody className="divide-y divide-slate-50">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <motion.tr 
+                  <motion.tr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    key={product.id} 
+                    key={product.id}
                     className="hover:bg-slate-50/50 transition-colors group"
                   >
                     <td className="px-8 py-6">
@@ -154,13 +154,10 @@ const SupplierProducts = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2 group/stock">
-                        <input 
-                            type="number"
-                            defaultValue={product.stock || 0}
-                            onBlur={(e) => handleStockUpdate(product.id, parseInt(e.target.value))}
-                            className="w-16 bg-slate-50 border-none rounded-lg px-2 py-1 text-sm font-black text-slate-900 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                        />
-                        <div className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-emerald-500' : product.stock > 0 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                        <span className="text-sm font-black text-slate-900">
+                          {product.total_stock !== undefined ? product.total_stock : (product.stock || 0)}
+                        </span>
+                        <div className={`w-2 h-2 rounded-full ${(product.total_stock !== undefined ? product.total_stock : product.stock) > 10 ? 'bg-emerald-500' : (product.total_stock !== undefined ? product.total_stock : product.stock) > 0 ? 'bg-amber-500' : 'bg-rose-500'}`} />
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -176,14 +173,14 @@ const SupplierProducts = () => {
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => navigate(`/edit-product/${product.id}`)} 
+                        <button
+                          onClick={() => navigate(`/edit-product/${product.id}`)}
                           className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                           title="Modifier le produit"
                         >
                           <Edit size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(product.id)}
                           className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                         >

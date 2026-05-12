@@ -131,6 +131,11 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const { currentPrice, basePrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
 
   const isOutOfStock = useMemo(() => {
+    // If we have total_stock from backend, use it
+    if (product.total_stock !== undefined) {
+      return Number(product.total_stock) <= 0;
+    }
+    // Fallback logic
     if (product.variants && product.variants.length > 0) {
       return !product.variants.some(v => (v.priceRows?.[0]?.stock || 0) > 0);
     }

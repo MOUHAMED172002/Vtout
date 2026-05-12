@@ -16,6 +16,7 @@ import LogoText from './Shared/LogoText';
 
 const navLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
+    { to: '/mes-boutiques', icon: Store, label: 'Mes Boutiques' },
     { to: '/mes-commandes', icon: ShoppingBag, label: 'Mes Commandes' },
     { to: '/mes-produits', icon: Package, label: 'Mes Produits' },
     { to: '/ajouter-produit', icon: PlusCircle, label: 'Ajouter un produit' },
@@ -129,6 +130,38 @@ const Sidebar = ({ mobile, onClose }) => {
 
 const Layout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [supplierProfile, setSupplierProfile] = useState(null);
+    const [boutiques, setBoutiques] = useState([]);
+    const { getToken } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchSupplierData = async () => {
+            try {
+                const token = await getToken();
+                if (!token) return;
+                const [profileRes, boutiquesRes] = await Promise.all([
+                    api.get('/suppliers/me', { headers: { Authorization: `Bearer ${token}` } }),
+                    api.get('/suppliers/me/boutiques', { headers: { Authorization: `Bearer ${token}` } })
+                ]);
+                setSupplierProfile(profileRes.data);
+                setBoutiques(boutiquesRes.data || []);
+            } catch (err) {
+                console.error("Supplier data fetch error in Layout:", err);
+            }
+        };
+        fetchSupplierData();
+    }, [getToken]);
+
+    const isProfileIncomplete = useMemo(() => {
+        if (!supplierProfile) return false;
+        // Require at least one complete boutique
+        if (boutiques.length === 0) return true;
+        return !boutiques.some(b => 
+            b.name && b.phone && b.address_line && 
+            b.departement_id && b.commune_id && b.quartier_id
+        );
+    }, [supplierProfile, boutiques]);
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -200,6 +233,25 @@ const Layout = ({ children }) => {
 
                 {/* Scrollable Page Content */}
                 <main className="flex-1 overflow-y-auto">
+                    {isProfileIncomplete && (
+                        <div className="bg-amber-50 border-b border-amber-100 px-12 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-20">
+                            <div className="flex items-center gap-3">
+                                <Bell className="text-amber-500 animate-bounce" size={20} />
+                                <div>
+                                    <p className="text-sm font-black text-amber-900">Action requise : Boutique Incomplète</p>
+                                    <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
+                                        Veuillez créer ou compléter vos informations de boutique pour vendre vos produits.
+                                    </p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => navigate('/mes-boutiques')} 
+                                className="px-6 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+                            >
+                                Gérer mes boutiques
+                            </button>
+                        </div>
+                    )}
                     {children}
                 </main>
             </div>

@@ -80,3 +80,10 @@ export const deleteSupplier = async (id, token) => {
     });
     return resp.data;
 };
+
+export const notifyIncompleteSuppliers = async (token) => {
+    const { data } = await api.post('/suppliers/notify-incomplete', {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};

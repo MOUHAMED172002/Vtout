@@ -331,11 +331,33 @@ export const getSupplierStats = async (req, res) => {
             });
         }
 
-        // 4. Low Stock
+        // 4. Low Stock (Sum of variants < 5)
         const lowStock = await Product.findAll({
             where: {
                 supplier_id: supplier.id,
-                stock: { [Op.lt]: 5 }
+                [Op.and]: [
+                    sequelize.literal(`(
+                        SELECT COALESCE(SUM(pvp.stock), \`Product\`.stock)
+                        FROM product_variant_prices AS pvp
+                        INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                        WHERE pv.product_id = \`Product\`.id
+                    ) < 5`)
+                ]
+            },
+            attributes: {
+                include: [
+                    [
+                        sequelize.literal(`(
+                            COALESCE((
+                                SELECT SUM(pvp.stock) 
+                                FROM product_variant_prices AS pvp
+                                INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = Product.id
+                            ), \`Product\`.stock)
+                        )`),
+                        'total_stock'
+                    ]
+                ]
             },
             limit: 10
         });

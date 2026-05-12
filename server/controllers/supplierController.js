@@ -290,6 +290,21 @@ export const getMyProducts = async (req, res) => {
 
         const products = await Product.findAll({
             where: { supplier_id: supplier.id },
+            attributes: {
+                include: [
+                    [
+                        sequelize.literal(`(
+                            COALESCE((
+                                SELECT SUM(pvp.stock) 
+                                FROM product_variant_prices AS pvp
+                                INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
+                                WHERE pv.product_id = Product.id
+                            ), \`Product\`.stock)
+                        )`),
+                        'total_stock'
+                    ]
+                ]
+            },
             include: [
                 { model: ProductImage, as: 'images' },
                 { model: Category, as: 'category', attributes: ['id', 'name'] },
@@ -305,6 +320,42 @@ export const getMyProducts = async (req, res) => {
     } catch (error) {
         console.error('GetMyProducts error:', error);
         res.status(500).json({ error: 'Erreur serveur', details: error.message });
+    }
+};
+
+export const updateMyBoutique = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const { id } = req.params;
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Profil fournisseur non trouvé' });
+
+        const boutique = await Boutique.findOne({ where: { id, supplier_id: supplier.id } });
+        if (!boutique) return res.status(404).json({ error: 'Boutique non trouvée' });
+
+        await boutique.update(req.body);
+        res.json(boutique);
+    } catch (error) {
+        console.error('UpdateMyBoutique error:', error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour de la boutique' });
+    }
+};
+
+export const deleteMyBoutique = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const { id } = req.params;
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Profil fournisseur non trouvé' });
+
+        const boutique = await Boutique.findOne({ where: { id, supplier_id: supplier.id } });
+        if (!boutique) return res.status(404).json({ error: 'Boutique non trouvée' });
+
+        await boutique.destroy();
+        res.json({ message: 'Boutique supprimée avec succès' });
+    } catch (error) {
+        console.error('DeleteMyBoutique error:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression de la boutique' });
     }
 };
 
@@ -377,5 +428,45 @@ export const adminCreateBoutique = async (req, res) => {
     } catch (error) {
         console.error('AdminCreateBoutique error:', error);
         res.status(500).json({ error: 'Erreur lors de la création de la boutique par l\'admin' });
+    }
+};
+
+export const notifyIncompleteSuppliers = async (req, res) => {
+    try {
+        const incompleteSuppliers = await Supplier.findAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.is]: null } },
+                    { phone: { [Op.is]: null } },
+                    { address_line: { [Op.is]: null } },
+                    { departement_id: { [Op.is]: null } },
+                    { commune_id: { [Op.is]: null } },
+                    { quartier_id: { [Op.is]: null } }
+                ]
+            },
+            include: [{ model: Profile, as: 'user', attributes: ['phone', 'fullname'] }]
+        });
+
+        if (incompleteSuppliers.length === 0) {
+            return res.json({ message: 'Aucun fournisseur avec profil incomplet trouvé.' });
+        }
+
+        let sentCount = 0;
+        for (const s of incompleteSuppliers) {
+            const phone = s.phone || s.user?.phone || s.whatsapp;
+            if (phone) {
+                try {
+                    await notifyAdmin(`🔔 Rappel Vtout : Bonjour ${s.name || s.user?.fullname || 'Cher Partenaire'}, votre profil marchand est incomplet. Veuillez renseigner votre adresse et téléphone pour pouvoir ajouter des produits. Merci.`);
+                    sentCount++;
+                } catch (err) {
+                    console.error(`Error notifying ${phone}:`, err);
+                }
+            }
+        }
+
+        res.json({ message: `${sentCount} notifications envoyées avec succès.` });
+    } catch (error) {
+        console.error("NOTIFY INCOMPLETE ERROR:", error);
+        res.status(500).json({ error: 'Erreur Serveur', details: error.message });
     }
 };

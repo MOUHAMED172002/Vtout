@@ -19,6 +19,8 @@ router.patch('/me', requireAuth, requireFournisseur, supplierController.updateMy
 router.get('/me/products', requireAuth, requireFournisseur, supplierController.getMyProducts);
 router.get('/me/boutiques', requireAuth, requireFournisseur, supplierController.getMyBoutiques);
 router.post('/me/boutiques', requireAuth, requireFournisseur, supplierController.createBoutique);
+router.patch('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.updateMyBoutique);
+router.delete('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.deleteMyBoutique);
 
 // ---- Routes Admin uniquement ----
 router.get('/', requireAdmin, supplierController.getAllSuppliers);
@@ -28,6 +30,7 @@ router.get('/boutiques-all', requireAdmin, supplierController.getAllBoutiques);
 router.get('/:id', requireAdmin, supplierController.getSupplierById);
 router.patch('/:id', requireAdmin, supplierController.updateSupplier);
 router.delete('/:id', requireAdmin, supplierController.deleteSupplier);
+router.post('/notify-incomplete', requireAdmin, supplierController.notifyIncompleteSuppliers);
 
 // Supplier-Product relationship routes
 router.patch('/products/:id', requireAdmin, supplierController.updateSupplierProduct);

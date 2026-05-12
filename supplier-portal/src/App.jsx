@@ -19,6 +19,7 @@ import EditProductSupplier from './pages/EditProductSupplier';
 import SupplierWallet from './pages/SupplierWallet';
 import SupplierStats from './pages/SupplierStats';
 import SupplierPolicies from './pages/SupplierPolicies';
+import SupplierBoutiques from './pages/SupplierBoutiques';
 
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
@@ -100,6 +101,7 @@ function App() {
             <Route path="/portefeuille" element={<ProtectedRoute><SupplierWallet /></ProtectedRoute>} />
             <Route path="/statistiques" element={<ProtectedRoute><SupplierStats /></ProtectedRoute>} />
             <Route path="/conditions" element={<ProtectedRoute><SupplierPolicies /></ProtectedRoute>} />
+            <Route path="/mes-boutiques" element={<ProtectedRoute><SupplierBoutiques /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />

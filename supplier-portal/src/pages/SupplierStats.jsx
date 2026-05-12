@@ -152,9 +152,9 @@ export default function SupplierStats() {
                                 <p className="font-black text-slate-900 line-clamp-1">{product.name}</p>
                                 <div className="flex items-center gap-3">
                                     <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-rose-500" style={{ width: `${(product.stock / 5) * 100}%` }}></div>
+                                        <div className="h-full bg-rose-500" style={{ width: `${((product.total_stock !== undefined ? product.total_stock : product.stock) / 5) * 100}%` }}></div>
                                     </div>
-                                    <span className="text-xs font-black text-rose-500">{product.stock} restants</span>
+                                    <span className="text-xs font-black text-rose-500">{product.total_stock !== undefined ? product.total_stock : product.stock} restants</span>
                                 </div>
                             </div>
                         </div>
