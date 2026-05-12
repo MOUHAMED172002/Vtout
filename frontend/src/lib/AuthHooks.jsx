@@ -11,7 +11,7 @@ export const AuthContext = createContext({
 
 export const ClerkProvider = ({ children }) => {
     const { data, isPending } = authClient.useSession();
-    const [profile, setProfile] = React.useState(null);
+    const [profile, setProfile] = useState(null);
 
     useEffect(() => {
         const fetchProfile = async () => {
