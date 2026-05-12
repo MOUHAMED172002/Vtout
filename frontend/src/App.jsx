@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { SignedIn, SignedOut, useAuth } from './lib/clerk-shim';
+import { useAuth } from './lib/AuthHooks';
+import { SignedIn, SignedOut } from './lib/AuthGuards';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { motion, AnimatePresence } from 'framer-motion';

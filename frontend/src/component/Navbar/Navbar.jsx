@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useUser } from "../../lib/AuthHooks";
 import { SignedIn, SignedOut } from "../../lib/AuthGuards";
-import { UserButton } from "../../lib/clerk-shim";
+import { UserButton } from "../../lib/AuthComponents";
 import { useProfile } from "../context/useProfile";
 import SearchBar from '../Shared/SearchBar';
 import CartIcon from '../context/CartIcon';
