@@ -7,7 +7,7 @@ import {
 } from "../../../services/supplierService";
 import { Truck, Edit2, Trash2, RefreshCw } from 'lucide-react';
 
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 
 /**
  * SupplierList

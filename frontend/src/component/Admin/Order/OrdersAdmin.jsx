@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";

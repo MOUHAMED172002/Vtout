@@ -9,7 +9,7 @@ import {
   updateAttributeValue,
   deleteAttributeValue
 } from "../../../services/productService";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import toast from "react-hot-toast";
 import {
   Plus,

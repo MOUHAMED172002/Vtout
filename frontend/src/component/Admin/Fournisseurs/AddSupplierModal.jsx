@@ -4,7 +4,7 @@ import { X, User, Phone, MessageCircle, CreditCard, Save, MapPin } from 'lucide-
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import api from '../../../services/api';
-import { useAuth } from '../../../lib/clerk-shim';
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getHierarchy } from '../../../services/locationService';
 
 export default function AddSupplierModal({ onClose, onCreated }) {

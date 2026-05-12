@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import { Navigate } from "react-router-dom";
-import { useUser } from "../../lib/clerk-shim";
+import { useUser } from "../../lib/AuthHooks";;
 
 export default function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useUser();

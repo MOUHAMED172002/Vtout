@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getUserAddresses } from "../../../services/addressService";
 
 export default function UserDetailsModal({ user, isOpen, onClose, onUpdated = () => { } }) {

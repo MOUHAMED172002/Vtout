@@ -71,7 +71,7 @@ import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../../lib/clerk-shim";
+import { useAuth } from "../../lib/AuthHooks";;
 import { useNavigate } from "react-router-dom";
 import PortalSwitcher from "../Shared/PortalSwitcher";
 import ThemeSelector from "../context/ThemeSelector";

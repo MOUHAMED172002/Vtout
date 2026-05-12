@@ -1,4 +1,4 @@
-import { SignUp } from "../../lib/clerk-shim";
+import { SignUp } from "../../lib/AuthComponents";;
 
 export default function Register() {
     return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Banknote, CheckCircle2, XCircle, Clock, Search, Filter, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../../lib/clerk-shim';
+import { useAuth } from "../../../lib/AuthHooks";;
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 

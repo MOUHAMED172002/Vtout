@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import api from "../../../services/api";
 import { Search, Clock, User, Hash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";

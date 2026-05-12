@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../lib/clerk-shim";
+import { useAuth } from "../../lib/AuthHooks";;
 import { getMyOrders } from "../../services/orderService";
 import {
   ShoppingBag,

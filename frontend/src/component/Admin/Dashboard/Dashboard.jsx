@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getDashboardStats } from "../../../services/statsService";
 import QuickStats from "../Dashboard/QuickStats";
 import SalesChart from "../Dashboard/SalesChart";

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useAuth, useUser } from "../../lib/clerk-shim";
+import { useAuth, useUser } from "../../lib/AuthHooks";;
 import {
     getAvailableOrders,
     getMyDeliveries,

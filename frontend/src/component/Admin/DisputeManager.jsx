@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../lib/clerk-shim';
+import { useAuth } from "../../lib/AuthHooks";;
 import { 
     AlertCircle, 
     CheckCircle2, 

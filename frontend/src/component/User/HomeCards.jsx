@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useUser, useAuth } from "../../lib/clerk-shim";
+import { useUser, useAuth } from "../../lib/AuthHooks";;
 import { getMyProfile } from "../../services/userService";
 import { getMyOrders } from "../../services/orderService";
 import { getUserFavorites } from "../../services/favoriteService";

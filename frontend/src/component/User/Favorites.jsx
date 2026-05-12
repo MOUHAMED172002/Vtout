@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../../lib/clerk-shim";
+import { useAuth } from "../../lib/AuthHooks";;
 import { getUserFavorites, toggleFavorite } from "../../services/favoriteService";
 import ProductCard from "../../component/Products/ProductsCard";
 import toast from "react-hot-toast";

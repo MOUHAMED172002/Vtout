@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, updateProduct, mergeProducts, searchProducts, deleteProduct } from '../../../services/productService';
-import { useAuth } from '../../../lib/clerk-shim';
+import { useAuth } from "../../../lib/AuthHooks";;
 import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';

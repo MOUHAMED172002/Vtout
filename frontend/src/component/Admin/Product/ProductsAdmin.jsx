@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../../../services/productService";
 import ProductTable from "../Product/ProductTable";
 import AddProductModal from "../Product/AddProductModal";

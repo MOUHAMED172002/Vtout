@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth, useUser, SignUp, SignIn } from '../../lib/clerk-shim';
+import { useAuth, useUser } from "../../lib/AuthHooks";
+import { SignUp, SignIn } from "../../lib/AuthComponents";;
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Check, MapPin, Phone, MessageCircle, CreditCard, ShieldCheck, Store, Loader2, Navigation, UserCheck } from 'lucide-react';

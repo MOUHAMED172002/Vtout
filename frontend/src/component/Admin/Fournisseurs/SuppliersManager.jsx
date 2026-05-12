@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSuppliers, updateSupplierStatus, deleteSupplier } from '../../../services/supplierService';
-import { useAuth } from '../../../lib/clerk-shim';
+import { useAuth } from "../../../lib/AuthHooks";;
 import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';

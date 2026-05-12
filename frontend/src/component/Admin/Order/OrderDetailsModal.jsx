@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useAuth } from "../../../lib/clerk-shim";
+import { useAuth } from "../../../lib/AuthHooks";;
 import { getOrderById, updateOrderStatus as updateOrder, getSuggestedSuppliers, assignSupplier } from "../../../services/orderService";
 import { getLivreursList, adminAssignOrder } from "../../../services/deliveryService";
 import OrderStatusBadge from "../Order/OrderStatusBadge";

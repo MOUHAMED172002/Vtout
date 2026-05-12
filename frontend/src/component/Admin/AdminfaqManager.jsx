@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../lib/clerk-shim";
+import { useAuth } from "../../lib/AuthHooks";;
 import { getFaqs, createFaq, updateFaq, deleteFaq as apiDeleteFaq } from "../../services/contentService";
 import toast from "react-hot-toast";
 

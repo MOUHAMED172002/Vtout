@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, DollarSign, ShoppingBag, PieChart, Activity, ArrowUpRight, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../../lib/clerk-shim';
+import { useAuth } from "../../../lib/AuthHooks";;
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 

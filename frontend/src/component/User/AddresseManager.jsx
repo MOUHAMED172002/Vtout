@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useAuth, useUser } from "../../lib/clerk-shim";
+import { useAuth, useUser } from "../../lib/AuthHooks";;
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Plus, Pencil, Trash2, CheckCircle2, Star, Phone,

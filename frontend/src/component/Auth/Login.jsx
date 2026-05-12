@@ -1,4 +1,4 @@
-import { SignIn, SignUp } from "../../lib/clerk-shim";
+import { SignIn, SignUp } from "../../lib/AuthComponents";;
 
 export default function Login() {
     return (

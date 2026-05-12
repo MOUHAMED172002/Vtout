@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
-import { useAuth } from "../../lib/clerk-shim";
+import { useAuth } from "../../lib/AuthHooks";;
 import { getOrderById } from "../../services/orderService";
 import { createReview } from "../../services/reviewService";
 import { uploadMultipleImages } from "../../services/uploadService";

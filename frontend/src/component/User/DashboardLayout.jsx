@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useClerk } from "../../lib/clerk-shim";
+import { useClerk } from "../../lib/AuthHooks";;
 import {
   BarChart3,
   ShoppingBag,
