@@ -177,7 +177,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             setValue('price', calculated);
         }
     }
-  }, [globalSupplierPrice, commissionRate]);
+  }, [globalSupplierPrice, commissionRate, watchPrice, setValue]);
 
   const checkExisting = async (name, cid) => {
     setCheckingExisting(true);
@@ -794,7 +794,10 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
-                            <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                            <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                                <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
+                            </div>
                         </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
@@ -806,9 +809,9 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         </div>
                     </div>
                     <div className="pt-2 flex items-start gap-2">
-                        <Info size={12} className="text-slate-400 mt-0.5" />
-                        <p className="text-[9px] font-bold text-slate-400 leading-relaxed italic">
-                            Le client verra ce produit avec le badge <span className="text-emerald-600 uppercase">"Livraison Offerte"</span>. Les frais de livraison de 1 000 F sont inclus dans le prix final.
+                        <Info size={12} className="text-primary mt-0.5 shrink-0" />
+                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
+                            Les <span className="text-emerald-600">1 000 F de livraison</span> sont ajoutés pour permettre d'afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span> sur votre produit, ce qui booste vos ventes. Votre gain net reste inchangé.
                         </p>
                     </div>
                   </div>

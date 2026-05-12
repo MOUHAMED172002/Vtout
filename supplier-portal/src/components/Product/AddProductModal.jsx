@@ -647,7 +647,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
           {steps[currentStep].id === 'variants' && (
             <motion.div key="variants" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
               <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Personnalisation des <span className="text-primary">Variantes.</span></h3>
-              
+
               {variantFields.length > 0 ? (
                 <div className="grid grid-cols-1 gap-8">
                   {variantFields.map((field, index) => (
@@ -762,7 +762,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     </div>
                   )}
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Prix de gros (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400">Prix de vente  (FCFA)</label>
                     <div className="relative">
                       <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Accordé (FCFA)" />
                       <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-indigo-300">FCFA</span>

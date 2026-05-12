@@ -28,19 +28,19 @@ const DELIVERY_FEE = 1000;
 
 // ─── Étapes ───────────────────────────────────────────────────────────────────
 const steps = [
-  { id: 'info',      title: 'Informations',  icon: Info      },
-  { id: 'images',    title: 'Images',         icon: ImageIcon },
-  { id: 'fournisseur', title: 'Fournisseur',  icon: Truck     },
-  { id: 'variantes', title: 'Variantes',      icon: Layers    },
+  { id: 'info', title: 'Informations', icon: Info },
+  { id: 'images', title: 'Images', icon: ImageIcon },
+  { id: 'fournisseur', title: 'Fournisseur', icon: Truck },
+  { id: 'variantes', title: 'Variantes', icon: Layers },
 ];
 
 // ─── Badge statut ──────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const map = {
-    approved:   { label: 'Approuvé',   cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
-    rejected:   { label: 'Rejeté',     cls: 'bg-rose-100    text-rose-700    border-rose-200',    Icon: XCircle      },
-    'En attente': { label: 'En attente', cls: 'bg-amber-100  text-amber-700   border-amber-200',   Icon: Clock        },
-    draft:      { label: 'Brouillon',  cls: 'bg-slate-100   text-slate-600   border-slate-200',   Icon: Clock        },
+    approved: { label: 'Approuvé', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
+    rejected: { label: 'Rejeté', cls: 'bg-rose-100    text-rose-700    border-rose-200', Icon: XCircle },
+    'En attente': { label: 'En attente', cls: 'bg-amber-100  text-amber-700   border-amber-200', Icon: Clock },
+    draft: { label: 'Brouillon', cls: 'bg-slate-100   text-slate-600   border-slate-200', Icon: Clock },
   };
   const { label, cls, Icon } = map[status] || map['En attente'];
   return (
@@ -86,9 +86,9 @@ const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
       {/* Contacts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: Phone,         label: 'Téléphone', value: supplier.phone,        cls: 'text-slate-700'   },
-          { icon: MessageCircle, label: 'WhatsApp',  value: supplier.whatsapp,     cls: 'text-emerald-600' },
-          { icon: CreditCard,    label: 'Momo Pay',  value: supplier.momo_number,  cls: 'text-amber-600'   },
+          { icon: Phone, label: 'Téléphone', value: supplier.phone, cls: 'text-slate-700' },
+          { icon: MessageCircle, label: 'WhatsApp', value: supplier.whatsapp, cls: 'text-emerald-600' },
+          { icon: CreditCard, label: 'Momo Pay', value: supplier.momo_number, cls: 'text-amber-600' },
         ].map(({ icon: Icon, label, value, cls }) => (
           <div key={label} className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
@@ -228,12 +228,12 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchPrice && commissionRate) {
-        // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
-        const calculated = Math.round((parseFloat(watchPrice) * (1 - commissionRate / 100)) - DELIVERY_FEE);
-        if (calculated !== parseFloat(watchSupplierPrice)) {
-            setIsInternalPriceChange(true);
-            setValue('supplier_price', calculated);
-        }
+      // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
+      const calculated = Math.round((parseFloat(watchPrice) * (1 - commissionRate / 100)) - DELIVERY_FEE);
+      if (calculated !== parseFloat(watchSupplierPrice)) {
+        setIsInternalPriceChange(true);
+        setValue('supplier_price', calculated);
+      }
     }
   }, [watchPrice, commissionRate]);
 
@@ -244,12 +244,12 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchSupplierPrice && commissionRate) {
-        // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
-        const calculated = Math.round((parseFloat(watchSupplierPrice) + DELIVERY_FEE) / (1 - commissionRate / 100));
-        if (calculated !== parseFloat(watchPrice)) {
-            setIsInternalPriceChange(true);
-            setValue('price', calculated);
-        }
+      // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
+      const calculated = Math.round((parseFloat(watchSupplierPrice) + DELIVERY_FEE) / (1 - commissionRate / 100));
+      if (calculated !== parseFloat(watchPrice)) {
+        setIsInternalPriceChange(true);
+        setValue('price', calculated);
+      }
     }
   }, [watchSupplierPrice, commissionRate]);
 
@@ -257,26 +257,26 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   useEffect(() => {
     if (!initialProduct) return;
     reset({
-      name:            initialProduct.name         || '',
-      description:     initialProduct.description  || '',
-      category_id:     initialProduct.category_id  || '',
-      price:           initialProduct.price         || '',
-      old_price:       initialProduct.old_price     || '',
-      stock:           initialProduct.stock         || 0,
+      name: initialProduct.name || '',
+      description: initialProduct.description || '',
+      category_id: initialProduct.category_id || '',
+      price: initialProduct.price || '',
+      old_price: initialProduct.old_price || '',
+      stock: initialProduct.stock || 0,
       approval_status: initialProduct.approval_status || 'En attente',
-      admin_feedback:  initialProduct.admin_feedback  || '',
-      supplier_price:  initialProduct.supplier_price  || '',
+      admin_feedback: initialProduct.admin_feedback || '',
+      supplier_price: initialProduct.supplier_price || '',
       variants: (initialProduct.variants || []).map(v => ({
         ...v,
-        price:        v.priceRows?.[0]?.price     || initialProduct.price,
-        old_price:    v.priceRows?.[0]?.old_price || initialProduct.old_price,
-        stock:        v.priceRows?.[0]?.stock     || 0,
-        image_url:    v.priceRows?.[0]?.image_url || null,
+        price: v.priceRows?.[0]?.price || initialProduct.price,
+        old_price: v.priceRows?.[0]?.old_price || initialProduct.old_price,
+        stock: v.priceRows?.[0]?.stock || 0,
+        image_url: v.priceRows?.[0]?.image_url || null,
         supplierLinks: (v.supplierLink || []).map(sl => ({
           ...sl,
-          supplier_name:  sl.supplier?.name || 'Fournisseur',
+          supplier_name: sl.supplier?.name || 'Fournisseur',
           supplier_price: sl.supplier_price,
-          supplier_sku:   sl.supplier_sku,
+          supplier_sku: sl.supplier_sku,
         })),
       })),
     });
@@ -387,22 +387,22 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       const mainImageUrl = finalImages.find(i => i.isMain)?.url || null;
 
       const payload = {
-        name:            data.name,
-        description:     data.description,
-        price:           parseFloat(data.price)    || 0,
-        old_price:       data.old_price ? parseFloat(data.old_price) : null,
-        stock:           parseInt(data.stock)      || 0,
-        category_id:     parseInt(data.category_id),
-        images:          finalImages,
+        name: data.name,
+        description: data.description,
+        price: parseFloat(data.price) || 0,
+        old_price: data.old_price ? parseFloat(data.old_price) : null,
+        stock: parseInt(data.stock) || 0,
+        category_id: parseInt(data.category_id),
+        images: finalImages,
         approval_status: data.approval_status,
-        admin_feedback:  data.admin_feedback,
-        supplier_price:  parseFloat(data.supplier_price) || null,
+        admin_feedback: data.admin_feedback,
+        supplier_price: parseFloat(data.supplier_price) || null,
         variants: (data.variants || []).map(v => ({
           ...v,
-          price:     parseFloat(v.price)    || parseFloat(data.price) || 0,
+          price: parseFloat(v.price) || parseFloat(data.price) || 0,
           old_price: v.old_price ? parseFloat(v.old_price) : null,
-          stock:     parseInt(v.stock)      || 0,
-          image_url: v.image_url            || mainImageUrl,
+          stock: parseInt(v.stock) || 0,
+          image_url: v.image_url || mainImageUrl,
           supplierLinks: (v.supplierLinks || []).map(l => ({ ...l, supplier_price: parseFloat(l.supplier_price) || 0 })),
         })),
       };
@@ -536,8 +536,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     <select {...register('approval_status')}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/10">
                       <option value="En attente" className="bg-slate-900 text-amber-500">⏳ En attente</option>
-                      <option value="approved"   className="bg-slate-900 text-emerald-500">✅ Approuvé</option>
-                      <option value="rejected"   className="bg-slate-900 text-rose-500">❌ Rejeté</option>
+                      <option value="approved" className="bg-slate-900 text-emerald-500">✅ Approuvé</option>
+                      <option value="rejected" className="bg-slate-900 text-rose-500">❌ Rejeté</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -622,10 +622,10 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                 supplierPrice={watch('supplier_price') || initialProduct.supplier_price}
               />
 
-              {/* Prix de gros modifiable par l'admin */}
+              {/* Prix de vente  modifiable par l'admin */}
               <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                  <CreditCard size={14} className="text-indigo-500" /> Prix de gros convenu (modifiable)
+                  <CreditCard size={14} className="text-indigo-500" /> Prix de vente  convenu (modifiable)
                 </label>
                 <div className="relative">
                   <input type="number" {...register('supplier_price')}
@@ -635,38 +635,41 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
                 {/* Breakdown Visualizer */}
                 {watchSupplierPrice && (
-                    <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Sparkles size={16} className="text-indigo-500" />
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="space-y-1">
-                                <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn.</p>
-                                <p className="text-sm font-black">{Number(watchSupplierPrice).toLocaleString()} F</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
-                                <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                                <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
-                            </div>
-                            <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
-                                <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
-                                <p className="text-base font-black text-indigo-500">{Number(watchPrice).toLocaleString()} F</p>
-                            </div>
-                        </div>
-                        <div className="pt-2 flex items-start gap-2">
-                            <Info size={12} className="text-slate-400 mt-0.5" />
-                            <p className="text-[9px] font-bold text-slate-400 leading-relaxed italic">
-                                Le client verra ce produit avec le badge <span className="text-emerald-600 uppercase">"Livraison Offerte"</span>. Les frais de livraison de 1 000 F sont inclus dans le prix final.
-                            </p>
-                        </div>
+                  <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles size={16} className="text-indigo-500" />
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
                     </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn.</p>
+                        <p className="text-sm font-black">{Number(watchSupplierPrice).toLocaleString()} F</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                          <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
+                        <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
+                      </div>
+                      <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                        <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
+                        <p className="text-base font-black text-indigo-500">{Number(watchPrice).toLocaleString()} F</p>
+                      </div>
+                    </div>
+                    <div className="pt-2 flex items-start gap-2">
+                      <Info size={12} className="text-indigo-500 mt-0.5 shrink-0" />
+                      <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
+                        Les <span className="text-emerald-600">1 000 F de livraison</span> sont inclus pour permettre d'afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span> sur le site, boostant l'attractivité de votre produit.
+                      </p>
+                    </div>
+                  </div>
                 )}
-                
+
                 <p className="text-[10px] font-bold text-slate-400">
                   ✏️ Modifiez ce montant pour corriger le prix négocié avec le fournisseur.
                 </p>

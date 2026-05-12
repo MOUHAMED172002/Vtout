@@ -109,7 +109,7 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
       await api.post('/products/admin', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       toast.success('Produit ajouté avec succès !');
       onCreated?.();
       onClose();
@@ -184,7 +184,7 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
                   <input type="number" {...register('price')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-black" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix de gros</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix de vente </label>
                   <input type="number" {...register('supplier_price')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-black text-indigo-600" />
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
                           const cur = selectedValuesMap[attr.id] || [];
                           setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: cur.includes(v.id) ? cur.filter(id => id !== v.id) : [...cur, v.id] });
                         }}
-                        className={`px-3 py-1 rounded-lg text-[10px] border ${(selectedValuesMap[attr.id] || []).includes(v.id) ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30' : 'border-white/10'}`}>
+                          className={`px-3 py-1 rounded-lg text-[10px] border ${(selectedValuesMap[attr.id] || []).includes(v.id) ? 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30' : 'border-white/10'}`}>
                           {v.value}
                         </button>
                       ))}
