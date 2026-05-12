@@ -253,7 +253,8 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la validation");
+      const errorMsg = err.response?.data?.error || "Erreur lors de la validation";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
