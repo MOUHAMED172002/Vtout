@@ -79,6 +79,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import seedBlogs from "./seedBlogs.js";
 import { adminSyncFinancials } from "./controllers/financialController.js";
+import { syncDatabase } from "./controllers/migrationController.js";
 import { Config, SupportMessage } from "./models/index.js";
 import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
@@ -270,6 +271,9 @@ app.use("/api/resend-verification", resendVerificationRoutes);
 // Emergency Sync Route
 app.get("/api/emergency-sync", requireAuth, requireAdmin, adminSyncFinancials);
 
+// Database Migration Route — admin only, safe to call multiple times
+app.post("/api/admin/sync-db", requireAuth, requireAdmin, syncDatabase);
+
 // Centralized secure error handler (must be last middleware)
 app.use(errorHandler);
 
@@ -390,17 +394,60 @@ sequelize.authenticate()
             // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
             const syncOptions = isProd ? { alter: false } : { alter: true };
             await sequelize.sync(syncOptions);
-            
-            // Forçage de la migration pour la colonne last_abandoned_reminder_at
+
+            // ── Migration automatique des colonnes manquantes ──
+            // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
-                const [results] = await sequelize.query("SHOW COLUMNS FROM profiles LIKE 'last_abandoned_reminder_at'");
-                if (results.length === 0) {
-                    console.log("🛠️ [MIGRATION] Adding last_abandoned_reminder_at to profiles...");
-                    await sequelize.query("ALTER TABLE profiles ADD COLUMN last_abandoned_reminder_at DATETIME NULL");
-                    console.log("✅ [MIGRATION] Column added successfully.");
+                console.log("🛠️ [MIGRATION] Running safe column migrations...");
+                const qi = sequelize.getQueryInterface();
+                const { DataTypes } = await import('sequelize');
+
+                const colMigrations = [
+                    // profiles
+                    { table: 'profiles',              col: 'last_abandoned_reminder_at', def: { type: DataTypes.DATE,           allowNull: true } },
+                    // products
+                    { table: 'products',              col: 'boutique_id',                def: { type: DataTypes.CHAR(36),        allowNull: true } },
+                    { table: 'products',              col: 'secondary_boutique_ids',     def: { type: DataTypes.JSON,            allowNull: true } },
+                    { table: 'products',              col: 'supplier_note',              def: { type: DataTypes.TEXT('long'),    allowNull: true } },
+                    { table: 'products',              col: 'in_stock_supplier',          def: { type: DataTypes.BOOLEAN,         defaultValue: true } },
+                    { table: 'products',              col: 'admin_feedback',             def: { type: DataTypes.TEXT('long'),    allowNull: true } },
+                    // boutiques
+                    { table: 'boutiques',             col: 'momo_number',                def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'whatsapp',                   def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'departement_id',             def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'departement_label',          def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'commune_id',                 def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'commune_label',              def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'quartier_id',                def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'boutiques',             col: 'quartier_label',             def: { type: DataTypes.STRING,          allowNull: true } },
+                    // cart_items
+                    { table: 'cart_items',            col: 'price_snapshot',             def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
+                    { table: 'cart_items',            col: 'image_url',                  def: { type: DataTypes.TEXT,            allowNull: true } },
+                    { table: 'cart_items',            col: 'selected_attributes',        def: { type: DataTypes.JSON,            defaultValue: {} } },
+                    // supplier_products
+                    { table: 'supplier_products',     col: 'available',                  def: { type: DataTypes.BOOLEAN,         defaultValue: true } },
+                    // product_variant_prices
+                    { table: 'product_variant_prices', col: 'image_url',                 def: { type: DataTypes.TEXT,            allowNull: true } },
+                    { table: 'product_variant_prices', col: 'old_price',                 def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
+                ];
+
+                for (const m of colMigrations) {
+                    try {
+                        const [rows] = await sequelize.query(
+                            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+                             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${m.table}' AND COLUMN_NAME = '${m.col}'`
+                        );
+                        if (rows.length === 0) {
+                            await qi.addColumn(m.table, m.col, m.def);
+                            console.log(`  ✅ [MIGRATION] Added: ${m.table}.${m.col}`);
+                        }
+                    } catch (colErr) {
+                        console.warn(`  ⚠️ [MIGRATION] Skipped ${m.table}.${m.col}: ${colErr.message}`);
+                    }
                 }
-            } catch (err) {
-                console.warn("⚠️ [MIGRATION] Column check/add failed (non-critical):", err.message);
+                console.log("✅ [MIGRATION] Column migrations complete.");
+            } catch (migErr) {
+                console.warn("⚠️ [MIGRATION] Migration block failed (non-critical):", migErr.message);
             }
 
             console.log(`✅ [BOOT] Database synced (${isProd ? 'Safe Mode' : 'Alter Mode'}).`);
