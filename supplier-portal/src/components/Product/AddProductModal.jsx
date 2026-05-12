@@ -24,10 +24,6 @@ import { getSuppliers, createSupplier } from '../../services/supplierService';
 import { uploadSingleImage } from '../../services/uploadService';
 import CategorySearchModal from './CategorySearchModal';
 import CustomSelect from '../Shared/CustomSelect';
-import axios from 'axios';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-const DELIVERY_FEE = 1000;
 
 const baseSteps = [
   { id: 'info', title: 'Informations', icon: Info },
@@ -98,50 +94,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const [loading, setLoading] = useState(false);
   const [inlineLoading, setInlineLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [commissionRate, setCommissionRate] = useState(10);
-  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
-  const [supplierProfile, setSupplierProfile] = useState(null);
-  const [boutiques, setBoutiques] = useState([]);
-  const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('');
-
-  useEffect(() => {
-    if (isSupplier) {
-      const fetchSupplierData = async () => {
-        try {
-          const token = await getToken();
-          const [profileRes, boutiquesRes] = await Promise.all([
-            axios.get(`${API_URL}/suppliers/me`, { headers: { Authorization: `Bearer ${token}` } }),
-            axios.get(`${API_URL}/suppliers/me/boutiques`, { headers: { Authorization: `Bearer ${token}` } })
-          ]);
-          setSupplierProfile(profileRes.data);
-          setBoutiques(boutiquesRes.data || []);
-          if (boutiquesRes.data?.length === 1) {
-            setSelectedBoutiqueId(boutiquesRes.data[0].id);
-            setValue('boutique_id', boutiquesRes.data[0].id);
-          }
-        } catch (err) {
-          console.error("Error fetching supplier data:", err);
-        }
-      };
-      fetchSupplierData();
-    }
-  }, [isSupplier, getToken, setValue]);
-
-  const isProfileIncomplete = useMemo(() => {
-    if (!isSupplier || !supplierProfile) return false;
-    // Now we check if they have at least one boutique, and if the SELECTED boutique is complete
-    if (boutiques.length === 0) return true;
-    
-    if (selectedBoutiqueId) {
-      const b = boutiques.find(b => b.id === selectedBoutiqueId);
-      if (!b) return true;
-      return !b.name || !b.phone || !b.address_line || !b.departement_id || !b.commune_id || !b.quartier_id;
-    }
-    
-    // If none selected, we can't say it's complete, but we'll force selection in the UI
-    return false; 
-  }, [isSupplier, supplierProfile, boutiques, selectedBoutiqueId]);
-
 
   const [availableAttributes, setAvailableAttributes] = useState([]);
   const [selectedAttributes, setSelectedAttributes] = useState([]);
@@ -164,8 +116,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     commune_label: "",
     quartier_label: ""
   });
-  const [commissionRate, setCommissionRate] = useState(10);
-  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
@@ -190,39 +140,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   });
 
   const selectedCategoryId = watch('category_id');
-  const watchPrice = watch('price');
-
-  // Sync: price change -> update globalSupplierPrice (Deductive logic)
-  useEffect(() => {
-    if (isInternalPriceChange) {
-      setIsInternalPriceChange(false);
-      return;
-    }
-    if (watchPrice && commissionRate) {
-      const publicPrice = parseFloat(watchPrice);
-      const calculated = Math.round((publicPrice * (1 - commissionRate / 100)) - DELIVERY_FEE);
-      if (calculated !== parseFloat(globalSupplierPrice)) {
-        setIsInternalPriceChange(true);
-        setGlobalSupplierPrice(calculated.toString());
-      }
-    }
-  }, [watchPrice, commissionRate]);
-
-  // Sync: globalSupplierPrice change -> update price (Reverse calculation)
-  useEffect(() => {
-    if (isInternalPriceChange) {
-      setIsInternalPriceChange(false);
-      return;
-    }
-    if (globalSupplierPrice && commissionRate) {
-      const supplierPrice = parseFloat(globalSupplierPrice);
-      const calculated = Math.round((supplierPrice + DELIVERY_FEE) / (1 - commissionRate / 100));
-      if (calculated !== parseFloat(watchPrice)) {
-        setIsInternalPriceChange(true);
-        setValue('price', calculated);
-      }
-    }
-  }, [globalSupplierPrice, commissionRate, watchPrice, setValue]);
 
   useEffect(() => {
     const fetchAllAttrs = async () => {
@@ -273,11 +190,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     } catch (err) {
       console.error("Erreur getSuppliers:", err);
     }
-
-    try {
-      const { data } = await axios.get(`${API_URL}/configs/key/commission_rate`, { withCredentials: true });
-      if (data && data.value) setCommissionRate(parseFloat(data.value));
-    } catch (e) { console.error("Commission rate not found, using 10%"); }
   };
 
   useEffect(() => {
@@ -514,8 +426,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         flash_sale_end: data.is_flash_sale ? data.flash_sale_end : null,
         supplier_note: data.supplier_note || null,
         variants: processedVariants,
-        supplier_price: parseFloat(globalSupplierPrice) || 0,
-        boutique_id: isSupplier ? (selectedBoutiqueId || data.boutique_id) : (selectedSupplierId === 'new' ? null : null) // Admin side handles its own boutique logic
+        supplier_price: isSupplier ? parseFloat(globalSupplierPrice) || 0 : null
       };
 
       if (onCreate) {
@@ -606,37 +517,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-10 md:p-14 space-y-12 custom-scrollbar relative">
-        {isProfileIncomplete && (
-          <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-12 text-center">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="max-w-md space-y-6"
-            >
-              <div className="w-20 h-20 bg-amber-100 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto shadow-lg">
-                <AlertCircle size={40} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900">
-                  {boutiques.length === 0 ? "Aucune Boutique" : "Boutique Incomplète"}
-                </h3>
-                <p className="text-sm font-bold text-slate-500 leading-relaxed">
-                  {boutiques.length === 0 
-                    ? "Vous devez créer au moins une boutique avec une adresse et un numéro de téléphone valides pour pouvoir ajouter des produits."
-                    : "Les informations de la boutique sélectionnée sont incomplètes (Adresse, Téléphone, Ville/Quartier). Veuillez les mettre à jour pour continuer."
-                  }
-                </p>
-              </div>
-              <button 
-                onClick={() => (window.location.href = '/mes-boutiques')}
-                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-primary transition-all"
-              >
-                {boutiques.length === 0 ? "Créer ma première boutique" : "Gérer mes boutiques"}
-              </button>
-            </motion.div>
-          </div>
-        )}
+      <div className="flex-1 overflow-y-auto p-10 md:p-14 space-y-12 custom-scrollbar">
         <AnimatePresence mode="wait">
           {steps[currentStep].id === 'info' && (
             <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
@@ -666,16 +547,18 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Prix de vente base (FCFA)</label>
-                  <input type="number" {...register("price", { required: true })} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-primary" />
+              {!isSupplier && (
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Prix de vente  (FCFA)</label>
+                    <input type="number" {...register("price", { required: !isSupplier })} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-primary" />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Ancien Prix (FCFA)</label>
+                    <input type="number" {...register("old_price")} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-400 line-through" />
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Ancien Prix (FCFA)</label>
-                  <input type="number" {...register("old_price")} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-400 line-through" />
-                </div>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -872,27 +755,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                       placeholder="Sélectionner marchand..."
                       className="w-full"
                     />
-                  {isSupplier ? (
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Sélectionner Boutique</label>
-                      {boutiques.length > 0 ? (
-                        <CustomSelect
-                          value={selectedBoutiqueId}
-                          onChange={val => {
-                            setSelectedBoutiqueId(val);
-                            setValue('boutique_id', val);
-                          }}
-                          options={boutiques.map(b => ({ value: b.id, label: b.name }))}
-                          placeholder="Choisir ma boutique..."
-                          className="w-full"
-                        />
-                      ) : (
-                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-600">
-                          <AlertCircle size={18} />
-                          <span className="font-black text-[10px] uppercase tracking-widest">Aucune boutique créée !</span>
-                        </div>
-                      )}
-                    </div>
                   ) : (
                     <div className="p-4 bg-white rounded-2xl flex items-center gap-3">
                       <Truck className="text-primary" />
@@ -900,50 +762,13 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     </div>
                   )}
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Net Marchand (Votre gain)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400">Prix de vente  (FCFA)</label>
                     <div className="relative">
                       <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Accordé (FCFA)" />
                       <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-indigo-300">FCFA</span>
                     </div>
                   </div>
                 </div>
-
-                {/* Breakdown Visualizer */}
-                {globalSupplierPrice && (
-                  <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles size={16} className="text-primary" />
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net</p>
-                        <p className="text-sm font-black">{Number(globalSupplierPrice).toLocaleString()} F</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
-                          <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                        <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watch('price')) * commissionRate / 100)).toLocaleString()} F</p>
-                      </div>
-                      <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                        <p className="text-[9px] font-bold text-primary uppercase">Prix Client Final</p>
-                        <p className="text-base font-black text-primary">{Number(watch('price')).toLocaleString()} F</p>
-                      </div>
-                    </div>
-                    <div className="pt-2 flex items-start gap-2">
-                      <Info size={12} className="text-primary mt-0.5 shrink-0" />
-                      <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
-                        Les <span className="text-emerald-600">1 000 F de livraison</span> sont ajoutés pour permettre d'afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span> sur votre produit, ce qui booste vos ventes. Votre gain net reste inchangé.
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 {isSupplier && variantFields.length === 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

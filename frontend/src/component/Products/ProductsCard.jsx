@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getOptimizedImage } from "../../utils/cloudinaryHelper";
 import toast from "react-hot-toast";
 
-
 export default function ProductCard({ product, onFavoriteChange }) {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -17,7 +16,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Load product images
   useEffect(() => {
     if (product?.images && product.images.length > 0) {
       setImgs(product.images.map(img => getOptimizedImage(img.image_url, 600)));
@@ -27,7 +25,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
     }
   }, [product]);
 
-  // Load favorite state
   useEffect(() => {
     const loadFav = async () => {
       if (!product?.id || !isSignedIn) return;
@@ -77,16 +74,14 @@ export default function ProductCard({ product, onFavoriteChange }) {
     return Number(v).toLocaleString("fr-FR");
   };
 
-  // ── Price Logic ──
   const getProductDisplayPrice = () => {
-    if (!product) return { currentPrice: 0, basePrice: 0, isSale: false, discountPercent: 0 };
+    if (!product) return { currentPrice: 0, basePrice: 0, isSale: false, discountPercent: 0, cheapestVariantId: null };
 
-    // 1. Base Public Price (the real selling price set by supplier)
     const bPrice = Number(product.price || 0);
 
-    // 2. Lowest Variant Public Price (as alternate/sale price)
     let minVariantPrice = Infinity;
     let foundVariant = false;
+    let cheapestVariantId = null;
 
     if (product.variants && product.variants.length > 0) {
       product.variants.forEach(v => {
@@ -94,25 +89,21 @@ export default function ProductCard({ product, onFavoriteChange }) {
         if (p > 0 && p < minVariantPrice) {
           minVariantPrice = p;
           foundVariant = true;
+          cheapestVariantId = v.id;
         }
       });
     }
 
-    // 3. Final Decision
-    // - If variants exist AND cheapest variant < bPrice → show variant price with bPrice crossed out (sale!)
-    // - If bPrice > 0 and no cheaper variant → just show bPrice (no strikethrough needed)
-    // - Last resort fallback only if both are 0
     let finalCurrent = 0;
-    let finalBase = bPrice; // bPrice is always the reference / strikethrough candidate
+    let finalBase = bPrice;
 
     if (bPrice > 0 && foundVariant && minVariantPrice < bPrice) {
-      // Variant is cheaper than base → treat as a promotion
       finalCurrent = minVariantPrice;
     } else if (bPrice > 0) {
       finalCurrent = bPrice;
     } else if (foundVariant) {
       finalCurrent = minVariantPrice;
-      finalBase = 0; // No base to compare against
+      finalBase = 0;
     } else {
       finalCurrent = Number(product.supplier_price || 0);
     }
@@ -122,20 +113,17 @@ export default function ProductCard({ product, onFavoriteChange }) {
       currentPrice: finalCurrent,
       basePrice: finalBase,
       isSale,
-      discountPercent: isSale
-        ? Math.round(((finalBase - finalCurrent) / finalBase) * 100)
-        : 0
+      discountPercent: isSale ? Math.round(((finalBase - finalCurrent) / finalBase) * 100) : 0,
+      cheapestVariantId
     };
   };
 
-  const { currentPrice, basePrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
+  const { currentPrice, basePrice, isSale: isSaleActive, discountPercent: finalDiscount, cheapestVariantId } = useMemo(() => getProductDisplayPrice(), [product]);
 
   const isOutOfStock = useMemo(() => {
-    // If we have total_stock from backend, use it
     if (product.total_stock !== undefined) {
       return Number(product.total_stock) <= 0;
     }
-    // Fallback logic
     if (product.variants && product.variants.length > 0) {
       return !product.variants.some(v => (v.priceRows?.[0]?.stock || 0) > 0);
     }
@@ -144,15 +132,13 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   const showOldPrice = isSaleActive;
 
-  // ── Deterministic Sales Count (Visual only) ──
   const salesCount = useMemo(() => {
     if (!product?.id) return 0;
-    // Create a stable seed based on product ID characters
     const seed = String(product.id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const base = 8;
-    const varience = 43; // 8 to 51 range
-    return base + (seed % varience);
+    return 8 + (seed % 43);
   }, [product?.id]);
+
+  const navState = cheapestVariantId ? { selectedVariantId: cheapestVariantId } : undefined;
 
   return (
     <motion.div
@@ -162,17 +148,15 @@ export default function ProductCard({ product, onFavoriteChange }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Section */}
-      <Link to={`/products/${product.id}`} className="block relative aspect-square overflow-hidden bg-gray-50">
+      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-gray-50">
         <motion.img
           src={imgs[0]}
           alt={product.name}
-          animate={{ scale: isHovered ? 1.1 : 1 }}
+          animate={{ scale: isHovered ? 1.05 : 1 }}
           transition={{ duration: 0.7 }}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain p-2 mix-blend-multiply"
         />
 
-        {/* Glassmorphism Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
           {isSaleActive && (
             <motion.span
@@ -185,20 +169,15 @@ export default function ProductCard({ product, onFavoriteChange }) {
           )}
         </div>
 
-        {/* Favorite Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleToggleFavorite}
-          className={`absolute top-3 right-3 p-2.5 rounded-2xl backdrop-blur-xl transition-all duration-500 z-10 ${isFavorite
-            ? "bg-rose-500 text-white shadow-xl shadow-rose-500/30 border border-rose-400/50"
-            : "bg-white/40 text-slate-600 hover:bg-white hover:text-rose-500 border border-white/40 shadow-sm"
-            }`}
+          className={`absolute top-3 right-3 p-2.5 rounded-2xl backdrop-blur-xl transition-all duration-500 z-10 ${isFavorite ? "bg-rose-500 text-white shadow-xl shadow-rose-500/30 border border-rose-400/50" : "bg-white/40 text-slate-600 hover:bg-white hover:text-rose-500 border border-white/40 shadow-sm"}`}
         >
           {isFavorite ? <AiFillHeart className="w-5 h-5" /> : <AiOutlineHeart className="w-5 h-5" />}
         </motion.button>
 
-        {/* Quick Action Overlay */}
         <AnimatePresence>
           {isHovered && (
             <motion.div
@@ -213,7 +192,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   className="btn btn-circle btn-sm bg-white/90 border-none hover:bg-white text-gray-800 shadow-lg"
-                  onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`); }}
+                  onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`, { state: navState }); }}
                 >
                   <Eye size={16} />
                 </motion.button>
@@ -249,7 +228,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
         </AnimatePresence>
       </Link>
 
-      {/* Content Section */}
       <div className="p-4 space-y-2">
         {product.review_count > 0 && (
           <div className="flex items-center gap-1 text-[10px] text-orange-400 font-bold uppercase tracking-widest">
@@ -257,7 +235,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
           </div>
         )}
 
-        <Link to={`/products/${product.id}`} className="block">
+        <Link to={`/products/${product.id}`} state={navState} className="block">
           <h3 className="font-black text-base-content text-sm md:text-base line-clamp-1 hover:text-primary transition-colors tracking-tight">
             {product.name}
           </h3>
@@ -270,7 +248,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
           )}
         </div>
 
-        {/* Progress Bar (Sales Scarcity) */}
         <div className="pt-2">
           <div className="flex justify-between text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
             <span className="flex items-center gap-1 text-orange-500">

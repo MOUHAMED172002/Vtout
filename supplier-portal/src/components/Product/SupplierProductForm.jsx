@@ -289,9 +289,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             let calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
 
             if (processedVariants && processedVariants.length > 0) {
-                const minVariantPrice = Math.min(...processedVariants.map(v => v.price));
-                const minVariantPrice = Math.min(...processedVariants.map(v => v.supplier_price));
-                finalPrice = minVariantPrice > 0 ? minVariantPrice : 0;
+                const minVariantSupplierPrice = Math.min(...processedVariants.map(v => v.price)); // Notice v.price holds the selling price here
+                finalPrice = minVariantSupplierPrice > 0 ? minVariantSupplierPrice : 0;
                 calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
             }
 

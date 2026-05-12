@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import AddressSelector from './Shared/AddressSelector';
 import { createBoutique } from '../services/supplierService';
+import api from '../services/api';
 
 export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData = null }) {
     const { getToken } = useAuth();

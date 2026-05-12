@@ -389,12 +389,14 @@ export const createProduct = async (req, res) => {
         let finalPrice = price;
         let calculatedSupplierPrice = supplier_price;
 
-        // Strictly enforce commission rate calculation on backend
-        if (finalPrice !== undefined) {
-            calculatedSupplierPrice = Math.round(finalPrice * (1 - commissionRate));
+        // Strictly enforce commission rate calculation on backend (excluding the 1000F delivery fee)
+        const DELIVERY_FEE = 1000;
+        if (finalPrice !== undefined && finalPrice > DELIVERY_FEE) {
+            calculatedSupplierPrice = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
         } else if (calculatedSupplierPrice !== undefined && !finalPrice) {
-            finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
+            finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate)) + DELIVERY_FEE;
         }
+
 
         let finalStock = stock || 0;
         if (variants && variants.length > 0) {
@@ -576,16 +578,17 @@ export const updateProduct = async (req, res) => {
             if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
         } catch (err) { console.error('Erreur commission rate', err); }
 
+        const DELIVERY_FEE = 1000;
         if (isSupplier && !isAdmin) {
-            if (finalPrice !== undefined) {
-                supplier_price = Math.round(finalPrice * (1 - commissionRate));
+            if (finalPrice !== undefined && finalPrice > DELIVERY_FEE) {
+                supplier_price = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
             }
         } else {
             // For admins, allow explicit supplier_price, but sync if missing
-            if (finalPrice !== undefined && supplier_price === undefined) {
-                supplier_price = Math.round(finalPrice * (1 - commissionRate));
+            if (finalPrice !== undefined && supplier_price === undefined && finalPrice > DELIVERY_FEE) {
+                supplier_price = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
             } else if (finalPrice === undefined && supplier_price !== undefined) {
-                finalPrice = Math.round(supplier_price / (1 - commissionRate));
+                finalPrice = Math.round(supplier_price / (1 - commissionRate)) + DELIVERY_FEE;
             }
         }
 

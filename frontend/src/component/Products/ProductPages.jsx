@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react";
@@ -22,6 +22,7 @@ export default function ProductPages() {
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
 
@@ -74,13 +75,21 @@ export default function ProductPages() {
       const uniqueImgs = uniq(imgs);
       setProductImages(uniqueImgs);
 
-      // Initialize selectedAttributes with first known values
+      // Initialize selectedAttributes with first known values or based on location state
       const attrKeys = getAttributeKeys(enrichedVariants);
       const initialSelection = {};
-      attrKeys.forEach((k) => {
-        const values = uniqueAttributeValues(enrichedVariants, k);
-        if (values.length) initialSelection[k] = values[0];
-      });
+      
+      const targetVariantId = location.state?.selectedVariantId;
+      const targetVariant = enrichedVariants.find(v => v.id === targetVariantId);
+
+      if (targetVariant && targetVariant.combination) {
+        Object.assign(initialSelection, targetVariant.combination);
+      } else {
+        attrKeys.forEach((k) => {
+          const values = uniqueAttributeValues(enrichedVariants, k);
+          if (values.length) initialSelection[k] = values[0];
+        });
+      }
       setSelectedAttributes(initialSelection);
 
       // Initial main image
@@ -327,7 +336,7 @@ export default function ProductPages() {
                   <div key={i} className="min-w-full h-full flex-shrink-0 snap-center relative">
                     <img
                       src={src}
-                      className="w-full h-full object-contain p-4 mix-blend-multiply"
+                      className="w-full h-full object-contain mix-blend-multiply"
                       alt={`${product.name} - Vue ${i + 1}`}
                     />
                   </div>
@@ -337,7 +346,7 @@ export default function ProductPages() {
               {/* Desktop Main Image */}
               <img
                 src={activeMainImage}
-                className="hidden md:block w-full h-full object-contain p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
+                className="hidden md:block w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
                 alt={product.name}
               />
 
