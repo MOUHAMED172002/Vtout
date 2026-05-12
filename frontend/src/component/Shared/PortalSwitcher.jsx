@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Store, Truck, ChevronDown, X } from 'lucide-react';
-import { useAuth } from '../../lib/clerk-shim';
+import { useAuth } from '../../lib/AuthHooks';
 
 const PortalSwitcher = () => {
     const { isSupplier, isDelivery, isAdmin, isLoaded, isSignedIn, getToken, role } = useAuth();

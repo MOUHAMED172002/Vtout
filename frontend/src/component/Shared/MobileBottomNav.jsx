@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, Store, Truck, LayoutDashboard, Search, User, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../lib/clerk-shim';
+import { useAuth } from '../../lib/AuthHooks';
 
 const MobileBottomNav = () => {
     const { role, isAdmin, isSupplier, isDelivery } = useAuth();

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Bell, Trash2, X, Store, Truck, Wallet, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
-import { useAuth } from '../../lib/clerk-shim';
+import { useAuth } from '../../lib/AuthHooks';
 import toast from 'react-hot-toast';
 
 const NotificationCenter = () => {
