@@ -358,7 +358,7 @@ export const createOrder = async (req, res) => {
                     await variantData.reload({ transaction });
                     if (variantData.stock <= 5 && actualSupplierId) {
                         Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                            const phone = s?.phone || s?.profile?.phone;
+                            const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
                             if (phone) notifySupplierOfLowStock(phone, `${product.name} (${variantData.variant_id})`, variantData.stock);
                         });
                     }
@@ -367,7 +367,7 @@ export const createOrder = async (req, res) => {
                     await product.reload({ transaction });
                     if (product.stock <= 5 && actualSupplierId) {
                         Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                            const phone = s?.phone || s?.profile?.phone;
+                            const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
                             if (phone) notifySupplierOfLowStock(phone, product.name, product.stock);
                         });
                     }
@@ -378,7 +378,7 @@ export const createOrder = async (req, res) => {
             // WhatsApp Notif to Supplier
             if (actualSupplierId) {
                 Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(supplier => {
-                    const phone = supplier?.phone || supplier?.profile?.phone;
+                    const phone = supplier?.whatsapp || supplier?.phone || supplier?.profile?.phone;
                     if (phone) notifySupplierOfNewOrder(phone, order.id, order.total_amount);
                 });
             }
@@ -601,7 +601,7 @@ export const updateOrderStatus = async (req, res) => {
                         await variantPrice.reload();
                         if (variantPrice.stock <= 5 && order.supplier_id) {
                             Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                                const phone = s?.phone || s?.profile?.phone;
+                                const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
                                 if (phone) {
                                     Product.findByPk(item.product_id).then(p => {
                                         notifySupplierOfLowStock(phone, `${p?.name || 'Produit'} (${item.variant_id})`, variantPrice.stock);

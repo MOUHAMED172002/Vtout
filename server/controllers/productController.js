@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierProduct, Category, FailedSearch, Supplier, Profile, Boutique, Review, Config, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { sendProductApprovalNotification } from '../services/mailService.js';
+import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 
 export const getAllProducts = async (req, res) => {
     try {
@@ -553,9 +554,17 @@ export const updateProduct = async (req, res) => {
 
         // Notify supplier (background)
         if (approval_status && (approval_status === 'approved' || approval_status === 'rejected')) {
-            Product.findByPk(id, { include: ['supplier'] }).then(product => {
-                if (product && product.supplier && product.supplier.email) {
-                    sendProductApprovalNotification(product.supplier.email, product, approval_status, admin_feedback).catch(console.error);
+            Product.findByPk(id, { include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'profile' }] }] }).then(product => {
+                if (product && product.supplier) {
+                    const email = product.supplier.email;
+                    if (email) {
+                        sendProductApprovalNotification(email, product, approval_status, admin_feedback).catch(console.error);
+                    }
+                    
+                    const phone = product.supplier.whatsapp || product.supplier.phone || product.supplier.profile?.phone;
+                    if (phone) {
+                        notifyProductStatusUpdate(phone, product.name, approval_status, admin_feedback).catch(console.error);
+                    }
                 }
             });
         }

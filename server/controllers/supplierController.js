@@ -107,7 +107,7 @@ export const updateSupplier = async (req, res) => {
             }
             
             // WhatsApp Notification
-            const phone = supplier.phone || supplier.user?.phone;
+            const phone = supplier.whatsapp || supplier.phone || supplier.user?.phone;
             if (phone) {
                 notifySupplierStatusUpdate(phone, status).catch(err => 
                     console.error('Failed to send WhatsApp supplier notification:', err)

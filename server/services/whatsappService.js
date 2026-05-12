@@ -201,6 +201,23 @@ export const notifyDelivererStatusUpdate = async (delivererPhone, isVerified) =>
 };
 
 /**
+ * Alerter le fournisseur du statut de son produit (Approuvé/Rejeté)
+ */
+export const notifyProductStatusUpdate = async (supplierPhone, productName, status, feedback) => {
+    const { notifSupplier } = await getWhatsAppConfigs();
+    if (!notifSupplier || !supplierPhone) return;
+
+    const messages = {
+        'approved': `✅ *Produit Approuvé !*\nVotre produit *${productName}* a été validé et est maintenant en ligne.`,
+        'rejected': `❌ *Produit Rejeté :*\nVotre produit *${productName}* n'a pas été validé.\nMotif : ${feedback || 'Non spécifié'}`
+    };
+    const message = messages[status];
+    if (!message) return;
+
+    return sendWhatsAppMessage(supplierPhone, message);
+};
+
+/**
  * Alerter le client/vendeur d'une réponse au support
  */
 export const notifySupportReply = async (phone, ticketId) => {
