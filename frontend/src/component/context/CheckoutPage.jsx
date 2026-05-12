@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth, useUser } from "../../lib/clerk-shim";
+import { useAuth, useUser } from "../../lib/AuthHooks";
 import AddressSelector from "./AddressSelector";
 import { useCart } from "./CartContext";
 import { createOrder, updateOrderStatus } from "../../services/orderService";

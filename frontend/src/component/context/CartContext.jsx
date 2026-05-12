@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAuth, useUser } from "../../lib/clerk-shim";
+import { useAuth, useUser } from "../../lib/AuthHooks";
 import { getMyCart, addToCart as apiAddToCart, removeFromCart as apiRemoveFromCart, updateCartItemQuantity as apiUpdateCartItemQuantity } from "../../services/cartService";
 import toast from "react-hot-toast";
 

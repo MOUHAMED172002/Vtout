@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth, useUser } from "../../lib/clerk-shim";
+import { useAuth, useUser } from "../../lib/AuthHooks";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import SimilarProducts from "./SimilarProducts";

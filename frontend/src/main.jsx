@@ -5,7 +5,7 @@ if (import.meta.env.PROD) {
   console.info = () => {};
 }
 import { createRoot } from 'react-dom/client'
-import { ClerkProvider } from './lib/clerk-shim';
+import { ClerkProvider } from './lib/AuthHooks';
 import { HelmetProvider } from 'react-helmet-async'
 import ErrorBoundary from './component/Shared/ErrorBoundary.jsx'
 import { Toaster } from 'react-hot-toast'
