@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 
 import {
   getCategories,
@@ -75,15 +75,6 @@ const InlineAdder = ({ label, onAdd, loading }) => {
 };
 
 export default function AddProductModal({ onClose, onCreate, isSupplier = false, layout = 'modal' }) {
-  const steps = useMemo(() => {
-    const updatedSteps = [...baseSteps];
-    if (isSupplier) {
-      const supplierStep = updatedSteps.find(s => s.id === 'suppliers');
-      if (supplierStep) supplierStep.title = 'Prix & Stock';
-    }
-    return updatedSteps;
-  }, [isSupplier]);
-
   const { getToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [categories, setCategories] = useState([]);
@@ -94,7 +85,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
   const [availableAttributes, setAvailableAttributes] = useState([]);
   const [selectedAttributes, setSelectedAttributes] = useState([]);
-  const [selectedValuesMap, setSelectedValuesMap] = useState({}); // { attrId: [valId1, valId2] }
+  const [selectedValuesMap, setSelectedValuesMap] = useState({});
   const [attrSearchQuery, setAttrSearchQuery] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [existingProduct, setExistingProduct] = useState(null);
@@ -115,6 +106,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   });
   const [commissionRate, setCommissionRate] = useState(10);
   const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
+
+  // ✅ useMemo AFTER all useState hooks
+  const steps = useMemo(() => {
+    const updatedSteps = [...baseSteps];
+    if (isSupplier) {
+      const supplierStep = updatedSteps.find(s => s.id === 'suppliers');
+      if (supplierStep) supplierStep.title = 'Prix & Stock';
+    }
+    return updatedSteps;
+  }, [isSupplier]);
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {

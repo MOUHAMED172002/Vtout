@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Store, Truck, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '../../lib/AuthHooks';
 
 const PortalSwitcher = () => {
+    // ✅ All hooks at the top — never conditionally
     const { isSupplier, isDelivery, isAdmin, isLoaded, isSignedIn, getToken, role } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
 
     const MAIN_SITE_URL = import.meta.env.VITE_MAIN_SITE_URL || 'https://vtout.com';
     const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
 
+    // ✅ Early returns AFTER all hooks
     if (!isLoaded || !isSignedIn) return null;
     if (!isSupplier && !isDelivery && !isAdmin) return null;
 
@@ -73,7 +75,6 @@ const PortalSwitcher = () => {
 
     if (availablePortals.length === 0) return null;
 
-    // AnimatePresence MUST be inside createPortal
     const modal = (
         <AnimatePresence>
             {isOpen && (
@@ -104,7 +105,6 @@ const PortalSwitcher = () => {
                         }}
                         className="bg-base-100 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-base-content/10"
                     >
-                        {/* Header */}
                         <div className="p-6 bg-base-200/50 border-b border-base-content/5 flex justify-between items-center shrink-0">
                             <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
                             <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-base-300 rounded-full transition-colors text-base-content/40">
@@ -112,7 +112,6 @@ const PortalSwitcher = () => {
                             </button>
                         </div>
 
-                        {/* Portal list */}
                         <div className="p-4 space-y-2 overflow-y-auto flex-grow">
                             {availablePortals.map((portal) => (
                                 <button
@@ -133,14 +132,16 @@ const PortalSwitcher = () => {
                             ))}
                         </div>
 
-                        {/* Footer */}
                         <div className="p-4 border-t border-base-content/5 shrink-0">
                             <button
                                 onClick={() => { setIsOpen(false); window.location.href = MAIN_SITE_URL + '/user/dashboard/settings'; }}
                                 className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl hover:bg-base-200 transition-all group text-left"
                             >
                                 <div className="p-3 rounded-2xl transition-transform group-hover:scale-110 bg-slate-100 text-slate-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1-1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1-1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="font-black text-sm text-base-content/70 group-hover:text-base-content transition-colors">Paramètres du profil</span>

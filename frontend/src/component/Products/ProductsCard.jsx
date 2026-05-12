@@ -148,13 +148,13 @@ export default function ProductCard({ product, onFavoriteChange }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-gray-50">
+      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-white">
         <motion.img
           src={imgs[0]}
           alt={product.name}
           animate={{ scale: isHovered ? 1.05 : 1 }}
           transition={{ duration: 0.7 }}
-          className="w-full h-full object-contain p-2 mix-blend-multiply"
+          className="w-full h-full object-cover mix-blend-multiply"
         />
 
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
