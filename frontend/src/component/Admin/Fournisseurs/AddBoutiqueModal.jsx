@@ -5,7 +5,7 @@ import { X, Store, MapPin, Phone, MessageCircle, CreditCard, Save } from 'lucide
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import api from '../../../services/api';
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import { getHierarchy } from '../../../services/locationService';
 
 export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, onCreated }) {

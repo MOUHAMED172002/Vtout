@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import { getConfigsByGroup, upsertConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
 import { Settings, Globe, Share2, Shield, Save, Loader2, Link2, MapPin, Wrench, CheckCircle, AlertTriangle } from "lucide-react";

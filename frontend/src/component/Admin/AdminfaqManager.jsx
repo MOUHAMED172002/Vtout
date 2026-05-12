@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../lib/AuthHooks";;
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../lib/AuthHooks";
 import { getFaqs, createFaq, updateFaq, deleteFaq as apiDeleteFaq } from "../../services/contentService";
 import toast from "react-hot-toast";
 
@@ -29,10 +29,10 @@ export default function AdminFaqManager() {
       const token = await getToken();
       if (editing) {
         await updateFaq(editing.id, form, token);
-        toast.success("FAQ mise à jour !");
+        toast.success("FAQ mise � jour !");
       } else {
         await createFaq(form, token);
-        toast.success("FAQ ajoutée !");
+        toast.success("FAQ ajout�e !");
       }
       setForm({ question: "", answer: "" });
       setEditing(null);
@@ -47,7 +47,7 @@ export default function AdminFaqManager() {
     try {
       const token = await getToken();
       await apiDeleteFaq(id, token);
-      toast.success("Supprimée !");
+      toast.success("Supprim�e !");
       loadFaqs();
     } catch (err) {
       toast.error("Erreur de suppression");
@@ -67,13 +67,13 @@ export default function AdminFaqManager() {
           className="input input-bordered w-full"
         />
         <textarea
-          placeholder="Réponse"
+          placeholder="R�ponse"
           value={form.answer}
           onChange={(e) => setForm({ ...form, answer: e.target.value })}
           className="textarea textarea-bordered w-full"
         />
         <button className="btn btn-primary w-full" onClick={saveFaq}>
-          {editing ? "Mettre à jour" : "Ajouter"}
+          {editing ? "Mettre � jour" : "Ajouter"}
         </button>
       </div>
 
@@ -85,8 +85,8 @@ export default function AdminFaqManager() {
             <div className="font-medium">{faq.question}</div>
             <div className="text-sm text-gray-600">{faq.answer}</div>
             <div className="flex gap-2 mt-2">
-              <button className="btn btn-xs btn-outline" onClick={() => { setEditing(faq); setForm({ question: faq.question, answer: faq.answer }); }}>✏️</button>
-              <button className="btn btn-xs btn-error" onClick={() => deleteFaq(faq.id)}>🗑️</button>
+              <button className="btn btn-xs btn-outline" onClick={() => { setEditing(faq); setForm({ question: faq.question, answer: faq.answer }); }}>??</button>
+              <button className="btn btn-xs btn-error" onClick={() => deleteFaq(faq.id)}>???</button>
             </div>
           </li>
         ))}

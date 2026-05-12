@@ -1,5 +1,5 @@
-ï»¿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/AuthHooks";;
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../../lib/AuthHooks";
 import { updateProfileStatus, getProfileById } from "../../../services/userService";
 
 export default function UserStatusToggle({ userId }) {
@@ -24,7 +24,7 @@ export default function UserStatusToggle({ userId }) {
       await updateProfileStatus(userId, !active, token);
       setActive(!active);
     } catch (e) {
-      alert("Erreur lors de la mise Ã  jour du statut");
+      alert("Erreur lors de la mise à jour du statut");
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export default function UserStatusToggle({ userId }) {
 
   return (
     <button className={`btn btn-xs ${active ? "btn-success" : "btn-ghost"}`} onClick={toggle} disabled={loading}>
-      {active ? "Actif" : "DÃ©sactivÃ©"}
+      {active ? "Actif" : "Désactivé"}
     </button>
   );
 }

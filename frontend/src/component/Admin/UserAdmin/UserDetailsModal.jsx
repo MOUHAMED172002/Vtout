@@ -1,5 +1,5 @@
-ï»¿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/AuthHooks";;
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../../lib/AuthHooks";
 import { getUserAddresses } from "../../../services/addressService";
 
 export default function UserDetailsModal({ user, isOpen, onClose, onUpdated = () => { } }) {
@@ -39,7 +39,7 @@ export default function UserDetailsModal({ user, isOpen, onClose, onUpdated = ()
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <div>TÃ©lÃ©phone: {user.phone || "-"}</div>
+              <div>Téléphone: {user.phone || "-"}</div>
               <div className="mt-2">Avatar:</div>
               {user.avatar_url ? <img src={user.avatar_url} alt="" className="w-24 h-24 rounded" /> : <div className="w-24 h-24 bg-base-200 rounded" />}
             </div>
@@ -50,8 +50,8 @@ export default function UserDetailsModal({ user, isOpen, onClose, onUpdated = ()
                   {addresses.map(a => (
                     <li key={a.id} className="border rounded p-2">
                       <div className="font-medium">{a.label || a.address_line}</div>
-                      <div className="text-sm text-muted">{a.commune_label} â€” {a.departement_label}</div>
-                      <div>TÃ©l: {a.phone}</div>
+                      <div className="text-sm text-muted">{a.commune_label} — {a.departement_label}</div>
+                      <div>Tél: {a.phone}</div>
                     </li>
                   ))}
                 </ul>

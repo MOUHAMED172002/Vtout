@@ -1,5 +1,5 @@
-ï»¿import { getCategories, createCategory, deleteCategory } from "../../../services/productService";
-import { useAuth } from "../../../lib/AuthHooks";;
+import { getCategories, createCategory, deleteCategory } from "../../../services/productService";
+import { useAuth } from "../../../lib/AuthHooks";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import {
@@ -31,7 +31,7 @@ export default function CategorySelect() {
       setCategories(cats || []);
     } catch (err) {
       console.error(err);
-      toast.error("Impossible de charger les catÃ©gories");
+      toast.error("Impossible de charger les catégories");
     } finally {
       setLoading(false);
     }
@@ -46,9 +46,9 @@ export default function CategorySelect() {
 
   const handleDelete = async (cat) => {
     const prodCount = (cat.products || []).length;
-    if (prodCount > 0) return toast.error("CatÃ©gorie utilisÃ©e par des produits");
+    if (prodCount > 0) return toast.error("Catégorie utilisée par des produits");
     const childrenCount = (cat.children || []).length;
-    if (childrenCount > 0) return toast.error("Cette catÃ©gorie a des sous-catÃ©gories");
+    if (childrenCount > 0) return toast.error("Cette catégorie a des sous-catégories");
 
     if (!window.confirm(`Supprimer "${cat.name}" ?`)) return;
 
@@ -56,7 +56,7 @@ export default function CategorySelect() {
       setDeletingId(cat.id);
       const token = await getToken();
       await deleteCategory(cat.id, token);
-      toast.success("CatÃ©gorie supprimÃ©e");
+      toast.success("Catégorie supprimée");
       fetchAll();
     } catch (err) {
       toast.error("Erreur suppression");
@@ -75,7 +75,7 @@ export default function CategorySelect() {
         name: newName.trim(),
         parent_id: newParent === "" ? null : newParent
       }, token);
-      toast.success("CatÃ©gorie ajoutÃ©e");
+      toast.success("Catégorie ajoutée");
       setNewName("");
       setNewParent(null);
       setAddingOpen(false);
@@ -95,8 +95,8 @@ export default function CategorySelect() {
           <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
             <Layers size={14} /> Structure
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">CatÃ©gories</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Organisez votre catalogue avec une hiÃ©rarchie claire et intuitive.</p>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Catégories</span></h1>
+          <p className="text-slate-500 font-bold max-w-lg">Organisez votre catalogue avec une hiérarchie claire et intuitive.</p>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={fetchAll} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
@@ -107,7 +107,7 @@ export default function CategorySelect() {
             className={`btn h-14 rounded-2xl px-8 font-black gap-2 shadow-lg transition-all ${addingOpen ? 'btn-ghost bg-white border-slate-100 text-slate-400' : 'btn-primary shadow-primary/20'}`}
           >
             {addingOpen ? <X size={20} /> : <Plus size={20} />}
-            {addingOpen ? "Annuler" : "Nouvelle CatÃ©gorie"}
+            {addingOpen ? "Annuler" : "Nouvelle Catégorie"}
           </button>
         </div>
       </div>
@@ -122,14 +122,14 @@ export default function CategorySelect() {
           >
             <form onSubmit={handleAddSubmit} className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la catÃ©gorie</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la catégorie</label>
                 <div className="relative">
                   <Layers className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                   <input
                     className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Ex: Ã‰lectronique, VÃªtements..."
+                    placeholder="Ex: Électronique, Vêtements..."
                     required
                   />
                 </div>
@@ -149,7 +149,7 @@ export default function CategorySelect() {
               </div>
               <div className="md:col-span-3 flex justify-end">
                 <button className="btn btn-primary h-14 rounded-2xl px-12 font-black shadow-xl shadow-primary/20" type="submit" disabled={adding}>
-                  {adding ? "CrÃ©ation..." : "Confirmer la crÃ©ation"}
+                  {adding ? "Création..." : "Confirmer la création"}
                 </button>
               </div>
             </form>
@@ -159,7 +159,7 @@ export default function CategorySelect() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des catÃ©gories...</div>
+          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des catégories...</div>
         ) : categories.length > 0 ? (
           categories.map((c) => {
             const parent = c.parent_id ? categoryMap[c.parent_id] : null;
@@ -189,7 +189,7 @@ export default function CategorySelect() {
                     <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest">
                       <span>{parent.name}</span>
                       <ChevronRight size={10} />
-                      <span>Sous-catÃ©gorie</span>
+                      <span>Sous-catégorie</span>
                     </div>
                   )}
                 </div>
@@ -211,7 +211,7 @@ export default function CategorySelect() {
           })
         ) : (
           <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-slate-200 text-center">
-            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune catÃ©gorie dÃ©finie</p>
+            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune catégorie définie</p>
           </div>
         )}
       </div>

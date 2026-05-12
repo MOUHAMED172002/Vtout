@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { getMyReviews, createReview, deleteReview } from "../../services/reviewService";
 import {
@@ -17,7 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 
-/* ─── Note étoilée ─────────────────────────────────────────────────────────── */
+/* --- Note �toil�e ----------------------------------------------------------- */
 function StarRating({ value, onChange, disabled }) {
   const [hovered, setHovered] = useState(0);
   return (
@@ -45,7 +45,7 @@ function StarRating({ value, onChange, disabled }) {
   );
 }
 
-/* ─── Formulaire d'avis pour 1 produit ─────────────────────────────────────── */
+/* --- Formulaire d'avis pour 1 produit --------------------------------------- */
 function ReviewForm({ item, existingReview, onSubmit, onDelete, submitting, orderId }) {
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [title, setTitle] = useState(existingReview?.title || "");
@@ -55,8 +55,8 @@ function ReviewForm({ item, existingReview, onSubmit, onDelete, submitting, orde
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (rating === 0) { toast.error("Veuillez sélectionner une note."); return; }
-    if (!body.trim()) { toast.error("Veuillez écrire un commentaire."); return; }
+    if (rating === 0) { toast.error("Veuillez s�lectionner une note."); return; }
+    if (!body.trim()) { toast.error("Veuillez �crire un commentaire."); return; }
     onSubmit({
       product_id: item.product_id,
       order_id: orderId,
@@ -81,18 +81,18 @@ function ReviewForm({ item, existingReview, onSubmit, onDelete, submitting, orde
           }
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black text-primary uppercase tracking-widest">Produit acheté</p>
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest">Produit achet�</p>
           <h3 className="text-lg font-black text-slate-900 tracking-tight truncate">
             {item.product?.name || `Produit #${item.product_id}`}
           </h3>
-          <p className="text-xs text-slate-400 font-bold">Qté : {item.quantity} · {Number(item.price).toLocaleString()} FCFA</p>
+          <p className="text-xs text-slate-400 font-bold">Qt� : {item.quantity} � {Number(item.price).toLocaleString()} FCFA</p>
         </div>
       </div>
 
       {/* Already reviewed badge */}
       {hasReview && (
         <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 text-xs font-black uppercase tracking-widest">
-          <CheckCircle2 size={14} /> Avis publié · {new Date(existingReview.created_at).toLocaleDateString("fr-FR")}
+          <CheckCircle2 size={14} /> Avis publi� � {new Date(existingReview.created_at).toLocaleDateString("fr-FR")}
         </div>
       )}
 
@@ -122,7 +122,7 @@ function ReviewForm({ item, existingReview, onSubmit, onDelete, submitting, orde
             onChange={(e) => setBody(e.target.value)}
             disabled={hasReview}
             rows={3}
-            placeholder="Partagez votre expérience avec ce produit..."
+            placeholder="Partagez votre exp�rience avec ce produit..."
             className="w-full bg-slate-50 border border-transparent focus:border-primary/20 rounded-2xl px-5 py-4 text-sm font-bold outline-none transition-all resize-none placeholder:text-slate-300 disabled:opacity-60"
           />
         </div>
@@ -141,7 +141,7 @@ function ReviewForm({ item, existingReview, onSubmit, onDelete, submitting, orde
   );
 }
 
-/* ─── Composant Principal ───────────────────────────────────────────────────── */
+/* --- Composant Principal ----------------------------------------------------- */
 export default function ReviewsManager() {
   const { orderId } = useParams();
   const { getToken } = useAuth();
@@ -164,7 +164,7 @@ export default function ReviewsManager() {
       setMyReviews(reviewsData || []);
     } catch (err) {
       console.error("ReviewsManager load:", err);
-      toast.error("Impossible de charger les données.");
+      toast.error("Impossible de charger les donn�es.");
     } finally {
       setLoading(false);
     }
@@ -177,7 +177,7 @@ export default function ReviewsManager() {
     try {
       const token = await getToken();
       await createReview(reviewData, token);
-      toast.success("Avis publié avec succès ! Merci 🎉");
+      toast.success("Avis publi� avec succ�s ! Merci ??");
       await load();
     } catch (err) {
       console.error("createReview:", err);
@@ -187,7 +187,7 @@ export default function ReviewsManager() {
     }
   }
 
-  /* ── Loading ── */
+  /* -- Loading -- */
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-32 gap-6">
       <div className="relative">
@@ -200,16 +200,16 @@ export default function ReviewsManager() {
     </div>
   );
 
-  /* ── Guard: commande non livrée ── */
-  if (order && order.status !== "livree" && order.status !== "livrée") return (
+  /* -- Guard: commande non livr�e -- */
+  if (order && order.status !== "livree" && order.status !== "livr�e") return (
     <div className="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-amber-100 space-y-8">
       <div className="w-20 h-20 bg-amber-50 text-amber-400 rounded-full flex items-center justify-center mx-auto">
         <AlertCircle size={40} />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black text-slate-900">Commande non livrée</h2>
+        <h2 className="text-2xl font-black text-slate-900">Commande non livr�e</h2>
         <p className="text-slate-400 font-bold max-w-sm mx-auto">
-          Vous pourrez laisser des avis une fois la commande livrée.
+          Vous pourrez laisser des avis une fois la commande livr�e.
         </p>
       </div>
       <button onClick={() => navigate(-1)} className="btn btn-outline rounded-2xl px-10 h-14 font-black">
@@ -230,16 +230,16 @@ export default function ReviewsManager() {
             onClick={() => navigate(`/user/dashboard/orders/${orderId}`)}
             className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-colors"
           >
-            <ArrowLeft size={14} /> Retour à la commande
+            <ArrowLeft size={14} /> Retour � la commande
           </button>
           <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em]">
             <Star size={14} /> Vos avis
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tighter">
-            Évaluer vos <span className="text-slate-400">achats.</span>
+            �valuer vos <span className="text-slate-400">achats.</span>
           </h1>
           <p className="text-slate-500 font-bold text-sm">
-            Commande #{orderId?.slice(0, 8).toUpperCase()} · {items.length} produit{items.length > 1 ? "s" : ""}
+            Commande #{orderId?.slice(0, 8).toUpperCase()} � {items.length} produit{items.length > 1 ? "s" : ""}
           </p>
         </div>
 
@@ -249,7 +249,7 @@ export default function ReviewsManager() {
             <Star size={18} fill="currentColor" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avis publiés</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avis publi�s</p>
             <p className="text-2xl font-black text-slate-900 tracking-tighter">
               {myReviews.filter(r => items.some(i => i.product_id === r.product_id)).length}
               <span className="text-sm text-slate-400 font-bold ml-1">/ {items.length}</span>

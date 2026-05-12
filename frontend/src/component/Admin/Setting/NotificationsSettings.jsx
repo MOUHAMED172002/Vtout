@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import { getConfigsByGroup, upsertConfig, testEmailConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
 import { Mail, Key, Eye, EyeOff, Save, Loader2, CheckCircle, AlertTriangle, Send } from "lucide-react";

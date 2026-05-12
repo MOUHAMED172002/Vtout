@@ -1,4 +1,4 @@
-import { SignIn, SignUp } from "../../lib/AuthComponents";;
+import { SignIn, SignUp } from "../../lib/AuthComponents";
 
 export default function Login() {
     return (

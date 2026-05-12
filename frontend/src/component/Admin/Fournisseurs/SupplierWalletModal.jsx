@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Wallet, ArrowUpRight, ArrowDownLeft, History, PieChart, Banknote, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 

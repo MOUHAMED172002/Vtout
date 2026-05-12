@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import { Store, Package, MapPin, Phone, Eye, ChevronRight, LayoutGrid, Plus, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';

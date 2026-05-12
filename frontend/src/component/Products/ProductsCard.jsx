@@ -149,12 +149,23 @@ export default function ProductCard({ product, onFavoriteChange }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-white">
+        {/* Blurred background fills white space with the product's own colors */}
+        <div
+          className="absolute inset-0 scale-110"
+          style={{
+            backgroundImage: `url(${imgs[0]})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(20px) brightness(0.85)',
+          }}
+        />
+        {/* Main image shown fully without cropping */}
         <motion.img
           src={imgs[0]}
           alt={product.name}
           animate={{ scale: isHovered ? 1.05 : 1 }}
           transition={{ duration: 0.7 }}
-          className="w-full h-full object-cover mix-blend-multiply"
+          className="relative w-full h-full object-contain z-10"
         />
 
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">

@@ -1,4 +1,4 @@
-﻿import { SignIn } from "../../lib/AuthComponents";;
+import { SignIn } from "../../lib/AuthComponents";
 
 export default function Connexion() {
   return (

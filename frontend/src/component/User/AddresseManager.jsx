@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
-import { useAuth, useUser } from "../../lib/AuthHooks";;
+import React, { useEffect, useState } from "react";
+import { useAuth, useUser } from "../../lib/AuthHooks";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Plus, Pencil, Trash2, CheckCircle2, Star, Phone,
@@ -8,7 +8,7 @@ import {
 import { getMyAddresses, createAddress, updateAddress, deleteAddress } from "../../services/addressService";
 import AddressSelector from "../context/AddressSelector";
 
-// ─── Skeleton Card ──────────────────────────────────────────────────────────
+// --- Skeleton Card ----------------------------------------------------------
 const SkeletonCard = () => (
   <div className="p-5 rounded-[1.8rem] border border-slate-100 bg-white space-y-4 animate-pulse">
     <div className="h-5 w-32 bg-slate-100 rounded-full" />
@@ -21,7 +21,7 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ─── Main ────────────────────────────────────────────────────────────────────
+// --- Main --------------------------------------------------------------------
 export default function AddressesManager() {
   const { getToken } = useAuth();
   const { user, isLoaded } = useUser();
@@ -41,13 +41,13 @@ export default function AddressesManager() {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, id: null, label: "" });
 
-  // ── Toast ──
+  // -- Toast --
   const showToast = (type, text) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // ── Init ──
+  // -- Init --
   useEffect(() => {
     if (isLoaded && user) loadAddresses();
     else if (isLoaded && !user) setLoading(false);
@@ -79,7 +79,7 @@ export default function AddressesManager() {
       if (addr.id) await updateAddress(addr.id, addr, token);
       else await createAddress(addr, token);
       await loadAddresses();
-      showToast("success", "Adresse enregistrée avec succès !");
+      showToast("success", "Adresse enregistr�e avec succ�s !");
     } catch (e) {
       console.error(e);
       showToast("error", "Erreur lors de l'enregistrement.");
@@ -97,7 +97,7 @@ export default function AddressesManager() {
       const token = await getToken();
       await deleteAddress(id, token);
       await loadAddresses();
-      showToast("success", "Adresse supprimée.");
+      showToast("success", "Adresse supprim�e.");
     } catch (e) {
       console.error(e);
       showToast("error", "Erreur lors de la suppression.");
@@ -112,10 +112,10 @@ export default function AddressesManager() {
       const token = await getToken();
       await updateAddress(id, { is_default: true }, token);
       await loadAddresses();
-      showToast("success", "Adresse par défaut mise à jour !");
+      showToast("success", "Adresse par d�faut mise � jour !");
     } catch (e) {
       console.error(e);
-      showToast("error", "Impossible de définir l'adresse par défaut.");
+      showToast("error", "Impossible de d�finir l'adresse par d�faut.");
     } finally {
       setBusy((b) => ({ ...b, settingDefault: null }));
     }
@@ -126,7 +126,7 @@ export default function AddressesManager() {
   return (
     <section className="space-y-6">
 
-      {/* ── Toast notification ── */}
+      {/* -- Toast notification -- */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -151,7 +151,7 @@ export default function AddressesManager() {
         )}
       </AnimatePresence>
 
-      {/* ── Header ── */}
+      {/* -- Header -- */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
@@ -161,7 +161,7 @@ export default function AddressesManager() {
             <h2 className="text-lg font-black text-slate-900 tracking-tight">Mes adresses</h2>
             {user && (
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                {addresses.length} adresse{addresses.length !== 1 ? "s" : ""} enregistrée{addresses.length !== 1 ? "s" : ""}
+                {addresses.length} adresse{addresses.length !== 1 ? "s" : ""} enregistr�e{addresses.length !== 1 ? "s" : ""}
               </p>
             )}
           </div>
@@ -178,13 +178,13 @@ export default function AddressesManager() {
         </motion.button>
       </div>
 
-      {/* ── Address List ── */}
+      {/* -- Address List -- */}
       {isLooping ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[1, 2].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : addresses.length === 0 ? (
-        /* ── Empty State ── */
+        /* -- Empty State -- */
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -195,7 +195,7 @@ export default function AddressesManager() {
           </div>
           <div className="text-center space-y-2">
             <p className="text-sm font-black text-slate-400 uppercase tracking-widest">
-              Aucune adresse enregistrée
+              Aucune adresse enregistr�e
             </p>
             <p className="text-xs text-slate-300 font-bold">
               Ajoutez une adresse pour faciliter vos commandes
@@ -243,7 +243,7 @@ export default function AddressesManager() {
                     </div>
                     {a.is_default && (
                       <div className="flex items-center gap-1.5 bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full">
-                        <Star size={9} fill="currentColor" /> Par défaut
+                        <Star size={9} fill="currentColor" /> Par d�faut
                       </div>
                     )}
                   </div>
@@ -274,7 +274,7 @@ export default function AddressesManager() {
                           {isSetting
                             ? <Loader2 size={12} className="animate-spin" />
                             : <CheckCircle2 size={12} />}
-                          Définir par défaut
+                          D�finir par d�faut
                         </button>
                       ) : (
                         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
@@ -313,7 +313,7 @@ export default function AddressesManager() {
         </div>
       )}
 
-      {/* ── Address Form Modal ── */}
+      {/* -- Address Form Modal -- */}
       <AnimatePresence>
         {selectorOpen && (
           <motion.div
@@ -360,7 +360,7 @@ export default function AddressesManager() {
         )}
       </AnimatePresence>
 
-      {/* ── Delete Confirmation Modal ── */}
+      {/* -- Delete Confirmation Modal -- */}
       <AnimatePresence>
         {confirm.open && (
           <motion.div
@@ -388,7 +388,7 @@ export default function AddressesManager() {
                     <strong className="text-slate-700">
                       {confirm.label || "cette adresse"}
                     </strong>{" "}
-                    ? Cette action est irréversible.
+                    ? Cette action est irr�versible.
                   </p>
                 </div>
               </div>

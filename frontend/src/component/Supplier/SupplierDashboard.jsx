@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { getMySupplierProfile, updateMySupplierProfile, getMySupplierProducts } from '../../services/supplierService';
 import { getMySupplierOrders } from '../../services/orderService';
 import AddressSelector from '../context/AddressSelector';

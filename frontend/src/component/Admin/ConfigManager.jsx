@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { 
     Settings, 
     Save, 

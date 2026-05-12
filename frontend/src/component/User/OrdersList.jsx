@@ -1,6 +1,6 @@
-ï»¿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { getMyOrders } from "../../services/orderService";
 import {
   ShoppingBag,
@@ -24,10 +24,10 @@ import EmptyState from "../Shared/EmptyState";
 const STATUS_FILTERS = [
   { value: "", label: "Toutes", count: null },
   { value: "en_attente", label: "En attente" },
-  { value: "confirmee", label: "ConfirmÃ©e" },
+  { value: "confirmee", label: "Confirmée" },
   { value: "expediee", label: "En transit" },
-  { value: "livree", label: "LivrÃ©e" },
-  { value: "annulee", label: "AnnulÃ©e" },
+  { value: "livree", label: "Livrée" },
+  { value: "annulee", label: "Annulée" },
 ];
 
 const normalizeStatus = (s) => {
@@ -48,11 +48,11 @@ const normalizeStatus = (s) => {
 const getStatusConfig = (status) => {
   const normalized = normalizeStatus(status);
   switch (normalized) {
-    case "confirmee": return { label: "ConfirmÃ©e", icon: <CheckCircle2 size={13} />, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+    case "confirmee": return { label: "Confirmée", icon: <CheckCircle2 size={13} />, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
     case "en_attente": return { label: "En attente", icon: <Clock size={13} />, color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" };
-    case "annulee": return { label: "AnnulÃ©e", icon: <XCircle size={13} />, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
+    case "annulee": return { label: "Annulée", icon: <XCircle size={13} />, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
     case "expediee": return { label: "En transit", icon: <Truck size={13} />, color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
-    case "livree": return { label: "LivrÃ©e", icon: <PackageCheck size={13} />, color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+    case "livree": return { label: "Livrée", icon: <PackageCheck size={13} />, color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
     default: return { label: status, icon: <Box size={13} />, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" };
   }
 };
@@ -118,7 +118,7 @@ export default function OrdersList() {
   return (
     <div className="space-y-12 pb-20">
 
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* -- Header -- */}
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em]">
@@ -128,7 +128,7 @@ export default function OrdersList() {
             Mes <span className="text-slate-400">Commandes.</span>
           </h1>
           <p className="text-slate-500 font-bold max-w-lg leading-relaxed text-sm">
-            Consultez vos achats, tÃ©lÃ©chargez vos reÃ§us et laissez des avis.
+            Consultez vos achats, téléchargez vos reçus et laissez des avis.
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export default function OrdersList() {
         </div>
       </div>
 
-      {/* â”€â”€ Pill Filters â”€â”€ */}
+      {/* -- Pill Filters -- */}
       <div className="flex flex-wrap gap-3">
         {STATUS_FILTERS.map((f) => {
           const count = countFor(f.value);
@@ -178,15 +178,15 @@ export default function OrdersList() {
         })}
       </div>
 
-      {/* â”€â”€ Grid / Empty â”€â”€ */}
+      {/* -- Grid / Empty -- */}
       {displayed.length === 0 ? (
         <EmptyState
           type="orders"
-          title={searchQuery || statusFilter ? "Aucun rÃ©sultat" : "Aucune commande"}
+          title={searchQuery || statusFilter ? "Aucun résultat" : "Aucune commande"}
           description={
             searchQuery || statusFilter
               ? "Modifiez vos filtres pour trouver vos commandes."
-              : "Vous n'avez pas encore passÃ© de commande."
+              : "Vous n'avez pas encore passé de commande."
           }
           actionLabel="Boutique"
           actionLink="/products-liste"
@@ -217,7 +217,7 @@ export default function OrdersList() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1.5">
                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                          RÃ©f. {o.id.slice(0, 8).toUpperCase()}
+                          Réf. {o.id.slice(0, 8).toUpperCase()}
                         </p>
                         <h4 className="text-xl font-black text-slate-900 tracking-tighter">
                           Commande #{o.id.slice(0, 6)}
@@ -239,7 +239,7 @@ export default function OrdersList() {
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Articles</p>
                         <p className="text-2xl font-black text-slate-900 tracking-tighter">
-                          {o.items_count ?? (o.items?.length ?? "â€”")}{" "}
+                          {o.items_count ?? (o.items?.length ?? "—")}{" "}
                           <span className="text-xs text-slate-400">items</span>
                         </p>
                       </div>
@@ -259,15 +259,15 @@ export default function OrdersList() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 relative z-10">
-                    {/* DÃ©tails */}
+                    {/* Détails */}
                     <button
                       onClick={() => navigate(`/user/dashboard/orders/${o.id}`)}
                       className="flex-1 btn bg-slate-900 hover:bg-black text-white rounded-2xl h-14 font-black gap-2 shadow-xl shadow-slate-900/10 border-none text-xs"
                     >
-                      DÃ©tails <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      Détails <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
 
-                    {/* Laisser un avis (si livrÃ©) */}
+                    {/* Laisser un avis (si livré) */}
                     {canReview && (
                       <Link
                         to={`/user/dashboard/orders/${o.id}/reviews`}
@@ -278,10 +278,10 @@ export default function OrdersList() {
                       </Link>
                     )}
 
-                    {/* ReÃ§us */}
+                    {/* Reçus */}
                     <button
-                      onClick={() => toast.success("GÃ©nÃ©ration de la facture...")}
-                      title="TÃ©lÃ©charger la facture"
+                      onClick={() => toast.success("Génération de la facture...")}
+                      title="Télécharger la facture"
                       className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:text-primary hover:border-primary/20 transition-all shadow-sm"
                     >
                       <FileText size={20} />
@@ -294,7 +294,7 @@ export default function OrdersList() {
         </div>
       )}
 
-      {/* â”€â”€ Pagination â”€â”€ */}
+      {/* -- Pagination -- */}
       {totalPages > 1 && (
         <div className="flex justify-center pt-4">
           <div className="bg-white p-3 rounded-3xl border border-slate-100 shadow-2xl shadow-slate-200/50 flex items-center gap-4">

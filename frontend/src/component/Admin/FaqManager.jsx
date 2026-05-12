@@ -1,5 +1,5 @@
-ï»¿import React, { useEffect, useState } from "react";
-import { useAuth } from "../../lib/AuthHooks";;
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../lib/AuthHooks";
 import { getFaqs, createFaq, updateFaq, deleteFaq as apiDeleteFaq } from "../../services/contentService";
 import toast from "react-hot-toast";
 import { HelpCircle, Plus, Trash2, Edit2, Save, X } from "lucide-react";
@@ -32,11 +32,11 @@ export default function FaqManager() {
         try {
             const token = await getToken();
             await createFaq(newFaq, token);
-            toast.success("FAQ ajoutÃ©e !");
+            toast.success("FAQ ajoutée !");
             setNewFaq({ question: "", answer: "" });
             fetchFaqs();
         } catch (err) {
-            toast.error("Erreur lors de lâ€™ajout");
+            toast.error("Erreur lors de l’ajout");
         } finally {
             setLoading(false);
         }
@@ -51,11 +51,11 @@ export default function FaqManager() {
         try {
             const token = await getToken();
             await updateFaq(id, editData, token);
-            toast.success("Mis Ã  jour !");
+            toast.success("Mis à jour !");
             setEditingId(null);
             fetchFaqs();
         } catch (err) {
-            toast.error("Erreur de mise Ã  jour");
+            toast.error("Erreur de mise à jour");
         }
     };
 
@@ -64,7 +64,7 @@ export default function FaqManager() {
         try {
             const token = await getToken();
             await apiDeleteFaq(id, token);
-            toast.success("SupprimÃ© !");
+            toast.success("Supprimé !");
             fetchFaqs();
         } catch (err) {
             toast.error("Erreur de suppression");
@@ -87,7 +87,7 @@ export default function FaqManager() {
                         className="w-full px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 font-bold focus:outline-none focus:border-primary/40"
                     />
                     <textarea
-                        placeholder="RÃ©ponse"
+                        placeholder="Réponse"
                         value={newFaq.answer}
                         onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
                         className="w-full px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 font-bold h-32 focus:outline-none focus:border-primary/40"
@@ -104,7 +104,7 @@ export default function FaqManager() {
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-xl font-black text-slate-900 px-6">Questions publiÃ©es</h2>
+                <h2 className="text-xl font-black text-slate-900 px-6">Questions publiées</h2>
                 <AnimatePresence>
                     {faqs.map((faq) => (
                         <motion.div

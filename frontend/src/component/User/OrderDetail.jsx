@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
 import {

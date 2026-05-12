@@ -1,6 +1,6 @@
-ï»¿import React from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
-import { useUser } from "../../lib/AuthHooks";;
+import { useUser } from "../../lib/AuthHooks";
 
 export default function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useUser();
@@ -8,7 +8,7 @@ export default function RequireAuth({ children }) {
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-vh-100">
-        <div className="animate-pulse text-gray-500">VÃ©rification en coursâ€¦</div>
+        <div className="animate-pulse text-gray-500">Vérification en cours…</div>
       </div>
     );
   }

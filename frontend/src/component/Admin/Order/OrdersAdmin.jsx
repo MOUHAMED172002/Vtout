@@ -1,5 +1,5 @@
-ï»¿import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../lib/AuthHooks";;
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";
@@ -56,9 +56,9 @@ export default function OrdersAdmin() {
   const filterTabs = [
     { id: "all", label: "Tous", count: orders.length },
     { id: "en_attente", label: "En attente", count: orders.filter(o => normalizeStatus(o.status) === "en_attente").length },
-    { id: "confirmee", label: "ConfirmÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "confirmee").length },
-    { id: "expediee", label: "ExpÃ©diÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "expediee").length },
-    { id: "livree", label: "LivrÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "livree").length },
+    { id: "confirmee", label: "Confirmés", count: orders.filter(o => normalizeStatus(o.status) === "confirmee").length },
+    { id: "expediee", label: "Expédiés", count: orders.filter(o => normalizeStatus(o.status) === "expediee").length },
+    { id: "livree", label: "Livrés", count: orders.filter(o => normalizeStatus(o.status) === "livree").length },
   ];
 
   return (
@@ -70,7 +70,7 @@ export default function OrdersAdmin() {
             <ShoppingBag size={14} /> Ventes
           </div>
           <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Commandes</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Suivez les expÃ©ditions, validez les paiements et gÃ©rez les retours clients.</p>
+          <p className="text-slate-500 font-bold max-w-lg">Suivez les expéditions, validez les paiements et gérez les retours clients.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -79,7 +79,7 @@ export default function OrdersAdmin() {
             <Search size={18} className="text-slate-400" />
             <input
               type="text"
-              placeholder="RÃ©fÃ©rence ou Client..."
+              placeholder="Référence ou Client..."
               className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-48"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

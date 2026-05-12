@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth, useUser } from "../../lib/AuthHooks";;
+import { useAuth, useUser } from "../../lib/AuthHooks";
 import { getMyProfile, updateMyProfile } from "../../services/userService";
 import { uploadSingleImage } from "../../services/uploadService";
 import { authClient } from "../../lib/auth-client";

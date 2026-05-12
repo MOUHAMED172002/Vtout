@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../lib/AuthHooks";;
+import { useAuth } from "../../lib/AuthHooks";
 import { getPolicies, createPolicy, updatePolicy, deletePolicy as apiDeletePolicy } from "../../services/contentService";
 import toast from "react-hot-toast";
 import { ShieldCheck, Save, Trash2, Edit2, X, Plus } from "lucide-react";

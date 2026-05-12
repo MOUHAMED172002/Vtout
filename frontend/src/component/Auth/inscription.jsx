@@ -1,4 +1,4 @@
-﻿import { SignUp } from "../../lib/AuthComponents";;
+import { SignUp } from "../../lib/AuthComponents";
 
 export default function Inscription() {
   return (

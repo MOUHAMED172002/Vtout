@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Truck, ShieldCheck, FileText, ChevronRight, Loader2, Upload, CheckCircle2, AlertCircle, Search, Mail, Lock, Smartphone, ArrowRight, ArrowLeft, User as UserIcon } from "lucide-react";
 import { useAuth, useUser } from "../../lib/AuthHooks";
-import { SignIn, SignUp } from "../../lib/AuthComponents";;
+import { SignIn, SignUp } from "../../lib/AuthComponents";
 import { useProfile } from "../context/useProfile";
 import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
