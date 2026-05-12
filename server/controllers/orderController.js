@@ -188,9 +188,21 @@ export const createOrder = async (req, res) => {
             let unitPrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
-            if (item.variant_price_id) {
+            // Support both variant_price_id (direct) and variant_id (lookup)
+            let variantPriceId = item.variant_price_id || null;
+            if (!variantPriceId && item.variant_id) {
+                // Look up the first price row for this variant
+                const vp = await ProductVariantPrice.findOne({
+                    where: { variant_id: item.variant_id },
+                    include: [{ model: ProductVariant, as: 'variant' }],
+                    transaction
+                });
+                if (vp) variantPriceId = vp.id;
+            }
+
+            if (variantPriceId) {
                 // LOCK the row to prevent concurrent orders from overselling the same variant
-                const variantPrice = await ProductVariantPrice.findByPk(item.variant_price_id, {
+                const variantPrice = await ProductVariantPrice.findByPk(variantPriceId, {
                     include: [{ model: ProductVariant, as: 'variant' }],
                     transaction,
                     lock: true
@@ -206,13 +218,16 @@ export const createOrder = async (req, res) => {
                     }
                     unitPrice = parseFloat(variantPrice.price || unitPrice);
                     variantData = variantPrice;
+                    // Inject for downstream usage
+                    item.variant_price_id = variantPriceId;
+                    item.variant_id = variantPrice.variant_id;
                 }
             } else {
                 // LOCK the product row for simple-stock products
                 const lockedProduct = await Product.findByPk(product.id, { transaction, lock: true });
-                if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock < item.quantity) {
+                if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock !== null && lockedProduct.stock < item.quantity) {
                     await transaction.rollback();
-                    return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });
+                    return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${lockedProduct.stock})` });
                 }
             }
 

@@ -135,6 +135,15 @@ export default function ProductPages() {
     return map;
   }, [variants]);
 
+  // *** CRITICAL: Find the variant that matches ALL currently selected attributes ***
+  const matchedVariant = useMemo(() => {
+    if (!variants.length || !Object.keys(selectedAttributes).length) return null;
+    return variants.find(v => {
+      const combo = v.combination || {};
+      return Object.entries(selectedAttributes).every(([k, val]) => combo[k] === val);
+    }) || null;
+  }, [variants, selectedAttributes]);
+
   const isSaleActive = useMemo(() => {
     return product?.old_price > product?.price;
   }, [product]);
@@ -243,7 +252,16 @@ export default function ProductPages() {
   const { addToCart } = useCart();
 
   const handleAddToCart = async () => {
-    if (!product || isOutOfStock) return;
+    if (!product) return;
+    // Prevent adding if no variant selected for a variant product
+    if (variants.length > 0 && !matchedVariant) {
+      toast.error("Veuillez sélectionner toutes les options du produit.");
+      return;
+    }
+    if (isOutOfStock) {
+      toast.error("Ce produit est en rupture de stock.");
+      return;
+    }
     const payload = {
       ...product,
       product_id: product.id,
@@ -255,7 +273,7 @@ export default function ProductPages() {
     await addToCart(payload, quantity);
     toast.success("Ajouté au panier !");
     if (isSignedIn) {
-      navigate("/user/dashboard/cart"); // Assuming this is the dashboard cart or /cartpage
+      navigate("/user/dashboard/cart");
     }
   };
 
