@@ -172,7 +172,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
           )}
           <div className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-widest flex items-center gap-1.5">
             <Truck size={12} strokeWidth={3} />
-            Livraison Offerte
+            {product?.supplier?.commune_label ? `Gratuit à ${product.supplier.commune_label}` : "Livraison Offerte"}
           </div>
         </div>
 

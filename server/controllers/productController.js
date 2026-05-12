@@ -106,7 +106,7 @@ export const getAllProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
             ]
         };
 
@@ -152,7 +152,7 @@ export const getProductById = async (req, res) => {
                 { 
                     model: Supplier, 
                     as: 'supplier', 
-                    attributes: ['id', 'name'] 
+                    attributes: ['id', 'name', 'commune_label'] 
                 }
             ]
         });
@@ -200,7 +200,7 @@ export const searchProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
             ],
             limit: 20
         });
@@ -239,7 +239,7 @@ export const searchProducts = async (req, res) => {
                         as: 'variants',
                         include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                     },
-                    { model: Supplier, as: 'supplier', attributes: ['id', 'name'] }
+                    { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
                 ],
                 limit: 20 - products.length
             });

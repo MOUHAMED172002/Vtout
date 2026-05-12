@@ -201,13 +201,19 @@ export default function CartPage() {
                       <span>Articles ({displayCart.length})</span>
                       <span className="text-blue-900">{total.toLocaleString()} F</span>
                     </div>
-                    <div className="flex justify-between font-bold">
-                      <span>Expédition (Estimation)</span>
-                      <span className="text-primary">{(1000 * (selectedIds.size > 0 ? selectedIds.size : displayCart.length)).toLocaleString()} F</span>
+                    <div className="flex justify-between font-bold items-center">
+                      <div className="flex flex-col">
+                        <span>Frais de livraison</span>
+                        <span className="text-[10px] font-medium text-slate-500 mt-0.5 italic">Calculés à l'étape suivante</span>
+                      </div>
+                      <span className="text-primary text-sm italic">À définir</span>
                     </div>
                     <div className="h-px bg-slate-800 my-6"></div>
                     <div className="flex justify-between items-end">
-                      <span className="font-black text-sm uppercase tracking-widest">Total à payer</span>
+                      <div className="flex flex-col">
+                        <span className="font-black text-sm uppercase tracking-widest">Total partiel</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Hors livraison</span>
+                      </div>
                       <span className="text-4xl font-black text-slate-900">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
                     </div>
                   </div>

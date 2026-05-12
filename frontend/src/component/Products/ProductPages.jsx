@@ -157,7 +157,7 @@ export default function ProductPages() {
     const matchedP = matchedVariant?.priceRows?.[0];
     const vPrice = Number(matchedP?.price || 0);
     const vOldPrice = Number(matchedP?.old_price || 0);
-    
+
     // 3. Logic: If we have a matched variant, use it. 
     // Otherwise, use Base Public Price. 
     // supplier_price is the NET amount for the supplier - NEVER displayed to customers.
@@ -300,7 +300,7 @@ export default function ProductPages() {
           <div className="lg:col-span-7 space-y-4">
             <div className="relative aspect-square md:aspect-auto md:h-[600px] bg-gray-50 rounded-2xl md:rounded-[2rem] overflow-hidden border border-gray-100 group">
               {/* Mobile Carousel */}
-              <div 
+              <div
                 ref={mobileScrollRef}
                 onScroll={handleMobileScroll}
                 className="md:hidden flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
@@ -315,7 +315,7 @@ export default function ProductPages() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Desktop Main Image */}
               <img
                 src={activeMainImage}
@@ -329,12 +329,12 @@ export default function ProductPages() {
               >
                 {isFav ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
               </button>
-              
+
               {/* Mobile Pagination Dots */}
               <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 pointer-events-none">
                 {allImages.map((src, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className={`h-1.5 rounded-full transition-all ${activeMainImage === src ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300'}`}
                   />
                 ))}
@@ -379,7 +379,7 @@ export default function ProductPages() {
 
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight">{product.name}</h1>
-              
+
               {/* Delivery Info Badge */}
               <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-3xl border border-emerald-100">
                 <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
@@ -387,8 +387,9 @@ export default function ProductPages() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
-                  <p className="text-sm font-black text-slate-900">Livraison Offerte sur ce produit</p>
-                  <p className="text-[10px] text-emerald-500 font-bold">Inclus dans le prix affiché • Partout au Bénin</p>
+                  <p className="text-sm font-black text-slate-900">
+                    Livraison gratuite dans {product?.supplier?.commune_label || "votre commune"}
+                  </p>
                 </div>
               </div>
 
