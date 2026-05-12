@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Check, Search, ShieldCheck, Phone, X } from "lucide-react";
 import { getHierarchy } from "../../services/locationService";
 import territories_fallback from "../../data/decoupage-territorial-benin.json";
@@ -205,12 +204,8 @@ export default function AddressSelector({
           )}
         </div>
 
-        <AnimatePresence>
-          {showSuggestions && searchQuery && filteredLocations.length > 0 && (
-             <motion.div 
-               initial={{ opacity: 0, y: -10 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -10 }}
+        {showSuggestions && searchQuery && filteredLocations.length > 0 && (
+             <div 
                className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar"
              >
                 {filteredLocations.map((loc) => (
@@ -227,9 +222,8 @@ export default function AddressSelector({
                       <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
                    </div>
                 ))}
-             </motion.div>
+             </div>
           )}
-        </AnimatePresence>
         
         {showSuggestions && searchQuery && filteredLocations.length === 0 && (
           <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
@@ -238,11 +232,8 @@ export default function AddressSelector({
         )}
       </div>
 
-      <AnimatePresence mode="wait">
-        {selectedLocation && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+      {selectedLocation && (
+          <div
             className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6"
           >
             <div className="space-y-2">
@@ -287,9 +278,8 @@ export default function AddressSelector({
               {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}
               <p className="text-[9px] font-medium text-slate-400 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter la livraison.</p>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
       
       {/* Settings for Address Manager mode */}
       {(onSave || onCancel) && (
