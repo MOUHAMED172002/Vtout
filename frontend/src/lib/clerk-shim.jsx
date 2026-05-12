@@ -4,12 +4,15 @@ import {
     ClerkProvider, 
     useAuth, 
     useUser, 
-    useClerk, 
-    SignedIn, 
-    SignedOut 
+    useClerk
 } from './AuthHooks';
+import { SignedIn, SignedOut } from './AuthGuards';
 
 import { AuthUI, UserDropdown } from './AuthUI';
+
+export const SignIn = (props) => <AuthUI mode="signIn" {...props} />;
+export const SignUp = (props) => <AuthUI mode="signUp" {...props} />;
+export const UserButton = (props) => <UserDropdown {...props} />;
 
 export { 
     AuthContext, 
@@ -20,7 +23,3 @@ export {
     SignedIn, 
     SignedOut 
 };
-
-export const SignIn = (props) => <AuthUI mode="signIn" {...props} />;
-export const SignUp = (props) => <AuthUI mode="signUp" {...props} />;
-export const UserButton = (props) => <UserDropdown {...props} />;

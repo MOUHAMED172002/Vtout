@@ -13,7 +13,8 @@ import {
   Truck,
   FileText
 } from "lucide-react";
-import { useUser, SignedIn, SignedOut } from "../../lib/AuthHooks";
+import { useUser } from "../../lib/AuthHooks";
+import { SignedIn, SignedOut } from "../../lib/AuthGuards";
 import { UserButton } from "../../lib/clerk-shim";
 import { useProfile } from "../context/useProfile";
 import SearchBar from '../Shared/SearchBar';
