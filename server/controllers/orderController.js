@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
-import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
+import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock } from '../services/whatsappService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -355,8 +355,22 @@ export const createOrder = async (req, res) => {
 
                 if (variantData) {
                     await variantData.decrement('stock', { by: item.quantity, transaction });
+                    await variantData.reload({ transaction });
+                    if (variantData.stock <= 5 && actualSupplierId) {
+                        Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
+                            const phone = s?.phone || s?.profile?.phone;
+                            if (phone) notifySupplierOfLowStock(phone, `${product.name} (${variantData.variant_id})`, variantData.stock);
+                        });
+                    }
                 } else if (product.stock !== undefined) {
                     await product.decrement('stock', { by: item.quantity, transaction });
+                    await product.reload({ transaction });
+                    if (product.stock <= 5 && actualSupplierId) {
+                        Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
+                            const phone = s?.phone || s?.profile?.phone;
+                            if (phone) notifySupplierOfLowStock(phone, product.name, product.stock);
+                        });
+                    }
                 }
             }
             createdOrders.push(order);
@@ -584,6 +598,17 @@ export const updateOrderStatus = async (req, res) => {
                     });
                     if (variantPrice) {
                         await variantPrice.decrement('stock', { by: item.quantity });
+                        await variantPrice.reload();
+                        if (variantPrice.stock <= 5 && order.supplier_id) {
+                            Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
+                                const phone = s?.phone || s?.profile?.phone;
+                                if (phone) {
+                                    Product.findByPk(item.product_id).then(p => {
+                                        notifySupplierOfLowStock(phone, `${p?.name || 'Produit'} (${item.variant_id})`, variantPrice.stock);
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
             } catch (stockErr) {

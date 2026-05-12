@@ -129,6 +129,14 @@ export default function ProductCard({ product, onFavoriteChange }) {
   };
 
   const { currentPrice, basePrice, isSale: isSaleActive, discountPercent: finalDiscount } = useMemo(() => getProductDisplayPrice(), [product]);
+
+  const isOutOfStock = useMemo(() => {
+    if (product.variants && product.variants.length > 0) {
+      return !product.variants.some(v => (v.priceRows?.[0]?.stock || 0) > 0);
+    }
+    return (product.stock || 0) <= 0;
+  }, [product]);
+
   const showOldPrice = isSaleActive;
 
   // ── Deterministic Sales Count (Visual only) ──
@@ -170,6 +178,15 @@ export default function ProductCard({ product, onFavoriteChange }) {
               -{finalDiscount}%
             </motion.span>
           )}
+          {isOutOfStock && (
+            <motion.span
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              className="backdrop-blur-xl bg-rose-600/90 text-white text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-rose-500/20 border border-white/20"
+            >
+              Rupture
+            </motion.span>
+          )}
           <div className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-widest flex items-center gap-1.5">
             <Truck size={12} strokeWidth={3} />
             {product?.supplier?.commune_label ? `Gratuit à ${product.supplier.commune_label}` : "Livraison Offerte"}
@@ -208,30 +225,32 @@ export default function ProductCard({ product, onFavoriteChange }) {
                 >
                   <Eye size={16} />
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn btn-sm bg-white/90 border-none hover:bg-white text-gray-800 shadow-lg font-bold rounded-2xl px-3 gap-1"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/checkout', {
-                      state: {
-                        items: [{
-                          id: product.id,
-                          product_id: product.id,
-                          name: product.name,
-                          price: currentPrice,
-                          price_snapshot: currentPrice,
-                          quantity: 1,
-                          image_url: imgs[0],
-                        }],
-                        total: Number(currentPrice),
-                      }
-                    });
-                  }}
-                >
-                  <Zap size={14} fill="currentColor" className="text-amber-500" /> Acheter
-                </motion.button>
+                {!isOutOfStock && (
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="btn btn-sm bg-white/90 border-none hover:bg-white text-gray-800 shadow-lg font-bold rounded-2xl px-3 gap-1"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/checkout', {
+                        state: {
+                          items: [{
+                            id: product.id,
+                            product_id: product.id,
+                            name: product.name,
+                            price: currentPrice,
+                            price_snapshot: currentPrice,
+                            quantity: 1,
+                            image_url: imgs[0],
+                          }],
+                          total: Number(currentPrice),
+                        }
+                      });
+                    }}
+                  >
+                    <Zap size={14} fill="currentColor" className="text-amber-500" /> Acheter
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           )}

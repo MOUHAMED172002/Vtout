@@ -139,14 +139,14 @@ export default function ProductPages() {
     return product?.old_price > product?.price;
   }, [product]);
 
-  const matchedVariant = useMemo(() => {
-    if (!variants.length) return null;
-    return variants.find((v) =>
-      Object.keys(selectedAttributes).every(
-        (k) => (v.combination?.[k] ?? null) === (selectedAttributes[k] ?? null)
-      )
-    );
-  }, [variants, selectedAttributes]);
+  const currentStock = useMemo(() => {
+    if (variants.length > 0) {
+      return matchedVariant?.priceRows?.[0]?.stock || 0;
+    }
+    return product?.stock ?? 0;
+  }, [matchedVariant, product, variants]);
+
+  const isOutOfStock = currentStock <= 0;
 
   const displayPrice = useMemo(() => {
     // 1. Base Prices
@@ -243,7 +243,7 @@ export default function ProductPages() {
   const { addToCart } = useCart();
 
   const handleAddToCart = async () => {
-    if (!product) return;
+    if (!product || isOutOfStock) return;
     const payload = {
       ...product,
       product_id: product.id,
@@ -410,20 +410,19 @@ export default function ProductPages() {
 
             {/* Availability Badge */}
             <div className="flex items-center gap-3">
-              {matchedVariant ? (
-                (matchedVariant.priceRows?.[0]?.stock || 0) > 0 ? (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    En stock ({matchedVariant.priceRows?.[0]?.stock} unités)
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-700 rounded-full text-xs font-black uppercase tracking-widest border border-rose-100">
-                    <span className="w-2 h-2 rounded-full bg-rose-500" />
-                    Rupture de stock
-                  </div>
-                )
+              {isOutOfStock ? (
+                <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-700 rounded-full text-xs font-black uppercase tracking-widest border border-rose-100">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  Rupture de stock
+                </div>
               ) : (
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-500 rounded-full text-xs font-black uppercase tracking-widest border border-slate-100">
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  En stock ({currentStock} unités)
+                </div>
+              )}
+              {variants.length > 0 && !matchedVariant && (
+                <div className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">
                   Veuillez choisir vos options
                 </div>
               )}
@@ -480,16 +479,18 @@ export default function ProductPages() {
                 </div>
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 btn btn-primary h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 gap-3"
+                  disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                  className="flex-1 btn btn-primary h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 gap-3 disabled:opacity-50"
                 >
-                  <ShoppingCart size={22} /> Ajouter
+                  <ShoppingCart size={22} /> {isOutOfStock ? "Indisponible" : "Ajouter"}
                 </button>
               </div>
               <button
                 onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
-                className="btn bg-orange-400 text-slate-900 btn-block h-14 rounded-2xl text-lg font-black border-2 border-gray-900 text-gray-900 hover:bg-orange-400 hover:text-slate-900"
+                disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                className="btn bg-orange-400 text-slate-900 btn-block h-14 rounded-2xl text-lg font-black border-2 border-gray-900 text-gray-900 hover:bg-orange-400 hover:text-slate-900 disabled:opacity-50"
               >
-                Commander maintenant!
+                {isOutOfStock ? "Produit Épuisé" : "Commander maintenant!"}
               </button>
             </div>
 
@@ -510,13 +511,15 @@ export default function ProductPages() {
                     </div>
                     <button
                       onClick={handleAddToCart}
-                      className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                      disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                      className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
                     >
-                      <ShoppingCart size={18} /> Ajouter
+                      <ShoppingCart size={18} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
                     </button>
                     <button
                       onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
-                      className="px-4 bg-gray-900 text-slate-900 h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform"
+                      disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                      className="px-4 bg-gray-900 text-white h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
                     >
                       Acheter
                     </button>

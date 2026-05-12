@@ -9,17 +9,18 @@ export const getAllProducts = async (req, res) => {
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
+        const isAdminView = req.query.isAdmin === 'true';
         const where = {};
 
         if (category_id) where.category_id = category_id;
 
-        // Admin can see everything, others only see approved products
-        if (isAdmin) {
-            if (approval_status) where.approval_status = approval_status;
-        } else {
-            where.approval_status = 'approved';
-            
+        // approval_status: approved by default for everyone
+        where.approval_status = approval_status || 'approved';
+
+        // Filter out-of-stock products UNLESS it's an explicit admin view
+        if (!isAdminView) {
             where[Op.and] = where[Op.and] || [];
+            
             // Safeguard: show if price > 0 OR supplier_price > 0 OR variant price > 0
             where[Op.and].push({
                 [Op.or]: [
@@ -34,7 +35,6 @@ export const getAllProducts = async (req, res) => {
                 ]
             });
             
-            // Filter out-of-stock products
             where[Op.and].push(
                 sequelize.literal(`(
                     \`Product\`.stock > 0

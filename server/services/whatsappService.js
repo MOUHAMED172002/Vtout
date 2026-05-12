@@ -135,6 +135,16 @@ export const notifySupplierOfNewOrder = async (supplierPhone, orderId, amount) =
 };
 
 /**
+ * Alerter le fournisseur d'un stock bas
+ */
+export const notifySupplierOfLowStock = async (supplierPhone, productName, remainingStock) => {
+    const { notifSupplier } = await getWhatsAppConfigs();
+    if (!notifSupplier || !supplierPhone) return;
+    const message = `⚠️ *VTOUT : Alerte Stock Bas !*\nLe produit *${productName}* est presque épuisé.\nStock restant : *${remainingStock}* unités.\n\nPensez à vous réapprovisionner rapidement pour éviter une rupture !`;
+    return sendWhatsAppMessage(supplierPhone, message);
+};
+
+/**
  * Alerter le livreur d'un nouvel assignement
  */
 export const notifyDelivererOfAssignment = async (delivererPhone, orderId) => {
