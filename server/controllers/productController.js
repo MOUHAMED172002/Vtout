@@ -313,7 +313,7 @@ export const createProduct = async (req, res) => {
             // Flash sale fields
             is_flash_sale, flash_sale_end,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
         } = req.body;
 
         if (!variants || variants.length === 0) {
@@ -420,7 +420,8 @@ export const createProduct = async (req, res) => {
             approval_status: finalStatus,
             admin_feedback: admin_feedback || null,
             in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true,
-            boutique_id: boutique_id || null
+            boutique_id: boutique_id || null,
+            secondary_boutique_ids: secondary_boutique_ids || null
         }, { transaction });
 
         // 2. Insert Images
@@ -523,7 +524,7 @@ export const updateProduct = async (req, res) => {
             // Flash sale fields
             is_flash_sale, flash_sale_end,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
         } = req.body;
 
         const isApprovalOnly = Object.keys(req.body).every(k => ['approval_status', 'price', 'admin_feedback', 'isAdmin'].includes(k));
@@ -621,7 +622,8 @@ export const updateProduct = async (req, res) => {
         if (supplier_price !== undefined) updatePayload.supplier_price = supplier_price;
         if (isAdmin && admin_feedback !== undefined) updatePayload.admin_feedback = admin_feedback;
         if (in_stock_supplier !== undefined) updatePayload.in_stock_supplier = in_stock_supplier;
-        if (isAdmin && boutique_id !== undefined) updatePayload.boutique_id = boutique_id;
+        if (boutique_id !== undefined) updatePayload.boutique_id = boutique_id;
+        if (secondary_boutique_ids !== undefined) updatePayload.secondary_boutique_ids = secondary_boutique_ids;
 
         const [updatedRows] = await Product.update(updatePayload, {
             where: { id },

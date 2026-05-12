@@ -67,6 +67,10 @@ const Product = sequelize.define('Product', {
             key: 'id'
         }
     },
+    secondary_boutique_ids: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
     supplier_note: {
         type: DataTypes.TEXT('long'),
         allowNull: true

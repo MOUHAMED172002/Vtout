@@ -88,7 +88,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const [attrSearchQuery, setAttrSearchQuery] = useState("");
     const [inlineLoading, setInlineLoading] = useState(false);
     const [commissionRate, setCommissionRate] = useState(10);
-
+    const [selectedBoutiques, setSelectedBoutiques] = useState([]);
     const [imageFiles, setImageFiles] = useState([]);
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
@@ -132,9 +132,18 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             const commData = await axios.get(`${API_URL}/configs/public`).catch(e => ({ data: [] }));
             const commissionConfig = commData.data.find(c => c.key === 'commission_rate');
             if (commissionConfig && commissionConfig.value) setCommissionRate(parseFloat(commissionConfig.value));
-            if (boutData && boutData.length > 0 && !initialData?.boutique_id) {
-                setValue('boutique_id', boutData[0].id);
+            
+            // Initialize selected boutiques
+            if (initialData) {
+                let initialBoutiques = [initialData.boutique_id];
+                if (initialData.secondary_boutique_ids && Array.isArray(initialData.secondary_boutique_ids)) {
+                    initialBoutiques = [...initialBoutiques, ...initialData.secondary_boutique_ids];
+                }
+                setSelectedBoutiques(initialBoutiques.filter(Boolean));
+            } else if (boutData && boutData.length > 0) {
+                setSelectedBoutiques([boutData[0].id]);
             }
+
             if (initialData?.images?.length > 0) {
                 setImageFiles(initialData.images.map(img => ({
                     file: null,
@@ -305,7 +314,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 stock: parseInt(data.stock) || 0,
                 status: 'draft',
                 approval_status: 'En attente',
-                boutique_id: data.boutique_id,
+                boutique_id: selectedBoutiques.length > 0 ? selectedBoutiques[0] : null,
+                secondary_boutique_ids: selectedBoutiques.slice(1),
                 variants: processedVariants,
                 supplierLinks: processedVariants.length === 0 ? [{
                     supplier_id: 'me',
@@ -393,15 +403,29 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             </div>
 
                             {boutiques.length > 1 && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sélectionner la Boutique</label>
-                                    <CustomSelect
-                                        options={boutiques.map(b => ({ value: b.id, label: `${b.name} (${b.commune_label})` }))}
-                                        value={watch('boutique_id')}
-                                        onChange={(val) => setValue('boutique_id', val, { shouldValidate: true })}
-                                        placeholder="Sélectionner une boutique..."
-                                        className="w-full"
-                                    />
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sélectionner les Boutiques (Points de retrait)</label>
+                                    <div className="space-y-2">
+                                        {boutiques.map(b => (
+                                            <label key={b.id} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${selectedBoutiques.includes(b.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-slate-50 border-transparent text-slate-600 hover:bg-slate-100'}`}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={selectedBoutiques.includes(b.id)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelectedBoutiques([...selectedBoutiques, b.id]);
+                                                        } else {
+                                                            setSelectedBoutiques(selectedBoutiques.filter(id => id !== b.id));
+                                                        }
+                                                    }}
+                                                    className="checkbox checkbox-primary checkbox-sm rounded-lg"
+                                                />
+                                                <span className="text-sm font-bold flex-1">{b.name}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{b.commune_label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-bold ml-4">La livraison gratuite s'appliquera sur toutes les communes des boutiques sélectionnées.</p>
                                 </div>
                             )}
 

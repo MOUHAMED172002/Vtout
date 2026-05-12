@@ -304,29 +304,47 @@ export const createOrder = async (req, res) => {
             let sSubtotal = supplierItems.reduce((sum, si) => sum + (si.unitPrice * si.item.quantity), 0);
             
             // Calcul dynamique des frais de livraison
-            let supplement = 0;
-            const firstProductBoutique = supplierItems[0].product.boutique;
+            let supplement = INTER_DEPT_FEE; // default max
+            const firstProduct = supplierItems[0].product;
+            const mainBoutique = firstProduct.boutique;
 
-            if (firstProductBoutique && customerAddress) {
-                if (String(firstProductBoutique.commune_id) === String(customerAddress.commune_id)) {
-                    // Même commune : Supplément 0
-                    supplement = 0;
-                } else if (String(firstProductBoutique.departement_id) === String(customerAddress.departement_id)) {
-                    // Même département, communes différentes : +500 F
-                    supplement = INTRA_DEPT_FEE;
-                } else {
-                    // Départements différents : Chercher dans la matrice ou utiliser le défaut
-                    const crossingKey = `${firstProductBoutique.departement_id}-${customerAddress.departement_id}`;
-                    const reverseKey = `${customerAddress.departement_id}-${firstProductBoutique.departement_id}`;
-                    
-                    if (CROSSING_FEES[crossingKey] !== undefined) {
-                        supplement = parseFloat(CROSSING_FEES[crossingKey]);
-                    } else if (CROSSING_FEES[reverseKey] !== undefined) {
-                        supplement = parseFloat(CROSSING_FEES[reverseKey]);
+            let candidateBoutiques = [];
+            if (mainBoutique) candidateBoutiques.push(mainBoutique);
+
+            // Fetch secondary boutiques if any
+            if (firstProduct.secondary_boutique_ids && Array.isArray(firstProduct.secondary_boutique_ids) && firstProduct.secondary_boutique_ids.length > 0) {
+                try {
+                    const { default: Boutique } = await import('../models/Boutique.js');
+                    const secBoutiques = await Boutique.findAll({ where: { id: firstProduct.secondary_boutique_ids }, transaction });
+                    candidateBoutiques = [...candidateBoutiques, ...secBoutiques];
+                } catch(e) { console.error(e); }
+            }
+
+            if (candidateBoutiques.length > 0 && customerAddress) {
+                let bestSupplement = INTER_DEPT_FEE;
+                
+                for (const b of candidateBoutiques) {
+                    let currentSup = INTER_DEPT_FEE;
+                    if (String(b.commune_id) === String(customerAddress.commune_id)) {
+                        currentSup = 0;
+                    } else if (String(b.departement_id) === String(customerAddress.departement_id)) {
+                        currentSup = INTRA_DEPT_FEE;
                     } else {
-                        supplement = INTER_DEPT_FEE;
+                        const crossingKey = `${b.departement_id}-${customerAddress.departement_id}`;
+                        const reverseKey = `${customerAddress.departement_id}-${b.departement_id}`;
+                        if (CROSSING_FEES[crossingKey] !== undefined) {
+                            currentSup = parseFloat(CROSSING_FEES[crossingKey]);
+                        } else if (CROSSING_FEES[reverseKey] !== undefined) {
+                            currentSup = parseFloat(CROSSING_FEES[reverseKey]);
+                        } else {
+                            currentSup = INTER_DEPT_FEE;
+                        }
                     }
+                    if (currentSup < bestSupplement) bestSupplement = currentSup;
                 }
+                supplement = bestSupplement;
+            } else {
+                supplement = 0;
             }
 
             let sDeliveryFee = BASE_FEE + supplement; 
