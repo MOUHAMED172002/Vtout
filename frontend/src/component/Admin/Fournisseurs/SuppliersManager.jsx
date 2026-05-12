@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getSuppliers, updateSupplierStatus, deleteSupplier, notifyIncompleteSuppliers } from '../../../services/supplierService';
-import { useAuth } from "../../../lib/AuthHooks";;
+import { useAuth } from "../../../lib/AuthHooks";
 import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus, Bell, UserPlus, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';
 import SupplierWalletModal from './SupplierWalletModal';
 import AddSupplierModal from './AddSupplierModal';
-import { Wallet, UserPlus } from 'lucide-react';
 
 const SuppliersManager = () => {
     const [suppliers, setSuppliers] = useState([]);
