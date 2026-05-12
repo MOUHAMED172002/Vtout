@@ -291,6 +291,49 @@ app.get("/api/health", async (req, res) => {
     }
 });
 
+// 🔍 Diagnostic public — retourne l'erreur SQL exacte pour identifier les colonnes manquantes
+// À SUPPRIMER après débogage
+app.get("/api/diag", async (req, res) => {
+    const results = {};
+    // Test 1: products
+    try {
+        await sequelize.query('SELECT id, name, price, approval_status, supplier_price, in_stock_supplier, boutique_id, secondary_boutique_ids, supplier_note FROM products LIMIT 1');
+        results.products = 'OK';
+    } catch (e) { results.products = e.message; }
+
+    // Test 2: boutiques
+    try {
+        await sequelize.query('SELECT id, name, phone, whatsapp, momo_number, departement_id, departement_label, commune_id, commune_label, quartier_id, quartier_label FROM boutiques LIMIT 1');
+        results.boutiques = 'OK';
+    } catch (e) { results.boutiques = e.message; }
+
+    // Test 3: cart_items
+    try {
+        await sequelize.query('SELECT id, user_id, product_id, variant_id, quantity, price_snapshot, image_url, selected_attributes FROM cart_items LIMIT 1');
+        results.cart_items = 'OK';
+    } catch (e) { results.cart_items = e.message; }
+
+    // Test 4: supplier_products
+    try {
+        await sequelize.query('SELECT id, supplier_id, product_id, variant_id, supplier_price, available, approval_status, admin_feedback FROM supplier_products LIMIT 1');
+        results.supplier_products = 'OK';
+    } catch (e) { results.supplier_products = e.message; }
+
+    // Test 5: product_variant_prices
+    try {
+        await sequelize.query('SELECT id, variant_id, price, old_price, stock, image_url FROM product_variant_prices LIMIT 1');
+        results.product_variant_prices = 'OK';
+    } catch (e) { results.product_variant_prices = e.message; }
+
+    // Test 6: suppliers
+    try {
+        await sequelize.query('SELECT id, name, phone, whatsapp, momo_number, status, terms_accepted, electronic_signature, departement_id, departement_label, commune_id, commune_label, quartier_id, quartier_label, lat, lng FROM suppliers LIMIT 1');
+        results.suppliers = 'OK';
+    } catch (e) { results.suppliers = e.message; }
+
+    res.json(results);
+});
+
 const server = http.createServer(app);
 const io = new Server(server, { 
     cors: {
@@ -426,10 +469,27 @@ sequelize.authenticate()
                     { table: 'cart_items',            col: 'selected_attributes',        def: { type: DataTypes.JSON,            defaultValue: {} } },
                     // supplier_products
                     { table: 'supplier_products',     col: 'available',                  def: { type: DataTypes.BOOLEAN,         defaultValue: true } },
+                    { table: 'supplier_products',     col: 'approval_status',            def: { type: DataTypes.STRING,          defaultValue: 'En attente' } },
+                    { table: 'supplier_products',     col: 'admin_feedback',             def: { type: DataTypes.TEXT('long'),    allowNull: true } },
+                    { table: 'supplier_products',     col: 'variant_id',                 def: { type: DataTypes.CHAR(36),        allowNull: true } },
                     // product_variant_prices
                     { table: 'product_variant_prices', col: 'image_url',                 def: { type: DataTypes.TEXT,            allowNull: true } },
                     { table: 'product_variant_prices', col: 'old_price',                 def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
+                    // suppliers
+                    { table: 'suppliers',             col: 'terms_accepted',             def: { type: DataTypes.BOOLEAN,         defaultValue: false } },
+                    { table: 'suppliers',             col: 'electronic_signature',       def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'whatsapp',                   def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'momo_number',                def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'departement_id',             def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'departement_label',          def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'commune_id',                 def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'commune_label',              def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'quartier_id',                def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'quartier_label',             def: { type: DataTypes.STRING,          allowNull: true } },
+                    { table: 'suppliers',             col: 'lat',                        def: { type: DataTypes.DECIMAL(10, 8), allowNull: true } },
+                    { table: 'suppliers',             col: 'lng',                        def: { type: DataTypes.DECIMAL(11, 8), allowNull: true } },
                 ];
+
 
                 for (const m of colMigrations) {
                     try {
