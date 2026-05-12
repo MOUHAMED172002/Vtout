@@ -178,21 +178,9 @@ export default function ProductCard({ product, onFavoriteChange }) {
               -{finalDiscount}%
             </motion.span>
           )}
-          {isOutOfStock && (
-            <motion.span
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="backdrop-blur-xl bg-rose-600/90 text-white text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-rose-500/20 border border-white/20"
-            >
-              Rupture
-            </motion.span>
-          )}
-          <div className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-widest flex items-center gap-1.5">
-            <Truck size={12} strokeWidth={3} />
-            {product?.supplier?.commune_label ? `Gratuit à ${product.supplier.commune_label}` : "Livraison Offerte"}
-          </div>
-        </div>
-
+          
+          
+          
         {/* Favorite Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}

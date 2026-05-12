@@ -837,6 +837,7 @@ export const getRelatedProducts = async (req, res) => {
             where: {
                 category_id: { [Op.in]: [...new Set(categoryIds)] },
                 id: { [Op.ne]: id },
+                approval_status: 'approved',
                 [Op.and]: [
                     sequelize.literal(`(
                         \`Product\`.stock > 0
@@ -849,9 +850,21 @@ export const getRelatedProducts = async (req, res) => {
                     )`)
                 ]
             },
+            attributes: {
+                include: [
+                    [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.product_id = Product.id)`), 'review_count'],
+                    [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.product_id = Product.id)`), 'average_rating']
+                ]
+            },
             include: [
                 { model: Category, as: 'category' },
-                { model: ProductImage, as: 'images' }
+                { model: ProductImage, as: 'images' },
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
             ],
             limit: 12,
             order: sequelize.literal('RAND()')
