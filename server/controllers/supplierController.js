@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Supplier, SupplierProduct, Product, ProductVariant, ProductVariantPrice, ProductImage, Category, Profile, Boutique, sequelize } from '../models/index.js';
 import crypto from 'crypto';
 import { sendSupplierApprovalNotification } from '../services/mailService.js';
@@ -456,7 +457,9 @@ export const notifyIncompleteSuppliers = async (req, res) => {
             const phone = s.phone || s.user?.phone || s.whatsapp;
             if (phone) {
                 try {
-                    await notifyAdmin(`🔔 Rappel Vtout : Bonjour ${s.name || s.user?.fullname || 'Cher Partenaire'}, votre profil marchand est incomplet. Veuillez renseigner votre adresse et téléphone pour pouvoir ajouter des produits. Merci.`);
+                    // Send to the actual supplier, not admin
+                    const message = `🔔 Rappel Vtout : Bonjour ${s.name || s.user?.fullname || 'Cher Partenaire'}, votre profil marchand est incomplet. Veuillez renseigner votre adresse et téléphone pour pouvoir ajouter des produits. Merci.`;
+                    await notifySupplierStatusUpdate(phone, s.name || 'Votre Boutique', 'Profil Incomplet', message);
                     sentCount++;
                 } catch (err) {
                     console.error(`Error notifying ${phone}:`, err);

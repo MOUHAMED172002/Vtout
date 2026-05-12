@@ -7,6 +7,7 @@ import AddBoutiqueModal from './AddBoutiqueModal';
 import SupplierWalletModal from './SupplierWalletModal';
 import AddSupplierModal from './AddSupplierModal';
 
+
 const SuppliersManager = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);

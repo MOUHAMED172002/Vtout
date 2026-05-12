@@ -11,6 +11,7 @@ import {
 import NotificationCenter from './Shared/NotificationCenter';
 import PortalSwitcher from './Shared/PortalSwitcher';
 import LogoText from './Shared/LogoText';
+import ProfileReminderModal from './Shared/ProfileReminderModal';
 
 
 
@@ -132,6 +133,7 @@ const Layout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [supplierProfile, setSupplierProfile] = useState(null);
     const [boutiques, setBoutiques] = useState([]);
+    const [showReminderModal, setShowReminderModal] = useState(false);
     const { getToken } = useAuth();
     const navigate = useNavigate();
 
@@ -162,6 +164,20 @@ const Layout = ({ children }) => {
             b.departement_id && b.commune_id && b.quartier_id
         );
     }, [supplierProfile, boutiques]);
+
+    useEffect(() => {
+        if (isProfileIncomplete) {
+            const hasShown = sessionStorage.getItem('profile_reminder_shown');
+            if (!hasShown) {
+                setShowReminderModal(true);
+            }
+        }
+    }, [isProfileIncomplete]);
+
+    const handleCloseReminder = () => {
+        setShowReminderModal(false);
+        sessionStorage.setItem('profile_reminder_shown', 'true');
+    };
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -255,6 +271,11 @@ const Layout = ({ children }) => {
                     {children}
                 </main>
             </div>
+            
+            <ProfileReminderModal 
+                isOpen={showReminderModal} 
+                onClose={handleCloseReminder} 
+            />
         </div>
 
     );
