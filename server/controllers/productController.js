@@ -396,6 +396,11 @@ export const createProduct = async (req, res) => {
             finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
         }
 
+        let finalStock = stock || 0;
+        if (variants && variants.length > 0) {
+            finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+        }
+
         // 1. Create base product (NEW)
         const productId = crypto.randomUUID();
         const product = await Product.create({
@@ -404,7 +409,7 @@ export const createProduct = async (req, res) => {
             description,
             price: finalPrice || 0,
             old_price: old_price || 0,
-            stock: stock || 0,
+            stock: finalStock,
             category_id,
             is_flash_sale: isSupplier ? false : (is_flash_sale || false),
             flash_sale_end: isSupplier ? null : (flash_sale_end || null),
@@ -592,6 +597,11 @@ export const updateProduct = async (req, res) => {
             );
         }
 
+        let finalStock = stock;
+        if (variants && variants.length > 0) {
+            finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+        }
+
         // 1. Update base product
         const updatePayload = {
             name,
@@ -601,7 +611,7 @@ export const updateProduct = async (req, res) => {
         };
         if (finalPrice !== undefined) updatePayload.price = finalPrice;
         if (old_price !== undefined) updatePayload.old_price = old_price;
-        if (stock !== undefined) updatePayload.stock = stock;
+        if (finalStock !== undefined) updatePayload.stock = finalStock;
         if (is_flash_sale !== undefined && (!isSupplier || isAdmin)) updatePayload.is_flash_sale = is_flash_sale;
         if (flash_sale_end !== undefined && (!isSupplier || isAdmin)) updatePayload.flash_sale_end = flash_sale_end;
         if (isAdmin && supplier_id !== undefined) updatePayload.supplier_id = supplier_id;
@@ -805,9 +815,14 @@ export const adminCreateProduct = async (req, res) => {
             return res.status(400).json({ error: 'Le nom et le prix sont obligatoires.' });
         }
 
+        let finalStock = stock || 0;
+        if (variants && variants.length > 0) {
+            finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+        }
+
         const product = await Product.create({
             id: crypto.randomUUID(),
-            name, description, price, old_price, stock, category_id,
+            name, description, price, old_price, stock: finalStock, category_id,
             is_flash_sale, flash_sale_end,
             supplier_id,
             supplier_price,

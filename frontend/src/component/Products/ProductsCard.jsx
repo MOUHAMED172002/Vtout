@@ -183,9 +183,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
               -{finalDiscount}%
             </motion.span>
           )}
-          
-          
-          
+        </div>
+
         {/* Favorite Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}
