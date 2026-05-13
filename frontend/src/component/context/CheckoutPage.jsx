@@ -105,17 +105,19 @@ export default function CheckoutPage() {
             return sid === sId;
         });
 
-        // Aggregate ALL free communes from ALL products of this supplier in the cart
-        const allFreeCommunes = new Set();
+        // Aggregating and normalizing free delivery zones
+        const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+        
+        const allFreeCommunesNormalized = new Set();
         supplierItems.forEach(it => {
             const p = it.product || it;
             if (p.free_delivery_communes) {
-                p.free_delivery_communes.forEach(c => allFreeCommunes.add(c.toLowerCase().trim()));
+                p.free_delivery_communes.forEach(c => allFreeCommunesNormalized.add(normalize(c)));
             }
         });
         
-        const targetCommune = address.commune_label?.toLowerCase().trim();
-        const isFreeZone = allFreeCommunes.has(targetCommune) || 
+        const targetCommuneNormalized = normalize(address.commune_label);
+        const isFreeZone = allFreeCommunesNormalized.has(targetCommuneNormalized) || 
                           String(boutique.commune_id) === String(address.commune_id);
 
         if (isFreeZone) {

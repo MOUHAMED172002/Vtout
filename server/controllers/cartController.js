@@ -1,5 +1,5 @@
 import { Cart, Product, ProductImage, Boutique } from '../models/index.js';
-
+import { processProductsForCommunes } from './productController.js';
 
 export const getMyCart = async (req, res) => {
     try {
@@ -15,7 +15,18 @@ export const getMyCart = async (req, res) => {
                 ]
             }]
         });
-        res.json(cartItems);
+
+        // Enrich products with free_delivery_communes
+        const processedItems = await Promise.all(cartItems.map(async (item) => {
+            const itemJson = item.toJSON();
+            if (itemJson.product) {
+                const [processedProduct] = await processProductsForCommunes([itemJson.product]);
+                itemJson.product = processedProduct;
+            }
+            return itemJson;
+        }));
+
+        res.json(processedItems);
     } catch (error) {
         console.error('GetMyCart error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération du panier' });

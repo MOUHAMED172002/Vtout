@@ -337,7 +337,13 @@ export const createOrder = async (req, res) => {
                 
                 for (const b of candidateBoutiques) {
                     let currentSup = INTER_DEPT_FEE;
-                    if (String(b.commune_id) === String(customerAddress.commune_id)) {
+                    
+                    const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+                    const normalizedBCommune = normalize(b.commune_label);
+                    const normalizedCCommune = normalize(customerAddress.commune_label);
+                    
+                    if (String(b.commune_id) === String(customerAddress.commune_id) || 
+                        (normalizedBCommune && normalizedBCommune === normalizedCCommune)) {
                         currentSup = 0;
                     } else if (String(b.departement_id) === String(customerAddress.departement_id)) {
                         currentSup = INTRA_DEPT_FEE;

@@ -5,7 +5,7 @@ import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../services/deliveryFeeService.js';
 
-const processProductsForCommunes = async (products) => {
+export const processProductsForCommunes = async (products) => {
     const tiers = await getDeliveryFeeTiers();
     return await Promise.all(products.map(async (p) => {
         const product = p.toJSON ? p.toJSON() : p;
