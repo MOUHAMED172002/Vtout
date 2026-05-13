@@ -20,7 +20,7 @@ const SupplierProductsApproval = () => {
             setLoading(true);
             // On récupère tous les produits avec le status En attente (en précisant qu'on est admin)
             const data = await getProducts({ approval_status: 'En attente', isAdmin: 'true' });
-            setProducts(data);
+            setProducts(data.products || data || []);
         } catch (error) {
             console.error('Erreur chargement produits:', error);
         } finally {

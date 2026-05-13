@@ -313,14 +313,32 @@ export default function ProductPages() {
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-[1400px] mx-auto pt-4 md:pt-8 pb-32 md:pb-16 px-4 md:px-8">
-        {/* Breadcrumbs */}
-        <div className="text-sm breadcrumbs mb-4 md:mb-8 text-gray-400 overflow-x-auto whitespace-nowrap">
-          <ul>
-            <li><button onClick={() => navigate("/")}>Accueil</button></li>
-            <li><button onClick={() => navigate("/products-liste")}>Boutique</button></li>
-            <li className="text-gray-900 font-bold truncate">{product.name}</li>
-          </ul>
-        </div>
+        {/* Breadcrumbs — mobile friendly */}
+        <nav aria-label="fil d'ariane" className="mb-4 md:mb-8">
+          <ol className="flex items-center flex-wrap gap-x-1 gap-y-1 text-xs md:text-sm text-gray-400">
+            <li>
+              <button
+                onClick={() => navigate("/")}
+                className="hover:text-primary active:text-primary font-medium transition-colors px-1 py-0.5 rounded"
+              >
+                Accueil
+              </button>
+            </li>
+            <li className="select-none text-gray-300">›</li>
+            <li>
+              <button
+                onClick={() => navigate("/products-liste")}
+                className="hover:text-primary active:text-primary font-medium transition-colors px-1 py-0.5 rounded"
+              >
+                Boutique
+              </button>
+            </li>
+            <li className="select-none text-gray-300">›</li>
+            <li className="text-gray-800 font-bold max-w-[180px] md:max-w-none truncate px-1">
+              {product.name}
+            </li>
+          </ol>
+        </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Gallery - 7 cols on LG */}

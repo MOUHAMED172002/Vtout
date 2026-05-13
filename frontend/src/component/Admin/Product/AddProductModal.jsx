@@ -183,7 +183,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const checkExisting = async (name, cid) => {
     setCheckingExisting(true);
     try {
-      const prods = await getProducts({ category_id: cid });
+      const res = await getProducts({ category_id: cid });
+      const prods = res.products || res || [];
       const match = prods.find(p => p.name.toLowerCase().trim() === name.toLowerCase().trim());
       setExistingProduct(match || null);
     } catch (err) {

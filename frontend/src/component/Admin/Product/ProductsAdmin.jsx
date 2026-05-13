@@ -21,7 +21,7 @@ export default function ProductsAdmin() {
     try {
       // Charge uniquement les produits APPROUVÉS dans la liste générale
       const data = await getProducts({ isAdmin: 'true', approval_status: 'approved' });
-      setProducts(data || []);
+      setProducts(data.products || data || []);
     } catch (err) {
       console.error(err);
       toast.error("Échec de la synchronisation");

@@ -22,7 +22,7 @@ const PortalSwitcher = () => {
         id: 'user',
         name: 'Acheteur',
         icon: ShoppingBag,
-        url: MAIN_SITE_URL + '/user/dashboard',
+        url: MAIN_SITE_URL,
         isActive: window.location.pathname.startsWith('/user/') || (!window.location.host.includes('vendeur') && !window.location.pathname.includes('delivery-rider') && !window.location.pathname.startsWith('/admin')),
         color: 'text-primary',
         bg: 'bg-primary/10'

@@ -156,8 +156,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
   return (
     <motion.div
       layout
-      whileHover={{ y: -8 }}
-      className="group relative bg-base-100 rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] transition-all duration-700"
+      whileHover={{ y: -4 }}
+      className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] transition-all duration-500"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -272,50 +272,95 @@ export default function ProductCard({ product, onFavoriteChange }) {
         </AnimatePresence>
       </Link>
 
-      <div className="p-4 space-y-2">
+      {/* ── Info Section ── */}
+      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2">
+
+        {/* Rating */}
         {product.review_count > 0 && (
-          <div className="flex items-center gap-1 text-[10px] text-orange-400 font-bold uppercase tracking-widest">
-            <Star size={10} fill="currentColor" /> {Number(product.average_rating).toFixed(1)} | <span className="text-gray-400">Certifié</span>
+          <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-orange-400 font-bold uppercase tracking-widest">
+            <Star size={9} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
+            <span className="text-gray-300">•</span>
+            <span className="text-gray-400">Certifié</span>
           </div>
         )}
 
+        {/* Name */}
         <Link to={`/products/${product.id}`} state={navState} className="block">
-          {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1">
-              <span className="text-[9px] font-black uppercase tracking-tighter text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                <MapPin size={8} strokeWidth={3} />
-                Livraison gratuite : {product.free_delivery_communes.join(', ')}
-              </span>
-            </div>
-          )}
-          <h3 className="font-black text-base-content text-sm md:text-base line-clamp-1 hover:text-primary transition-colors tracking-tight">
+          <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 sm:line-clamp-1 hover:text-primary transition-colors leading-tight">
             {product.name}
           </h3>
         </Link>
 
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-black text-base-content tracking-tighter">{formatPrice(currentPrice)} <span className="text-xs text-primary font-black uppercase ml-0.5">F</span></span>
+        {/* Free delivery badge — single truncated line, never wraps */}
+        {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
+          <div className="flex items-center gap-1 min-w-0">
+            <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
+            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate min-w-0">
+              Livraison gratuite · {product.free_delivery_communes.join(' · ')}
+            </span>
+          </div>
+        )}
+
+        {/* Price row */}
+        <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-base sm:text-xl md:text-2xl font-black text-base-content tracking-tighter leading-none">
+            {formatPrice(currentPrice)}
+            <span className="text-[9px] sm:text-xs text-primary font-black uppercase ml-0.5">F</span>
+          </span>
           {showOldPrice && (
-            <span className="text-xs text-base-content/50 line-through decoration-base-content/20 font-bold">{formatPrice(basePrice)} F</span>
+            <span className="text-[9px] sm:text-xs text-base-content/40 line-through font-bold">
+              {formatPrice(basePrice)} F
+            </span>
           )}
         </div>
 
-        <div className="pt-2">
-          <div className="flex justify-between text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
-            <span className="flex items-center gap-1 text-orange-500">
-              <Zap size={10} fill="currentColor" /> {salesCount} vendus
-            </span>
-            <span className="text-primary font-bold">Populaire</span>
+        {/* Sales bar + Mobile quick-buy button */}
+        <div className="flex items-center gap-2">
+          {/* Sales bar */}
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
+              <span className="flex items-center gap-0.5 text-orange-500">
+                <Zap size={8} fill="currentColor" /> {salesCount}
+              </span>
+              <span className="text-primary">Populaire</span>
+            </div>
+            <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((salesCount / 60) * 100, 100)}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full bg-primary rounded-full"
+              />
+            </div>
           </div>
-          <div className="h-1 w-full bg-slate-50 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((salesCount / 60) * 100, 100)}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"
-            />
-          </div>
+
+          {/* Mobile: always-visible quick buy button (hidden on desktop where hover buttons show) */}
+          {!isOutOfStock && (
+            <button
+              className="md:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-200 active:scale-90"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/checkout', {
+                  state: {
+                    items: [{
+                      id: product.id,
+                      product_id: product.id,
+                      name: product.name,
+                      price: currentPrice,
+                      price_snapshot: currentPrice,
+                      quantity: 1,
+                      image_url: imgs[0],
+                    }],
+                    total: Number(currentPrice),
+                  }
+                });
+              }}
+            >
+              <Zap size={14} fill="currentColor" />
+            </button>
+          )}
         </div>
+
       </div>
     </motion.div>
   );

@@ -186,7 +186,7 @@ const Footer = () => {
                 </div>
 
                 <div className="pt-10 border-t border-base-200 flex flex-col lg:flex-row justify-between items-center gap-12">
-                    
+
                     {/* Copyright & Trust Section */}
                     <div className="flex flex-col items-center lg:items-start gap-6">
                         <div className="flex flex-col items-center lg:flex-row gap-3 lg:gap-4">
@@ -206,8 +206,8 @@ const Footer = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:flex-wrap lg:justify-end items-center gap-x-8 gap-y-6 lg:gap-x-6 lg:gap-y-2">
                         {policyLinks.map((item, index) => (
                             <React.Fragment key={index}>
-                                <Link 
-                                    to={item.link} 
+                                <Link
+                                    to={item.link}
                                     onClick={handleLinkClick}
                                     className="text-base-content/40 hover:text-primary text-[10px] font-bold uppercase tracking-widest transition-all text-center lg:text-right"
                                 >
