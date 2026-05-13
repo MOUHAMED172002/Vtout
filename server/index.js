@@ -299,7 +299,18 @@ app.get("/api/diag", async (req, res) => {
     try {
         await sequelize.query('SELECT id, name, price, approval_status, supplier_price, in_stock_supplier, boutique_id, secondary_boutique_ids, supplier_note FROM products LIMIT 1');
         results.products = 'OK';
-    } catch (e) { results.products = e.message; }
+    } catch (e) { 
+        results.products = e.message; 
+        // 🛠️ TENTATIVE DE FIX AUTOMATIQUE
+        if (e.message.includes('secondary_boutique_ids')) {
+            try {
+                await sequelize.query("ALTER TABLE products ADD COLUMN secondary_boutique_ids TEXT NULL");
+                results.auto_fix_attempt = "✅ Colonne 'secondary_boutique_ids' ajoutée avec succès. Rafraîchissez la page !";
+            } catch (fixErr) {
+                results.auto_fix_attempt = "❌ Échec du fix: " + fixErr.message;
+            }
+        }
+    }
 
     // Test 2: boutiques
     try {
