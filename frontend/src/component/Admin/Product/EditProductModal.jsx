@@ -216,13 +216,25 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     return path.join(' > ');
   }, [selectedCategory, categories]);
 
-  // Update commission rate based on selected category
+  // Update commission rate with inheritance (search up the tree)
   useEffect(() => {
-    if (selectedCategory && selectedCategory.commission_rate != null) {
-      const rate = parseFloat(selectedCategory.commission_rate);
-      setCommissionRate(prev => prev !== rate ? rate : prev);
+    if (!selectedCategoryId || !categories.length) return;
+
+    const findEffectiveRate = (id) => {
+      let current = categories.find(c => String(c.id) === String(id));
+      while (current) {
+        if (current.commission_rate != null) return parseFloat(current.commission_rate);
+        if (!current.parent_id) break;
+        current = categories.find(c => c.id === current.parent_id);
+      }
+      return null;
+    };
+
+    const effectiveRate = findEffectiveRate(selectedCategoryId);
+    if (effectiveRate !== null) {
+      setCommissionRate(prev => prev !== effectiveRate ? effectiveRate : prev);
     }
-  }, [selectedCategory]);
+  }, [selectedCategoryId, categories]);
 
   // ── Chargement initial ─────────────────────────────────────────────────────
   useEffect(() => {

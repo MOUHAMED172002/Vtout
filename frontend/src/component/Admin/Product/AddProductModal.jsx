@@ -280,14 +280,28 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     return variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
   }, [variants]);
 
-  // Update commission rate based on selected category
+  // Update commission rate with inheritance (search up the tree)
   useEffect(() => {
-    if (selectedCategory && selectedCategory.commission_rate != null) {
-      const rate = parseFloat(selectedCategory.commission_rate);
-      // Only update if it's different to avoid infinite loops with the other effects
-      setCommissionRate(prev => prev !== rate ? rate : prev);
+    if (!selectedCategoryId || !categories.length) return;
+
+    const findEffectiveRate = (id) => {
+      let current = categories.find(c => String(c.id) === String(id));
+      while (current) {
+        if (current.commission_rate != null) return parseFloat(current.commission_rate);
+        if (!current.parent_id) break;
+        current = categories.find(c => c.id === current.parent_id);
+      }
+      return null;
+    };
+
+    const effectiveRate = findEffectiveRate(selectedCategoryId);
+    if (effectiveRate !== null) {
+      setCommissionRate(prev => prev !== effectiveRate ? effectiveRate : prev);
+    } else {
+      // Fallback to global config already fetched in fetchData()
+      // which is stored in commissionRate initially or updated from API
     }
-  }, [selectedCategory]);
+  }, [selectedCategoryId, categories]);
 
   const fetchData = async () => {
     try {
