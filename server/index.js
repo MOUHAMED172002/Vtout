@@ -231,9 +231,15 @@ app.get("/api/repair-db", async (req, res) => {
             { table: 'orders', col: 'parent_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'orders', col: 'boutique_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'orders', col: 'supplier_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
+            { table: 'order_items', col: 'boutique_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'support_messages', col: 'order_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } }
         ];
+
+        // 0. Ensure column types are correct (Change if exists but wrong type)
+        try {
+            await qi.changeColumn('orders', 'boutique_id', { type: DataTypes.CHAR(36), allowNull: true });
+        } catch (e) { /* ignore if not exists */ }
 
         // 1. Force creation of the Dispute table if missing
         try {

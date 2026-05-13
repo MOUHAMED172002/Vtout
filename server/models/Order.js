@@ -69,7 +69,7 @@ const Order = sequelize.define('Order', {
         }
     },
     boutique_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.CHAR(36),
         allowNull: true,
         references: {
             model: 'boutiques',
