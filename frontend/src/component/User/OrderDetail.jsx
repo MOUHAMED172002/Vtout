@@ -623,6 +623,33 @@ export default function OrderDetail() {
                 </div>
               </div>
             )}
+ 
+            {/* Actions */}
+            <div className="pt-12 border-t border-slate-100 flex flex-col gap-4">
+              <button 
+                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
+                onClick={async () => {
+                  try {
+                    const token = await getToken();
+                    await api.post(`/orders/${order.id}/dispute`, { reason: "Problème signalé via le bouton support" }, { headers: { Authorization: `Bearer ${token}` } });
+                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
+                  } catch (e) {
+                    // Even if API fails, redirect to WhatsApp as a fallback
+                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
+                  }
+                }}
+              >
+                <AlertCircle size={18} />
+                Signaler un problème
+              </button>
+              <Link 
+                to="/"
+                className="w-full py-4 bg-slate-50 text-slate-400 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 transition-all"
+              >
+                <ArrowLeft size={16} />
+                Retour à l'accueil
+              </Link>
+            </div>
           </div>
         </div>
       </div>

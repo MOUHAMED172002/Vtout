@@ -82,34 +82,32 @@ export default function CheckoutPage() {
 
     setIsDynamicFeeLoading(true);
     
-    // Group items by supplier to calculate one supplement per supplier boutique
-    const suppliers = {};
+    // Group items by boutique to calculate one supplement per boutique pickup point
+    const boutiques = {};
     itemsFromCart.forEach(it => {
-        // Find boutique info. Check nested product first, then item itself
         const product = it.product || it;
-        const boutique = product.boutique;
-        const sId = product.supplier_id || boutique?.supplier_id || 'default';
-        if (!suppliers[sId]) {
-            suppliers[sId] = boutique;
+        const bId = product.boutique_id || product.boutique?.id || 'default';
+        if (!boutiques[bId] && (product.boutique || it.boutique)) {
+            boutiques[bId] = product.boutique || it.boutique;
         }
     });
 
     let totalSupplement = 0;
-    Object.entries(suppliers).forEach(([sId, boutique]) => {
+    Object.entries(boutiques).forEach(([bId, boutique]) => {
         if (!boutique) return;
         
-        // Find all candidate boutiques for this supplier's items in this cart
-        const supplierItems = itemsFromCart.filter(it => {
+        // Find items for this specific boutique
+        const boutiqueItems = itemsFromCart.filter(it => {
             const p = it.product || it;
-            const sid = p.supplier_id || p.boutique?.supplier_id || 'default';
-            return sid === sId;
+            const id = p.boutique_id || p.boutique?.id || 'default';
+            return String(id) === String(bId);
         });
 
         // Aggregating and normalizing free delivery zones
         const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
         
         const allFreeCommunesNormalized = new Set();
-        supplierItems.forEach(it => {
+        boutiqueItems.forEach(it => {
             const p = it.product || it;
             if (p.free_delivery_communes) {
                 p.free_delivery_communes.forEach(c => allFreeCommunesNormalized.add(normalize(c)));

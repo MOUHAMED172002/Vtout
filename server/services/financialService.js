@@ -25,6 +25,12 @@ export const processOrderFinancials = async (orderIdOrObject) => {
             return;
         }
 
+        if (order.dispute_status) {
+            console.warn(`[Finance] Order ${orderId} is under dispute (${order.dispute_status}). Financial processing on hold.`);
+            await t.rollback();
+            return;
+        }
+
         console.log(`[Finance] Processing financials for order ${order.id}...`);
         
         // 1. Supplier Earning
@@ -43,19 +49,27 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         transaction: t
                     });
                     
-                    let supplierTotal = 0;
-                    let adminTotal = 0;
-                    let commissionRate = 0.10;
-
-                    const configRate = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
-                    if (configRate?.value) commissionRate = parseFloat(configRate.value) / 100;
-
                     let subtotal = 0;
+                    let adminTotal = 0;
+                    
+                    const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
+                    const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
+ 
                     for (const item of items) {
-                        subtotal += parseFloat(item.price) * item.quantity;
+                        const itemSubtotal = parseFloat(item.price) * item.quantity;
+                        subtotal += itemSubtotal;
+                        
+                        // Use category commission rate if available
+                        let itemRate = globalCommissionRate;
+                        if (item.product?.category_id) {
+                            const category = await item.product.getCategory({ transaction: t });
+                            if (category?.commission_rate) {
+                                itemRate = parseFloat(category.commission_rate) / 100;
+                            }
+                        }
+                        adminTotal += itemSubtotal * itemRate;
                     }
-
-                    adminTotal = subtotal * commissionRate;
+ 
                     const deliveryFee = parseFloat(order.delivery_fee || 0);
                     supplierTotal = subtotal - adminTotal - deliveryFee;
 

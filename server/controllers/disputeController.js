@@ -40,3 +40,39 @@ export const updateDisputeStatus = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+export const createDispute = async (req, res) => {
+    try {
+        const { order_id, reason, description } = req.body;
+        const userId = req.auth?.userId;
+
+        if (!userId) return res.status(401).json({ error: 'Auth required' });
+
+        const order = await Order.findByPk(order_id);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        // Security: only customer who placed the order can open a dispute
+        if (order.user_id !== userId) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+
+        const dispute = await Dispute.create({
+            id: crypto.randomUUID(),
+            order_id,
+            user_id: userId,
+            supplier_id: order.supplier_id,
+            reason,
+            description,
+            status: 'open'
+        });
+
+        // Update Order status to block financials
+        await order.update({ dispute_status: 'ouvert' });
+
+        res.status(201).json(dispute);
+    } catch (error) {
+        console.error('Error creating dispute:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+import crypto from 'crypto';

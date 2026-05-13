@@ -17,6 +17,11 @@ const Category = sequelize.define('Category', {
     },
     icon: {
         type: DataTypes.TEXT
+    },
+    commission_rate: {
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: true,
+        defaultValue: null // If null, fallback to global config
     }
 }, {
     tableName: 'categories',

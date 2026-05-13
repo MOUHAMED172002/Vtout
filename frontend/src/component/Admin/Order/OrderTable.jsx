@@ -50,9 +50,14 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
                     <span className="text-[10px] font-black uppercase">REF</span>
                   </div>
                   <div>
-                    <p className="text-sm font-black text-slate-900 leading-none mb-1">
-                      #{o.id ? o.id.slice(0, 8).toUpperCase() : "N/A"}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-slate-900 leading-none">
+                        #{o.id ? o.id.slice(0, 8).toUpperCase() : "N/A"}
+                      </p>
+                      {o.parent_id && (
+                        <span className="text-[8px] font-black bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded-md border border-indigo-100 uppercase tracking-tighter">Multi-Boutique</span>
+                      )}
+                    </div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none line-clamp-1 w-24">
                       ID: {o.id || "N/A"}
                     </p>

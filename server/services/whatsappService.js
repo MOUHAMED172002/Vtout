@@ -127,10 +127,16 @@ export const sendNewOrderWhatsApp = async (to, orderId, amount) => {
 /**
  * Alerter le fournisseur d'une nouvelle commande
  */
-export const notifySupplierOfNewOrder = async (supplierPhone, orderId, amount) => {
+export const notifySupplierOfNewOrder = async (supplierPhone, orderId, amount, isReminder = false) => {
     const { notifSupplier } = await getWhatsAppConfigs();
     if (!notifSupplier || !supplierPhone) return;
-    const message = `🔔 *VTOUT : Nouvelle commande !*\nVous avez une nouvelle commande à préparer.\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nConnectez-vous à votre portail fournisseur pour voir les détails.`;
+    
+    let message = `🔔 *VTOUT : Nouvelle commande !*\nVous avez une nouvelle commande à préparer.\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nConnectez-vous à votre portail fournisseur pour voir les détails.`;
+    
+    if (isReminder) {
+        message = `⏳ *VTOUT : RAPPEL - Commande en attente !*\nLa commande #${orderId.slice(0, 8)} (${Number(amount).toLocaleString()} F) attend toujours votre préparation.\n\nMerci de la confirmer rapidement pour éviter tout retard de livraison.`;
+    }
+
     return sendWhatsAppMessage(supplierPhone, message);
 };
 

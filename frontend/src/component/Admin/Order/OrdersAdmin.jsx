@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
@@ -90,6 +90,24 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
               </button>
             )}
           </div>
+
+          <button 
+            onClick={async () => {
+              try {
+                const token = await getToken();
+                // This would need a backend route
+                await api.post('/orders/check-reminders', {}, { headers: { Authorization: `Bearer ${token}` } });
+                toast.success("Rappels envoyés aux boutiques !");
+                fetchOrders();
+              } catch (e) {
+                toast.error("Erreur lors de l'envoi des rappels");
+              }
+            }} 
+            className="flex items-center gap-2 px-6 py-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 hover:bg-indigo-100 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+          >
+            <RefreshCcw size={16} />
+            Relancer les bloqués
+          </button>
 
           <button onClick={fetchOrders} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
             <RefreshCcw size={18} />

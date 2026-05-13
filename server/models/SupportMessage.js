@@ -30,6 +30,14 @@ const SupportMessage = sequelize.define('SupportMessage', {
     attachment_url: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    order_id: {
+        type: DataTypes.CHAR(36),
+        allowNull: true
+    },
+    type: {
+        type: DataTypes.STRING(20),
+        defaultValue: 'message' // message, dispute, refund
     }
 }, {
     tableName: 'support_messages',

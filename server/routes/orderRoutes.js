@@ -11,9 +11,11 @@ router.get('/:id', requireAuth, orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
 router.post('/', requireAuth, orderController.createOrder);
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
+router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
 
 router.get('/:id/suggested-livreurs', requireAuth, requireAdmin, orderController.getSuggestedLivreurs);
 router.get('/:id/suggested-suppliers', requireAuth, requireAdmin, orderController.getSuggestedSuppliers);
 router.put('/:id/assign-supplier', requireAuth, requireAdmin, orderController.assignSupplier);
-
+router.post('/check-reminders', requireAuth, requireAdmin, orderController.triggerStuckOrdersCheck);
+ 
 export default router;

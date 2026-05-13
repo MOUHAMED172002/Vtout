@@ -61,15 +61,20 @@ export default function GuestOrderConfirmationPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 relative z-10">
-                    {/* Order ID Card */}
-                    <div className="bg-slate-900 text-white rounded-2xl p-6 space-y-2 text-left relative overflow-hidden group">
+                    {/* Order IDs List */}
+                    <div className="bg-slate-900 text-white rounded-2xl p-6 space-y-3 text-left relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                             <Package size={60} />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Référence Commande</p>
-                        <p className="font-black text-lg text-primary font-mono">#{orderId?.slice(0, 12).toUpperCase()}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Références Commandes</p>
+                        <div className="space-y-2">
+                            <p className="font-black text-lg text-primary font-mono">#{orderId?.slice(0, 12).toUpperCase()}</p>
+                            {order?.siblings?.map(sibling => (
+                                <p key={sibling.id} className="font-black text-lg text-slate-400 font-mono">#{sibling.id?.slice(0, 12).toUpperCase()}</p>
+                            ))}
+                        </div>
                     </div>
-
+ 
                     {/* Quick Stats Grid */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1 text-left">
@@ -84,8 +89,10 @@ export default function GuestOrderConfirmationPage() {
                             </div>
                         </div>
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1 text-left">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total</p>
-                            <p className="text-sm font-black text-slate-900">{Number(order?.total_amount).toLocaleString()} FCFA</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Panier</p>
+                            <p className="text-sm font-black text-slate-900">
+                                {(Number(order?.total_amount) + (order?.siblings?.reduce((acc, s) => acc + Number(s.total_amount), 0) || 0)).toLocaleString()} FCFA
+                            </p>
                         </div>
                     </div>
                 </div>

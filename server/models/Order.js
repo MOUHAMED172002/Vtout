@@ -140,6 +140,12 @@ const Order = sequelize.define('Order', {
     discount_amount: {
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0.00
+    },
+    dispute_status: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        defaultValue: null
+        // 'ouvert', 'en_cours', 'resolu', 'rembourse'
     }
 }, {
     tableName: 'orders',

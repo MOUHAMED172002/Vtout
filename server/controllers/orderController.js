@@ -99,30 +99,55 @@ export const getOrderById = async (req, res) => {
         });
 
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+ 
+        // If it's part of a split order, fetch siblings
+        let siblings = [];
+        if (order.parent_id) {
+            siblings = await Order.findAll({
+                where: { 
+                    parent_id: order.parent_id,
+                    id: { [Op.ne]: order.id }
+                },
+                include: [
+                    {
+                        model: OrderItem,
+                        as: 'items',
+                        include: [
+                            { model: Product, as: 'product', include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }] },
+                            { model: ProductVariant, as: 'variant' }
+                        ]
+                    },
+                    { model: Boutique, as: 'boutique' }
+                ]
+            });
+        }
 
         // Security check: Only owner, assigned supplier/rider, or admin can see the order
         const userId = req.auth?.userId;
         const role = req.auth?.role;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const isAdmin = role === 'admin' || adminEmails.includes(req.auth?.email?.toLowerCase());
-
-        if (isAdmin) return res.json(order.toJSON());
-
+ 
+        if (isAdmin) return res.json({ ...order.toJSON(), siblings });
+ 
         // 1. Check if user is the owner
-        if (order.user_id && order.user_id === userId) return res.json(order.toJSON());
+        if (order.user_id && order.user_id === userId) return res.json({ ...order.toJSON(), siblings });
 
-        // 2. Check if user is the assigned supplier
+        // 2. Guest Order access (if it's a guest order and they have the ID)
+        if (!order.user_id) return res.json({ ...order.toJSON(), siblings });
+ 
+        // 3. Check if user is the assigned supplier
         if (userId) {
             const supplier = await Supplier.findOne({ where: { user_id: userId } });
             if (supplier && order.supplier_id === supplier.id) return res.json(order.toJSON());
         }
-
-        // 3. Check if user is the assigned rider
+ 
+        // 4. Check if user is the assigned rider
         if (userId) {
             const rider = await DeliveryPerson.findOne({ where: { user_id: userId } });
             if (rider && order.delivery_person_id === rider.id) return res.json(order.toJSON());
         }
-
+ 
         return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
 
 
@@ -454,21 +479,34 @@ export const createOrder = async (req, res) => {
             }
         }
 
+        const mainParentId = createdOrders[0].id;
+        for (let i = 0; i < createdOrders.length; i++) {
+            await createdOrders[i].update({ 
+                parent_id: mainParentId,
+                is_parent: i === 0 
+            }, { transaction });
+        }
+
         await transaction.commit();
 
-
+        const allOrderIds = createdOrders.map(o => o.id);
         const mainOrder = createdOrders[0];
         let totalCartAmount = createdOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
 
-        sendOrderNotificationToAdmin(mainOrder, enrichedItems.map(e => e.product)).catch(() => {});
-        sendInvoiceEmail(mainOrder, enrichedItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+        // Group notification for Admin
+        const orderListStr = allOrderIds.map(id => `#${id.slice(0, 8)}`).join(', ');
+        notifyAdmin(`🛍️ Nouvelle commande Multi-Boutiques (${createdOrders.length}) !\nIDs: ${orderListStr}\nClient: ${guest_name || 'Inconnu'}\nTotal: ${totalCartAmount} F`).catch(() => {});
+
+        // Send individual notifications for each split
+        for (const order of createdOrders) {
+            const orderItems = enrichedItems.filter(ei => (ei.product.boutique_id || 'no_boutique') === (order.boutique_id || 'no_boutique'));
+            sendOrderNotificationToAdmin(order, orderItems.map(e => e.product)).catch(() => {});
+            sendInvoiceEmail(order, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+        }
         
         // WhatsApp Notif to Customer
         const customerPhone = guest_phone || (userId ? (await Profile.findByPk(userId))?.phone : null);
         if (customerPhone) sendNewOrderWhatsApp(customerPhone, mainOrder.id, totalCartAmount).catch(() => {});
-        
-        // WhatsApp Notif to Admin
-        notifyAdmin(`Nouvelle commande reçue ! ID: #${mainOrder.id.slice(0, 8)} - Client: ${guest_name || 'Inconnu'} - Total: ${totalCartAmount} F`).catch(() => {});
 
         if (['fedapay', 'mobile_money', 'card'].includes(payment_method)) {
             try {
@@ -791,6 +829,50 @@ export const getSuggestedLivreurs = async (req, res) => {
         res.json(results);
     } catch (error) {
         console.error("GET SUGGESTED LIVREURS ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const triggerStuckOrdersCheck = async (req, res) => {
+    try {
+        const { checkAndRemindStuckOrders } = await import('../services/notificationService.js');
+        const count = await checkAndRemindStuckOrders(2); // 2 hours
+        res.json({ message: 'Vérification terminée', notified_count: count });
+    } catch (error) {
+        console.error("TRIGGER STUCK CHECK ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const reportOrderDispute = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason, description } = req.body;
+        const userId = req.auth?.userId;
+
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+
+        if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const dispute = await Dispute.create({
+            id: crypto.randomUUID(),
+            order_id: id,
+            user_id: userId,
+            supplier_id: order.supplier_id,
+            reason: reason || 'Problème signalé par le client',
+            description: description || 'Le client a signalé un problème via le bouton support.',
+            status: 'open'
+        });
+
+        await order.update({ dispute_status: 'ouvert' });
+
+        // Notifier l'admin
+        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} - Raison: ${reason}`).catch(() => {});
+
+        res.status(201).json({ message: 'Litige enregistré avec succès', dispute });
+    } catch (error) {
+        console.error("REPORT DISPUTE ERROR:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };

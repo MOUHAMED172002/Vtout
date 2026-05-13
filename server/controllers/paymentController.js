@@ -15,23 +15,32 @@ export const fedapayCallback = async (req, res) => {
         // On vérifie le statut réel via l'API FedaPay (sécurité)
         const fedaTx = await verifyFedapayTransaction(id);
         
-        const order = await Order.findByPk(order_id);
-        if (!order) {
+        // order_id can contain multiple IDs separated by commas
+        const orderIds = order_id.split(',');
+        const firstOrderId = orderIds[0].trim();
+        
+        const firstOrder = await Order.findByPk(firstOrderId);
+        if (!firstOrder) {
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=OrderNotFound`);
         }
-
-        // Sécurité supplémentaire: vérifier que l'ID de commande correspond bien à la transaction FedaPay
+ 
+        // Security check
         const txOrderId = fedaTx.custom_metadata?.order_id || fedaTx.metadata?.order_id;
-        if (txOrderId && !txOrderId.includes(order.id.toString())) {
-            console.error('[Payment Callback] FedaPay Transaction does not match this Order ID. Fraud attempt detected.');
+        if (txOrderId && !txOrderId.includes(firstOrderId)) {
+            console.error('[Payment Callback] FedaPay Transaction does not match. Fraud attempt?');
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=SecurityError`);
         }
-
+ 
         if (fedaTx.status === 'approved') {
-            await order.update({ payment_status: 'payé' });
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${order.id}`);
+            // Update all linked orders
+            for (const oId of orderIds) {
+                await Order.update({ payment_status: 'payé' }, { where: { id: oId.trim() } });
+            }
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${firstOrderId}`);
         } else {
-            await order.update({ payment_status: 'echec' });
+            for (const oId of orderIds) {
+                await Order.update({ payment_status: 'echec' }, { where: { id: oId.trim() } });
+            }
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=PaymentFailed`);
         }
     } catch (error) {
