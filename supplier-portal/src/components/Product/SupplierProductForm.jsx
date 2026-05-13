@@ -585,20 +585,20 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     <div className="space-y-2 px-4">
                                         <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
                                             <span>Frais de livraison (Marketing) :</span>
-                                            <span className="text-indigo-500">+ {computeDeliveryFee(globalSupplierPrice / (1 - commissionRate / 100), deliveryTiers).toLocaleString()} F</span>
+                                            <span className="text-indigo-500">+ {computeDeliveryFee(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
                                         <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
                                             <span>Commission Vtout ({commissionRate}%) :</span>
-                                            <span className="text-orange-500">+ {Math.round((globalSupplierPrice / (1 - commissionRate / 100)) * (commissionRate / 100)).toLocaleString()} F</span>
+                                            <span className="text-orange-500">- {Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</span>
                                         </div>
                                         <div className="flex justify-between items-center text-xs font-black text-slate-900 pt-2 border-t border-indigo-100">
                                             <span>Prix affiché aux clients :</span>
-                                            <span className="text-lg text-primary">{computePublicPrice(globalSupplierPrice, deliveryTiers, commissionRate).toLocaleString()} F</span>
+                                            <span className="text-lg text-primary">{computePublicPrice(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
                                         {globalSupplierPrice && (
                                             <div className="mt-4 p-3 bg-emerald-50 rounded-2xl flex justify-between items-center border border-emerald-100">
                                                 <span className="text-[9px] font-black uppercase text-emerald-600">Votre gain net ({Math.round(100 - commissionRate)}%) :</span>
-                                                <span className="text-sm font-black text-emerald-600">{Number(globalSupplierPrice).toLocaleString()} F</span>
+                                                <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
                                             </div>
                                         )}
                                     </div>

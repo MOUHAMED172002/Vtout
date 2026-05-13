@@ -191,11 +191,9 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (watchPrice) {
-        const rate = commissionRate ?? 10;
-        const publicPrice = parseFloat(watchPrice);
-        
+        const publicPrice = parseFloat(watchPrice) || 0;
         const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-        const calculated = Math.round((publicPrice - fee) * (1 - rate / 100));
+        const calculated = Math.round(publicPrice - fee);
         
         if (calculated !== parseFloat(globalSupplierPrice)) {
             setIsInternalPriceChange(true);
@@ -203,7 +201,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             setCurrentDeliveryFee(fee);
         }
     }
-  }, [watchPrice, commissionRate]);
+  }, [watchPrice]);
 
   // Sync: globalSupplierPrice change -> update price (Reverse calculation)
   useEffect(() => {
@@ -212,9 +210,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (globalSupplierPrice) {
-        const rate = commissionRate ?? 10;
-        const netGain = parseFloat(globalSupplierPrice);
-        const supplierPrice = netGain / (1 - rate / 100);
+        const supplierPrice = parseFloat(globalSupplierPrice) || 0;
         const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
         const calculated = Math.round(supplierPrice + fee);
         
@@ -224,7 +220,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             setCurrentDeliveryFee(fee);
         }
     }
-  }, [globalSupplierPrice, commissionRate, watchPrice, setValue]);
+  }, [globalSupplierPrice, watchPrice, setValue, deliveryTiers]);
 
   const checkExisting = async (name, cid) => {
     setCheckingExisting(true);
@@ -864,7 +860,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Votre gain net ({Math.round(100 - commissionRate)}%)</p>
-                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatPrice(globalSupplierPrice)} F</p>
+                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatPrice(Math.round((globalSupplierPrice || 0) * (1 - commissionRate / 100)))} F</p>
                           </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
@@ -874,12 +870,12 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                            <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) - currentDeliveryFee) * (commissionRate / 100)).toLocaleString()} F</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">- Com. ({commissionRate}%)</p>
+                            <p className="text-sm font-black text-orange-500">{Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
                         </div>
-                        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                            <p className="text-[9px] font-bold text-primary uppercase">Prix Client Final</p>
-                            <p className="text-base font-black text-primary">{Number(watchPrice).toLocaleString()} F</p>
+                        <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                            <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
+                            <p className="text-base font-black text-indigo-500">{Number(watchPrice).toLocaleString()} F</p>
                         </div>
                     </div>
                     <div className="pt-2 flex items-start gap-2">

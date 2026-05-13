@@ -287,10 +287,9 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchPrice) {
-      const rate = commissionRate ?? 10;
-      const publicPrice = parseFloat(watchPrice);
+      const publicPrice = parseFloat(watchPrice) || 0;
       const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-      const calculated = Math.round((publicPrice - fee) * (1 - rate / 100));
+      const calculated = Math.round(publicPrice - fee);
       
       if (calculated !== parseFloat(watchSupplierPrice)) {
         setIsInternalPriceChange(true);
@@ -298,7 +297,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
         setCurrentDeliveryFee(fee);
       }
     }
-  }, [watchPrice, commissionRate]);
+  }, [watchPrice]);
 
   // Logic: Reverse calculation if supplier price is explicitly touched
   useEffect(() => {
@@ -307,9 +306,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchSupplierPrice) {
-      const rate = commissionRate ?? 10;
-      const netGain = parseFloat(watchSupplierPrice);
-      const supplierPrice = netGain / (1 - rate / 100);
+      const supplierPrice = parseFloat(watchSupplierPrice) || 0;
       const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
       const calculated = Math.round(supplierPrice + fee);
       
@@ -319,7 +316,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
         setCurrentDeliveryFee(fee);
       }
     }
-  }, [watchSupplierPrice, commissionRate]);
+  }, [watchSupplierPrice, watchPrice, setValue, deliveryTiers]);
 
   // Initialisation du formulaire avec le produit existant
   useEffect(() => {
@@ -710,8 +707,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn.</p>
-                        <p className="text-sm font-black">{Number(watchSupplierPrice).toLocaleString()} F</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn. ({Math.round(100 - commissionRate)}%)</p>
+                        <p className="text-sm font-black">{Math.round((watchSupplierPrice || 0) * (1 - commissionRate / 100)).toLocaleString()} F</p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
@@ -721,8 +718,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                        <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) - currentDeliveryFee) * (commissionRate / 100)).toLocaleString()} F</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">- Com. ({commissionRate}%)</p>
+                        <p className="text-sm font-black text-orange-500">{Math.round((watchSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
                       </div>
                       <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
                         <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
