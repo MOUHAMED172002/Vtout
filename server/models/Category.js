@@ -21,7 +21,8 @@ const Category = sequelize.define('Category', {
     commission_rate: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: true,
-        defaultValue: null // If null, fallback to global config
+        defaultValue: null,
+        field: 'commission_rate' // Force mapping
     }
 }, {
     tableName: 'categories',
