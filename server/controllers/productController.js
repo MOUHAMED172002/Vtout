@@ -657,7 +657,6 @@ export const updateProduct = async (req, res) => {
 
         // Calcul dynamique des frais de livraison par tranche
         const tiers = await getDeliveryFeeTiers();
-        let finalPrice = price;
 
         if (isSupplier && !isAdmin) {
             if (finalPrice !== undefined && finalPrice > 0) {
