@@ -44,8 +44,9 @@ export default function ProductPages() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show sticky bar whenever the main actions are NOT visible
-        setShowSticky(!entry.isIntersecting);
+        // Show sticky bar ONLY if buttons are not visible AND are below the current scroll position
+        // (meaning the user hasn't reached them yet)
+        setShowSticky(!entry.isIntersecting && entry.boundingClientRect.top > 0);
       },
       { threshold: 0 }
     );
@@ -312,28 +313,36 @@ export default function ProductPages() {
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-[1400px] mx-auto pt-4 md:pt-8 pb-32 md:pb-16 px-4 md:px-8">
-        {/* Breadcrumbs — mobile friendly */}
+        {/* Breadcrumbs — dynamic & mobile friendly */}
         <nav aria-label="fil d'ariane" className="mb-4 md:mb-8">
           <ol className="flex items-center flex-wrap gap-x-1 gap-y-1 text-xs md:text-sm text-gray-400">
             <li>
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-primary active:text-primary font-medium transition-colors px-1 py-0.5 rounded"
+                className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-slate-50 rounded-lg border border-slate-100"
               >
                 Accueil
               </button>
             </li>
-            <li className="select-none text-gray-300">›</li>
-            <li>
-              <button
-                onClick={() => navigate("/products-liste")}
-                className="hover:text-primary active:text-primary font-medium transition-colors px-1 py-0.5 rounded"
-              >
-                Boutique
-              </button>
+            <li className="select-none text-slate-300">
+              <ChevronRight size={12} />
             </li>
-            <li className="select-none text-gray-300">›</li>
-            <li className="text-gray-800 font-bold max-w-[180px] md:max-w-none truncate px-1">
+            {product.category && (
+              <>
+                <li>
+                  <button
+                    onClick={() => navigate(`/products-liste?category=${product.category_id}`)}
+                    className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-slate-50 rounded-lg border border-slate-100"
+                  >
+                    {product.category.name}
+                  </button>
+                </li>
+                <li className="select-none text-slate-300">
+                  <ChevronRight size={12} />
+                </li>
+              </>
+            )}
+            <li className="text-slate-900 font-black uppercase tracking-widest text-[9px] md:text-[10px] max-w-[150px] md:max-w-none truncate px-1">
               {product.name}
             </li>
           </ol>
