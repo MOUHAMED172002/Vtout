@@ -445,6 +445,17 @@ sequelize.authenticate()
                 const qi = sequelize.getQueryInterface();
                 const { DataTypes } = await import('sequelize');
 
+                // ── FORCAGE SQL BRUT (Pour MySQL < 5.7 qui ne supporte pas JSON) ──
+                try {
+                    await sequelize.query("ALTER TABLE products ADD COLUMN secondary_boutique_ids TEXT NULL");
+                    console.log("  ✅ [MIGRATION] Added secondary_boutique_ids via Raw SQL");
+                } catch (e) {
+                    // Si l'erreur est 'Duplicate column name', on ignore, c'est que c'est déjà bon
+                    if (!e.message.includes("Duplicate column")) {
+                        console.warn("  ⚠️ [MIGRATION] Raw SQL Fallback failed:", e.message);
+                    }
+                }
+
                 const colMigrations = [
                     // profiles
                     { table: 'profiles',              col: 'last_abandoned_reminder_at', def: { type: DataTypes.DATE,           allowNull: true } },
