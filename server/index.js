@@ -217,6 +217,36 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10kb' }));
 
+// 🆘 ROUTE DE SECOURS - À UTILISER SI LES ERREURS 500 PERSISTENT
+app.get("/api/repair-db", async (req, res) => {
+    try {
+        const qi = sequelize.getQueryInterface();
+        const { DataTypes } = await import('sequelize');
+        const logs = [];
+
+        const columns = [
+            { table: 'categories', col: 'commission_rate', def: { type: DataTypes.DECIMAL(5, 2), allowNull: true } },
+            { table: 'orders', col: 'dispute_status', def: { type: DataTypes.STRING(30), allowNull: true } },
+            { table: 'orders', col: 'is_parent', def: { type: DataTypes.BOOLEAN, defaultValue: false } },
+            { table: 'orders', col: 'parent_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
+            { table: 'support_messages', col: 'order_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
+            { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } }
+        ];
+
+        for (const c of columns) {
+            try {
+                await qi.addColumn(c.table, c.col, c.def);
+                logs.push(`✅ Ajouté : ${c.table}.${c.col}`);
+            } catch (e) {
+                logs.push(`ℹ️ Ignoré (déjà présent ?) : ${c.table}.${c.col}`);
+            }
+        }
+        res.json({ message: "Migration de secours terminée", details: logs });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use("/api/auth/whatsapp", authWhatsAppRoutes);
 app.use("/api/auth", betterAuthMiddleware);
 
