@@ -44,9 +44,16 @@ export const computeDeliveryFee = (supplierPrice, tiers) => {
 };
 
 /**
- * Calculates the final public price (Supplier Price + Delivery Fee).
+ * Calculates the final public price (Supplier Price + Commission + Delivery Fee).
+ * We use the formula: Public = (Supplier / (1 - Rate/100)) + Fee
  */
-export const computePublicPrice = (supplierPrice, tiers) => {
-    const fee = computeDeliveryFee(supplierPrice, tiers);
-    return (parseFloat(supplierPrice) || 0) + fee;
+export const computePublicPrice = (supplierPrice, tiers, commissionRate = 0) => {
+    const netPrice = parseFloat(supplierPrice) || 0;
+    if (netPrice === 0) return 0;
+
+    const rate = parseFloat(commissionRate) || 0;
+    const priceWithCommission = netPrice / (1 - rate / 100);
+    const fee = computeDeliveryFee(priceWithCommission, tiers);
+    
+    return Math.round(priceWithCommission + fee);
 };
