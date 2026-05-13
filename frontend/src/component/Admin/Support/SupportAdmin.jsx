@@ -129,14 +129,25 @@ export default function SupportAdmin() {
                 {selectedConv ? (
                     <>
                         {/* Chat Header */}
-                        <div className="p-5 sm:p-8 border-b border-white bg-white/50 flex items-center gap-4">
-                            <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-base">
-                                {getRoleBadge(selectedConv.sender?.role)}
+                        <div className="p-5 sm:p-8 border-b border-white bg-white/50 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-base">
+                                    {getRoleBadge(selectedConv.sender?.role)}
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-slate-900">{selectedConv.sender?.fullname || "Utilisateur"}</h4>
+                                    <p className="text-[10px] font-bold text-slate-400 capitalize">{selectedConv.sender?.role || "Inconnu"}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 className="text-sm font-black text-slate-900">{selectedConv.sender?.fullname || "Utilisateur"}</h4>
-                                <p className="text-[10px] font-bold text-slate-400 capitalize">{selectedConv.sender?.role || "Inconnu"}</p>
-                            </div>
+                            {selectedConv.order_id && (
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Commande liée</span>
+                                    <div className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black border border-indigo-100 flex items-center gap-2">
+                                        <Package size={12} />
+                                        #{selectedConv.order_id.slice(0, 8)}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Messages */}

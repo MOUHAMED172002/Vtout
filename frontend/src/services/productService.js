@@ -77,6 +77,13 @@ export const deleteCategory = async (id, token) => {
     return data;
 };
 
+export const updateCategory = async (id, categoryData, token) => {
+    const { data } = await api.put(`/categories/${id}`, categoryData, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};
+
 export const getAttributes = async () => {
     const { data } = await api.get('/attributes');
     return data;

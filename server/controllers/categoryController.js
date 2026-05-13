@@ -18,11 +18,26 @@ export const getAllCategories = async (req, res) => {
 
 export const createCategory = async (req, res) => {
     try {
-        const { name, parent_id } = req.body;
-        const category = await Category.create({ name, parent_id });
+        const { name, parent_id, commission_rate } = req.body;
+        const category = await Category.create({ name, parent_id, commission_rate });
         res.status(201).json(category);
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la création' });
+    }
+};
+
+export const updateCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, parent_id, commission_rate, icon } = req.body;
+        
+        const category = await Category.findByPk(id);
+        if (!category) return res.status(404).json({ error: 'Catégorie non trouvée' });
+
+        await category.update({ name, parent_id, commission_rate, icon });
+        res.json(category);
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la mise à jour' });
     }
 };
 

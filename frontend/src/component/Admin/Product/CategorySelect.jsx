@@ -1,4 +1,4 @@
-import { getCategories, createCategory, deleteCategory } from "../../../services/productService";
+import { getCategories, createCategory, deleteCategory, updateCategory } from "../../../services/productService";
 import { useAuth } from "../../../lib/AuthHooks";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
@@ -10,7 +10,8 @@ import {
   Hash,
   Layers,
   X,
-  Plus
+  Plus,
+  Percent
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,6 +22,7 @@ export default function CategorySelect() {
   const [deletingId, setDeletingId] = useState(null);
   const [addingOpen, setAddingOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newCommission, setNewCommission] = useState(15);
   const [newParent, setNewParent] = useState(null);
   const [adding, setAdding] = useState(false);
 
@@ -31,7 +33,7 @@ export default function CategorySelect() {
       setCategories(cats || []);
     } catch (err) {
       console.error(err);
-      toast.error("Impossible de charger les catégories");
+      toast.error("Impossible de charger les catÃ©gories");
     } finally {
       setLoading(false);
     }
@@ -46,9 +48,9 @@ export default function CategorySelect() {
 
   const handleDelete = async (cat) => {
     const prodCount = (cat.products || []).length;
-    if (prodCount > 0) return toast.error("Catégorie utilisée par des produits");
+    if (prodCount > 0) return toast.error("CatÃ©gorie utilisÃ©e par des produits");
     const childrenCount = (cat.children || []).length;
-    if (childrenCount > 0) return toast.error("Cette catégorie a des sous-catégories");
+    if (childrenCount > 0) return toast.error("Cette catÃ©gorie a des sous-catÃ©gories");
 
     if (!window.confirm(`Supprimer "${cat.name}" ?`)) return;
 
@@ -56,12 +58,23 @@ export default function CategorySelect() {
       setDeletingId(cat.id);
       const token = await getToken();
       await deleteCategory(cat.id, token);
-      toast.success("Catégorie supprimée");
+      toast.success("CatÃ©gorie supprimÃ©e");
       fetchAll();
     } catch (err) {
       toast.error("Erreur suppression");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUpdateCommission = async (id, rate) => {
+    try {
+        const token = await getToken();
+        await updateCategory(id, { commission_rate: parseFloat(rate) }, token);
+        toast.success("Commission mise Ã  jour");
+        fetchAll();
+    } catch (error) {
+        toast.error("Erreur mise Ã  jour");
     }
   };
 
@@ -73,10 +86,12 @@ export default function CategorySelect() {
       const token = await getToken();
       await createCategory({
         name: newName.trim(),
+        commission_rate: parseFloat(newCommission),
         parent_id: newParent === "" ? null : newParent
       }, token);
-      toast.success("Catégorie ajoutée");
+      toast.success("CatÃ©gorie ajoutÃ©e");
       setNewName("");
+      setNewCommission(15);
       setNewParent(null);
       setAddingOpen(false);
       fetchAll();
@@ -95,8 +110,8 @@ export default function CategorySelect() {
           <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
             <Layers size={14} /> Structure
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Catégories</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Organisez votre catalogue avec une hiérarchie claire et intuitive.</p>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">CatÃ©gories</span></h1>
+          <p className="text-slate-500 font-bold max-w-lg">DÃ©finissez les commissions par dÃ©faut pour chaque type de produit.</p>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={fetchAll} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
@@ -107,7 +122,7 @@ export default function CategorySelect() {
             className={`btn h-14 rounded-2xl px-8 font-black gap-2 shadow-lg transition-all ${addingOpen ? 'btn-ghost bg-white border-slate-100 text-slate-400' : 'btn-primary shadow-primary/20'}`}
           >
             {addingOpen ? <X size={20} /> : <Plus size={20} />}
-            {addingOpen ? "Annuler" : "Nouvelle Catégorie"}
+            {addingOpen ? "Annuler" : "Nouvelle CatÃ©gorie"}
           </button>
         </div>
       </div>
@@ -120,16 +135,30 @@ export default function CategorySelect() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <form onSubmit={handleAddSubmit} className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <form onSubmit={handleAddSubmit} className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la catégorie</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la catÃ©gorie</label>
                 <div className="relative">
                   <Layers className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                   <input
                     className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Ex: Électronique, Vêtements..."
+                    placeholder="Ex: Ã‰lectronique, VÃªtements..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Commission (%)</label>
+                <div className="relative">
+                  <Percent className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <input
+                    type="number"
+                    className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
+                    value={newCommission}
+                    onChange={(e) => setNewCommission(e.target.value)}
+                    placeholder="15"
                     required
                   />
                 </div>
@@ -147,9 +176,9 @@ export default function CategorySelect() {
                   ))}
                 </select>
               </div>
-              <div className="md:col-span-3 flex justify-end">
+              <div className="md:col-span-4 flex justify-end">
                 <button className="btn btn-primary h-14 rounded-2xl px-12 font-black shadow-xl shadow-primary/20" type="submit" disabled={adding}>
-                  {adding ? "Création..." : "Confirmer la création"}
+                  {adding ? "CrÃ©ation..." : "Confirmer la crÃ©ation"}
                 </button>
               </div>
             </form>
@@ -159,7 +188,7 @@ export default function CategorySelect() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des catégories...</div>
+          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des catÃ©gories...</div>
         ) : categories.length > 0 ? (
           categories.map((c) => {
             const parent = c.parent_id ? categoryMap[c.parent_id] : null;
@@ -189,29 +218,33 @@ export default function CategorySelect() {
                     <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest">
                       <span>{parent.name}</span>
                       <ChevronRight size={10} />
-                      <span>Sous-catégorie</span>
+                      <span>Sous-catÃ©gorie</span>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-8 flex items-center justify-between border-t border-slate-50 pt-6">
-                  <div className="flex flex-col">
+                <div className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-50 pt-6">
+                  <button 
+                    onClick={() => {
+                        const rate = prompt("Nouvelle commission (%) pour " + c.name, c.commission_rate || 15);
+                        if(rate !== null) handleUpdateCommission(c.id, rate);
+                    }}
+                    className="flex flex-col items-start p-2 hover:bg-slate-50 rounded-xl transition-colors"
+                  >
+                    <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Commission</span>
+                    <span className="text-lg font-black text-primary">{c.commission_rate || 0}%</span>
+                  </button>
+                  <div className="flex flex-col text-right p-2">
                     <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Produits</span>
                     <span className="text-lg font-black text-slate-900">{prodCount}</span>
                   </div>
-                  {hasChildren && (
-                    <div className="flex flex-col text-right">
-                      <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Branches</span>
-                      <span className="text-lg font-black text-slate-900">{(c.children || []).length}</span>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             );
           })
         ) : (
           <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-slate-200 text-center">
-            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune catégorie définie</p>
+            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune catÃ©gorie dÃ©finie</p>
           </div>
         )}
       </div>

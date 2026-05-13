@@ -233,15 +233,25 @@ app.get("/api/repair-db", async (req, res) => {
             { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } }
         ];
 
+        // 1. Force creation of the Dispute table if missing
+        try {
+            const { Dispute } = await import('./models/index.js');
+            await Dispute.sync({ alter: true });
+            logs.push("✅ Table 'Disputes' synchronisée.");
+        } catch (e) {
+            logs.push("❌ Erreur synchro table Disputes : " + e.message);
+        }
+
+        // 2. Add missing columns
         for (const c of columns) {
             try {
                 await qi.addColumn(c.table, c.col, c.def);
                 logs.push(`✅ Ajouté : ${c.table}.${c.col}`);
             } catch (e) {
-                logs.push(`ℹ️ Ignoré (déjà présent ?) : ${c.table}.${c.col}`);
+                logs.push(`ℹ️ Ignoré/Existe déjà : ${c.table}.${c.col}`);
             }
         }
-        res.json({ message: "Migration de secours terminée", details: logs });
+        res.json({ message: "Réparation approfondie terminée", details: logs });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

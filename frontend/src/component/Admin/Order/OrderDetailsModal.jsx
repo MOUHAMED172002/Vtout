@@ -217,6 +217,37 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                   </div>
 
                   <div className="mt-10 pt-8 border-t border-dashed border-slate-100 flex items-center justify-between gap-8 flex-wrap">
+                    {/* Financial Breakdown (Marketplace Engine) */}
+                    <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                       <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Gain Fournisseur</p>
+                          <p className="text-xl font-black text-slate-900">{(order.items || []).reduce((acc, it) => acc + (it.supplier_price * it.quantity), 0).toLocaleString()} F</p>
+                       </div>
+                       <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Part Plateforme (Vtout)</p>
+                          <p className="text-xl font-black text-indigo-600">
+                            {(order.total_amount - order.delivery_fee - (order.items || []).reduce((acc, it) => acc + (it.supplier_price * it.quantity), 0)).toLocaleString()} F
+                          </p>
+                       </div>
+                       <div className="p-5 bg-amber-50 rounded-3xl border border-amber-100">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Frais Livraison (Livreur)</p>
+                          <p className="text-xl font-black text-amber-600">{(order.delivery_fee || 1000).toLocaleString()} F</p>
+                       </div>
+                    </div>
+
+                    {/* Split Order Info */}
+                    {order.is_parent && (
+                        <div className="w-full mb-6 p-4 bg-violet-50 rounded-2xl border border-violet-100 flex items-center gap-4">
+                            <div className="w-10 h-10 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center font-black">Split</div>
+                            <p className="text-xs font-bold text-violet-700">Cette commande a été divisée en plusieurs sous-commandes (Multi-Boutique).</p>
+                        </div>
+                    )}
+                    {order.parent_id && (
+                        <div className="w-full mb-6 p-4 bg-slate-100 rounded-2xl border border-slate-200 flex items-center gap-4">
+                            <p className="text-xs font-bold text-slate-500 italic">Sous-commande liée à #{order.parent_id.slice(0,8)}</p>
+                        </div>
+                    )}
+
                     <div className="flex-1 min-w-[200px]">
                       <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Nombre de colis à récupérer</span>
                       <div className="flex items-center gap-4">
