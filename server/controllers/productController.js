@@ -113,12 +113,12 @@ export const getAllProducts = async (req, res) => {
                 { model: Category, as: 'category' },
                 { model: ProductImage, as: 'images' },
                 { model: SupplierProduct, as: 'supplierLink' },
-                { 
-                    model: ProductVariant, 
+                { model: ProductVariant, 
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
             ]
         };
 
@@ -126,7 +126,29 @@ export const getAllProducts = async (req, res) => {
 
         const products = await Product.findAll(findOptions);
 
-        res.json(products);
+        // Map secondary boutiques communes
+        const processedProducts = await Promise.all(products.map(async (p) => {
+            const product = p.toJSON();
+            product.free_delivery_communes = [];
+            if (product.boutique?.commune_label) {
+                product.free_delivery_communes.push(product.boutique.commune_label);
+            }
+            
+            if (product.secondary_boutique_ids && Array.isArray(product.secondary_boutique_ids) && product.secondary_boutique_ids.length > 0) {
+                const secBoutiques = await Boutique.findAll({
+                    where: { id: product.secondary_boutique_ids },
+                    attributes: ['commune_label']
+                });
+                secBoutiques.forEach(b => {
+                    if (b.commune_label && !product.free_delivery_communes.includes(b.commune_label)) {
+                        product.free_delivery_communes.push(b.commune_label);
+                    }
+                });
+            }
+            return product;
+        }));
+
+        res.json(processedProducts);
     } catch (error) {
         console.error("GET_PRODUCTS ERROR:", error);
         res.status(500).json({ error: 'Erreur lors de la récupération des produits', details: error.message });
@@ -176,13 +198,32 @@ export const getProductById = async (req, res) => {
                     model: Supplier, 
                     as: 'supplier', 
                     attributes: ['id', 'name', 'commune_label'] 
-                }
+                },
+                { model: Boutique, as: 'boutique' }
             ]
         });
 
         if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
 
-        res.json(product);
+        const productJson = product.toJSON();
+        productJson.free_delivery_communes = [];
+        if (productJson.boutique?.commune_label) {
+            productJson.free_delivery_communes.push(productJson.boutique.commune_label);
+        }
+
+        if (productJson.secondary_boutique_ids && Array.isArray(productJson.secondary_boutique_ids) && productJson.secondary_boutique_ids.length > 0) {
+            const secBoutiques = await Boutique.findAll({
+                where: { id: productJson.secondary_boutique_ids },
+                attributes: ['commune_label']
+            });
+            secBoutiques.forEach(b => {
+                if (b.commune_label && !productJson.free_delivery_communes.includes(b.commune_label)) {
+                    productJson.free_delivery_communes.push(b.commune_label);
+                }
+            });
+        }
+
+        res.json(productJson);
     } catch (error) {
         console.error('GetProductById Error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération du produit' });

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Eye, Star, Zap, Truck } from "lucide-react";
+import { ShoppingCart, Eye, Star, Zap, Truck, MapPin } from "lucide-react";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
@@ -247,6 +247,14 @@ export default function ProductCard({ product, onFavoriteChange }) {
         )}
 
         <Link to={`/products/${product.id}`} state={navState} className="block">
+          {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-1">
+              <span className="text-[9px] font-black uppercase tracking-tighter text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                <MapPin size={8} strokeWidth={3} />
+                Livraison gratuite : {product.free_delivery_communes.join(', ')}
+              </span>
+            </div>
+          )}
           <h3 className="font-black text-base-content text-sm md:text-base line-clamp-1 hover:text-primary transition-colors tracking-tight">
             {product.name}
           </h3>

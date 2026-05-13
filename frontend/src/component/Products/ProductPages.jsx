@@ -415,7 +415,9 @@ export default function ProductPages() {
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
                   <p className="text-sm font-black text-slate-900">
-                    Livraison gratuite dans {product?.supplier?.commune_label || "votre commune"}
+                    Livraison gratuite dans : {product.free_delivery_communes && product.free_delivery_communes.length > 0 
+                      ? product.free_delivery_communes.join(', ') 
+                      : (product?.supplier?.commune_label || "votre commune")}
                   </p>
                 </div>
               </div>
