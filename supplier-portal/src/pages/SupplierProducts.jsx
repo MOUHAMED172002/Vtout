@@ -8,12 +8,15 @@ import { Package, Search as SearchIcon, Filter, MoreVertical, Edit, Trash2, Chec
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
-const SupplierProducts = () => {
+const SupplierProducts = ({ globalSearchQuery }) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const { getToken } = useAuth();
+
+  // Use global search if provided, otherwise fallback to local search
+  const searchQuery = globalSearchQuery !== undefined ? globalSearchQuery : localSearch;
 
   const fetchProducts = async () => {
     try {
@@ -59,7 +62,7 @@ const SupplierProducts = () => {
 
 
   const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleShare = (productId) => {
@@ -105,8 +108,8 @@ const SupplierProducts = () => {
             <input
               type="text"
               placeholder="Rechercher..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => globalSearchQuery !== undefined ? null : setLocalSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"
             />
           </div>

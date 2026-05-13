@@ -8,7 +8,7 @@ import { getMySupplierOrders } from '../services/orderService';
 import SupplierWelcome from '../components/SupplierWelcome';
 import BoutiqueModal from '../components/BoutiqueModal';
 
-const SupplierDashboard = () => {
+const SupplierDashboard = ({ globalSearchQuery }) => {
     const { user } = useUser();
     const { getToken } = useAuth();
     const navigate = useNavigate();
@@ -21,6 +21,8 @@ const SupplierDashboard = () => {
     const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('all');
     const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
     const [balance, setBalance] = useState(0);
+
+    const searchQuery = globalSearchQuery || "";
 
     const fetchSupplierProducts = async () => {
         try {
@@ -59,13 +61,18 @@ const SupplierDashboard = () => {
         fetchSupplierProducts();
     }, [getToken]);
 
-    const filteredProducts = selectedBoutiqueId === 'all' 
-        ? products 
-        : products.filter(p => p.boutique_id === selectedBoutiqueId);
+    const filteredProducts = products.filter(p => {
+        const matchBoutique = selectedBoutiqueId === 'all' || p.boutique_id === selectedBoutiqueId;
+        const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchBoutique && matchSearch;
+    });
 
-    const filteredOrders = selectedBoutiqueId === 'all'
-        ? orders
-        : orders.filter(o => o.boutique_id === selectedBoutiqueId);
+    const filteredOrders = orders.filter(o => {
+        const matchBoutique = selectedBoutiqueId === 'all' || o.boutique_id === selectedBoutiqueId;
+        const matchSearch = o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           (o.guest_name || '').toLowerCase().includes(searchQuery.toLowerCase());
+        return matchBoutique && matchSearch;
+    });
 
     const stats = [
         { label: 'Solde Portefeuille', value: `${balance.toLocaleString()} F`, icon: <Banknote className="text-primary" />, color: 'bg-indigo-50' },

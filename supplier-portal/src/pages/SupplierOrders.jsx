@@ -37,7 +37,7 @@ const getEstimatedGain = (order) => {
     return total;
 };
 
-const SupplierOrders = () => {
+const SupplierOrders = ({ globalSearchQuery }) => {
     const { getToken } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -45,6 +45,8 @@ const SupplierOrders = () => {
     const [filterStatus, setFilterStatus] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const searchQuery = globalSearchQuery !== undefined ? globalSearchQuery : searchTerm;
 
     const fetchOrders = async () => {
         try {
@@ -103,8 +105,8 @@ const SupplierOrders = () => {
     };
 
     const filteredOrders = orders.filter(order => {
-        const matchSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (order.guest_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (order.guest_name || '').toLowerCase().includes(searchQuery.toLowerCase());
         const matchStatus = filterStatus === 'all' || normalizeStatus(order.status) === normalizeStatus(filterStatus);
         return matchSearch && matchStatus;
     });
@@ -128,8 +130,8 @@ const SupplierOrders = () => {
                     <input
                         type="text"
                         placeholder="Rechercher par n° de commande ou client..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchQuery}
+                        onChange={(e) => globalSearchQuery !== undefined ? null : setSearchTerm(e.target.value)}
                         className="w-full pl-12 pr-4 py-4 rounded-3xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 bg-white transition-shadow text-sm font-bold text-slate-700 placeholder:font-medium"
                     />
                 </div>

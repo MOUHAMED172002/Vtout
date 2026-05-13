@@ -9,12 +9,18 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-const SupplierBoutiques = () => {
+const SupplierBoutiques = ({ globalSearchQuery }) => {
     const [boutiques, setBoutiques] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBoutique, setSelectedBoutique] = useState(null);
     const { getToken } = useAuth();
+
+    const searchQuery = globalSearchQuery || "";
+
+    const filteredBoutiques = boutiques.filter(b => 
+        b.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const fetchBoutiques = async () => {
         try {
@@ -76,8 +82,8 @@ const SupplierBoutiques = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {boutiques.length > 0 ? (
-                    boutiques.map((boutique) => (
+                {filteredBoutiques.length > 0 ? (
+                    filteredBoutiques.map((boutique) => (
                         <motion.div 
                             key={boutique.id}
                             initial={{ opacity: 0, y: 20 }}

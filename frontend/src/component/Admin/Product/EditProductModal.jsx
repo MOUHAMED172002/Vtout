@@ -24,7 +24,21 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 import { uploadSingleImage } from '../../../services/uploadService';
 import CategorySearchModal from '../../Shared/CategorySearchModal';
 
-const DELIVERY_FEE = 1000;
+const DEFAULT_DELIVERY_TIERS = [
+  { min: 0, max: 500, fee: 300 },
+  { min: 500, max: 2000, fee: 500 },
+  { min: 2000, max: 5000, fee: 700 },
+  { min: 5000, max: 15000, fee: 1000 },
+  { min: 15000, max: Infinity, fee: 1500 },
+];
+
+const computeDeliveryFee = (supplierPrice, tiers = DEFAULT_DELIVERY_TIERS) => {
+  const price = Number(supplierPrice) || 0;
+  for (const tier of tiers) {
+    if (price >= tier.min && price < tier.max) return tier.fee;
+  }
+  return tiers[tiers.length - 1]?.fee ?? 1000;
+};
 
 // ─── Étapes ───────────────────────────────────────────────────────────────────
 const steps = [
@@ -176,6 +190,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
   const [imageFiles, setImageFiles] = useState([]);
+  const [deliveryTiers, setDeliveryTiers] = useState(DEFAULT_DELIVERY_TIERS);
+  const [currentDeliveryFee, setCurrentDeliveryFee] = useState(1000);
 
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
@@ -218,8 +234,31 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     getAttributesByCategory(selectedCategoryId).then(d => setAvailableAttributes(d || [])).catch(console.error);
   }, [selectedCategoryId]);
 
+  // Fetch Delivery Configs
+  useEffect(() => {
+    axios.get(`${API_URL}/configs/public`)
+      .then(res => {
+        const configMap = (res.data || []).reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
+        if (configMap.delivery_fee_tiers) {
+          try {
+            const parsed = JSON.parse(configMap.delivery_fee_tiers);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              parsed[parsed.length - 1].max = Infinity;
+              setDeliveryTiers(parsed);
+            }
+          } catch (e) { console.error("Parse tiers error", e); }
+        }
+      })
+      .catch(err => console.error("Fetch tiers error", err));
+  }, []);
+
   const watchPrice = watch('price');
   const watchSupplierPrice = watch('supplier_price');
+
+  useEffect(() => {
+    const fee = computeDeliveryFee(watchSupplierPrice, deliveryTiers);
+    setCurrentDeliveryFee(fee);
+  }, [watchSupplierPrice, deliveryTiers]);
 
   // Logic: When selling price changes, calculate what supplier gets
   useEffect(() => {
@@ -228,11 +267,15 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchPrice && commissionRate) {
-      // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
-      const calculated = Math.round((parseFloat(watchPrice) * (1 - commissionRate / 100)) - DELIVERY_FEE);
+      // Formule: NetGain = (PublicPrice - Fee) * (1 - CommissionRate/100)
+      const publicPrice = parseFloat(watchPrice);
+      const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
+      const calculated = Math.round((publicPrice - fee) * (1 - commissionRate / 100));
+      
       if (calculated !== parseFloat(watchSupplierPrice)) {
         setIsInternalPriceChange(true);
         setValue('supplier_price', calculated);
+        setCurrentDeliveryFee(fee);
       }
     }
   }, [watchPrice, commissionRate]);
@@ -244,11 +287,16 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       return;
     }
     if (watchSupplierPrice && commissionRate) {
-      // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
-      const calculated = Math.round((parseFloat(watchSupplierPrice) + DELIVERY_FEE) / (1 - commissionRate / 100));
+      // Formule: PublicPrice = (NetGain / (1 - CommissionRate/100)) + Fee
+      const netGain = parseFloat(watchSupplierPrice);
+      const supplierPrice = netGain / (1 - commissionRate / 100);
+      const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
+      const calculated = Math.round(supplierPrice + fee);
+      
       if (calculated !== parseFloat(watchPrice)) {
         setIsInternalPriceChange(true);
         setValue('price', calculated);
+        setCurrentDeliveryFee(fee);
       }
     }
   }, [watchSupplierPrice, commissionRate]);
@@ -648,13 +696,13 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       <div className="space-y-1">
                         <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                          <p className="text-sm font-black text-emerald-600">{currentDeliveryFee.toLocaleString()} F</p>
                           <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
                         </div>
                       </div>
                       <div className="space-y-1">
                         <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                        <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
+                        <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) - currentDeliveryFee) * (commissionRate / 100)).toLocaleString()} F</p>
                       </div>
                       <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
                         <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
@@ -664,7 +712,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     <div className="pt-2 flex items-start gap-2">
                       <Info size={12} className="text-indigo-500 mt-0.5 shrink-0" />
                       <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
-                        Les <span className="text-emerald-600">1 000 F de livraison</span> sont inclus pour permettre d'afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span> sur le site, boostant l'attractivité de votre produit.
+                        Les <span className="text-emerald-600">{currentDeliveryFee.toLocaleString()} F de livraison</span> sont automatiquement calculés selon la grille admin et inclus pour afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span>, boostant l'attractivité du produit sans impacter le gain net.
                       </p>
                     </div>
                   </div>

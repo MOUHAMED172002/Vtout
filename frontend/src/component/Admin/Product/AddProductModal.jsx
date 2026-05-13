@@ -24,7 +24,21 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 import CategorySearchModal from '../../Shared/CategorySearchModal';
 
-const DELIVERY_FEE = 1000;
+const DEFAULT_DELIVERY_TIERS = [
+  { min: 0, max: 500, fee: 300 },
+  { min: 500, max: 2000, fee: 500 },
+  { min: 2000, max: 5000, fee: 700 },
+  { min: 5000, max: 15000, fee: 1000 },
+  { min: 15000, max: Infinity, fee: 1500 },
+];
+
+const computeDeliveryFee = (supplierPrice, tiers = DEFAULT_DELIVERY_TIERS) => {
+  const price = Number(supplierPrice) || 0;
+  for (const tier of tiers) {
+    if (price >= tier.min && price < tier.max) return tier.fee;
+  }
+  return tiers[tiers.length - 1]?.fee ?? 1000;
+};
 
 const baseSteps = [
   { id: 'info', title: 'Informations', icon: Info },
@@ -89,7 +103,31 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const [attrSearchQuery, setAttrSearchQuery] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [existingProduct, setExistingProduct] = useState(null);
-  const [checkingExisting, setCheckingExisting] = useState(false);
+  const [deliveryTiers, setDeliveryTiers] = useState(DEFAULT_DELIVERY_TIERS);
+  const [currentDeliveryFee, setCurrentDeliveryFee] = useState(1000);
+
+  // Fetch Delivery Configs
+  useEffect(() => {
+    axios.get(`${API_URL}/configs/public`)
+      .then(res => {
+        const configMap = (res.data || []).reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
+        if (configMap.delivery_fee_tiers) {
+          try {
+            const parsed = JSON.parse(configMap.delivery_fee_tiers);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              parsed[parsed.length - 1].max = Infinity;
+              setDeliveryTiers(parsed);
+            }
+          } catch (e) { console.error("Parse tiers error", e); }
+        }
+      })
+      .catch(err => console.error("Fetch tiers error", err));
+  }, []);
+
+  useEffect(() => {
+    const fee = computeDeliveryFee(globalSupplierPrice, deliveryTiers);
+    setCurrentDeliveryFee(fee);
+  }, [globalSupplierPrice, deliveryTiers]);
 
   // Suppliers States
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
@@ -151,13 +189,18 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (watchPrice && commissionRate) {
-        // Formule: SupplierPrice = (PublicPrice * (1 - CommissionRate/100)) - DELIVERY_FEE
+        // Formule: NetGain = (PublicPrice - Fee) * (1 - CommissionRate/100)
         const publicPrice = parseFloat(watchPrice);
-        const calculated = Math.round((publicPrice * (1 - commissionRate / 100)) - DELIVERY_FEE);
+        
+        // On doit trouver le Fee correspondant au SupplierPrice probable
+        // SupplierPrice = PublicPrice - Fee
+        const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
+        const calculated = Math.round((publicPrice - fee) * (1 - commissionRate / 100));
         
         if (calculated !== parseFloat(globalSupplierPrice)) {
             setIsInternalPriceChange(true);
             setGlobalSupplierPrice(calculated.toString());
+            setCurrentDeliveryFee(fee);
         }
     }
   }, [watchPrice, commissionRate]);
@@ -169,13 +212,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       return;
     }
     if (globalSupplierPrice && commissionRate) {
-        // Formule: PublicPrice = (SupplierPrice + DELIVERY_FEE) / (1 - CommissionRate/100)
-        const supplierPrice = parseFloat(globalSupplierPrice);
-        const calculated = Math.round((supplierPrice + DELIVERY_FEE) / (1 - commissionRate / 100));
+        // Formule: PublicPrice = (NetGain / (1 - CommissionRate/100)) + Fee
+        const netGain = parseFloat(globalSupplierPrice);
+        const supplierPrice = netGain / (1 - commissionRate / 100);
+        const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
+        const calculated = Math.round(supplierPrice + fee);
         
         if (calculated !== parseFloat(watchPrice)) {
             setIsInternalPriceChange(true);
             setValue('price', calculated);
+            setCurrentDeliveryFee(fee);
         }
     }
   }, [globalSupplierPrice, commissionRate, watchPrice, setValue]);
@@ -797,13 +843,13 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
                             <div className="flex items-center gap-1.5">
-                                <p className="text-sm font-black text-emerald-600">{DELIVERY_FEE.toLocaleString()} F</p>
+                                <p className="text-sm font-black text-emerald-600">{currentDeliveryFee.toLocaleString()} F</p>
                                 <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
                             </div>
                         </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Com. ({commissionRate}%)</p>
-                            <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) * commissionRate / 100)).toLocaleString()} F</p>
+                            <p className="text-sm font-black text-orange-500">{Math.round((parseFloat(watchPrice) - currentDeliveryFee) * (commissionRate / 100)).toLocaleString()} F</p>
                         </div>
                         <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
                             <p className="text-[9px] font-bold text-primary uppercase">Prix Client Final</p>
@@ -813,7 +859,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     <div className="pt-2 flex items-start gap-2">
                         <Info size={12} className="text-primary mt-0.5 shrink-0" />
                         <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
-                            Les <span className="text-emerald-600">1 000 F de livraison</span> sont ajoutés pour permettre d'afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span> sur votre produit, ce qui booste vos ventes. Votre gain net reste inchangé.
+                            Les <span className="text-emerald-600">{currentDeliveryFee.toLocaleString()} F de livraison</span> sont automatiquement calculés selon la grille admin et inclus pour afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span>, boostant vos ventes sans impacter votre gain net.
                         </p>
                     </div>
                   </div>

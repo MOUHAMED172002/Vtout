@@ -307,20 +307,29 @@ export const createOrder = async (req, res) => {
             let sSubtotal = supplierItems.reduce((sum, si) => sum + (si.unitPrice * si.item.quantity), 0);
             
             // Calcul dynamique des frais de livraison
-            let supplement = INTER_DEPT_FEE; // default max
-            const firstProduct = supplierItems[0].product;
-            const mainBoutique = firstProduct.boutique;
-
+            let supplement = INTER_DEPT_FEE; 
+            
+            let candidateBoutiqueIds = new Set();
+            supplierItems.forEach(si => {
+                if (si.product.boutique_id) candidateBoutiqueIds.add(si.product.boutique_id);
+                if (si.product.secondary_boutique_ids) {
+                    let ids = si.product.secondary_boutique_ids;
+                    if (typeof ids === 'string') {
+                        try { ids = JSON.parse(ids); } catch(e) { ids = []; }
+                    }
+                    if (Array.isArray(ids)) ids.forEach(id => candidateBoutiqueIds.add(id));
+                }
+            });
+ 
             let candidateBoutiques = [];
-            if (mainBoutique) candidateBoutiques.push(mainBoutique);
-
-            // Fetch secondary boutiques if any
-            if (firstProduct.secondary_boutique_ids && Array.isArray(firstProduct.secondary_boutique_ids) && firstProduct.secondary_boutique_ids.length > 0) {
+            if (candidateBoutiqueIds.size > 0) {
                 try {
                     const { default: Boutique } = await import('../models/Boutique.js');
-                    const secBoutiques = await Boutique.findAll({ where: { id: firstProduct.secondary_boutique_ids }, transaction });
-                    candidateBoutiques = [...candidateBoutiques, ...secBoutiques];
-                } catch(e) { console.error(e); }
+                    candidateBoutiques = await Boutique.findAll({ 
+                        where: { id: Array.from(candidateBoutiqueIds) }, 
+                        transaction 
+                    });
+                } catch(e) { console.error("Error fetching candidate boutiques:", e); }
             }
 
             if (candidateBoutiques.length > 0 && customerAddress) {

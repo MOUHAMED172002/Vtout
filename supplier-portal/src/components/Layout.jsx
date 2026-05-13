@@ -134,6 +134,9 @@ const Layout = ({ children }) => {
     const [supplierProfile, setSupplierProfile] = useState(null);
     const [boutiques, setBoutiques] = useState([]);
     const [showReminderModal, setShowReminderModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
     const { getToken } = useAuth();
     const navigate = useNavigate();
 
@@ -225,9 +228,19 @@ const Layout = ({ children }) => {
                                 <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
                                 <input 
                                     type="text" 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Rechercher une commande, un produit..." 
                                     className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
                                 />
+                                {searchQuery && (
+                                    <button 
+                                        onClick={() => setSearchQuery("")}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-md text-slate-400"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -238,9 +251,42 @@ const Layout = ({ children }) => {
                     </div>
                     
                     <div className="flex items-center gap-4">
-                        <button className="lg:hidden p-2 text-slate-400 hover:text-indigo-500 transition-colors">
-                            <SearchIcon size={20} />
-                        </button>
+                        <div className="lg:hidden">
+                            <button 
+                                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                                className={`p-2 rounded-xl transition-all ${isMobileSearchOpen ? 'bg-indigo-50 text-indigo-500' : 'text-slate-400 hover:text-indigo-500'}`}
+                            >
+                                <SearchIcon size={20} />
+                            </button>
+                            
+                            <AnimatePresence>
+                                {isMobileSearchOpen && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="absolute left-0 right-0 top-full p-4 bg-white border-b border-slate-100 shadow-xl"
+                                    >
+                                        <div className="relative group">
+                                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500" size={18} />
+                                            <input 
+                                                autoFocus
+                                                type="text" 
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                placeholder="Rechercher..." 
+                                                className="w-full pl-12 pr-10 py-3 bg-slate-50 rounded-2xl text-sm font-bold focus:ring-0 outline-none border-none"
+                                            />
+                                            {searchQuery && (
+                                                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                    <X size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                         <NotificationCenter />
                     </div>
@@ -268,7 +314,12 @@ const Layout = ({ children }) => {
                             </button>
                         </div>
                     )}
-                    {children}
+                    {React.Children.map(children, child => {
+                        if (React.isValidElement(child)) {
+                            return React.cloneElement(child, { globalSearchQuery: searchQuery });
+                        }
+                        return child;
+                    })}
                 </main>
             </div>
             
