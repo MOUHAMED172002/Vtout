@@ -19,8 +19,8 @@ export const getMyCart = async (req, res) => {
         // Enrich products with free_delivery_communes
         const processedItems = await Promise.all(cartItems.map(async (item) => {
             const itemJson = item.toJSON();
-            if (itemJson.product) {
-                const [processedProduct] = await processProductsForCommunes([itemJson.product]);
+            if (item.product) {
+                const [processedProduct] = await processProductsForCommunes([item.product]);
                 itemJson.product = processedProduct;
             }
             return itemJson;

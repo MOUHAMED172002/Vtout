@@ -504,15 +504,30 @@ export default function CheckoutPage() {
                             {((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F
                         </span>
                     </div>
-                    {/* Boutique Location Transparency */}
-                    {(it.product?.boutique || it.boutique) && (
-                        <div className="flex items-center gap-2 mt-1">
-                            <MapPin size={10} className="text-primary" />
-                            <p className="text-[9px] font-bold text-slate-400 italic">
-                                Expédié depuis : <span className="text-slate-600">{(it.product?.boutique?.commune_label || it.boutique?.commune_label)}, {(it.product?.boutique?.quartier_label || it.boutique?.quartier_label)}</span>
-                            </p>
-                        </div>
-                    )}
+                    {/* Shipping Origins & Free Zones */}
+                    <div className="space-y-1 mt-2">
+                        {(it.product?.boutique || it.boutique) && (
+                            <div className="flex items-center gap-2">
+                                <MapPin size={10} className="text-primary" />
+                                <p className="text-[9px] font-bold text-slate-400 italic">
+                                    Expédié depuis : <span className="text-slate-600">
+                                        {[
+                                            (it.product?.boutique?.commune_label || it.boutique?.commune_label),
+                                            ...(it.product?.free_delivery_communes || it.free_delivery_communes || [])
+                                        ].filter((v, i, a) => v && a.indexOf(v) === i).join(', ')}
+                                    </span>
+                                </p>
+                            </div>
+                        )}
+                        {(it.product?.free_delivery_communes?.length > 0 || it.free_delivery_communes?.length > 0) && (
+                            <div className="flex items-center gap-2">
+                                <Truck size={10} className="text-emerald-500" />
+                                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">
+                                    Livraison offerte dans : {(it.product?.free_delivery_communes || it.free_delivery_communes).join(', ')}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                   </div>
                 ))}
               </div>

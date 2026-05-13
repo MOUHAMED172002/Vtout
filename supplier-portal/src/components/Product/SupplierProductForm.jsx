@@ -22,6 +22,7 @@ import {
     searchProducts
 } from '../../services/productService';
 import { uploadSingleImage } from '../../services/uploadService';
+import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../../services/deliveryFeeService';
 import CategorySearchModal from './CategorySearchModal';
 import CustomSelect from '../Shared/CustomSelect';
 
@@ -90,6 +91,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const [commissionRate, setCommissionRate] = useState(10);
     const [selectedBoutiques, setSelectedBoutiques] = useState([]);
     const [imageFiles, setImageFiles] = useState([]);
+    const [deliveryTiers, setDeliveryTiers] = useState([]);
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
         defaultValues: initialData ? {
@@ -98,7 +100,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             category_id: initialData.category_id || '',
             boutique_id: initialData.boutique_id || '',
             variants: initialData.variants || [],
-            supplier_price: initialData.price || initialData.supplier_price || '',
+            supplier_price: initialData.supplier_price || '',
             stock: initialData.stock || 0,
             supplier_note: initialData.supplier_note || ''
         } : {
@@ -121,14 +123,17 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     useEffect(() => {
         const fetchInitialData = async () => {
             const token = await getToken();
-            const [catData, boutData, attrData] = await Promise.all([
+            const [catData, boutData, attrData, tiersData] = await Promise.all([
                 getCategories(),
                 import('../../services/supplierService').then(s => s.getMyBoutiques(token)),
-                getAttributes()
+                getAttributes(),
+                getDeliveryFeeTiers()
             ]);
             setCategories(catData || []);
             setBoutiques(boutData || []);
             setAvailableAttributes(attrData || []);
+            setDeliveryTiers(tiersData || []);
+
             const commData = await axios.get(`${API_URL}/configs/public`).catch(e => ({ data: [] }));
             const commissionConfig = commData.data.find(c => c.key === 'commission_rate');
             if (commissionConfig && commissionConfig.value) setCommissionRate(parseFloat(commissionConfig.value));
@@ -279,29 +284,30 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 if (v.image_file) {
                     vImageUrl = await uploadSingleImage(v.image_file, token);
                 }
-                const vSellingPrice = parseFloat(v.supplier_price) || parseFloat(data.supplier_price) || 0;
+                const vSupplierPrice = parseFloat(v.supplier_price) || parseFloat(data.supplier_price) || 0;
+                const vPublicPrice = computePublicPrice(vSupplierPrice, deliveryTiers);
+                
                 processedVariants.push({
                     combination: v.combination,
                     sku: v.sku,
                     stock: parseInt(v.stock) || 0,
-                    price: vSellingPrice,
+                    price: vPublicPrice,
                     image_url: vImageUrl,
                     supplierLinks: [{
                         supplier_id: 'me',
-                        supplier_price: vSellingPrice * (1 - commissionRate / 100),
+                        supplier_price: vSupplierPrice,
                         supplier_sku: v.sku
                     }]
                 });
             }
 
-            let finalPrice = parseFloat(data.supplier_price) || 0;
-            let calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
-
+            let finalSupplierPrice = parseFloat(data.supplier_price) || 0;
             if (processedVariants && processedVariants.length > 0) {
-                const minVariantSupplierPrice = Math.min(...processedVariants.map(v => v.price)); // Notice v.price holds the selling price here
-                finalPrice = minVariantSupplierPrice > 0 ? minVariantSupplierPrice : 0;
-                calculatedSupplierPrice = finalPrice * (1 - commissionRate / 100);
+                const minVariant = processedVariants.reduce((prev, curr) => (prev.price < curr.price) ? prev : curr);
+                finalSupplierPrice = minVariant.supplierLinks[0].supplier_price;
             }
+            
+            const finalPublicPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
 
             const payload = {
                 name: data.name,
@@ -309,8 +315,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 category_id: parseInt(data.category_id),
                 images: uploadedImages,
                 supplier_note: data.supplier_note,
-                price: finalPrice + 1000,
-                supplier_price: calculatedSupplierPrice,
+                price: finalPublicPrice,
+                supplier_price: finalSupplierPrice,
                 stock: parseInt(data.stock) || 0,
                 status: 'draft',
                 approval_status: 'En attente',
@@ -402,11 +408,13 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 </button>
                             </div>
 
-                            {boutiques.length > 1 && (
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sélectionner les Boutiques (Points de retrait)</label>
-                                    <div className="space-y-2">
-                                        {boutiques.map(b => (
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4 flex items-center gap-2">
+                                    <Truck size={14} className="text-primary" /> Zones de Livraison Gratuite (Vos Boutiques)
+                                </label>
+                                <div className="space-y-2">
+                                    {boutiques.length > 0 ? (
+                                        boutiques.map(b => (
                                             <label key={b.id} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${selectedBoutiques.includes(b.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-slate-50 border-transparent text-slate-600 hover:bg-slate-100'}`}>
                                                 <input 
                                                     type="checkbox" 
@@ -415,19 +423,35 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                         if (e.target.checked) {
                                                             setSelectedBoutiques([...selectedBoutiques, b.id]);
                                                         } else {
-                                                            setSelectedBoutiques(selectedBoutiques.filter(id => id !== b.id));
+                                                            // At least one must be selected if it's the primary one
+                                                            if (selectedBoutiques.length > 1) {
+                                                                setSelectedBoutiques(selectedBoutiques.filter(id => id !== b.id));
+                                                            } else {
+                                                                toast.error("Au moins une boutique doit être sélectionnée.");
+                                                            }
                                                         }
                                                     }}
                                                     className="checkbox checkbox-primary checkbox-sm rounded-lg"
                                                 />
-                                                <span className="text-sm font-bold flex-1">{b.name}</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{b.commune_label}</span>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold">{b.name}</p>
+                                                    <p className="text-[10px] font-medium opacity-60 italic">{b.address_line || 'Adresse non spécifiée'}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-current">{b.commune_label}</span>
+                                                </div>
                                             </label>
-                                        ))}
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 font-bold ml-4">La livraison gratuite s'appliquera sur toutes les communes des boutiques sélectionnées.</p>
+                                        ))
+                                    ) : (
+                                        <div className="p-8 bg-amber-50 rounded-[1.5rem] border border-amber-100 text-center space-y-2">
+                                            <AlertCircle size={24} className="text-amber-500 mx-auto" />
+                                            <p className="text-xs font-bold text-amber-600">Aucune boutique enregistrée.</p>
+                                            <p className="text-[10px] text-amber-400">Veuillez d'abord créer une boutique dans vos paramètres.</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                                <p className="text-[10px] text-slate-400 font-bold ml-4 italic">Note: Le produit sera considéré comme expédié depuis la première boutique sélectionnée. Les communes de toutes les boutiques sélectionnées bénéficieront de la livraison gratuite.</p>
+                            </div>
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description (Optionnel)</label>
@@ -541,16 +565,16 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     <div className="space-y-2 px-4">
                                         <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
                                             <span>Frais de livraison (Inclus) :</span>
-                                            <span className="text-indigo-500">+ 1 000 F</span>
+                                            <span className="text-indigo-500">+ {computeDeliveryFee(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
                                         <div className="flex justify-between items-center text-xs font-black text-slate-900 pt-2 border-t border-indigo-100">
                                             <span>Prix affiché aux clients :</span>
-                                            <span className="text-lg text-primary">{globalSupplierPrice ? (Number(globalSupplierPrice) + 1000).toLocaleString() : '1 000'} F</span>
+                                            <span className="text-lg text-primary">{computePublicPrice(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
                                         {globalSupplierPrice && (
                                             <div className="mt-4 p-3 bg-emerald-50 rounded-2xl flex justify-between items-center border border-emerald-100">
-                                                <span className="text-[9px] font-black uppercase text-emerald-600">Votre gain net ({100 - commissionRate}%) :</span>
-                                                <span className="text-sm font-black text-emerald-600">{Math.round(globalSupplierPrice * (1 - commissionRate / 100)).toLocaleString()} F</span>
+                                                <span className="text-[9px] font-black uppercase text-emerald-600">Votre gain net (100%) :</span>
+                                                <span className="text-sm font-black text-emerald-600">{Number(globalSupplierPrice).toLocaleString()} F</span>
                                             </div>
                                         )}
                                     </div>
@@ -558,7 +582,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
                                     <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
-                                    <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut 1 000 F pour le livreur. Le client verra "Livraison Gratuite".</p>
+                                    <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut les frais de livraison calculés selon la grille. Le client verra "Livraison Gratuite".</p>
                                 </div>
                             </div>
                             )}
@@ -567,7 +591,12 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 <h4 className="text-xl font-black text-slate-900 tracking-tighter">Personnalisation des Variantes</h4>
                                 {variants.length > 0 ? (
                                     <div className="space-y-6">
-                                        {variants.map((v, idx) => (
+                                        {variants.map((v, idx) => {
+                                            const vPrice = watch(`variants.${idx}.supplier_price`);
+                                            const vFee = computeDeliveryFee(vPrice, deliveryTiers);
+                                            const vPublic = computePublicPrice(vPrice, deliveryTiers);
+                                            
+                                            return (
                                             <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:shadow-slate-100 transition-all">
                                                 {/* Variant Image Selector */}
                                                 <div className="w-32 h-32 relative group/img">
@@ -599,22 +628,24 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                         {Object.entries(v.combination).map(([a, val], i) => (
                                                             <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">{a}: {val}</span>
                                                         ))}
-                                                                                    <div className="grid grid-cols-2 gap-4">
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black uppercase text-slate-400">Votre prix souhaité</label>
                                                             <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
                                                             <div className="text-[8px] font-bold text-slate-400 mt-1">
-                                                                + 1 000 F Livr. = <span className="text-primary">{(Number(watch(`variants.${idx}.supplier_price`)) + 1000).toLocaleString()} F</span>
+                                                                + {vFee.toLocaleString()} F Livr. = <span className="text-primary">{vPublic.toLocaleString()} F</span>
                                                             </div>
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black uppercase text-slate-400">Stock</label>
                                                             <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black" placeholder="Stock" />
                                                         </div>
-                                                    </div>                      </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center gap-4 text-slate-300 text-center">

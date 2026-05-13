@@ -14,14 +14,35 @@ export const processProductsForCommunes = async (products) => {
             product.free_delivery_communes.push(product.boutique.commune_label);
         }
         
-        if (product.secondary_boutique_ids && Array.isArray(product.secondary_boutique_ids) && product.secondary_boutique_ids.length > 0) {
+        let secondaryIds = [];
+        try {
+            const raw = product.secondary_boutique_ids;
+            if (raw) {
+                if (Array.isArray(raw)) {
+                    secondaryIds = raw;
+                } else if (typeof raw === 'string') {
+                    if (raw.startsWith('[')) {
+                        secondaryIds = JSON.parse(raw);
+                    } else {
+                        secondaryIds = raw.split(',').map(s => s.trim()).filter(Boolean);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error parsing secondary_boutique_ids:", e);
+        }
+
+        if (secondaryIds.length > 0) {
             const secBoutiques = await Boutique.findAll({
-                where: { id: product.secondary_boutique_ids },
+                where: { id: secondaryIds },
                 attributes: ['commune_label']
             });
             secBoutiques.forEach(b => {
-                if (b.commune_label && !product.free_delivery_communes.includes(b.commune_label)) {
-                    product.free_delivery_communes.push(b.commune_label);
+                if (b.commune_label) {
+                    const label = b.commune_label.trim();
+                    if (!product.free_delivery_communes.some(c => c.toLowerCase() === label.toLowerCase())) {
+                        product.free_delivery_communes.push(label);
+                    }
                 }
             });
         }
