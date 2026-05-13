@@ -1,8 +1,15 @@
 import api from './api';
 
+const DEFAULT_TIERS = [
+    { min: 0,     max: 500,    fee: 300  },
+    { min: 500,   max: 2000,   fee: 500  },
+    { min: 2000,  max: 5000,   fee: 700  },
+    { min: 5000,  max: 15000,  fee: 1000 },
+    { min: 15000, max: 1000000, fee: 1500 },
+];
+
 /**
  * Fetches the delivery fee tiers from the configuration API.
- * Tiers are expected to be an array of { min, max, fee }.
  */
 export const getDeliveryFeeTiers = async () => {
     try {
@@ -17,8 +24,7 @@ export const getDeliveryFeeTiers = async () => {
     } catch (error) {
         console.error("Error fetching delivery fee tiers:", error);
     }
-    // Fallback to a default 1000 F tier if API fails
-    return [{ min: 0, max: 9999999, fee: 1000 }];
+    return DEFAULT_TIERS;
 };
 
 /**
@@ -26,10 +32,15 @@ export const getDeliveryFeeTiers = async () => {
  */
 export const computeDeliveryFee = (supplierPrice, tiers) => {
     const price = parseFloat(supplierPrice) || 0;
-    if (price === 0) return 1000; // Default
+    if (price === 0) return 0;
 
-    const tier = tiers.find(t => price >= t.min && price <= t.max);
-    return tier ? tier.fee : 1000;
+    const currentTiers = (tiers && tiers.length > 0) ? tiers : DEFAULT_TIERS;
+    const tier = currentTiers.find(t => price >= t.min && price < (t.max || Infinity));
+    
+    if (tier) return tier.fee;
+    
+    // Fallback if price is above the last max
+    return currentTiers[currentTiers.length - 1]?.fee || 1000;
 };
 
 /**

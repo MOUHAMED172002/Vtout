@@ -633,8 +633,15 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black uppercase text-slate-400">Votre prix souhaité</label>
                                                             <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
-                                                            <div className="text-[8px] font-bold text-slate-400 mt-1">
-                                                                + {vFee.toLocaleString()} F Livr. = <span className="text-primary">{vPublic.toLocaleString()} F</span>
+                                                            <div className="flex flex-col gap-1 mt-2">
+                                                                <div className="text-[8px] font-bold text-slate-400">
+                                                                    + {vFee.toLocaleString()} F Livr. = <span className="text-primary">{vPublic.toLocaleString()} F (Public)</span>
+                                                                </div>
+                                                                {vPrice && (
+                                                                    <div className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg self-start">
+                                                                        Gain net : {Number(vPrice).toLocaleString()} F
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="space-y-1">

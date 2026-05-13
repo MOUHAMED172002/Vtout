@@ -96,6 +96,21 @@ const ConfigManager = () => {
                 });
             }
 
+            if (!uniqueData.find(c => c.key === 'delivery_fee_tiers')) {
+                uniqueData.push({
+                    key: 'delivery_fee_tiers',
+                    value: JSON.stringify([
+                        { min: 0, max: 500, fee: 300 },
+                        { min: 500, max: 2000, fee: 500 },
+                        { min: 2000, max: 5000, fee: 700 },
+                        { min: 5000, max: 15000, fee: 1000 },
+                        { min: 15000, max: 1000000, fee: 1500 }
+                    ]),
+                    group: 'marketplace',
+                    description: 'Grille des frais de livraison dynamiques (JSON: min, max, fee)'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'hero_carousel')) {
                 uniqueData.push({
                     key: 'hero_carousel',
