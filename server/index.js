@@ -342,19 +342,34 @@ app.get("/api/diag", async (req, res) => {
         results.suppliers = 'OK';
     } catch (e) { results.suppliers = e.message; }
 
-    // 📊 NOUVEAU: Statistiques de données pour débugger les boutiques manquantes
+    // 📊 Statistiques de données
     try {
         const [boutiqueCount] = await sequelize.query('SELECT COUNT(*) as count FROM boutiques');
         const [supplierCount] = await sequelize.query('SELECT COUNT(*) as count FROM suppliers');
-        const [samples] = await sequelize.query('SELECT id, name, user_id FROM suppliers LIMIT 5');
-        const [boutiqueSamples] = await sequelize.query('SELECT id, name, supplier_id FROM boutiques LIMIT 5');
+        const [suppliers] = await sequelize.query('SELECT id, name, user_id FROM suppliers');
+        const [boutiques] = await sequelize.query('SELECT id, name, supplier_id FROM boutiques');
         
         results.stats = {
             total_boutiques: boutiqueCount[0].count,
             total_suppliers: supplierCount[0].count,
-            supplier_samples: samples,
-            boutique_samples: boutiqueSamples
+            suppliers: suppliers,
+            boutiques: boutiques
         };
+
+        // 🛠️ TENTATIVE DE RÉPARATION DES LIENS (Si demandé via ?fixBoutiques=true)
+        if (req.query.fixBoutiques === 'true') {
+            results.repair_log = [];
+            for (const b of boutiques) {
+                // Chercher un fournisseur qui a exactement le même nom que la boutique
+                const matchingSupplier = suppliers.find(s => s.name === b.name);
+                if (matchingSupplier && b.supplier_id !== matchingSupplier.id) {
+                    await sequelize.query(`UPDATE boutiques SET supplier_id = '${matchingSupplier.id}' WHERE id = '${b.id}'`);
+                    results.repair_log.push(`✅ Boutique "${b.name}" ré-attachée au fournisseur "${matchingSupplier.name}"`);
+                }
+            }
+            if (results.repair_log.length === 0) results.repair_log.push("Rien à réparer (noms non concordants ou déjà liés).");
+        }
+
     } catch (e) { results.stats_error = e.message; }
 
     res.json(results);
