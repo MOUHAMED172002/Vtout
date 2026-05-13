@@ -190,14 +190,12 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       setIsInternalPriceChange(false);
       return;
     }
-    if (watchPrice && commissionRate) {
-        // Formule: NetGain = (PublicPrice - Fee) * (1 - CommissionRate/100)
+    if (watchPrice) {
+        const rate = commissionRate ?? 10;
         const publicPrice = parseFloat(watchPrice);
         
-        // On doit trouver le Fee correspondant au SupplierPrice probable
-        // SupplierPrice = PublicPrice - Fee
         const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-        const calculated = Math.round((publicPrice - fee) * (1 - commissionRate / 100));
+        const calculated = Math.round((publicPrice - fee) * (1 - rate / 100));
         
         if (calculated !== parseFloat(globalSupplierPrice)) {
             setIsInternalPriceChange(true);
@@ -213,10 +211,10 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       setIsInternalPriceChange(false);
       return;
     }
-    if (globalSupplierPrice && commissionRate) {
-        // Formule: PublicPrice = (NetGain / (1 - CommissionRate/100)) + Fee
+    if (globalSupplierPrice) {
+        const rate = commissionRate ?? 10;
         const netGain = parseFloat(globalSupplierPrice);
-        const supplierPrice = netGain / (1 - commissionRate / 100);
+        const supplierPrice = netGain / (1 - rate / 100);
         const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
         const calculated = Math.round(supplierPrice + fee);
         

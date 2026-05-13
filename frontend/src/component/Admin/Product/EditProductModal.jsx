@@ -274,11 +274,11 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       setIsInternalPriceChange(false);
       return;
     }
-    if (watchPrice && commissionRate) {
-      // Formule: NetGain = (PublicPrice - Fee) * (1 - CommissionRate/100)
+    if (watchPrice) {
+      const rate = commissionRate ?? 10;
       const publicPrice = parseFloat(watchPrice);
       const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-      const calculated = Math.round((publicPrice - fee) * (1 - commissionRate / 100));
+      const calculated = Math.round((publicPrice - fee) * (1 - rate / 100));
       
       if (calculated !== parseFloat(watchSupplierPrice)) {
         setIsInternalPriceChange(true);
@@ -294,10 +294,10 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       setIsInternalPriceChange(false);
       return;
     }
-    if (watchSupplierPrice && commissionRate) {
-      // Formule: PublicPrice = (NetGain / (1 - CommissionRate/100)) + Fee
+    if (watchSupplierPrice) {
+      const rate = commissionRate ?? 10;
       const netGain = parseFloat(watchSupplierPrice);
-      const supplierPrice = netGain / (1 - commissionRate / 100);
+      const supplierPrice = netGain / (1 - rate / 100);
       const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
       const calculated = Math.round(supplierPrice + fee);
       
