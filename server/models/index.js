@@ -182,6 +182,10 @@ OrderItem.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 ProductVariant.hasMany(OrderItem, { foreignKey: 'variant_id' });
 OrderItem.belongsTo(ProductVariant, { foreignKey: 'variant_id', as: 'variant' });
 
+// OrderItem <-> Boutique
+Boutique.hasMany(OrderItem, { foreignKey: 'boutique_id', as: 'orderItems' });
+OrderItem.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
+
 // Favorites
 Profile.hasMany(Favorite, { foreignKey: 'user_id', as: 'favorites' });
 Favorite.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });

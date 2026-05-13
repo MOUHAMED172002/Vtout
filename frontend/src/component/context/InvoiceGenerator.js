@@ -166,8 +166,11 @@ export async function generateInvoicePDF(order) {
         doc.text(pm, MX, currentY + 7);
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(7);
-        doc.text(`Réf Fournisseur: ${order.supplier_id || 'VT-001'}`, MX, currentY + 12);
-        doc.text("Cette facture est générée numériquement.", MX, currentY + 17);
+        const boutiqueLoc = order.boutique 
+            ? `${order.boutique.commune_label || order.boutique.commune}${order.boutique.departement_label ? ', ' + order.boutique.departement_label : ''}`
+            : (order.supplier_id || 'VT-001');
+        doc.text(`Origine: ${boutiqueLoc}`, MX, currentY + 12);
+        doc.text("Cette facture est générée numériquement par Vtout.", MX, currentY + 17);
 
         // Right Column (Calculations)
         const totalX = W - MX;

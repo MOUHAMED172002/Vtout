@@ -552,7 +552,23 @@ export default function OrderDetail() {
               </div>
             </div>
 
-            {/* Fournisseur info hidden from customer */}
+            {/* Boutique Location (Only info exposed to customer) */}
+            {order.boutique && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Expédié de.</h3>
+                <div className="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex items-center gap-4">
+                  <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm border border-emerald-100">
+                    <Store size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-slate-900 leading-none">Boutique Partenaire</p>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1.5">
+                      {order.boutique.commune_label || order.boutique.commune}{order.boutique.departement_label ? `, ${order.boutique.departement_label}` : ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Paiement */}
             <div className="space-y-4">
