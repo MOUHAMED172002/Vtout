@@ -350,10 +350,11 @@ export const createOrder = async (req, res) => {
                 supplement = 0;
             }
 
-            // Le BASE_FEE est le frais déjà intégré dans le prix du produit, calculé selon la grille tarifaire
-            // On le calcule à partir du prix unitaire du premier produit de la commande fournisseur
-            const firstUnitPrice = supplierItems[0].unitPrice || 0;
-            const BASE_FEE = computeDeliveryFee(firstUnitPrice, deliveryTiers);
+            // BASE_FEE = frais de livraison déjà embarqués dans le prix public du produit.
+            // On le lit depuis la grille tarifaire en se basant sur le PRIX VENDEUR (supplier_price),
+            // car c'est sur ce prix que la grille est définie (pas sur le prix public).
+            const firstSupplierPrice = supplierItems[0].product.supplier_price || 0;
+            const BASE_FEE = computeDeliveryFee(firstSupplierPrice, deliveryTiers);
 
             let sDeliveryFee = BASE_FEE + supplement;
             const orderShareOfSubtotal = subtotal > 0 ? (sSubtotal / subtotal) : 1;
