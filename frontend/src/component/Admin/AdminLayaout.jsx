@@ -245,15 +245,15 @@ const AdminLayout = () => {
         }
       case "Finances":
         switch (selectedSub) {
-          case "payouts": return <PayoutManager />;
-          default: return <PayoutManager />;
+          case "payouts": return <PayoutManager globalSearchQuery={searchQuery} />;
+          default: return <PayoutManager globalSearchQuery={searchQuery} />;
         }
       case "Contenu & Blog":
         switch (selectedSub) {
-           case "blog": return <BlogManager />;
-           case "faq": return <FaqManager />;
+           case "blog": return <BlogManager globalSearchQuery={searchQuery} />;
+           case "faq": return <FaqManager globalSearchQuery={searchQuery} />;
            case "policy": return <PolicyManager />;
-           default: return <BlogManager />;
+           default: return <BlogManager globalSearchQuery={searchQuery} />;
         }
       case "Paramètres":
         switch (selectedSub) {

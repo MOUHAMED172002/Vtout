@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
 import { getLivreursList, verifyLivreur, deleteLivreur } from "../../../services/deliveryService";
 import toast from "react-hot-toast";
 import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText, Trash2 } from "lucide-react";
 
-export default function LivreurManager() {
+export default function LivreurManager({ globalSearchQuery = "" }) {
     const { getToken } = useAuth();
     const [livreurs, setLivreurs] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function LivreurManager() {
         try {
             const token = await getToken();
             await verifyLivreur(token, id, status);
-            toast.success(status ? "Livreur validé et rôle mis à jour !" : "Statut mis à jour");
+            toast.success(status ? "Livreur validÃ© et rÃ´le mis Ã  jour !" : "Statut mis Ã  jour");
             fetchLivreurs();
         } catch (err) {
             toast.error("Erreur de modification");
@@ -41,18 +41,18 @@ export default function LivreurManager() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Voulez-vous vraiment supprimer ce dossier de livreur ? Cette action est irréversible.")) return;
+        if (!window.confirm("Voulez-vous vraiment supprimer ce dossier de livreur ? Cette action est irrÃ©versible.")) return;
         try {
             const token = await getToken();
             await deleteLivreur(token, id);
-            toast.success("Dossier supprimé");
+            toast.success("Dossier supprimÃ©");
             fetchLivreurs();
         } catch (err) {
             toast.error("Erreur lors de la suppression");
         }
     };
 
-    const filteredLivreurs = livreurs.filter(l => {
+    const filteredLivreurs = livreurs.filter(l => { const query = (search || globalSearchQuery).toLowerCase();
         const matchesSearch = (l.profile?.fullname || "").toLowerCase().includes(search.toLowerCase()) ||
             (l.profile?.email || "").toLowerCase().includes(search.toLowerCase());
 
@@ -102,7 +102,7 @@ export default function LivreurManager() {
                         <Truck size={14} /> Logistique
                     </div>
                     <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Livreurs</span></h1>
-                    <p className="text-slate-500 font-bold max-w-lg">Vérifiez les nouveaux inscrits et gérez votre flotte de livraison.</p>
+                    <p className="text-slate-500 font-bold max-w-lg">VÃ©rifiez les nouveaux inscrits et gÃ©rez votre flotte de livraison.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
@@ -153,7 +153,7 @@ export default function LivreurManager() {
                     onClick={() => setFilter("verified")}
                     className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "verified" ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
                 >
-                    <ShieldCheck size={16} /> Approuvés ({stats.verified})
+                    <ShieldCheck size={16} /> ApprouvÃ©s ({stats.verified})
                 </button>
             </div>
 
@@ -162,8 +162,8 @@ export default function LivreurManager() {
                     <table className="table w-full border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/50">
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 pl-10">Identité</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">Véhicule</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 pl-10">IdentitÃ©</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">VÃ©hicule</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">Zone / Statut</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">Documents</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-right pr-10">Actions de validation</th>
@@ -178,7 +178,7 @@ export default function LivreurManager() {
                                         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
                                             <AlertCircle size={40} />
                                         </div>
-                                        <p className="font-black text-slate-300 uppercase tracking-widest text-sm italic py-20">Aucun dossier dans cette catégorie</p>
+                                        <p className="font-black text-slate-300 uppercase tracking-widest text-sm italic py-20">Aucun dossier dans cette catÃ©gorie</p>
                                     </td>
                                 </tr>
                             ) : filteredLivreurs.map((l) => (
@@ -195,7 +195,7 @@ export default function LivreurManager() {
                                                         <Mail size={12} className="text-primary/40" /> {l.profile?.email || 'Pas d\'email'}
                                                     </div>
                                                     <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
-                                                        <Phone size={12} className="text-primary/40" /> {l.profile?.phone || 'Pas de numéro'}
+                                                        <Phone size={12} className="text-primary/40" /> {l.profile?.phone || 'Pas de numÃ©ro'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -206,10 +206,10 @@ export default function LivreurManager() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <Truck size={14} className="text-slate-400" />
                                                 <span className="text-[10px] font-black uppercase text-primary tracking-widest">
-                                                    {l.vehicle_type === 'moto' ? 'Moto / Zém' : l.vehicle_type === 'car' ? 'Voiture / Van' : 'Vélo'}
+                                                    {l.vehicle_type === 'moto' ? 'Moto / ZÃ©m' : l.vehicle_type === 'car' ? 'Voiture / Van' : 'VÃ©lo'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-black text-slate-900 uppercase">{l.vehicle_model || "Modèle inconnu"}</p>
+                                            <p className="text-sm font-black text-slate-900 uppercase">{l.vehicle_model || "ModÃ¨le inconnu"}</p>
                                             <p className="text-[10px] font-bold text-slate-400">{l.license_plate || "SANS PLAQUE"}</p>
                                         </div>
                                     </td>
@@ -241,7 +241,7 @@ export default function LivreurManager() {
                                                     // Filter out empty or non-string values and remove duplicates
                                                     const cleanZones = [...new Set(zones.filter(z => typeof z === 'string' && z.length > 1))];
 
-                                                    if (cleanZones.length === 0) return <span className="text-[10px] font-bold text-slate-300 italic">Aucune zone spécifiée</span>;
+                                                    if (cleanZones.length === 0) return <span className="text-[10px] font-bold text-slate-300 italic">Aucune zone spÃ©cifiÃ©e</span>;
 
                                                     return cleanZones.map((zone, zIdx) => (
                                                         <span key={`${l.id}-${zone}-${zIdx}`} className="px-3 py-1 bg-indigo-50 text-[9px] font-black text-indigo-600 rounded-full uppercase tracking-tighter border border-indigo-100 shadow-sm">
@@ -267,7 +267,7 @@ export default function LivreurManager() {
                                                     rel="noreferrer"
                                                     className="flex items-center gap-3 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 px-5 py-3 rounded-xl w-fit transition-colors border border-primary/10"
                                                 >
-                                                    <FileText size={16} /> PIÈCE D'IDENTITÉ <ExternalLink size={14} />
+                                                    <FileText size={16} /> PIÃˆCE D'IDENTITÃ‰ <ExternalLink size={14} />
                                                 </a>
                                             </div>
                                         ) : (
@@ -297,7 +297,7 @@ export default function LivreurManager() {
                                                     onClick={() => handleVerify(l.id, false)}
                                                     className="flex items-center gap-2 bg-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all group"
                                                 >
-                                                    <X size={16} className="group-hover:rotate-90 transition-transform" /> Révoquer l'accès
+                                                    <X size={16} className="group-hover:rotate-90 transition-transform" /> RÃ©voquer l'accÃ¨s
                                                 </button>
                                             )}
                                         </div>
@@ -311,3 +311,4 @@ export default function LivreurManager() {
         </div>
     );
 }
+

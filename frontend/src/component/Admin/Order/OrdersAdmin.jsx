@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+ï»¿import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
@@ -6,7 +6,7 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import { ShoppingBag, Search, Filter, RefreshCcw, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function OrdersAdmin() {
+export default function OrdersAdmin({ globalSearchQuery = "" }) {
   const { getToken } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,8 +47,8 @@ export default function OrdersAdmin() {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.user_id.toLowerCase().includes(searchTerm.toLowerCase());
+    const query = (searchTerm || globalSearchQuery).toLowerCase(); const matchesSearch = o.id.toLowerCase().includes(query) ||
+      o.user_id.toLowerCase().includes(query) || (o.customer_name && o.customer_name.toLowerCase().includes(query));
     const matchesStatus = activeFilter === "all" || normalizeStatus(o.status) === normalizeStatus(activeFilter);
     return matchesSearch && matchesStatus;
   });
@@ -56,9 +56,9 @@ export default function OrdersAdmin() {
   const filterTabs = [
     { id: "all", label: "Tous", count: orders.length },
     { id: "en_attente", label: "En attente", count: orders.filter(o => normalizeStatus(o.status) === "en_attente").length },
-    { id: "confirmee", label: "Confirmés", count: orders.filter(o => normalizeStatus(o.status) === "confirmee").length },
-    { id: "expediee", label: "Expédiés", count: orders.filter(o => normalizeStatus(o.status) === "expediee").length },
-    { id: "livree", label: "Livrés", count: orders.filter(o => normalizeStatus(o.status) === "livree").length },
+    { id: "confirmee", label: "ConfirmÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "confirmee").length },
+    { id: "expediee", label: "ExpÃ©diÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "expediee").length },
+    { id: "livree", label: "LivrÃ©s", count: orders.filter(o => normalizeStatus(o.status) === "livree").length },
   ];
 
   return (
@@ -70,7 +70,7 @@ export default function OrdersAdmin() {
             <ShoppingBag size={14} /> Ventes
           </div>
           <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Commandes</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Suivez les expéditions, validez les paiements et gérez les retours clients.</p>
+          <p className="text-slate-500 font-bold max-w-lg">Suivez les expÃ©ditions, validez les paiements et gÃ©rez les retours clients.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -79,7 +79,7 @@ export default function OrdersAdmin() {
             <Search size={18} className="text-slate-400" />
             <input
               type="text"
-              placeholder="Référence ou Client..."
+              placeholder="RÃ©fÃ©rence ou Client..."
               className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-48"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,3 +130,4 @@ export default function OrdersAdmin() {
     </div>
   );
 }
+

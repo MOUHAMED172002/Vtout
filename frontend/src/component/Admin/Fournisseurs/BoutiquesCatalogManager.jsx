@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from "../../../lib/AuthHooks";
 import { Store, Package, MapPin, Phone, Eye, ChevronRight, LayoutGrid, Plus, PlusCircle } from 'lucide-react';
@@ -9,9 +9,9 @@ import BoutiqueStatsModal from './BoutiqueStatsModal';
 import { BarChart3 } from 'lucide-react';
 
 
-const BoutiquesCatalogManager = () => {
+const BoutiquesCatalogManager = ({ globalSearchQuery = "" }) => {
     const [boutiques, setBoutiques] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); const [searchTerm, setSearchTerm] = useState("");
     const [selectedBoutique, setSelectedBoutique] = useState(null);
     const [showAddBoutique, setShowAddBoutique] = useState(false);
     const [showAddProduct, setShowAddProduct] = useState(false);
@@ -19,7 +19,7 @@ const BoutiquesCatalogManager = () => {
     const { getToken } = useAuth();
 
 
-    const fetchBoutiques = async () => {
+    const filteredBoutiques = boutiques.filter(b => { const query = (searchTerm || globalSearchQuery).toLowerCase(); return b.name?.toLowerCase().includes(query) || b.supplier?.name?.toLowerCase().includes(query); }); const fetchBoutiques = async () => {
         try {
             setLoading(true);
             const token = await getToken();
@@ -55,7 +55,7 @@ const BoutiquesCatalogManager = () => {
             <div className="flex justify-between items-end">
                 <div>
                     <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Catalogue des Boutiques</h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Gestion centralisée des points de vente partenaires</p>
+                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Gestion centralisÃ©e des points de vente partenaires</p>
                 </div>
             </div>
 
@@ -192,7 +192,7 @@ const BoutiquesCatalogManager = () => {
                                         {(!selectedBoutique.supplier?.products || selectedBoutique.supplier.products.length === 0) && (
                                             <div className="col-span-2 py-16 text-center bg-slate-50/50 rounded-3xl border-4 border-dashed border-slate-100">
                                                 <Package className="mx-auto text-slate-200 mb-4" size={48} />
-                                                <p className="text-xs font-black text-slate-300 uppercase tracking-[0.2em]">Aucun produit répertorié</p>
+                                                <p className="text-xs font-black text-slate-300 uppercase tracking-[0.2em]">Aucun produit rÃ©pertoriÃ©</p>
                                             </div>
                                         )}
                                     </div>
@@ -205,7 +205,7 @@ const BoutiquesCatalogManager = () => {
                                 </div>
                                 <div className="max-w-xs space-y-3">
                                     <h3 className="text-2xl font-black text-slate-800 tracking-tight">Gestion des Catalogues</h3>
-                                    <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-widest">Sélectionnez une boutique pour gérer son inventaire, modifier ses produits ou en ajouter de nouveaux.</p>
+                                    <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-widest">SÃ©lectionnez une boutique pour gÃ©rer son inventaire, modifier ses produits ou en ajouter de nouveaux.</p>
                                 </div>
                             </div>
                         )}
@@ -244,4 +244,5 @@ const BoutiquesCatalogManager = () => {
 };
 
 export default BoutiquesCatalogManager;
+
 

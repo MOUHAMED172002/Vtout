@@ -5,7 +5,7 @@ import { useAuth } from "../../../lib/AuthHooks";
 import api from '../../../services/api';
 import toast from 'react-hot-toast';
 
-export default function PayoutManager() {
+export default function PayoutManager({ globalSearchQuery = "" }) {
     const { getToken } = useAuth();
     const [payouts, setPayouts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,9 +44,11 @@ export default function PayoutManager() {
     };
 
     const filteredPayouts = payouts.filter(p => {
+        const query = (searchTerm || globalSearchQuery).toLowerCase();
         const matchesFilter = filter === 'all' || p.status === filter;
-        const matchesSearch = (p.user?.fullname || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              p.id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (p.user?.fullname || "").toLowerCase().includes(query) || 
+                              (p.user?.email || "").toLowerCase().includes(query) ||
+                              p.id.toLowerCase().includes(query);
         return matchesFilter && matchesSearch;
     });
 

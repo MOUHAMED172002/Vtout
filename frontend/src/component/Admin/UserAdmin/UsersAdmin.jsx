@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
 import { getAllProfiles } from "../../../services/userService";
 import UserTable from "../UserAdmin/UserTable";
 import UserDetailsModal from "../UserAdmin/UserDetailsModal";
 
-export default function UsersAdmin() {
+export default function UsersAdmin({ globalSearchQuery = "" }) {
   const { getToken } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null); const [searchTerm, setSearchTerm] = useState("");
 
   async function fetchUsers() {
     setLoading(true);
@@ -24,7 +24,7 @@ export default function UsersAdmin() {
     }
   }
 
-  useEffect(() => {
+  const filteredUsers = users.filter(u => { const query = (searchTerm || globalSearchQuery).toLowerCase(); return u.email?.toLowerCase().includes(query) || u.first_name?.toLowerCase().includes(query) || u.last_name?.toLowerCase().includes(query) || u.phone?.includes(query); }); useEffect(() => {
     fetchUsers();
   }, [getToken]);
 

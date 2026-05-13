@@ -95,15 +95,30 @@ export default function CheckoutPage() {
     });
 
     let totalSupplement = 0;
-    Object.values(suppliers).forEach(boutique => {
+    Object.entries(suppliers).forEach(([sId, boutique]) => {
         if (!boutique) return;
         
-        // Dynamic Supplement Logic:
-        // 1. Same Commune: 0 F (Included in base price)
-        // 2. Different Commune, Same Department: Intra-Dept Fee (default 500)
-        // 3. Different Department: Inter-Dept Matrix or default
-        if (String(boutique.commune_id) === String(address.commune_id)) {
-            // Livraison incluse (0 supplémentaire)
+        // Find all candidate boutiques for this supplier's items in this cart
+        const supplierItems = itemsFromCart.filter(it => {
+            const p = it.product || it;
+            const sid = p.supplier_id || p.boutique?.supplier_id || 'default';
+            return sid === sId;
+        });
+
+        // We assume all items from the same supplier in one order are shipped from the same set of boutiques.
+        // We look at the first product's boutiques.
+        const firstProd = supplierItems[0]?.product || supplierItems[0];
+        let candidates = [boutique];
+        if (firstProd?.secondary_boutique_ids && Array.isArray(firstProd.secondary_boutique_ids)) {
+            // For now, we rely on the primary boutique and any secondary ones that might have commune info.
+            // Ideally, the item data should have all eligible communes.
+        }
+
+        // If the item has free_delivery_communes pre-calculated (from backend), use it!
+        const freeCommunes = firstProd?.free_delivery_communes || [];
+        
+        if (freeCommunes.includes(address.commune_label) || String(boutique.commune_id) === String(address.commune_id)) {
+            // Livraison incluse
         } else if (String(boutique.departement_id) === String(address.departement_id)) {
             totalSupplement += feesConfig.intra;
         } else {
