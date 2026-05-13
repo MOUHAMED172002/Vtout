@@ -259,6 +259,23 @@ app.get("/api/repair-db", async (req, res) => {
                 logs.push(`ℹ️ Ignoré/Existe déjà : ${c.table}.${c.col}`);
             }
         }
+
+        // 3. Initialisation des commissions par défaut (10% si 0 ou null)
+        try {
+            const { Category } = await import('./models/index.js');
+            const categories = await Category.findAll();
+            let fixedCount = 0;
+            for (const cat of categories) {
+                if (!cat.commission_rate || parseFloat(cat.commission_rate) === 0) {
+                    await cat.update({ commission_rate: 10.00 });
+                    fixedCount++;
+                }
+            }
+            logs.push(`✅ Commissions initialisées (${fixedCount} catégories corrigées).`);
+        } catch (e) {
+            logs.push("❌ Erreur initialisation commissions : " + e.message);
+        }
+
         res.json({ message: "Réparation approfondie terminée", details: logs });
     } catch (error) {
         res.status(500).json({ error: error.message });
