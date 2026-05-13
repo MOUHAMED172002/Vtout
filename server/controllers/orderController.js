@@ -40,10 +40,14 @@ export const getMySupplierOrders = async (req, res) => {
             order: [['created_at', 'DESC']],
             include: [
                 { model: Address, as: 'address' },
+                { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label', 'whatsapp', 'phone'] },
                 { 
                     model: OrderItem, 
                     as: 'items',
-                    include: [{ model: Product, as: 'product', attributes: ['name', 'price', 'supplier_price'] }] 
+                    include: [
+                        { model: Product, as: 'product', attributes: ['name', 'price', 'supplier_price'] },
+                        { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label'] }
+                    ] 
                 }
             ]
         });
@@ -236,19 +240,15 @@ export const createOrder = async (req, res) => {
             enrichedItems.push({ product, item, unitPrice, variantData });
         }
 
-        // 2. Group items by supplier
-        const itemsBySupplier = {};
+        // 2. Group items by boutique
+        const itemsByBoutique = {};
         for (const { product, item, unitPrice, variantData } of enrichedItems) {
-            let sId = product.supplier_id;
-            if (!sId) {
-                const sp = await SupplierProduct.findOne({ where: { product_id: product.id }, transaction });
-                sId = sp?.supplier_id || 'no_supplier';
-            }
-            if (!itemsBySupplier[sId]) itemsBySupplier[sId] = [];
-            itemsBySupplier[sId].push({ product, item, unitPrice, variantData });
+            const bId = product.boutique_id || 'no_boutique';
+            if (!itemsByBoutique[bId]) itemsByBoutique[bId] = [];
+            itemsByBoutique[bId].push({ product, item, unitPrice, variantData });
         }
 
-        const supplierIds = Object.keys(itemsBySupplier);
+        const boutiqueIds = Object.keys(itemsByBoutique);
         const createdOrders = [];
         
         // 3. Coupon Logic
@@ -301,82 +301,61 @@ export const createOrder = async (req, res) => {
             console.error("Error parsing crossing_fees config", e);
         }
 
-        for (const sId of supplierIds) {
-            const supplierItems = itemsBySupplier[sId];
-            const actualSupplierId = sId === 'no_supplier' ? null : sId;
-            let sSubtotal = supplierItems.reduce((sum, si) => sum + (si.unitPrice * si.item.quantity), 0);
+        for (const bId of boutiqueIds) {
+            const boutiqueItems = itemsByBoutique[bId];
+            const actualBoutiqueId = bId === 'no_boutique' ? null : bId;
             
-            // Calcul dynamique des frais de livraison
-            let supplement = INTER_DEPT_FEE; 
-            
-            let candidateBoutiqueIds = new Set();
-            supplierItems.forEach(si => {
-                if (si.product.boutique_id) candidateBoutiqueIds.add(si.product.boutique_id);
-                if (si.product.secondary_boutique_ids) {
-                    let ids = si.product.secondary_boutique_ids;
-                    if (typeof ids === 'string') {
-                        try { ids = JSON.parse(ids); } catch(e) { ids = []; }
-                    }
-                    if (Array.isArray(ids)) ids.forEach(id => candidateBoutiqueIds.add(id));
+            let actualSupplierId = null;
+            let boutique = null;
+            let targetPhone = null;
+
+            if (actualBoutiqueId) {
+                boutique = await Boutique.findByPk(actualBoutiqueId, {
+                    include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'profile' }] }],
+                    transaction
+                });
+                if (boutique) {
+                    actualSupplierId = boutique.supplier_id;
+                    targetPhone = boutique.whatsapp || boutique.phone || boutique.supplier?.whatsapp || boutique.supplier?.phone || boutique.supplier?.profile?.phone;
                 }
-            });
- 
-            let candidateBoutiques = [];
-            if (candidateBoutiqueIds.size > 0) {
-                try {
-                    const { default: Boutique } = await import('../models/Boutique.js');
-                    candidateBoutiques = await Boutique.findAll({ 
-                        where: { id: Array.from(candidateBoutiqueIds) }, 
-                        transaction 
-                    });
-                } catch(e) { console.error("Error fetching candidate boutiques:", e); }
             }
 
-            if (candidateBoutiques.length > 0 && customerAddress) {
-                let bestSupplement = INTER_DEPT_FEE;
+            let bSubtotal = boutiqueItems.reduce((sum, bi) => sum + (bi.unitPrice * bi.item.quantity), 0);
+            
+            // Calcul dynamique des frais de livraison pour CETTE boutique précise
+            let supplement = INTER_DEPT_FEE; 
+            if (boutique && customerAddress) {
+                const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+                const normalizedBCommune = normalize(boutique.commune_label);
+                const normalizedCCommune = normalize(customerAddress.commune_label);
                 
-                for (const b of candidateBoutiques) {
-                    let currentSup = INTER_DEPT_FEE;
-                    
-                    const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-                    const normalizedBCommune = normalize(b.commune_label);
-                    const normalizedCCommune = normalize(customerAddress.commune_label);
-                    
-                    if (String(b.commune_id) === String(customerAddress.commune_id) || 
-                        (normalizedBCommune && normalizedBCommune === normalizedCCommune)) {
-                        currentSup = 0;
-                    } else if (String(b.departement_id) === String(customerAddress.departement_id)) {
-                        currentSup = INTRA_DEPT_FEE;
+                if (String(boutique.commune_id) === String(customerAddress.commune_id) || 
+                    (normalizedBCommune && normalizedBCommune === normalizedCCommune)) {
+                    supplement = 0;
+                } else if (String(boutique.departement_id) === String(customerAddress.departement_id)) {
+                    supplement = INTRA_DEPT_FEE;
+                } else {
+                    const crossingKey = `${boutique.departement_id}-${customerAddress.departement_id}`;
+                    const reverseKey = `${customerAddress.departement_id}-${boutique.departement_id}`;
+                    if (CROSSING_FEES[crossingKey] !== undefined) {
+                        supplement = parseFloat(CROSSING_FEES[crossingKey]);
+                    } else if (CROSSING_FEES[reverseKey] !== undefined) {
+                        supplement = parseFloat(CROSSING_FEES[reverseKey]);
                     } else {
-                        const crossingKey = `${b.departement_id}-${customerAddress.departement_id}`;
-                        const reverseKey = `${customerAddress.departement_id}-${b.departement_id}`;
-                        if (CROSSING_FEES[crossingKey] !== undefined) {
-                            currentSup = parseFloat(CROSSING_FEES[crossingKey]);
-                        } else if (CROSSING_FEES[reverseKey] !== undefined) {
-                            currentSup = parseFloat(CROSSING_FEES[reverseKey]);
-                        } else {
-                            currentSup = INTER_DEPT_FEE;
-                        }
+                        supplement = INTER_DEPT_FEE;
                     }
-                    if (currentSup < bestSupplement) bestSupplement = currentSup;
                 }
-                supplement = bestSupplement;
             } else {
                 supplement = 0;
             }
 
-            // BASE_FEE = frais de livraison déjà embarqués dans le prix public du produit.
-            // On le lit depuis la grille tarifaire en se basant sur le PRIX VENDEUR (supplier_price),
-            // car c'est sur ce prix que la grille est définie (pas sur le prix public).
-            const firstSupplierPrice = supplierItems[0].product.supplier_price || 0;
-            const BASE_FEE = computeDeliveryFee(firstSupplierPrice, deliveryTiers);
+            const firstItemPrice = boutiqueItems[0].product.supplier_price || 0;
+            const BASE_FEE = computeDeliveryFee(firstItemPrice, deliveryTiers);
 
             let sDeliveryFee = BASE_FEE + supplement;
-            const orderShareOfSubtotal = subtotal > 0 ? (sSubtotal / subtotal) : 1;
+            const orderShareOfSubtotal = subtotal > 0 ? (bSubtotal / subtotal) : 1;
             const sDiscount = totalDiscount * orderShareOfSubtotal;
-            
-            // Le total payé par le client inclut le sous-total (qui a déjà le BASE_FEE intégré) + le supplément dynamique
-            const sTotal = (sSubtotal - sDiscount) + supplement;
+            const sTotal = (bSubtotal - sDiscount) + supplement;
             
             const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
             const orderId = crypto.randomUUID();
@@ -384,9 +363,7 @@ export const createOrder = async (req, res) => {
             const order = await Order.create({
                 id: orderId,
                 user_id: userId,
-                guest_name,
-                guest_email,
-                guest_phone,
+                guest_name, guest_email, guest_phone,
                 address_id,
                 payment_method: payment_method || 'delivery',
                 payment_status: 'en_attente',
@@ -398,14 +375,16 @@ export const createOrder = async (req, res) => {
                 notes,
                 delivery_code: deliveryCode,
                 supplier_id: actualSupplierId,
-                items_count: supplierItems.length
+                boutique_id: actualBoutiqueId,
+                items_count: boutiqueItems.length
             }, { transaction });
 
-            for (const { product, item, unitPrice, variantData } of supplierItems) {
+            for (const { product, item, unitPrice, variantData } of boutiqueItems) {
                 await OrderItem.create({
                     order_id: order.id,
                     product_id: product.id,
                     variant_id: variantData?.variant_id || null,
+                    boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
                     price: unitPrice
                 }, { transaction });
@@ -413,31 +392,16 @@ export const createOrder = async (req, res) => {
                 if (variantData) {
                     await variantData.decrement('stock', { by: item.quantity, transaction });
                     await variantData.reload({ transaction });
-                    if (variantData.stock <= 5 && actualSupplierId) {
-                        Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                            const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
-                            if (phone) notifySupplierOfLowStock(phone, `${product.name} (${variantData.variant_id})`, variantData.stock);
-                        });
-                    }
                 } else if (product.stock !== undefined) {
                     await product.decrement('stock', { by: item.quantity, transaction });
                     await product.reload({ transaction });
-                    if (product.stock <= 5 && actualSupplierId) {
-                        Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                            const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
-                            if (phone) notifySupplierOfLowStock(phone, product.name, product.stock);
-                        });
-                    }
                 }
             }
             createdOrders.push(order);
 
-            // WhatsApp Notif to Supplier
-            if (actualSupplierId) {
-                Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'profile' }] }).then(supplier => {
-                    const phone = supplier?.whatsapp || supplier?.phone || supplier?.profile?.phone;
-                    if (phone) notifySupplierOfNewOrder(phone, order.id, order.total_amount);
-                });
+            // WhatsApp Notif to Boutique/Supplier
+            if (targetPhone) {
+                notifySupplierOfNewOrder(targetPhone, order.id, order.total_amount).catch(e => console.error("WA NOTIF ERR:", e));
             }
         }
 

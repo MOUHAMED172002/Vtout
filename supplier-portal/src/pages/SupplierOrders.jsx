@@ -104,11 +104,18 @@ const SupplierOrders = ({ globalSearchQuery }) => {
         }
     };
 
+    const uniqueBoutiques = Array.from(new Set(orders.flatMap(o => o.items?.map(i => i.boutique?.name).filter(Boolean))));
+    const [selectedBoutiqueFilter, setSelectedBoutiqueFilter] = useState('all');
+
     const filteredOrders = orders.filter(order => {
-        const matchSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (order.guest_name || '').toLowerCase().includes(searchQuery.toLowerCase());
-        const matchStatus = filterStatus === 'all' || normalizeStatus(order.status) === normalizeStatus(filterStatus);
-        return matchSearch && matchStatus;
+        const matchesStatus = filterStatus === 'all' || normalizeStatus(order.status) === normalizeStatus(filterStatus);
+        const matchesBoutique = selectedBoutiqueFilter === 'all' || order.items?.some(i => i.boutique?.name === selectedBoutiqueFilter);
+        const matchesSearch = searchQuery === "" || 
+            order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.items?.some(i => i.product?.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (order.guest_name && order.guest_name.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        return matchesStatus && matchesBoutique && matchesSearch;
     });
 
     if (loading) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse text-slate-300">CHARGEMENT...</div>;
@@ -135,7 +142,7 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                         className="w-full pl-12 pr-4 py-4 rounded-3xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 bg-white transition-shadow text-sm font-bold text-slate-700 placeholder:font-medium"
                     />
                 </div>
-                <div className="flex gap-2 bg-white p-2 rounded-full ring-1 ring-slate-200 overflow-x-auto hide-scrollbar">
+                <div className="flex flex-wrap gap-2 bg-white p-2 rounded-full ring-1 ring-slate-200 overflow-x-auto hide-scrollbar">
                     {['all', 'en_attente', 'confirmée', 'expédiée', 'livrée', 'annulée'].map(status => (
                         <button
                             key={status}
@@ -146,6 +153,20 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                         </button>
                     ))}
                 </div>
+
+                {uniqueBoutiques.length > 1 && (
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full ring-1 ring-slate-200">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Boutique :</span>
+                        <select 
+                            value={selectedBoutiqueFilter}
+                            onChange={(e) => setSelectedBoutiqueFilter(e.target.value)}
+                            className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none pr-4"
+                        >
+                            <option value="all">Toutes</option>
+                            {uniqueBoutiques.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                    </div>
+                )}
             </div>
 
             {/* Orders Grid */}
@@ -185,6 +206,13 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                             <p className="text-xs font-bold text-slate-400">
                                                 {new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} • {order.items_count} article(s)
                                             </p>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {Array.from(new Set(order.items?.map(i => i.boutique?.name).filter(Boolean))).map(b => (
+                                                    <span key={b} className="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-lg text-[8px] font-black uppercase tracking-widest border border-indigo-100">
+                                                        {b}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -272,25 +300,34 @@ const SupplierOrders = ({ globalSearchQuery }) => {
 
 
 
-                                {/* Products */}
-                                <div className="space-y-4">
-                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white sticky top-0 py-2">
-                                        Articles ({selectedOrder.items?.length || 0})
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {selectedOrder.items?.map(item => (
-                                            <div key={item.id} className="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-900 text-sm">{item.product?.name || 'Produit inconnu'}</span>
-                                                    <span className="text-xs text-slate-400">Qté: {item.quantity}</span>
-                                                </div>
-                                                <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                                    {(parseFloat(item.price) * 0.9 * item.quantity).toLocaleString()} F
-                                                </div>
-                                            </div>
-                                        ))}
+                {/* Products */}
+                <div className="space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white sticky top-0 py-2">
+                        Articles ({selectedOrder.items?.length || 0})
+                    </h3>
+                    <div className="space-y-3">
+                        {selectedOrder.items?.map(item => (
+                            <div key={item.id} className="p-4 bg-white border border-slate-100 rounded-2xl space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-slate-900 text-sm">{item.product?.name || 'Produit inconnu'}</span>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-xs text-slate-400">Qté: {item.quantity}</span>
+                                            {item.boutique && (
+                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-indigo-100">
+                                                    <MapPin size={8} /> {item.boutique.name} ({item.boutique.commune_label})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                        {(parseFloat(item.price) * 0.9 * item.quantity).toLocaleString()} F
                                     </div>
                                 </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
                             </div>
 

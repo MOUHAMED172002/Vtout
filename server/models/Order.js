@@ -68,6 +68,14 @@ const Order = sequelize.define('Order', {
             key: 'id'
         }
     },
+    boutique_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'boutiques',
+            key: 'id'
+        }
+    },
     assigned_at: {
         type: DataTypes.DATE,
         allowNull: true

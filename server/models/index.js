@@ -166,6 +166,10 @@ Boutique.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 Boutique.hasMany(Product, { foreignKey: 'boutique_id', as: 'products' });
 Product.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
 
+// Order <-> Boutique
+Boutique.hasMany(Order, { foreignKey: 'boutique_id', as: 'orders' });
+Order.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
+
 // Order <-> OrderItem
 Order.hasMany(OrderItem, { foreignKey: 'order_id', as: 'items' });
 OrderItem.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });

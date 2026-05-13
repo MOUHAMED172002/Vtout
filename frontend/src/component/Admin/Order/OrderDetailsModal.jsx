@@ -27,11 +27,7 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
       const data = await getOrderById(initialOrder.id, token);
       setOrderDetails(data);
 
-      // Load suggestions if not already assigned
-      if (!data.supplier_id) {
-        const suppliers = await getSuggestedSuppliers(initialOrder.id, token);
-        setSuggestedSuppliers(suppliers);
-      }
+      // Load livreurs if not already assigned
       if (!data.delivery_person_id) {
         const livreurs = await getLivreursList(token);
         setAvailableLivreurs(livreurs);
@@ -384,61 +380,28 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                     <UserCheck size={14} /> Gestion Logistique
                   </h4>
 
-                  {/* Supplier Assignment */}
+                  {/* Boutique / Supplier Info (Fixed in Marketplace) */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fournisseur</p>
-                      {order.supplier && <span className="badge badge-success badge-sm text-[8px] font-bold text-slate-900">ASSIGNÉ</span>}
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Boutique d'origine</p>
+                      <span className="badge badge-success badge-sm text-[8px] font-bold text-slate-900">AUTO-ASSIGNÉ</span>
                     </div>
-                    {order.supplier ? (
+                    {order.boutique || order.supplier ? (
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
                         <div className="w-10 h-10 bg-emerald-100 text-emerald-500 rounded-xl flex items-center justify-center">
                           <Store size={20} />
                         </div>
                         <div className="flex-1">
-                          <p className="font-black text-slate-900 text-sm">{order.supplier.name}</p>
-                          <p className="text-[10px] font-bold text-emerald-600">{order.supplier.phone} · {order.supplier.commune}</p>
+                          <p className="font-black text-slate-900 text-sm">{(order.boutique?.name || order.supplier?.name)}</p>
+                          <p className="text-[10px] font-bold text-emerald-600">
+                            {(order.boutique?.phone || order.supplier?.phone)} · {(order.boutique?.commune_label || order.boutique?.commune || order.supplier?.commune)}
+                          </p>
                         </div>
-                        <button onClick={() => setSuggestedSuppliers([]) || handleAssignSupplier(null)} className="text-xs font-bold text-slate-400 hover:text-rose-500">Changer</button>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {suggestedSuppliers.length > 0 ? (
-                          <div className="grid grid-cols-1 gap-2">
-                            {suggestedSuppliers.slice(0, 3).map(s => (
-                              <button
-                                key={s.id}
-                                onClick={() => handleAssignSupplier(s.id)}
-                                disabled={assigningSupplier}
-                                className="flex items-center gap-4 p-3 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 rounded-2xl transition-all text-left group"
-                              >
-                                <div className="w-8 h-8 bg-white text-slate-400 rounded-lg flex items-center justify-center group-hover:text-primary transition-colors">
-                                  <Store size={16} />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-bold text-slate-900 text-xs">
-                                    {s.name}
-                                  </p>
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-[9px] text-slate-500">{s.commune} · {s.arrondissement || s.quartier || 'Localisation inconnue'}</p>
-                                    {s.proximityScore === 3 && (
-                                      <span className="text-[8px] font-black uppercase text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-full">Arrondissement</span>
-                                    )}
-                                    {s.proximityScore === 2 && (
-                                      <span className="text-[8px] font-black uppercase text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full">Commune</span>
-                                    )}
-                                    {s.proximityScore === 1 && (
-                                      <span className="text-[8px] font-black uppercase text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-full">Département</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <ChevronDown size={14} className="text-slate-300 -rotate-90" />
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-[10px] text-slate-400 italic">Aucun fournisseur suggéré trouvé.</p>
-                        )}
+                      <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 text-rose-500 flex items-center gap-3">
+                        <AlertCircle size={18} />
+                        <p className="text-[10px] font-bold uppercase">Erreur: Aucune boutique liée</p>
                       </div>
                     )}
                   </div>

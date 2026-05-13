@@ -35,7 +35,7 @@ const PortalSwitcher = () => {
         id: 'user',
         name: 'Acheteur',
         icon: ShoppingBag,
-        url: MAIN_SITE_URL + '/user/dashboard',
+        url: MAIN_SITE_URL,
         isActive: isBuyerPortalActive,
         color: 'text-primary',
         bg: 'bg-primary/10'

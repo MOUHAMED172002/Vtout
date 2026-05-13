@@ -62,13 +62,24 @@ const SupplierDashboard = ({ globalSearchQuery }) => {
     }, [getToken]);
 
     const filteredProducts = products.filter(p => {
-        const matchBoutique = selectedBoutiqueId === 'all' || p.boutique_id === selectedBoutiqueId;
+        let matchBoutique = selectedBoutiqueId === 'all';
+        if (!matchBoutique) {
+            const isPrimary = String(p.boutique_id) === String(selectedBoutiqueId);
+            let isSecondary = false;
+            if (p.secondary_boutique_ids) {
+                const secondaries = Array.isArray(p.secondary_boutique_ids) 
+                    ? p.secondary_boutique_ids 
+                    : (typeof p.secondary_boutique_ids === 'string' ? JSON.parse(p.secondary_boutique_ids) : []);
+                isSecondary = secondaries.some(id => String(id) === String(selectedBoutiqueId));
+            }
+            matchBoutique = isPrimary || isSecondary;
+        }
         const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchBoutique && matchSearch;
     });
 
     const filteredOrders = orders.filter(o => {
-        const matchBoutique = selectedBoutiqueId === 'all' || o.boutique_id === selectedBoutiqueId;
+        const matchBoutique = selectedBoutiqueId === 'all' || String(o.boutique_id) === String(selectedBoutiqueId);
         const matchSearch = o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (o.guest_name || '').toLowerCase().includes(searchQuery.toLowerCase());
         return matchBoutique && matchSearch;

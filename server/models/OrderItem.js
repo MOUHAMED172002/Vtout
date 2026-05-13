@@ -19,6 +19,10 @@ const OrderItem = sequelize.define('OrderItem', {
         type: DataTypes.CHAR(36),
         allowNull: true
     },
+    boutique_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
     quantity: {
         type: DataTypes.INTEGER,
         allowNull: false
