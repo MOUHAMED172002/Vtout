@@ -342,6 +342,21 @@ app.get("/api/diag", async (req, res) => {
         results.suppliers = 'OK';
     } catch (e) { results.suppliers = e.message; }
 
+    // 📊 NOUVEAU: Statistiques de données pour débugger les boutiques manquantes
+    try {
+        const [boutiqueCount] = await sequelize.query('SELECT COUNT(*) as count FROM boutiques');
+        const [supplierCount] = await sequelize.query('SELECT COUNT(*) as count FROM suppliers');
+        const [samples] = await sequelize.query('SELECT id, name, user_id FROM suppliers LIMIT 5');
+        const [boutiqueSamples] = await sequelize.query('SELECT id, name, supplier_id FROM boutiques LIMIT 5');
+        
+        results.stats = {
+            total_boutiques: boutiqueCount[0].count,
+            total_suppliers: supplierCount[0].count,
+            supplier_samples: samples,
+            boutique_samples: boutiqueSamples
+        };
+    } catch (e) { results.stats_error = e.message; }
+
     res.json(results);
 });
 
