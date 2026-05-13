@@ -295,11 +295,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     };
 
     const effectiveRate = findEffectiveRate(selectedCategoryId);
+    console.log("Commission Diagnosis:", { 
+      selectedCategoryId, 
+      foundRate: effectiveRate, 
+      currentCommissionRate: commissionRate 
+    });
+
     if (effectiveRate !== null) {
       setCommissionRate(prev => prev !== effectiveRate ? effectiveRate : prev);
-    } else {
-      // Fallback to global config already fetched in fetchData()
-      // which is stored in commissionRate initially or updated from API
     }
   }, [selectedCategoryId, categories]);
 
@@ -859,10 +862,10 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net</p>
-                            <p className="text-sm font-black">{Number(globalSupplierPrice).toLocaleString()} F</p>
-                        </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Votre gain net ({Math.round(100 - commissionRate)}%)</p>
+                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatPrice(globalSupplierPrice)} F</p>
+                          </div>
                         <div className="space-y-1">
                             <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
                             <div className="flex items-center gap-1.5">
