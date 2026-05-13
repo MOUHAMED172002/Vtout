@@ -92,7 +92,7 @@ export default function ProductGrid({ products = [], showButton = true, title = 
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 lg:gap-8"
         >
           {products.length > 0 ? (
-            products.slice(0, 12).map((product) => (
+            products.slice(0, 20).map((product) => (
               <motion.div key={product.id} variants={itemVariants}>
                 <ProductCard product={product} />
               </motion.div>
@@ -109,15 +109,20 @@ export default function ProductGrid({ products = [], showButton = true, title = 
         </motion.div>
       )}
 
-      {/* Responsive View All Button */}
+      {/* Responsive View All Button - Always visible at bottom */}
       {showButton && (
         <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="mt-12 text-center md:hidden"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 text-center"
         >
-          <Link to="/products-liste" className="inline-flex h-14 items-center px-10 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 active:scale-95 transition-transform">
-            Tout explorer
+          <Link 
+            to="/products-liste" 
+            className="inline-flex h-16 items-center px-12 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-slate-200 hover:bg-primary hover:shadow-primary/30 active:scale-95 transition-all group gap-4"
+          >
+            Tout explorer le catalogue
+            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
           </Link>
         </motion.div>
       )}
