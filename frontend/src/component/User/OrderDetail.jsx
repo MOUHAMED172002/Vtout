@@ -22,6 +22,7 @@ import {
   PackageCheck,
   XCircle,
   Store,
+  Lock,
   User as UserIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -295,10 +296,46 @@ export default function OrderDetail() {
                 Détails de <span className="text-slate-400">Commande.</span>
               </h1>
             </div>
+            </div>
           </div>
-        </div>
-
-        {/* ── Timeline ── */}
+ 
+          {/* ── Security OTP Card (Visible during delivery) ── */}
+          {normalizedStatus === "expediee" && order.delivery_code && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="p-8 bg-indigo-600 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-200 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                <ShieldCheck size={120} />
+              </div>
+              
+              <div className="relative z-10 space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black tracking-tight">Code de Livraison.</h3>
+                  <p className="text-indigo-100 text-xs font-bold leading-relaxed max-w-[240px]">
+                    Ne communiquez ce code au livreur qu'après avoir reçu et vérifié votre colis.
+                  </p>
+                </div>
+ 
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-3xl border border-white/30">
+                    <span className="text-4xl font-black tracking-[0.2em]">{order.delivery_code}</span>
+                  </div>
+                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center animate-pulse">
+                    <Lock size={20} />
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-200">
+                  <span className="w-2 h-2 bg-indigo-300 rounded-full animate-ping" />
+                  Sécurisé par Vtout Marketplace
+                </div>
+              </div>
+            </motion.div>
+          )}
+ 
+          {/* ── Progress Section ── */}
         {!isCancelled ? (
           <div className="px-10 md:px-14 py-8 border-b border-slate-50 bg-slate-50/30 overflow-x-auto">
             <div className="flex items-start min-w-max gap-0">

@@ -5,7 +5,12 @@ WORKDIR /app
 
 # On copie depuis le sous-dossier frontend
 COPY frontend/package*.json ./
-RUN npm install
+
+# Configuration pour rendre npm plus résistant aux coupures réseau
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm ci
 
 COPY frontend/ .
 RUN npm run build
