@@ -540,6 +540,13 @@ sequelize.authenticate()
                     { table: 'suppliers',             col: 'quartier_label',             def: { type: DataTypes.STRING,          allowNull: true } },
                     { table: 'suppliers',             col: 'lat',                        def: { type: DataTypes.DECIMAL(10, 8), allowNull: true } },
                     { table: 'suppliers',             col: 'lng',                        def: { type: DataTypes.DECIMAL(11, 8), allowNull: true } },
+                    // Marketplace updates (New)
+                    { table: 'categories',            col: 'commission_rate',            def: { type: DataTypes.DECIMAL(5, 2),  allowNull: true } },
+                    { table: 'orders',                col: 'dispute_status',             def: { type: DataTypes.STRING(30),     allowNull: true } },
+                    { table: 'orders',                col: 'is_parent',                  def: { type: DataTypes.BOOLEAN,        defaultValue: false } },
+                    { table: 'orders',                col: 'parent_id',                  def: { type: DataTypes.CHAR(36),       allowNull: true } },
+                    { table: 'support_messages',      col: 'order_id',                   def: { type: DataTypes.CHAR(36),       allowNull: true } },
+                    { table: 'support_messages',      col: 'type',                       def: { type: DataTypes.STRING(20),     defaultValue: 'message' } },
                 ];
 
 
