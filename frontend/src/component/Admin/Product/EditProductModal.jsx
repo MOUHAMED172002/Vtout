@@ -216,6 +216,14 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     return path.join(' > ');
   }, [selectedCategory, categories]);
 
+  // Update commission rate based on selected category
+  useEffect(() => {
+    if (selectedCategory && selectedCategory.commission_rate != null) {
+      const rate = parseFloat(selectedCategory.commission_rate);
+      setCommissionRate(prev => prev !== rate ? rate : prev);
+    }
+  }, [selectedCategory]);
+
   // ── Chargement initial ─────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {

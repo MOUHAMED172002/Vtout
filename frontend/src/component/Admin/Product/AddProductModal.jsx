@@ -282,6 +282,15 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     return variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
   }, [variants]);
 
+  // Update commission rate based on selected category
+  useEffect(() => {
+    if (selectedCategory && selectedCategory.commission_rate != null) {
+      const rate = parseFloat(selectedCategory.commission_rate);
+      // Only update if it's different to avoid infinite loops with the other effects
+      setCommissionRate(prev => prev !== rate ? rate : prev);
+    }
+  }, [selectedCategory]);
+
   const fetchData = async () => {
     try {
       const cats = await getCategories();
