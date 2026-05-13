@@ -204,44 +204,44 @@ const AdminLayout = () => {
         }
       case "Produits":
         switch (selectedSub) {
-          case "productsList": return <ProductsAdmin />;
+          case "productsList": return <ProductsAdmin globalSearchQuery={searchQuery} />;
           case "addProduct": return <AddProductModal onClose={() => setSelectedSub("productsList")} layout="page" />;
-          case "editProduct": return <FournisseurListe />;
+          case "editProduct": return <FournisseurListe globalSearchQuery={searchQuery} />;
           case "categories": return <CategorySelect />;
           case "variants": return <VariantManager />;
-          default: return <ProductsAdmin />;
+          default: return <ProductsAdmin globalSearchQuery={searchQuery} />;
         }
       case "Fournisseurs":
         switch (selectedSub) {
-          case "suppliersList": return <SuppliersManager />;
-          case "productsApproval": return <SupplierProductsApproval />;
-          case "boutiquesCatalog": return <BoutiquesCatalogManager />;
-          default: return <SuppliersManager />;
+          case "suppliersList": return <SuppliersManager globalSearchQuery={searchQuery} />;
+          case "productsApproval": return <SupplierProductsApproval globalSearchQuery={searchQuery} />;
+          case "boutiquesCatalog": return <BoutiquesCatalogManager globalSearchQuery={searchQuery} />;
+          default: return <SuppliersManager globalSearchQuery={searchQuery} />;
         }
       case "Commandes":
         switch (selectedSub) {
-          case "ordersList": return <OrdersAdmin />;
+          case "ordersList": return <OrdersAdmin globalSearchQuery={searchQuery} />;
           case "orderDetails": return <OrderDetailsModal />;
           case "orderStatus": return <OrderStatusBadge />;
-          case "delivery": return <DeliveryManager />;
+          case "delivery": return <DeliveryManager globalSearchQuery={searchQuery} />;
           case "invoice": return <InvoiceButton />;
           case "disputes": return <DisputeManager />;
-          default: return <OrdersAdmin />;
+          default: return <OrdersAdmin globalSearchQuery={searchQuery} />;
         }
       case "Logistique":
         switch (selectedSub) {
-          case "livreurs": return <LivreurManager />;
+          case "livreurs": return <LivreurManager globalSearchQuery={searchQuery} />;
           case "controlTower": return <AdminControlTower />;
           case "cashControl": return <CashControl />;
           case "dailyStats": return <DailyStats />;
-          default: return <LivreurManager />;
+          default: return <LivreurManager globalSearchQuery={searchQuery} />;
         }
       case "Utilisateurs":
         switch (selectedSub) {
-          case "usersList": return <UsersAdmin />;
+          case "usersList": return <UsersAdmin globalSearchQuery={searchQuery} />;
           case "userDetails": return <UserDetailsModal />;
           case "userStatus": return <UserStatusToggle />;
-          default: return <UsersAdmin />;
+          default: return <UsersAdmin globalSearchQuery={searchQuery} />;
         }
       case "Finances":
         switch (selectedSub) {

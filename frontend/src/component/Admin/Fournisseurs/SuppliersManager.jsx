@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getSuppliers, updateSupplierStatus, deleteSupplier, notifyIncompleteSuppliers } from '../../../services/supplierService';
 import { useAuth } from "../../../lib/AuthHooks";
-import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus, Bell, UserPlus, Wallet } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, MapPin, Phone, MessageCircle, MoreVertical, Trash2, Ban, Plus, Bell, UserPlus, Wallet, Search, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddBoutiqueModal from './AddBoutiqueModal';
 import SupplierWalletModal from './SupplierWalletModal';
 import AddSupplierModal from './AddSupplierModal';
 
 
-const SuppliersManager = () => {
+const SuppliersManager = ({ globalSearchQuery = "" }) => {
     const [suppliers, setSuppliers] = useState([]);
+    const [localSearch, setLocalSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [notifying, setNotifying] = useState(false);
     const [showAddSupplier, setShowAddSupplier] = useState(false);
@@ -36,6 +37,15 @@ const SuppliersManager = () => {
     useEffect(() => {
         fetchSuppliers();
     }, []);
+
+    const filteredSuppliers = suppliers.filter(s => {
+        const query = (localSearch || globalSearchQuery).toLowerCase();
+        return (
+            s.name?.toLowerCase().includes(query) ||
+            s.user?.email?.toLowerCase().includes(query) ||
+            s.user?.phone?.includes(query)
+        );
+    });
 
     const handleStatusUpdate = async (id, newStatus) => {
         try {
@@ -114,26 +124,44 @@ const SuppliersManager = () => {
 
     return (
         <div className="space-y-6 lg:space-y-8 pb-20">
-            <div className="px-2 lg:px-0">
-                <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-base-content mb-1">Gestion des Marchands</h2>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2 lg:px-0">
+                <div>
+                    <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-base-content mb-1">Gestion des Marchands</h2>
                     <p className="text-base-content/70 font-bold uppercase tracking-[0.2em] text-[9px] lg:text-[10px]">Validation et suivi des partenaires</p>
-                    <div className="flex items-center gap-3">
-                        <button 
-                            onClick={handleNotifyIncomplete}
-                            disabled={notifying}
-                            className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-amber-500/20 text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
-                        >
-                            <Bell size={16} className={notifying ? 'animate-bounce' : ''} /> 
-                            {notifying ? 'Envoi...' : 'Relancer Profils Incomplets'}
-                        </button>
-                        <button 
-                            onClick={() => setShowAddSupplier(true)}
-                            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 text-[10px] font-black uppercase tracking-widest"
-                        >
-                            <UserPlus size={16} /> Nouveau Marchand
-                        </button>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm w-full lg:w-auto focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                        <Search size={18} className="text-slate-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Rechercher..."
+                            className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full lg:w-48"
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
+                        />
                     </div>
+                    <button 
+                        onClick={handleNotifyIncomplete}
+                        disabled={notifying}
+                        className="p-3 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-2xl border border-amber-100 transition-all shadow-sm shadow-amber-100/20"
+                        title="Relancer Profils Incomplets"
+                    >
+                        <Bell size={18} className={notifying ? 'animate-bounce' : ''} /> 
+                    </button>
+                    <button 
+                        onClick={fetchSuppliers}
+                        className="p-3 bg-white text-slate-400 hover:text-primary rounded-2xl border border-slate-100 shadow-sm transition-all"
+                        title="Actualiser"
+                    >
+                        <RefreshCcw size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setShowAddSupplier(true)}
+                        className="btn btn-primary rounded-2xl px-8 h-14 font-black shadow-xl shadow-primary/20 gap-3 text-[10px] lg:text-xs tracking-widest uppercase"
+                    >
+                        <UserPlus size={18} /> Ajouter
+                    </button>
                 </div>
             </div>
 
@@ -153,8 +181,8 @@ const SuppliersManager = () => {
                         </thead>
 
                         <tbody className="divide-y divide-base-content/10">
-                            {suppliers.length > 0 ? (
-                                suppliers.map((supplier) => (
+                            {filteredSuppliers.length > 0 ? (
+                                filteredSuppliers.map((supplier) => (
                                     <motion.tr
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}

@@ -8,29 +8,45 @@ import toast from "react-hot-toast";
 import { Package, Plus, Search, Filter, RefreshCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function ProductsAdmin() {
+export default function ProductsAdmin({ globalSearchQuery = "" }) {
   const { getToken } = useAuth();
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [localSearch, setLocalSearch] = useState("");
 
-  async function fetchProducts() {
+  const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Charge uniquement les produits APPROUVÉS dans la liste générale
-      const data = await getProducts({ isAdmin: 'true', approval_status: 'approved' });
-      setProducts(data.products || data || []);
-    } catch (err) {
-      console.error(err);
+      // Use search if provided, otherwise fetch all admin-viewable products
+      const query = localSearch || globalSearchQuery;
+      const data = await getProducts({ 
+        isAdmin: 'true', 
+        approval_status: 'approved',
+        search: query 
+      });
+      
+      // Extract products from paginated response
+      if (data && data.products) {
+        setProducts(data.products);
+      } else if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error("Erreur chargement produits admin:", error);
       toast.error("Échec de la synchronisation");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+  }, [globalSearchQuery]);
 
   async function handleCreate(payload) {
     const token = await getToken();
@@ -80,6 +96,9 @@ export default function ProductsAdmin() {
             <Search size={18} className="text-slate-400" />
             <input
               type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
               placeholder="Chercher un produit..."
               className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 flex-1 lg:w-48"
             />

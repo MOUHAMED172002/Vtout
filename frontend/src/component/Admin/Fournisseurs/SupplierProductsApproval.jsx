@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, updateProduct, mergeProducts, searchProducts, deleteProduct } from '../../../services/productService';
 import { useAuth } from "../../../lib/AuthHooks";
-import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2, Package } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, AlertCircle, Save, Edit3, Trash2, Package, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-const SupplierProductsApproval = () => {
+const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [feedback, setFeedback] = useState('');
     const [retailPrice, setRetailPrice] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
+    const [localSearch, setLocalSearch] = useState("");
     const { getToken } = useAuth();
 
     const fetchPendingProducts = async () => {
         try {
             setLoading(true);
             // On récupère tous les produits avec le status En attente (en précisant qu'on est admin)
-            const data = await getProducts({ approval_status: 'En attente', isAdmin: 'true' });
+            const query = localSearch || globalSearchQuery;
+            const data = await getProducts({ 
+                approval_status: 'En attente', 
+                isAdmin: 'true',
+                search: query
+            });
             setProducts(data.products || data || []);
         } catch (error) {
             console.error('Erreur chargement produits:', error);
@@ -30,7 +34,7 @@ const SupplierProductsApproval = () => {
 
     useEffect(() => {
         fetchPendingProducts();
-    }, []);
+    }, [globalSearchQuery]);
 
     const handleApprove = async (product) => {
         try {
@@ -102,6 +106,26 @@ const SupplierProductsApproval = () => {
             <div>
                 <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Approbation Produits</h2>
                 <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Modération des catalogues fournisseurs</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm mb-6">
+                <div className="flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100 w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <Search size={18} className="text-slate-400" />
+                    <input 
+                        type="text" 
+                        placeholder="Rechercher un produit en attente..."
+                        className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full"
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && fetchPendingProducts()}
+                    />
+                </div>
+                <button 
+                    onClick={fetchPendingProducts}
+                    className="p-3 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all"
+                >
+                    <Package size={18} />
+                </button>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-slate-900">

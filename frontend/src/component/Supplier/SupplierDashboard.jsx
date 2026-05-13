@@ -6,7 +6,7 @@ import AddressSelector from '../context/AddressSelector';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell, Search } from 'lucide-react';
 import PortalSwitcher from '../Shared/PortalSwitcher';
 import ThemeSelector from '../context/ThemeSelector';
 import NotificationCenter from '../Shared/NotificationCenter';
@@ -167,12 +167,29 @@ const SupplierDashboard = () => {
                 {/* Product Status */}
                 <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-8">
-                        <h3 className="text-xl font-black tracking-tighter">Mes Produits Récents</h3>
-                        <button className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline">Voir tout</button>
+                        <div>
+                            <h3 className="text-xl font-black tracking-tighter">Mes Produits</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestion du catalogue</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="hidden sm:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                                <Search size={14} className="text-slate-400" />
+                                <input 
+                                    type="text"
+                                    placeholder="Rechercher..."
+                                    className="bg-transparent border-none text-xs font-bold text-slate-600 focus:ring-0 w-24 lg:w-40"
+                                    value={localSearch}
+                                    onChange={(e) => setLocalSearch(e.target.value)}
+                                />
+                            </div>
+                            <button className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline">Voir tout</button>
+                        </div>
                     </div>
 
                     <div className="space-y-6">
-                        {products.map((product) => (
+                        {products
+                            .filter(p => p.name.toLowerCase().includes(localSearch.toLowerCase()))
+                            .map((product) => (
                             <div key={product.id} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 transition-colors group cursor-pointer">
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 bg-white rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform">
