@@ -44,9 +44,8 @@ export default function ProductPages() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show sticky bar only BEFORE reaching the buttons (when they are below the viewport)
-        // Hidden when buttons are visible OR when they are passed (scrolled above)
-        setShowSticky(!entry.isIntersecting && entry.boundingClientRect.top > 0);
+        // Show sticky bar whenever the main actions are NOT visible
+        setShowSticky(!entry.isIntersecting);
       },
       { threshold: 0 }
     );
@@ -541,35 +540,38 @@ export default function ProductPages() {
               </button>
             </div>
 
-            {/* Mobile Sticky CTA Bar - Conditional */}
+            {/* Mobile Sticky CTA Bar - Premium & Informative */}
             <AnimatePresence>
               {showSticky && (
                 <motion.div
                   initial={{ y: 100, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0 }}
-                  className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]"
+                  className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
                 >
-                  <div className="flex gap-3">
-                    <div className="join border-2 border-gray-100 rounded-xl overflow-hidden h-12">
-                      <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="join-item text-gray-400 px-3">-</button>
-                      <div className="join-item flex items-center px-3 font-bold text-gray-900 bg-white">{quantity}</div>
-                      <button onClick={() => setQuantity(q => q + 1)} className="join-item text-gray-400 px-3">+</button>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest truncate">{product.name}</span>
+                      <span className="text-lg font-black text-slate-900 leading-none">
+                        {formatPrice(displayPrice.current)} <span className="text-xs text-primary">F</span>
+                      </span>
                     </div>
-                    <button
-                      onClick={handleAddToCart}
-                      disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
-                      className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-                    >
-                      <ShoppingCart size={18} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
-                    </button>
-                    <button
-                      onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
-                      disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
-                      className="px-4 bg-gray-900 text-white h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
-                    >
-                      Acheter
-                    </button>
+                    <div className="flex gap-2 flex-1 justify-end">
+                        <button
+                        onClick={handleAddToCart}
+                        disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                        className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
+                        >
+                        <ShoppingCart size={16} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
+                        </button>
+                        <button
+                        onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
+                        disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                        className="px-4 bg-gray-900 text-white h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 text-xs"
+                        >
+                        Acheter
+                        </button>
+                    </div>
                   </div>
                 </motion.div>
               )}

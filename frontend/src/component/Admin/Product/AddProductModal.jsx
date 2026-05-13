@@ -16,7 +16,8 @@ import {
   createAttribute,
   addAttributeValue,
   createProduct,
-  getProducts
+  getProducts,
+  createCategory
 } from '../../../services/productService';
 import { getSuppliers, createSupplier } from '../../../services/supplierService';
 import { uploadSingleImage } from '../../../services/uploadService';
@@ -105,6 +106,23 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const [existingProduct, setExistingProduct] = useState(null);
   const [deliveryTiers, setDeliveryTiers] = useState(DEFAULT_DELIVERY_TIERS);
   const [currentDeliveryFee, setCurrentDeliveryFee] = useState(1000);
+  
+  // Suppliers States
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
+  const [globalSupplierPrice, setGlobalSupplierPrice] = useState("");
+  const [creatingSupplier, setCreatingSupplier] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(false);
+  const [newSupplierData, setNewSupplierData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address_line: "",
+    departement_label: "",
+    commune_label: "",
+    quartier_label: ""
+  });
+  const [commissionRate, setCommissionRate] = useState(10);
+  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
   // Fetch Delivery Configs
   useEffect(() => {
@@ -128,22 +146,6 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     const fee = computeDeliveryFee(globalSupplierPrice, deliveryTiers);
     setCurrentDeliveryFee(fee);
   }, [globalSupplierPrice, deliveryTiers]);
-
-  // Suppliers States
-  const [selectedSupplierId, setSelectedSupplierId] = useState("");
-  const [globalSupplierPrice, setGlobalSupplierPrice] = useState("");
-  const [creatingSupplier, setCreatingSupplier] = useState(false);
-  const [newSupplierData, setNewSupplierData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    address_line: "",
-    departement_label: "",
-    commune_label: "",
-    quartier_label: ""
-  });
-  const [commissionRate, setCommissionRate] = useState(10);
-  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
   // ✅ useMemo AFTER all useState hooks
   const steps = useMemo(() => {

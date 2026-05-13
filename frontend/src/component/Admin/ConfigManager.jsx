@@ -52,15 +52,7 @@ const ConfigManager = () => {
             // Organize by group
             const uniqueData = data.filter((v, i, a) => a.findIndex(t => t.key === v.key) === i);
             
-            // Ensure commission_rate exists in the UI even if not in DB
-            if (!uniqueData.find(c => c.key === 'commission_rate')) {
-                uniqueData.push({
-                    key: 'commission_rate',
-                    value: '10',
-                    group: 'marketplace',
-                    description: 'Pourcentage prélevé sur chaque vente (ex: 10 pour 10%)'
-                });
-            }
+            // Ensure marketplace configs exist in the UI even if not in DB
 
             // Gestion des frais de livraison dynamiques
             if (!uniqueData.find(c => c.key === 'base_delivery_fee')) {
