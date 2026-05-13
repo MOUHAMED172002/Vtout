@@ -3,6 +3,31 @@ import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierPro
 import { Op } from 'sequelize';
 import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../services/deliveryFeeService.js';
+
+const processProductsForCommunes = async (products) => {
+    const tiers = await getDeliveryFeeTiers();
+    return await Promise.all(products.map(async (p) => {
+        const product = p.toJSON ? p.toJSON() : p;
+        product.free_delivery_communes = [];
+        if (product.boutique?.commune_label) {
+            product.free_delivery_communes.push(product.boutique.commune_label);
+        }
+        
+        if (product.secondary_boutique_ids && Array.isArray(product.secondary_boutique_ids) && product.secondary_boutique_ids.length > 0) {
+            const secBoutiques = await Boutique.findAll({
+                where: { id: product.secondary_boutique_ids },
+                attributes: ['commune_label']
+            });
+            secBoutiques.forEach(b => {
+                if (b.commune_label && !product.free_delivery_communes.includes(b.commune_label)) {
+                    product.free_delivery_communes.push(b.commune_label);
+                }
+            });
+        }
+        return product;
+    }));
+};
 
 export const getAllProducts = async (req, res) => {
     try {
@@ -136,31 +161,9 @@ export const getAllProducts = async (req, res) => {
             ]
         };
 
-        if (limit) findOptions.limit = parseInt(limit);
-
         const { rows: products, count } = await Product.findAndCountAll(findOptions);
 
-        // Map secondary boutiques communes
-        const processedProducts = await Promise.all(products.map(async (p) => {
-            const product = p.toJSON();
-            product.free_delivery_communes = [];
-            if (product.boutique?.commune_label) {
-                product.free_delivery_communes.push(product.boutique.commune_label);
-            }
-            
-            if (product.secondary_boutique_ids && Array.isArray(product.secondary_boutique_ids) && product.secondary_boutique_ids.length > 0) {
-                const secBoutiques = await Boutique.findAll({
-                    where: { id: product.secondary_boutique_ids },
-                    attributes: ['commune_label']
-                });
-                secBoutiques.forEach(b => {
-                    if (b.commune_label && !product.free_delivery_communes.includes(b.commune_label)) {
-                        product.free_delivery_communes.push(b.commune_label);
-                    }
-                });
-            }
-            return product;
-        }));
+        const processedProducts = await processProductsForCommunes(products);
 
         res.json({
             products: processedProducts,
@@ -298,10 +301,13 @@ export const searchProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
             ],
             limit: 20
         });
+
+        const processedProducts = await processProductsForCommunes(products);
 
         const matchingCategories = await Category.findAll({
             where: { name: { [Op.like]: `%${q}%` } },
@@ -337,15 +343,22 @@ export const searchProducts = async (req, res) => {
                         as: 'variants',
                         include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                     },
-                    { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
+                    { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                    { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
                 ],
-                limit: 20 - products.length
+                limit: 10
             });
-            products.push(...extraProducts);
+            const processedExtra = await processProductsForCommunes(extraProducts);
+            processedProducts.push(...processedExtra);
         }
 
+        res.json({
+            products: processedProducts,
+            categories: matchingCategories
+        });
+
         // Log search failure if nothing found
-        if (products.length === 0) {
+        if (products.length === 0 && matchingCategories.length === 0) {
             try {
                 await FailedSearch.create({
                     query: q,
@@ -446,15 +459,18 @@ export const createProduct = async (req, res) => {
             if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
         } catch (err) { console.error('Erreur commission_rate', err); }
 
+        // Calcul dynamique des frais de livraison par tranche
+        const tiers = await getDeliveryFeeTiers();
         let finalPrice = price;
         let calculatedSupplierPrice = supplier_price;
 
-        // Strictly enforce commission rate calculation on backend (excluding the 1000F delivery fee)
-        const DELIVERY_FEE = 1000;
-        if (finalPrice !== undefined && finalPrice > DELIVERY_FEE) {
-            calculatedSupplierPrice = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
+        // Strictly enforce commission rate calculation on backend (excluding dynamic delivery fee)
+        if (finalPrice !== undefined && finalPrice > 0) {
+            const deliveryFee = computeDeliveryFee(finalPrice, tiers);
+            calculatedSupplierPrice = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
         } else if (calculatedSupplierPrice !== undefined && !finalPrice) {
-            finalPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate)) + DELIVERY_FEE;
+            finalPrice = computePublicPrice(calculatedSupplierPrice, tiers);
+            calculatedSupplierPrice = Math.round(calculatedSupplierPrice * (1 - commissionRate));
         }
 
 
@@ -639,17 +655,22 @@ export const updateProduct = async (req, res) => {
             if (configRate && configRate.value) commissionRate = parseFloat(configRate.value) / 100;
         } catch (err) { console.error('Erreur commission rate', err); }
 
-        const DELIVERY_FEE = 1000;
+        // Calcul dynamique des frais de livraison par tranche
+        const tiers = await getDeliveryFeeTiers();
+        let finalPrice = price;
+
         if (isSupplier && !isAdmin) {
-            if (finalPrice !== undefined && finalPrice > DELIVERY_FEE) {
-                supplier_price = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
+            if (finalPrice !== undefined && finalPrice > 0) {
+                const deliveryFee = computeDeliveryFee(finalPrice, tiers);
+                supplier_price = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
             }
         } else {
             // For admins, allow explicit supplier_price, but sync if missing
-            if (finalPrice !== undefined && supplier_price === undefined && finalPrice > DELIVERY_FEE) {
-                supplier_price = Math.round((finalPrice - DELIVERY_FEE) * (1 - commissionRate));
+            if (finalPrice !== undefined && supplier_price === undefined && finalPrice > 0) {
+                const deliveryFee = computeDeliveryFee(finalPrice, tiers);
+                supplier_price = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
             } else if (finalPrice === undefined && supplier_price !== undefined) {
-                finalPrice = Math.round(supplier_price / (1 - commissionRate)) + DELIVERY_FEE;
+                finalPrice = computePublicPrice(supplier_price, tiers);
             }
         }
 
@@ -1007,13 +1028,16 @@ export const getRelatedProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] }
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
             ],
             limit: 12,
             order: sequelize.literal('RAND()')
         });
 
-        res.json(related);
+        const processedProducts = await processProductsForCommunes(related);
+
+        res.json(processedProducts);
     } catch (error) {
         console.error('getRelatedProducts error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des produits similaires' });
@@ -1080,11 +1104,13 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
             },
             include: [
                 { model: Category, as: 'category' },
-                { model: ProductImage, as: 'images' }
+                { model: ProductImage, as: 'images' },
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
             ]
         });
 
-        res.json(products);
+        const processed = await processProductsForCommunes(products);
+        res.json(processed);
     } catch (error) {
         console.error('getFrequentlyBoughtTogether error:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des produits achetés ensemble' });
