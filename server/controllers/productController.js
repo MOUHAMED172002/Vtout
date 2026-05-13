@@ -6,7 +6,7 @@ import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, isFlashSale, approval_status } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, approval_status } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -14,6 +14,13 @@ export const getAllProducts = async (req, res) => {
         const where = {};
 
         if (category_id) where.category_id = category_id;
+
+        if (search) {
+            where[Op.or] = [
+                { name: { [Op.like]: `%${search}%` } },
+                { description: { [Op.like]: `%${search}%` } }
+            ];
+        }
 
         // approval_status: approved by default for everyone
         where.approval_status = approval_status || 'approved';
@@ -79,9 +86,16 @@ export const getAllProducts = async (req, res) => {
         if (sort === 'price_asc') order = [['price', 'ASC']];
         if (sort === 'price_desc') order = [['price', 'DESC']];
 
+        const paginationLimit = limit ? parseInt(limit) : 20;
+        const paginationPage = page ? parseInt(page) : 1;
+        const offset = (paginationPage - 1) * paginationLimit;
+
         const findOptions = {
             where,
             order,
+            limit: paginationLimit,
+            offset: offset,
+            distinct: true,
             attributes: {
                 include: [
                     [
@@ -124,7 +138,7 @@ export const getAllProducts = async (req, res) => {
 
         if (limit) findOptions.limit = parseInt(limit);
 
-        const products = await Product.findAll(findOptions);
+        const { rows: products, count } = await Product.findAndCountAll(findOptions);
 
         // Map secondary boutiques communes
         const processedProducts = await Promise.all(products.map(async (p) => {
@@ -148,7 +162,12 @@ export const getAllProducts = async (req, res) => {
             return product;
         }));
 
-        res.json(processedProducts);
+        res.json({
+            products: processedProducts,
+            totalPages: Math.ceil(count / paginationLimit),
+            totalCount: count,
+            currentPage: paginationPage
+        });
     } catch (error) {
         console.error("GET_PRODUCTS ERROR:", error);
         res.status(500).json({ error: 'Erreur lors de la récupération des produits', details: error.message });

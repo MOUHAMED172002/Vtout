@@ -7,6 +7,8 @@ export const searchProducts = async (query) => {
 
 export const getProducts = async (filters = {}) => {
     const { data } = await api.get('/products', { params: filters });
+    // Backward compatibility: if data is a paginated object, return it as is.
+    // If it's an array, return it. Call sites will handle either.
     return data;
 };
 

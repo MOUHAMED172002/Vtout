@@ -258,7 +258,7 @@ const App = () => {
       try {
         setLoading(true);
         const data = await getProducts({ limit: 20 });
-        setProducts(data);
+        setProducts(data.products || data || []);
       } catch (error) {
         console.error('Erreur produits:', error);
       } finally {

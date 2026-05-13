@@ -408,19 +408,19 @@ export default function ProductPages() {
               <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight">{product.name}</h1>
 
               {/* Delivery Info Badge */}
-              <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-3xl border border-emerald-100">
-                <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                  <Truck size={24} strokeWidth={2.5} />
+              {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
+                <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-3xl border border-emerald-100">
+                  <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                    <Truck size={24} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
+                    <p className="text-sm font-black text-slate-900">
+                      Livraison gratuite dans : {product.free_delivery_communes.join(', ')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
-                  <p className="text-sm font-black text-slate-900">
-                    Livraison gratuite dans : {product.free_delivery_communes && product.free_delivery_communes.length > 0 
-                      ? product.free_delivery_communes.join(', ') 
-                      : (product?.supplier?.commune_label || "votre commune")}
-                  </p>
-                </div>
-              </div>
+              )}
 
               {/* Price section */}
               <div className="flex items-baseline gap-4">

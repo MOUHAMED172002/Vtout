@@ -45,8 +45,13 @@ export default function ProductsList() {
       setLoading(true);
       try {
         const data = await getProducts({ ...filters, page, limit });
-        setProducts(data || []);
-        setTotalPages(1); // Simulation
+        if (data && data.products) {
+          setProducts(data.products);
+          setTotalPages(data.totalPages || 1);
+        } else {
+          setProducts(data || []);
+          setTotalPages(1);
+        }
       } catch (error) {
         console.error("Erreur récupération produits:", error);
       } finally {

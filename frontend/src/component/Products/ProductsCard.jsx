@@ -15,6 +15,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const [imgs, setImgs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   useEffect(() => {
     if (product?.images && product.images.length > 0) {
@@ -24,6 +25,18 @@ export default function ProductCard({ product, onFavoriteChange }) {
       setImgs([getOptimizedImage(baseImg, 600)]);
     }
   }, [product]);
+
+  useEffect(() => {
+    let interval;
+    if (isHovered && imgs.length > 1) {
+      interval = setInterval(() => {
+        setCurrentImgIndex((prev) => (prev + 1) % imgs.length);
+      }, 1200);
+    } else {
+      setCurrentImgIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, imgs.length]);
 
   useEffect(() => {
     const loadFav = async () => {
@@ -153,20 +166,40 @@ export default function ProductCard({ product, onFavoriteChange }) {
         <div
           className="absolute inset-0 scale-110"
           style={{
-            backgroundImage: `url(${imgs[0]})`,
+            backgroundImage: `url(${imgs[currentImgIndex]})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'blur(20px) brightness(0.85)',
           }}
         />
+        {/* Inner shadow overlay for depth */}
+        <div className="absolute inset-0 shadow-[inner_0_0_40px_rgba(0,0,0,0.1)] z-[11] pointer-events-none" />
+        
         {/* Main image shown fully without cropping */}
-        <motion.img
-          src={imgs[0]}
-          alt={product.name}
-          animate={{ scale: isHovered ? 1.05 : 1 }}
-          transition={{ duration: 0.7 }}
-          className="relative w-full h-full object-contain z-10"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentImgIndex}
+            src={imgs[currentImgIndex]}
+            alt={product.name}
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 1, scale: isHovered ? 1.05 : 1 }}
+            exit={{ opacity: 0.8 }}
+            transition={{ duration: 0.4 }}
+            className="relative w-full h-full object-contain z-10"
+          />
+        </AnimatePresence>
+        
+        {/* Pagination Dots for multiple images */}
+        {imgs.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+            {imgs.map((_, idx) => (
+              <div 
+                key={idx}
+                className={`h-1 rounded-full transition-all duration-300 ${idx === currentImgIndex ? "w-4 bg-white" : "w-1 bg-white/50"}`}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
           {isSaleActive && (
@@ -196,7 +229,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/30 to-transparent flex gap-2 justify-center items-center"
+              className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/30 to-transparent flex gap-2 justify-center items-center z-20"
             >
               <div className="flex gap-2">
                 <motion.button
