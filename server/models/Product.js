@@ -68,8 +68,16 @@ const Product = sequelize.define('Product', {
         }
     },
     secondary_boutique_ids: {
-        type: DataTypes.JSON,
-        allowNull: true
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const val = this.getDataValue('secondary_boutique_ids');
+            if (!val) return null;
+            try { return JSON.parse(val); } catch { return val; }
+        },
+        set(val) {
+            this.setDataValue('secondary_boutique_ids', val ? JSON.stringify(val) : null);
+        }
     },
     supplier_note: {
         type: DataTypes.TEXT('long'),

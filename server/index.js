@@ -450,7 +450,7 @@ sequelize.authenticate()
                     { table: 'profiles',              col: 'last_abandoned_reminder_at', def: { type: DataTypes.DATE,           allowNull: true } },
                     // products
                     { table: 'products',              col: 'boutique_id',                def: { type: DataTypes.CHAR(36),        allowNull: true } },
-                    { table: 'products',              col: 'secondary_boutique_ids',     def: { type: DataTypes.JSON,            allowNull: true } },
+                    { table: 'products',              col: 'secondary_boutique_ids',     def: { type: DataTypes.TEXT,            allowNull: true } },
                     { table: 'products',              col: 'supplier_note',              def: { type: DataTypes.TEXT('long'),    allowNull: true } },
                     { table: 'products',              col: 'in_stock_supplier',          def: { type: DataTypes.BOOLEAN,         defaultValue: true } },
                     { table: 'products',              col: 'admin_feedback',             def: { type: DataTypes.TEXT('long'),    allowNull: true } },
