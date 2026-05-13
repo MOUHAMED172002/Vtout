@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock } from '../services/whatsappService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -287,7 +288,9 @@ export const createOrder = async (req, res) => {
         });
         const configMap = configs.reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
         
-        const BASE_FEE = parseFloat(configMap['base_delivery_fee'] || 1000);
+        // Frais de base : lus depuis la grille dynamique par tranches
+        // (pas de BASE_FEE fixe — on calcule par produit selon son prix)
+        const deliveryTiers = await getDeliveryFeeTiers();
         const INTRA_DEPT_FEE = parseFloat(configMap['intra_department_fee'] || 500);
         const INTER_DEPT_FEE = parseFloat(configMap['inter_department_fee'] || 1000);
         
@@ -347,7 +350,12 @@ export const createOrder = async (req, res) => {
                 supplement = 0;
             }
 
-            let sDeliveryFee = BASE_FEE + supplement; 
+            // Le BASE_FEE est le frais déjà intégré dans le prix du produit, calculé selon la grille tarifaire
+            // On le calcule à partir du prix unitaire du premier produit de la commande fournisseur
+            const firstUnitPrice = supplierItems[0].unitPrice || 0;
+            const BASE_FEE = computeDeliveryFee(firstUnitPrice, deliveryTiers);
+
+            let sDeliveryFee = BASE_FEE + supplement;
             const orderShareOfSubtotal = subtotal > 0 ? (sSubtotal / subtotal) : 1;
             const sDiscount = totalDiscount * orderShareOfSubtotal;
             
