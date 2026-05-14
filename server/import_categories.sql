@@ -5,13 +5,13 @@
 -- ============================================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
-DELETE FROM categories;
+-- DELETE FROM categories; -- Désactivé pour préserver les réglages manuels (commissions, etc.)
 -- On ne réinitialise pas forcément l'auto-increment si on force les IDs, 
 -- mais c'est une bonne pratique.
 ALTER TABLE categories AUTO_INCREMENT = 1;
 
 -- 1️⃣ ÉLECTRONIQUE & INFORMATIQUE
-INSERT INTO categories (id, name, parent_id, icon) VALUES
+INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (1, 'Électronique', NULL, '📱'),
 (2, 'Téléphones', 1, '📱'),
 (3, 'Smartphones', 2, '📱'),
@@ -80,7 +80,7 @@ INSERT INTO categories (id, name, parent_id, icon) VALUES
 (78, 'Bureaux Gaming', 72, '🖥️');
 
 -- 2️⃣ INFORMATIQUE & SERVEURS
-INSERT INTO categories (id, name, parent_id, icon) VALUES
+INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (81, 'Informatique & Serveurs', NULL, '🖥️'),
 (82, 'Composants PC', 81, '⚙️'),
 (83, 'Processeurs', 82, '🔧'),
@@ -104,7 +104,7 @@ INSERT INTO categories (id, name, parent_id, icon) VALUES
 (102, 'Répéteurs WiFi', 97, '📶');
 
 -- 3️⃣ LOGICIELS
-INSERT INTO categories (id, name, parent_id, icon) VALUES
+INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (103, 'Logiciels & Services', NULL, '💾'),
 (105, 'Systèmes d\'Exploitation', 103, '🖥️'),
 (106, 'Suites Bureautiques', 103, '📄'),
@@ -115,7 +115,7 @@ INSERT INTO categories (id, name, parent_id, icon) VALUES
 (111, 'Logiciels Développement', 103, '💻');
 
 -- 4️⃣ MODE
-INSERT INTO categories (id, name, parent_id, icon) VALUES
+INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (112, 'Mode & Vêtements', NULL, '👕'),
 (113, 'Vêtements Hommes', 112, '👔'),
 (114, 'T-Shirts & Polos', 113, '👕'),

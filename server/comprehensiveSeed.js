@@ -92,11 +92,14 @@ export async function runComprehensiveSeed() {
         console.log('🌟 Starting Comprehensive Seed...');
 
         // 1. Categories
-        console.log('📂 Seeding Categories...');
+        console.log('📂 Seeding Categories (Safe mode)...');
         for (const cat of categories) {
-            await Category.upsert(cat);
+            await Category.findOrCreate({
+                where: { id: cat.id },
+                defaults: cat
+            });
         }
-        console.log('✅ Categories seeded.');
+        console.log('✅ Categories checked/seeded.');
 
         // 2. Attributes & Values
         console.log('🏷️ Seeding Attributes & Values...');
