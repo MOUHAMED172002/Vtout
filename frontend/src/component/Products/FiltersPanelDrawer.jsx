@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import FiltersPanel from "./FiltersPanel";
-import { Filter, X, SlidersHorizontal, ChevronUp } from "lucide-react";
+import { Filter, X, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false }) {
@@ -29,30 +29,16 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
         </div>
       )}
 
-      {/* Floating Action Button (Mobile Only) */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-8 left-0 right-0 px-6 z-[150] lg:hidden pointer-events-none"
-          >
-            <button
-              onClick={() => setIsOpen(true)}
-              className="w-full bg-slate-900 text-white rounded-[2rem] h-16 flex items-center justify-between px-8 shadow-2xl shadow-slate-900/30 hover:scale-[1.02] transition-transform pointer-events-auto group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
-                  <Filter size={20} className="stroke-[2.5]" />
-                </div>
-                <span className="font-black text-sm uppercase tracking-widest">Affiner la recherche</span>
-              </div>
-              <ChevronUp size={20} className="text-slate-500 group-hover:text-primary transition-colors" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Inline Mobile Trigger Button (inside toolbar, not fixed) */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-3 bg-slate-900 text-white rounded-2xl h-12 px-5 shadow-lg shadow-slate-900/20 hover:scale-[1.02] transition-transform group"
+        >
+          <Filter size={16} className="stroke-[2.5] text-primary" />
+          <span className="font-black text-xs uppercase tracking-widest">Filtres</span>
+        </button>
+      </div>
 
       {/* Modern Slide-over / Bottom Sheet Hybrid */}
       <AnimatePresence>

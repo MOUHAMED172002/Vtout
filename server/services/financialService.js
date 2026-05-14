@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order } from '../models/index.js';
 import sequelize from '../config/database.js';
+import { getDeliveryFeeTiers, computeDeliveryFee } from './deliveryFeeService.js';
 
 export const processOrderFinancials = async (orderIdOrObject) => {
     const t = await sequelize.transaction();
@@ -70,8 +71,16 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         adminTotal += itemSubtotal * itemRate;
                     }
  
-                    const deliveryFee = parseFloat(order.delivery_fee || 0);
-                    supplierTotal = subtotal - adminTotal - deliveryFee;
+                    const deliveryTiers = await getDeliveryFeeTiers();
+                    let baseMarketingFee = 0;
+                    if (items.length > 0) {
+                        const firstItemSupplierPrice = items[0].product?.supplier_price || 0;
+                        baseMarketingFee = computeDeliveryFee(firstItemSupplierPrice, deliveryTiers);
+                    }
+
+                    const geographicalFee = parseFloat(order.delivery_fee || 0);
+                    // Le fournisseur touche : Total articles - Commission - Frais marketing (déjà inclus dans le prix article)
+                    supplierTotal = subtotal - adminTotal - baseMarketingFee;
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({
@@ -122,14 +131,29 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                 });
 
                 if (!existingLpTx) {
-                    const fee = parseFloat(order.delivery_fee || 0);
-                    if (fee > 0) {
+                    const deliveryTiers = await getDeliveryFeeTiers();
+                    const items = await OrderItem.findAll({ 
+                        where: { order_id: order.id },
+                        include: [{ model: Product, as: 'product' }],
+                        transaction: t
+                    });
+
+                    let baseMarketingFee = 0;
+                    if (items.length > 0) {
+                        const firstItemSupplierPrice = items[0].product?.supplier_price || 0;
+                        baseMarketingFee = computeDeliveryFee(firstItemSupplierPrice, deliveryTiers);
+                    }
+
+                    const geographicalFee = parseFloat(order.delivery_fee || 0);
+                    const totalDelivererFee = baseMarketingFee + geographicalFee;
+
+                    if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),
                             user_id: lp.user_id,
                             order_id: order.id,
                             type: 'earning',
-                            amount: fee,
+                            amount: totalDelivererFee,
                             description: `Course #${order.id.slice(0, 8)}`,
                             status: 'completed'
                         }, { transaction: t });

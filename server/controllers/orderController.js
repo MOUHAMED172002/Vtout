@@ -377,7 +377,9 @@ export const createOrder = async (req, res) => {
             const firstItemPrice = boutiqueItems[0].product.supplier_price || 0;
             const BASE_FEE = computeDeliveryFee(firstItemPrice, deliveryTiers);
 
-            let sDeliveryFee = BASE_FEE + supplement;
+            // Pour le client, on n'affiche que le supplément géographique (intra/inter).
+            // Le BASE_FEE marketing est déjà inclus dans le prix affiché du produit.
+            let sDeliveryFee = supplement; 
             const orderShareOfSubtotal = subtotal > 0 ? (bSubtotal / subtotal) : 1;
             const sDiscount = totalDiscount * orderShareOfSubtotal;
             const sTotal = (bSubtotal - sDiscount) + supplement;

@@ -262,7 +262,7 @@ export default function CheckoutPage() {
 
         });
         await refreshCart();
-        setStep(4);
+        setStep(5); // Success is now step 5
         toast.success("Commande enregistrée !");
         const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);
@@ -286,18 +286,18 @@ export default function CheckoutPage() {
             Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
           </h1>
           <div className="flex items-center justify-center gap-6">
-            {[1, 2, 3, 4].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <React.Fragment key={s}>
                 <div className="flex flex-col items-center gap-2">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-500 ${
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-500 ${
                         step >= s || (s === 1 && !isGuest) 
                         ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' 
                         : 'bg-white border-2 border-slate-100 text-slate-300'
                     }`}>
-                        {(step > s || (s === 1 && !isGuest)) ? <Check size={24} strokeWidth={3} /> : s}
+                        {(step > s || (s === 1 && !isGuest)) ? <Check size={20} strokeWidth={3} /> : s}
                     </div>
                 </div>
-                {s < 4 && <div className={`h-1 w-16 rounded-full transition-all duration-700 ${
+                {s < 5 && <div className={`h-1 w-8 md:w-16 rounded-full transition-all duration-700 ${
                     (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-slate-100'
                 }`}></div>}
               </React.Fragment>
@@ -362,7 +362,7 @@ export default function CheckoutPage() {
               {step === 2 && (
                 <div
                   key="step2"
-                  className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
+                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-blue-50 text-blue-600 rounded-3xl shadow-sm"><MapPin size={28} /></div>
@@ -388,7 +388,72 @@ export default function CheckoutPage() {
               {step === 3 && (
                 <div
                   key="step3"
-                  className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-10"
+                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="p-5 bg-orange-50 text-orange-600 rounded-3xl shadow-sm"><ReceiptText size={28} /></div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Vérification</h2>
+                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Résumé de votre panier</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {itemsFromCart.map((it, idx) => (
+                      <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                        <div className="w-16 h-16 bg-white rounded-2xl p-2 border border-slate-100 flex-shrink-0">
+                          <img src={it.image_url || it.product?.image_url} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-sm text-slate-900 truncate">{it.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-black text-sm text-slate-900">{((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Summary Totals for Mobile Step */}
+                  <div className="p-6 bg-slate-900 rounded-[2rem] text-white space-y-4">
+                    <div className="flex justify-between text-sm font-bold opacity-60">
+                      <span>Sous-total</span>
+                      <span>{totalFromCart.toLocaleString()} F</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-emerald-400 text-sm font-black uppercase">
+                        <span>Réduction</span>
+                        <span>-{discount.toLocaleString()} F</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-bold opacity-60">
+                      <span>Livraison</span>
+                      <span>{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
+                    </div>
+                    <div className="h-px bg-white/10 my-2"></div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-black text-xs uppercase tracking-widest text-primary">Total à payer</span>
+                      <span className="text-3xl font-black">{finalTotal.toLocaleString()} F</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-between">
+                    <button onClick={() => setStep(2)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
+                    <button
+                      onClick={() => setStep(4)}
+                      className="btn btn-primary rounded-2xl px-12 h-14 font-black shadow-lg shadow-primary/20 gap-2 group ml-auto"
+                    >
+                      Paiement <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div
+                  key="step4"
+                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl shadow-sm"><CreditCard size={28} /></div>
@@ -399,6 +464,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* ... (Payment methods content) ... */}
                     <button
                       onClick={() => setPaymentMethod('delivery')}
                       className={`p-8 rounded-3xl border-2 transition-all text-left space-y-4 ${paymentMethod === 'delivery' ? 'border-primary bg-orange-50/50 ring-4 ring-primary/5' : 'border-gray-100 hover:border-gray-200'}`}
@@ -448,9 +514,8 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-
                   <div className="pt-10 flex justify-between gap-4 border-t border-gray-50">
-                    <button onClick={() => setStep(2)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
+                    <button onClick={() => setStep(3)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
                     <button
                       onClick={handleConfirmOrder}
                       disabled={loading}
@@ -462,9 +527,9 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {((step === 3 && !isGuest) || step === 4) ? (
+              {step === 5 ? (
                 <div
-                  key="step4"
+                  key="step5"
                   className="bg-white p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto md:scale-125 mb-2 md:mb-4">
@@ -480,8 +545,8 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Sidebar Summary */}
-          <div className="lg:col-span-4">
+          {/* Sidebar Summary — Desktop Only */}
+          <div className="hidden lg:block lg:col-span-4">
             <div className="sticky top-24 bg-base-100 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-base-content/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] space-y-8 md:space-y-10 relative overflow-hidden group">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700"></div>
               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>

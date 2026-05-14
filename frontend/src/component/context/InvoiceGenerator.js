@@ -174,13 +174,23 @@ export async function generateInvoicePDF(order) {
 
         // Right Column (Calculations)
         const totalX = W - MX;
+        const subtotal = Number(order.total_amount) - Number(order.delivery_fee || 0) + Number(order.discount_amount || 0);
+        
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
+        
         doc.text("Sous-Total", W - 70, currentY);
-        doc.text(formatAmount(order.total_amount), totalX, currentY, { align: "right" });
-        doc.text("Taxe (0%)", W - 70, currentY + 7);
-        doc.text("0 F", totalX, currentY + 7, { align: "right" });
+        doc.text(formatAmount(subtotal), totalX, currentY, { align: "right" });
+        
+        doc.text("Livraison", W - 70, currentY + 7);
+        doc.text(formatAmount(order.delivery_fee), totalX, currentY + 7, { align: "right" });
+
+        if (Number(order.discount_amount) > 0) {
+            currentY += 7;
+            doc.text("Réduction", W - 70, currentY + 7);
+            doc.text(`-${formatAmount(order.discount_amount)}`, totalX, currentY + 7, { align: "right" });
+        }
 
         doc.setFillColor(...ColorBlue);
         doc.roundedRect(W - 75, currentY + 12, 55, 10, 1, 1, "F");
