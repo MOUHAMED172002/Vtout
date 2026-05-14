@@ -345,7 +345,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 variants: processedVariants,
                 supplierLinks: processedVariants.length === 0 ? [{
                     supplier_id: 'me',
-                    supplier_price: calculatedSupplierPrice,
+                    supplier_price: finalSupplierPrice,
                     supplier_sku: data.sku || null
                 }] : []
             };
