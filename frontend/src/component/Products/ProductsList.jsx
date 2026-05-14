@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ProductSkeleton } from "../Shared/Skeleton";
 import ProductsCard from "../../component/Products/ProductsCard";
+import FiltersPanel from "../../component/Products/FiltersPanel";
 import FiltersPanelDrawer from "../../component/Products/FiltersPanelDrawer";
 import { getProducts } from "../../services/productService";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, SlidersHorizontal, ChevronLeft, ChevronRight, PackageSearch, X } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, PackageSearch, X } from "lucide-react";
 
 export default function ProductsList() {
   const [products, setProducts] = useState([]);
@@ -44,7 +45,7 @@ export default function ProductsList() {
     const fetchProductsData = async () => {
       setLoading(true);
       try {
-        const data = await getProducts({ ...filters, page, limit, approval_status: 'Approuvé' });
+        const data = await getProducts({ ...filters, page, limit, approval_status: 'approved' });
         if (data && data.products) {
           setProducts(data.products);
           setTotalPages(data.totalPages || 1);
@@ -104,15 +105,19 @@ export default function ProductsList() {
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 flex flex-col lg:flex-row gap-12">
         {/* Sidebar Filters Desktop */}
-        <aside className="hidden lg:block w-72 shrink-0">
-          <div className="sticky top-32 space-y-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                <Filter size={18} />
+        <aside className="hidden lg:block w-80 shrink-0">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/40 sticky top-36 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-[-20%] -translate-y-[20%] blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-4 mb-10 pb-6 border-b border-slate-50 relative">
+              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-primary shadow-xl shadow-slate-900/20">
+                <SlidersHorizontal size={22} className="stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Affiner les résultats</h3>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">Filtres</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Personnalisation</p>
+              </div>
             </div>
-            <FiltersPanelDrawer onFilterChange={setFilters} />
+            <FiltersPanel onFilterChange={setFilters} />
           </div>
         </aside>
 
@@ -120,7 +125,7 @@ export default function ProductsList() {
         <div className="flex-1 space-y-12">
           {/* Mobile Filters Trigger and Tools */}
           <div className="flex items-center justify-between lg:hidden mb-8">
-            <FiltersPanelDrawer onFilterChange={setFilters} />
+            <FiltersPanelDrawer onFilterChange={setFilters} mobileOnly />
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{products.length} articles trouvés</p>
           </div>
 
