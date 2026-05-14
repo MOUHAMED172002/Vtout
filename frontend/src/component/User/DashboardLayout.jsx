@@ -103,6 +103,13 @@ export default function DashboardLayout() {
         </div>
 
         <div className="p-6 border-t border-slate-50">
+          <Link 
+            to="/"
+            className="flex items-center justify-center gap-3 w-full py-3.5 mb-4 bg-primary/5 text-primary hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 rounded-2xl font-black transition-all group border border-primary/10"
+          >
+            <ShoppingBag size={18} className="group-hover:-translate-y-1 transition-transform" />
+            Aller à la boutique
+          </Link>
           <div className="bg-slate-50 rounded-[2rem] p-6 space-y-4">
             <p className="text-xs font-bold text-slate-500 text-center">Besoin d'aide ?</p>
             <button className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
@@ -248,6 +255,14 @@ export default function DashboardLayout() {
               </div>
 
               <div className="p-8 border-t border-slate-50 space-y-4 bg-slate-50/50">
+                <Link 
+                  to="/"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="flex items-center justify-center gap-3 w-full py-4 mb-2 bg-primary/10 text-primary active:bg-primary active:text-white rounded-2xl font-black transition-all border border-primary/20"
+                >
+                  <ShoppingBag size={18} />
+                  Aller à la boutique
+                </Link>
                 <div className="flex items-center gap-4 mb-4">
                   <img src={user?.avatar_url || avartar} className="w-12 h-12 rounded-xl object-cover" alt="user" />
                   <div>

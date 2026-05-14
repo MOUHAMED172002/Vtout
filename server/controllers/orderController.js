@@ -336,12 +336,12 @@ export const createOrder = async (req, res) => {
 
             if (actualBoutiqueId) {
                 boutique = await Boutique.findByPk(actualBoutiqueId, {
-                    include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'profile' }] }],
+                    include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'user' }] }],
                     transaction
                 });
                 if (boutique) {
                     actualSupplierId = boutique.supplier_id;
-                    targetPhone = boutique.whatsapp || boutique.phone || boutique.supplier?.whatsapp || boutique.supplier?.phone || boutique.supplier?.profile?.phone;
+                    targetPhone = boutique.whatsapp || boutique.phone || boutique.supplier?.whatsapp || boutique.supplier?.phone || boutique.supplier?.user?.phone;
                 }
             }
 
@@ -659,8 +659,8 @@ export const updateOrderStatus = async (req, res) => {
                         await variantPrice.decrement('stock', { by: item.quantity });
                         await variantPrice.reload();
                         if (variantPrice.stock <= 5 && order.supplier_id) {
-                            Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'profile' }] }).then(s => {
-                                const phone = s?.whatsapp || s?.phone || s?.profile?.phone;
+                            Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'user' }] }).then(s => {
+                                const phone = s?.whatsapp || s?.phone || s?.user?.phone;
                                 if (phone) {
                                     Product.findByPk(item.product_id).then(p => {
                                         notifySupplierOfLowStock(phone, `${p?.name || 'Produit'} (${item.variant_id})`, variantPrice.stock);
@@ -894,7 +894,7 @@ export const getSuggestedSuppliers = async (req, res) => {
             include: [{ 
                 model: Supplier, 
                 as: 'supplier',
-                include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone'] }]
+                include: [{ model: Profile, as: 'user', attributes: ['fullname', 'phone'] }]
             }]
         });
 
@@ -905,7 +905,7 @@ export const getSuggestedSuppliers = async (req, res) => {
                 suppliersMap.set(sp.supplier.id, {
                     id: sp.supplier.id,
                     name: sp.supplier.name,
-                    phone: sp.supplier.profile?.phone || sp.supplier.phone,
+                    phone: sp.supplier.user?.phone || sp.supplier.phone,
                     address: sp.supplier.address_line,
                     commune: sp.supplier.commune_label || sp.supplier.commune
                 });

@@ -426,7 +426,7 @@ export default function CheckoutPage() {
                       </div>
                     </button>
 
-                    {!isGuest && (
+                    {!isGuest && walletBalance > 0 && (
                       <button
                         onClick={() => setPaymentMethod('wallet')}
                         disabled={walletBalance < finalTotal}

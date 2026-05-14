@@ -44,7 +44,7 @@ export default function ProductsList() {
     const fetchProductsData = async () => {
       setLoading(true);
       try {
-        const data = await getProducts({ ...filters, page, limit });
+        const data = await getProducts({ ...filters, page, limit, approval_status: 'Approuvé' });
         if (data && data.products) {
           setProducts(data.products);
           setTotalPages(data.totalPages || 1);
@@ -162,32 +162,45 @@ export default function ProductsList() {
 
           {/* Pagination Area */}
           {!loading && products.length > 0 && (
-            <div className="pt-12 border-t border-slate-200 flex flex-col items-center gap-8">
-              <div className="flex items-center gap-3">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage(p => p - 1)}
-                  className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary hover:border-primary transition-all disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-slate-100 shadow-sm"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                {[1].map(num => (
+            <div className="pt-12 border-t border-slate-200 flex flex-col items-center gap-6">
+              {totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
                   <button
-                    key={num}
-                    className={`w-14 h-14 rounded-2xl font-black transition-all ${page === num ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-white border border-slate-100 text-slate-600 hover:bg-slate-50'}`}
+                    disabled={page === 1}
+                    onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-white border border-slate-100 rounded-xl md:rounded-2xl text-slate-400 hover:text-primary hover:border-primary transition-all disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-slate-100 shadow-sm"
                   >
-                    {num}
+                    <ChevronLeft size={20} className="md:w-6 md:h-6" />
                   </button>
-                ))}
-                <button
-                  disabled={page === totalPages}
-                  onClick={() => setPage(p => p + 1)}
-                  className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary hover:border-primary transition-all disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-slate-100 shadow-sm"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-              <p className="text-[10px] font-black italic text-slate-400 uppercase tracking-widest">Affichage de {products.length} articles par page</p>
+                  
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const num = idx + 1;
+                    if (num === 1 || num === totalPages || (num >= page - 1 && num <= page + 1)) {
+                      return (
+                        <button
+                          key={num}
+                          onClick={() => { setPage(num); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                          className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-black transition-all text-xs md:text-base ${page === num ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-white border border-slate-100 text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          {num}
+                        </button>
+                      );
+                    } else if (num === page - 2 || num === page + 2) {
+                      return <span key={num} className="text-slate-300 font-black tracking-widest px-1">...</span>;
+                    }
+                    return null;
+                  })}
+
+                  <button
+                    disabled={page === totalPages}
+                    onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-white border border-slate-100 rounded-xl md:rounded-2xl text-slate-400 hover:text-primary hover:border-primary transition-all disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:border-slate-100 shadow-sm"
+                  >
+                    <ChevronRight size={20} className="md:w-6 md:h-6" />
+                  </button>
+                </div>
+              )}
+              <p className="text-[10px] font-black italic text-slate-400 uppercase tracking-widest">Page {page} sur {totalPages} • {products.length} articles sur cette page</p>
             </div>
           )}
         </div>

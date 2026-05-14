@@ -77,7 +77,7 @@ export default function FiltersPanelDrawer({ onFilterChange }) {
               <div className="w-16 h-1.5 bg-slate-100 rounded-full mx-auto mt-4 shrink-0" />
 
               {/* Header */}
-              <div className="px-10 py-8 flex items-center justify-between shrink-0">
+              <div className="px-6 py-6 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-5">
                   <div className="w-14 h-14 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-900 shadow-inner">
                     <SlidersHorizontal size={24} className="stroke-[2.5]" />
@@ -96,12 +96,12 @@ export default function FiltersPanelDrawer({ onFilterChange }) {
               </div>
 
               {/* Scrollable Filters */}
-              <div className="flex-1 overflow-y-auto px-10 pb-36 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto px-6 pb-32 custom-scrollbar">
                 <FiltersPanel onFilterChange={onFilterChange} />
               </div>
 
               {/* Sticky Action Footer */}
-              <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-white via-white to-transparent pt-20 pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-16 bg-gradient-to-t from-white via-white to-transparent pointer-events-none">
                 <button
                   onClick={() => setIsOpen(false)}
                   className="w-full bg-primary text-white h-16 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all pointer-events-auto flex items-center justify-center gap-3"
