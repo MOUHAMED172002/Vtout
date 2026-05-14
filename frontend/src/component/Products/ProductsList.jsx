@@ -45,7 +45,7 @@ export default function ProductsList() {
     const fetchProductsData = async () => {
       setLoading(true);
       try {
-        const data = await getProducts({ ...filters, page, limit, approval_status: 'approved' });
+        const data = await getProducts({ ...filters, page, limit });
         if (data && data.products) {
           setProducts(data.products);
           setTotalPages(data.totalPages || 1);
