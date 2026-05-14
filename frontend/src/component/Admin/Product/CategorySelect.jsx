@@ -84,9 +84,12 @@ export default function CategorySelect() {
     try {
       setAdding(true);
       const token = await getToken();
+      const parsedCommission = parseFloat(newCommission);
+      const safeCommission = (!isNaN(parsedCommission) && parsedCommission >= 0) ? parsedCommission : 10.00;
+
       await createCategory({
         name: newName.trim(),
-        commission_rate: parseFloat(newCommission),
+        commission_rate: safeCommission,
         parent_id: newParent === "" ? null : newParent
       }, token);
       toast.success("Catégorie ajoutée");
@@ -227,7 +230,14 @@ export default function CategorySelect() {
                   <button 
                     onClick={() => {
                         const rate = prompt("Nouvelle commission (%) pour " + c.name, c.commission_rate || 15);
-                        if(rate !== null) handleUpdateCommission(c.id, rate);
+                        if (rate !== null) {
+                            const parsedRate = parseFloat(rate);
+                            if (!isNaN(parsedRate) && parsedRate >= 0) {
+                                handleUpdateCommission(c.id, parsedRate);
+                            } else {
+                                toast.error("Valeur de commission invalide");
+                            }
+                        }
                     }}
                     className="flex flex-col items-start p-2 hover:bg-slate-50 rounded-xl transition-colors"
                   >
