@@ -49,17 +49,23 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         include: [{ model: Product, as: 'product' }],
                         transaction: t
                     });
-                    
                     let subtotal = 0;
                     let adminTotal = 0;
+                    let totalBaseMarketingFee = 0;
                     
                     const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
                     const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
+                    const deliveryTiers = await getDeliveryFeeTiers();
  
                     for (const item of items) {
                         const itemSubtotal = parseFloat(item.price) * item.quantity;
                         subtotal += itemSubtotal;
                         
+                        // Extract base marketing fee for this item
+                        const itemSupplierPrice = item.product?.supplier_price || 0;
+                        const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
+
                         // Use category commission rate if available
                         let itemRate = globalCommissionRate;
                         if (item.product?.category_id) {
@@ -68,19 +74,15 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                                 itemRate = parseFloat(category.commission_rate) / 100;
                             }
                         }
-                        adminTotal += itemSubtotal * itemRate;
+                        
+                        // Commission is calculated ONLY on the net item price (public price - marketing fee)
+                        const itemBasePrice = parseFloat(item.price) - itemMarketingFee;
+                        adminTotal += (itemBasePrice * item.quantity) * itemRate;
                     }
  
-                    const deliveryTiers = await getDeliveryFeeTiers();
-                    let baseMarketingFee = 0;
-                    if (items.length > 0) {
-                        const firstItemSupplierPrice = items[0].product?.supplier_price || 0;
-                        baseMarketingFee = computeDeliveryFee(firstItemSupplierPrice, deliveryTiers);
-                    }
-
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     // Le fournisseur touche : Total articles - Commission - Frais marketing (déjà inclus dans le prix article)
-                    supplierTotal = subtotal - adminTotal - baseMarketingFee;
+                    const supplierTotal = subtotal - adminTotal - totalBaseMarketingFee;
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({
@@ -138,14 +140,15 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         transaction: t
                     });
 
-                    let baseMarketingFee = 0;
-                    if (items.length > 0) {
-                        const firstItemSupplierPrice = items[0].product?.supplier_price || 0;
-                        baseMarketingFee = computeDeliveryFee(firstItemSupplierPrice, deliveryTiers);
+                    let totalBaseMarketingFee = 0;
+                    for (const item of items) {
+                        const itemSupplierPrice = item.product?.supplier_price || 0;
+                        const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
                     }
 
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
-                    const totalDelivererFee = baseMarketingFee + geographicalFee;
+                    const totalDelivererFee = totalBaseMarketingFee + geographicalFee;
 
                     if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
@@ -162,7 +165,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             id: crypto.randomUUID(),
                             user_id: lp.user_id,
                             title: '🚚 Course payée !',
-                            message: `Votre compte a été crédité de ${fee.toFixed(0)} F CFA pour la livraison #${order.id.slice(0, 8)}.`,
+                            message: `Votre compte a été crédité de ${totalDelivererFee.toFixed(0)} F CFA pour la livraison #${order.id.slice(0, 8)}.`,
                             type: 'wallet'
                         }, { transaction: t });
                     }

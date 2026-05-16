@@ -55,14 +55,6 @@ const ConfigManager = () => {
             // Ensure marketplace configs exist in the UI even if not in DB
 
             // Gestion des frais de livraison dynamiques
-            if (!uniqueData.find(c => c.key === 'base_delivery_fee')) {
-                uniqueData.push({
-                    key: 'base_delivery_fee',
-                    value: '1000',
-                    group: 'marketplace',
-                    description: 'Frais de livraison de base (intégrés dans le prix produit)'
-                });
-            }
             if (!uniqueData.find(c => c.key === 'intra_department_fee')) {
                 uniqueData.push({
                     key: 'intra_department_fee',

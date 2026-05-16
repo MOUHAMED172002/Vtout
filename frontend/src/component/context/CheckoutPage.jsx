@@ -12,15 +12,9 @@ import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRigh
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();
-  const { user } = useUser();
-  const isGuest = !user;
-  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
-  const [address, setAddress] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("delivery");
-  const [loading, setLoading] = useState(false);
-  const [fedapayReady, setFedapayReady] = useState(false);
-  const [showFedaPayModal, setShowFedaPayModal] = useState(false);
-  // Steps: 1 (Contact), 2 (Address), 3 (Payment), 4 (Done)
+  const isWhatsAppUser = user?.email?.endsWith("@whatsapp.vtout.com");
+  const [whatsappNotifPhone, setWhatsappNotifPhone] = useState("");
+  // Steps: 1 (Contact), 2 (Address), 3 (Payment), 4 (Summary), 5 (WhatsApp Prompt if needed), 6 (Done)
   const [step, setStep] = useState(isGuest ? 1 : 2);
   const location = useLocation();
   const navigate = useNavigate();
@@ -206,7 +200,7 @@ export default function CheckoutPage() {
       address_id: addrRow.id,
       guest_name: isGuest ? guestInfo.name : undefined,
       guest_email: isGuest ? guestInfo.email : undefined,
-      guest_phone: isGuest ? guestInfo.phone : undefined,
+      guest_phone: whatsappNotifPhone || (isGuest ? guestInfo.phone : undefined),
       items: items.map(it => ({
         product_id: it.product_id || it.id,
         variant_id: it.variant_id || null,
@@ -236,12 +230,13 @@ export default function CheckoutPage() {
         });
 
         if (createResponse.token && window.FedaPay) {
+            const backendTotal = createResponse.orders ? createResponse.orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0) : finalTotal;
             setShowFedaPayModal(true);
             window.FedaPay.init({
                 public_key: import.meta.env.VITE_FEDAPAY_PUBLIC_KEY || 'pk_sandbox_66S78_P3mXhL-N5X-J_N2xW0',
                 transaction: {
                     id: createResponse.transaction_id,
-                    amount: Math.round(finalTotal)
+                    amount: Math.round(backendTotal)
                 },
                 container: '#fedapay-embed'
             });
@@ -262,7 +257,7 @@ export default function CheckoutPage() {
 
         });
         await refreshCart();
-        setStep(5); // Success is now step 5
+        setStep(6); // Success is now step 6
         toast.success("Commande enregistrée !");
         const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);
@@ -286,7 +281,7 @@ export default function CheckoutPage() {
             Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
           </h1>
           <div className="flex items-center justify-center gap-6">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3, 4, 5, 6].map((s) => (
               <React.Fragment key={s}>
                 <div className="flex flex-col items-center gap-2">
                     <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-500 ${
@@ -297,7 +292,7 @@ export default function CheckoutPage() {
                         {(step > s || (s === 1 && !isGuest)) ? <Check size={20} strokeWidth={3} /> : s}
                     </div>
                 </div>
-                {s < 5 && <div className={`h-1 w-8 md:w-16 rounded-full transition-all duration-700 ${
+                {s < 6 && <div className={`h-1 w-8 md:w-12 rounded-full transition-all duration-700 ${
                     (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-slate-100'
                 }`}></div>}
               </React.Fragment>
@@ -517,7 +512,15 @@ export default function CheckoutPage() {
                   <div className="pt-10 flex justify-between gap-4 border-t border-gray-50">
                     <button onClick={() => setStep(3)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
                     <button
-                      onClick={handleConfirmOrder}
+                      onClick={() => {
+                        if (isWhatsAppUser) {
+                          handleConfirmOrder();
+                        } else {
+                          // Pre-fill with address phone if available
+                          if (address?.phone && !whatsappNotifPhone) setWhatsappNotifPhone(address.phone);
+                          setStep(5);
+                        }
+                      }}
                       disabled={loading}
                       className="btn btn-primary rounded-2xl px-12 h-14 font-black shadow-lg shadow-primary/20 gap-2"
                     >
@@ -527,9 +530,63 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {step === 5 ? (
+              {step === 5 && !isWhatsAppUser && (
                 <div
                   key="step5"
+                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl shadow-sm">
+                      <Zap size={28} />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">Suivi WhatsApp</h2>
+                      <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Recevez vos notifications en temps réel</p>
+                    </div>
+                  </div>
+
+                  <div className="p-8 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100/50 space-y-6">
+                    <p className="text-sm font-bold text-slate-600 leading-relaxed">
+                      Pour vous tenir informé de l'avancée de votre livraison (Confirmation, Expédition, Arrivée), veuillez confirmer votre numéro WhatsApp ci-dessous.
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 ml-2">Numéro WhatsApp *</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                          <span className="text-emerald-600 font-bold">+229</span>
+                        </div>
+                        <input
+                          type="tel"
+                          placeholder="61000000"
+                          value={whatsappNotifPhone.replace('+229', '').trim()}
+                          onChange={e => {
+                            const val = e.target.value.replace(/[^\d]/g, '');
+                            setWhatsappNotifPhone(val.startsWith('229') ? `+${val}` : `+229${val}`);
+                          }}
+                          className="input input-bordered w-full h-16 pl-16 rounded-2xl bg-white border-emerald-100 focus:border-emerald-500 font-black text-lg text-emerald-900"
+                        />
+                      </div>
+                      <p className="text-[10px] font-bold text-emerald-500/60 ml-2 italic">📦 Un message de confirmation vous sera envoyé.</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-between gap-4">
+                    <button onClick={() => setStep(4)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
+                    <button
+                      disabled={whatsappNotifPhone.replace(/[^\d]/g, '').length < 8 || loading}
+                      onClick={handleConfirmOrder}
+                      className="btn btn-primary rounded-2xl px-12 h-16 font-black shadow-lg shadow-primary/20 gap-2 flex-1 md:flex-none"
+                    >
+                      {loading ? <span className="loading loading-spinner"></span> : "Finaliser ma commande"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 6 ? (
+                <div
+                  key="step6"
                   className="bg-white p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto md:scale-125 mb-2 md:mb-4">
@@ -641,12 +698,17 @@ export default function CheckoutPage() {
                         {address?.is_valid ? (
                             <div className="text-right">
                                 <span className="text-primary font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
-                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-slate-400">Frais de zone</p>}
+                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-slate-400">Simulation Max.</p>}
                             </div>
                         ) : (
                             <span className="text-[10px] font-black uppercase text-slate-300 italic">Attente adresse</span>
                         )}
                     </div>
+                    {deliveryFee > 0 && (
+                        <p className="text-[9px] font-bold text-slate-400 leading-tight bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            ✨ Notre système optimisera automatiquement le point de départ lors de la validation pour vous offrir le tarif de livraison le plus bas possible.
+                        </p>
+                    )}
                 </div>
 
                 <div className="pt-6 border-t border-slate-50">

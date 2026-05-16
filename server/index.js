@@ -622,6 +622,13 @@ sequelize.authenticate()
             }
 
             console.log(`✅ [BOOT] Database synced (${isProd ? 'Safe Mode' : 'Alter Mode'}).`);
+            try {
+                const { Config } = await import('./models/index.js');
+                await Config.destroy({ where: { key: ['base_delivery_fee', 'commission_rate'] } });
+                console.log("🗑️ [CLEANUP] Deleted obsolete configurations (base_delivery_fee, commission_rate).");
+            } catch (cleanupErr) {
+                console.warn("⚠️ [CLEANUP] Failed to delete obsolete configs:", cleanupErr.message);
+            }
         } catch (syncError) {
             console.error("❌ [BOOT] Global sync failed:", syncError.message);
             console.warn("⚠️ [BOOT] Attempting granular safe sync...");

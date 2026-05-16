@@ -9,4 +9,7 @@ router.post('/send-code', authWhatsAppController.requestWhatsAppOTP);
 // Vérifier le code et se connecter
 router.post('/verify-code', authWhatsAppController.verifyWhatsAppOTP);
 
+// Réinitialiser le mot de passe
+router.post('/reset-password', authWhatsAppController.resetWhatsAppPassword);
+
 export default router;

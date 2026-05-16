@@ -85,7 +85,64 @@ export const verifyWhatsAppOTP = async (req, res) => {
         res.json({ message: 'Code vérifié avec succès, procédez à la création de compte' });
     } catch (error) {
         console.error('[AuthWhatsApp] Error verifying OTP:', error);
-        try { fs.writeFileSync('whatsapp_debug_error.log', error.stack || error.message); } catch (e) {}
+        res.status(500).json({ error: 'Erreur interne', message: error.message });
+    }
+};
+
+/**
+ * Réinitialiser le mot de passe via WhatsApp
+ */
+export const resetWhatsAppPassword = async (req, res) => {
+    try {
+        const { phone, code, newPassword } = req.body;
+        if (!phone || !code || !newPassword) return res.status(400).json({ error: 'Téléphone, code et nouveau mot de passe requis' });
+
+        const cleanPhone = phone.replace(/\D/g, '');
+
+        // Vérification du code en DB
+        const otpEntry = await Otp.findOne({
+            where: {
+                phone: cleanPhone,
+                code: code,
+                is_used: false,
+                expires_at: { [Op.gt]: new Date() }
+            },
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (!otpEntry) {
+            return res.status(400).json({ error: 'Code invalide ou expiré' });
+        }
+
+        // Marquer comme utilisé
+        await otpEntry.update({ is_used: true });
+
+        const fakeEmail = `${cleanPhone}@whatsapp.vtout.com`;
+
+        // Trouver l'utilisateur
+        const [users] = await sequelize.query('SELECT id FROM user WHERE email = ?', {
+            replacements: [fakeEmail]
+        });
+
+        if (!users || users.length === 0) {
+            return res.status(404).json({ error: 'Aucun compte lié à ce numéro' });
+        }
+
+        const userId = users[0].id;
+
+        // Better Auth stocke les mots de passe hachés avec bcrypt dans la table account (providerId = 'credential' ou 'email')
+        // Ou dans la table user selon les versions. On va utiliser bcrypt pour hacher.
+        const bcrypt = await import('bcrypt');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Mettre à jour dans la table account (Better Auth)
+        await sequelize.query("UPDATE account SET password = ? WHERE user_id = ? AND providerId = 'credential'", {
+            replacements: [hashedPassword, userId]
+        });
+
+        res.json({ message: 'Mot de passe réinitialisé avec succès' });
+    } catch (error) {
+        console.error('[AuthWhatsApp] Error resetting password:', error);
         res.status(500).json({ error: 'Erreur interne', message: error.message });
     }
 };

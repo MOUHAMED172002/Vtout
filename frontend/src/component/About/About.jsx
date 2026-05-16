@@ -99,7 +99,7 @@ export default function About() {
                 </div>
                 
                 <div className="flex flex-wrap gap-6 pt-6">
-                  <button onClick={() => navigate('/products')} className="group relative overflow-hidden btn btn-primary rounded-2xl px-12 h-16 font-black text-lg shadow-2xl shadow-primary/30">
+                  <button onClick={() => navigate('/products-liste')} className="group relative overflow-hidden btn btn-primary rounded-2xl px-12 h-16 font-black text-lg shadow-2xl shadow-primary/30">
                     <span className="relative z-10">Explorer la collection</span>
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   </button>

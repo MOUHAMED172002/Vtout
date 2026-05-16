@@ -221,12 +221,12 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                     <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                        <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Gain Fournisseur</p>
-                          <p className="text-xl font-black text-slate-900">{(order.items || []).reduce((acc, it) => acc + (it.supplier_price * it.quantity), 0).toLocaleString()} F</p>
+                          <p className="text-xl font-black text-slate-900">{(order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0).toLocaleString()} F</p>
                        </div>
                        <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100">
                           <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Part Plateforme (Vtout)</p>
                           <p className="text-xl font-black text-indigo-600">
-                            {(order.total_amount - order.delivery_fee - (order.items || []).reduce((acc, it) => acc + (it.supplier_price * it.quantity), 0)).toLocaleString()} F
+                            {((Number(order.total_amount) || 0) - (Number(order.delivery_fee) || 0) - (order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0)).toLocaleString()} F
                           </p>
                        </div>
                        <div className="p-5 bg-amber-50 rounded-3xl border border-amber-100">

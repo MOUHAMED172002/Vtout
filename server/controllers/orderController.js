@@ -265,12 +265,72 @@ export const createOrder = async (req, res) => {
             enrichedItems.push({ product, item, unitPrice, variantData });
         }
 
-        // 2. Group items by boutique
+        // Load configurations and address early for optimal boutique selection
+        const customerAddress = await Address.findByPk(address_id, { transaction });
+        const configs = await Config.findAll({ 
+            where: { key: ['base_delivery_fee', 'intra_department_fee', 'inter_department_fee', 'crossing_fees'] },
+            transaction 
+        });
+        const configMap = configs.reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
+        const deliveryTiers = await getDeliveryFeeTiers();
+        const INTRA_DEPT_FEE = parseFloat(configMap['intra_department_fee'] || 500);
+        const INTER_DEPT_FEE = parseFloat(configMap['inter_department_fee'] || 1000);
+        
+        let CROSSING_FEES = {};
+        try { CROSSING_FEES = configMap['crossing_fees'] ? JSON.parse(configMap['crossing_fees']) : {}; } catch (e) {}
+
+        const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+        const normalizedCCommune = customerAddress ? normalize(customerAddress.commune_label) : null;
+
+        const calculateBoutiqueSupplement = (boutique) => {
+            if (!boutique || !customerAddress) return INTER_DEPT_FEE;
+            const normalizedBCommune = normalize(boutique.commune_label);
+            if (String(boutique.commune_id) === String(customerAddress.commune_id) || 
+                (normalizedBCommune && normalizedBCommune === normalizedCCommune)) {
+                return 0;
+            } else if (String(boutique.departement_id) === String(customerAddress.departement_id)) {
+                return INTRA_DEPT_FEE;
+            } else {
+                const crossingKey = `${boutique.departement_id}-${customerAddress.departement_id}`;
+                const reverseKey = `${customerAddress.departement_id}-${boutique.departement_id}`;
+                if (CROSSING_FEES[crossingKey] !== undefined) return parseFloat(CROSSING_FEES[crossingKey]);
+                if (CROSSING_FEES[reverseKey] !== undefined) return parseFloat(CROSSING_FEES[reverseKey]);
+                return INTER_DEPT_FEE;
+            }
+        };
+
+        // 2. Group items by optimal boutique (checking primary & secondary boutiques)
         const itemsByBoutique = {};
         for (const { product, item, unitPrice, variantData } of enrichedItems) {
-            const bId = product.boutique_id || 'no_boutique';
-            if (!itemsByBoutique[bId]) itemsByBoutique[bId] = [];
-            itemsByBoutique[bId].push({ product, item, unitPrice, variantData });
+            let bestBoutiqueId = product.boutique_id || 'no_boutique';
+            let minSupplement = Infinity;
+            
+            let candidateIds = [];
+            if (product.boutique_id) candidateIds.push(product.boutique_id);
+            try {
+                const rawSec = product.secondary_boutique_ids;
+                if (rawSec) {
+                    if (Array.isArray(rawSec)) candidateIds.push(...rawSec);
+                    else if (typeof rawSec === 'string') {
+                        if (rawSec.startsWith('[')) candidateIds.push(...JSON.parse(rawSec));
+                        else candidateIds.push(...rawSec.split(',').map(s=>s.trim()).filter(Boolean));
+                    }
+                }
+            } catch(e) {}
+
+            if (candidateIds.length > 0 && customerAddress) {
+                const boutiques = await Boutique.findAll({ where: { id: candidateIds }, transaction });
+                for (const b of boutiques) {
+                    const supp = calculateBoutiqueSupplement(b);
+                    if (supp < minSupplement) {
+                        minSupplement = supp;
+                        bestBoutiqueId = b.id;
+                    }
+                }
+            }
+            
+            if (!itemsByBoutique[bestBoutiqueId]) itemsByBoutique[bestBoutiqueId] = [];
+            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, variantData });
         }
 
         const boutiqueIds = Object.keys(itemsByBoutique);
@@ -304,27 +364,6 @@ export const createOrder = async (req, res) => {
         }
 
         // 4. Create individual orders per supplier
-        const customerAddress = await Address.findByPk(address_id, { transaction });
-
-        // Load configuration for fees
-        const configs = await Config.findAll({ 
-            where: { key: ['base_delivery_fee', 'intra_department_fee', 'inter_department_fee', 'crossing_fees'] },
-            transaction 
-        });
-        const configMap = configs.reduce((acc, c) => ({ ...acc, [c.key]: c.value }), {});
-        
-        // Frais de base : lus depuis la grille dynamique par tranches
-        // (pas de BASE_FEE fixe — on calcule par produit selon son prix)
-        const deliveryTiers = await getDeliveryFeeTiers();
-        const INTRA_DEPT_FEE = parseFloat(configMap['intra_department_fee'] || 500);
-        const INTER_DEPT_FEE = parseFloat(configMap['inter_department_fee'] || 1000);
-        
-        let CROSSING_FEES = {};
-        try {
-            CROSSING_FEES = configMap['crossing_fees'] ? JSON.parse(configMap['crossing_fees']) : {};
-        } catch (e) {
-            console.error("Error parsing crossing_fees config", e);
-        }
 
         for (const bId of boutiqueIds) {
             const boutiqueItems = itemsByBoutique[bId];
@@ -348,31 +387,7 @@ export const createOrder = async (req, res) => {
             let bSubtotal = boutiqueItems.reduce((sum, bi) => sum + (bi.unitPrice * bi.item.quantity), 0);
             
             // Calcul dynamique des frais de livraison pour CETTE boutique précise
-            let supplement = INTER_DEPT_FEE; 
-            if (boutique && customerAddress) {
-                const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-                const normalizedBCommune = normalize(boutique.commune_label);
-                const normalizedCCommune = normalize(customerAddress.commune_label);
-                
-                if (String(boutique.commune_id) === String(customerAddress.commune_id) || 
-                    (normalizedBCommune && normalizedBCommune === normalizedCCommune)) {
-                    supplement = 0;
-                } else if (String(boutique.departement_id) === String(customerAddress.departement_id)) {
-                    supplement = INTRA_DEPT_FEE;
-                } else {
-                    const crossingKey = `${boutique.departement_id}-${customerAddress.departement_id}`;
-                    const reverseKey = `${customerAddress.departement_id}-${boutique.departement_id}`;
-                    if (CROSSING_FEES[crossingKey] !== undefined) {
-                        supplement = parseFloat(CROSSING_FEES[crossingKey]);
-                    } else if (CROSSING_FEES[reverseKey] !== undefined) {
-                        supplement = parseFloat(CROSSING_FEES[reverseKey]);
-                    } else {
-                        supplement = INTER_DEPT_FEE;
-                    }
-                }
-            } else {
-                supplement = 0;
-            }
+            let supplement = calculateBoutiqueSupplement(boutique);
 
             const firstItemPrice = boutiqueItems[0].product.supplier_price || 0;
             const BASE_FEE = computeDeliveryFee(firstItemPrice, deliveryTiers);
@@ -562,6 +577,18 @@ export const updateOrderStatus = async (req, res) => {
         const userId = req.auth?.userId;
         const role = req.auth?.role;
 
+        const oldStatus = order.status;
+
+        const STATUS_MAP = {
+            'livree': 'livrée',
+            'expediee': 'expédiée',
+            'confirmee': 'confirmée',
+            'assignee': 'assignée',
+            'annulee': 'annulée',
+            'retournee': 'retournée'
+        };
+        const mappedStatus = STATUS_MAP[status] || status;
+
         // Authorization checks
         if (role !== 'admin') {
             // Get profile IDs for the current user
@@ -578,7 +605,7 @@ export const updateOrderStatus = async (req, res) => {
             }
 
             // Status-specific restrictions
-            if (status === 'livrée') {
+            if (mappedStatus === 'livrée') {
                 if (!order.delivery_person_id) {
                     return res.status(400).json({ error: 'Un livreur doit être assigné pour confirmer la livraison.' });
                 }
@@ -587,20 +614,10 @@ export const updateOrderStatus = async (req, res) => {
                 }
             }
             
-            if (isOrderSupplier && !isOrderRider && !['confirmée', 'expédiée', 'annulée'].includes(status)) {
+            if (isOrderSupplier && !isOrderRider && !['confirmée', 'expédiée', 'annulée'].includes(mappedStatus)) {
                  return res.status(403).json({ error: 'Action non autorisée pour un fournisseur.' });
             }
         }
-
-        const oldStatus = order.status;
-
-        const STATUS_MAP = {
-            'livree': 'livrée',
-            'expediee': 'expédiée',
-            'confirmee': 'confirmée',
-            'assignee': 'assignée'
-        };
-        const mappedStatus = STATUS_MAP[status] || status;
         
         const updatePayload = {};
         const now = new Date();
