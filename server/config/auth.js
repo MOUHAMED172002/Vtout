@@ -4,7 +4,14 @@ import mysql from "mysql2";
 import { Kysely, MysqlDialect } from "kysely";
 
 const MYSQL_DATABASE_URL = process.env.DATABASE_URL || process.env.MYSQL_DATABASE_URL || `mysql://${process.env.DB_USER || 'root'}:${process.env.DB_PASSWORD || ''}@${process.env.DB_HOST || '127.0.0.1'}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || 'eshop_db'}`;
-const pool = mysql.createPool(MYSQL_DATABASE_URL);
+
+// MySQL 8.4 uses caching_sha2_password by default.
+// allowPublicKeyRetrieval lets the driver do RSA key exchange without SSL.
+const pool = mysql.createPool({
+    uri: MYSQL_DATABASE_URL,
+    allowPublicKeyRetrieval: true,
+    ssl: false,
+});
 
 const db = new Kysely({
     dialect: new MysqlDialect({

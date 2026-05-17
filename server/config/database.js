@@ -21,6 +21,9 @@ const sharedOptions = {
     pool: poolConfig,
     dialectOptions: {
         connectTimeout: 30000, // 30s de timeout de connexion
+        // MySQL 8.4 uses caching_sha2_password by default — allow RSA key exchange without SSL
+        allowPublicKeyRetrieval: true,
+        ssl: false,
     },
     retry: {
         max: 3,
