@@ -2,8 +2,7 @@ services:
   api:
     build: ./server
     container_name: vtout-api
-    ports:
-      - "3000:3000"
+    network_mode: "host"
     env_file:
       - ./server/.env
     restart: always
