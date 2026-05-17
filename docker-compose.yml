@@ -4,6 +4,8 @@ services:
     container_name: vtout-api
     ports:
       - "3000:3000"
+    environment:
+      - MYSQL_DATABASE_URL=${MYSQL_DATABASE_URL}
     env_file:
       - ./server/.env
     restart: always
