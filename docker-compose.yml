@@ -2,10 +2,13 @@ services:
   api:
     build: ./server
     container_name: vtout-api
-    network_mode: "host"
+    ports:
+      - "3000:3000"
     env_file:
       - ./server/.env
     restart: always
+    networks:
+      - dokploy-network
 
   frontend:
     build: ./frontend
@@ -13,6 +16,8 @@ services:
     ports:
       - "5173:80"
     restart: always
+    networks:
+      - dokploy-network
 
   supplier-portal:
     build: ./supplier-portal
@@ -20,3 +25,9 @@ services:
     ports:
       - "5174:80"
     restart: always
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
