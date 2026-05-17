@@ -131,8 +131,8 @@ export const resetWhatsAppPassword = async (req, res) => {
         const userId = users[0].id;
 
         // Better Auth stocke les mots de passe hachés avec bcrypt dans la table account (providerId = 'credential' ou 'email')
-        // Ou dans la table user selon les versions. On va utiliser bcrypt pour hacher.
-        const bcrypt = await import('bcrypt');
+        // Ou dans la table user selon les versions. On va utiliser bcryptjs pour hacher.
+        const bcrypt = await import('bcryptjs');
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Mettre à jour dans la table account (Better Auth)

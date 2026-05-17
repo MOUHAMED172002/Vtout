@@ -141,11 +141,11 @@ const Order = sequelize.define('Order', {
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0.00
     },
-    dispute_status: {
-        type: DataTypes.STRING(30),
-        allowNull: true,
-        defaultValue: null
         // 'ouvert', 'en_cours', 'resolu', 'rembourse'
+    },
+    whatsapp_notif_phone: {
+        type: DataTypes.STRING(30),
+        allowNull: true
     }
 }, {
     tableName: 'orders',

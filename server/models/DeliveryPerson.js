@@ -16,6 +16,10 @@ const DeliveryPerson = sequelize.define('DeliveryPerson', {
             key: 'id'
         }
     },
+    whatsapp: {
+        type: DataTypes.STRING(30),
+        allowNull: true
+    },
     vehicle_type: {
         type: DataTypes.STRING(50), // 'moto', 'car', 'bicycle'
         allowNull: false

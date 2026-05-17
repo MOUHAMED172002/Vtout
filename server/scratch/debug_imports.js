@@ -1,0 +1,11 @@
+console.log('1. Starting imports...');
+import express from 'express';
+console.log('2. Express imported');
+import sequelize from '../config/database.js';
+console.log('3. Sequelize config imported');
+import { auth } from '../config/auth.js';
+console.log('4. Auth config imported');
+import { Otp, Profile } from '../models/index.js';
+console.log('5. Models imported');
+console.log('Success!');
+process.exit();

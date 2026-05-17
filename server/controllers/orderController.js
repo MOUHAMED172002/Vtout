@@ -161,7 +161,7 @@ export const createOrder = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const userId = req.auth?.userId || null;
-        const { items, address_id, payment_method, notes, delivery_fee, guest_name, guest_email, guest_phone, coupon_code } = req.body;
+        const { items, address_id, payment_method, notes, delivery_fee, guest_name, guest_email, guest_phone, whatsapp_notif_phone, coupon_code } = req.body;
         
         if (!items || items.length === 0) {
             await transaction.rollback();
@@ -410,6 +410,7 @@ export const createOrder = async (req, res) => {
                 payment_method: payment_method || 'delivery',
                 payment_status: 'en_attente',
                 status: 'en_attente',
+                whatsapp_notif_phone,
                 total_amount: sTotal,
                 delivery_fee: sDeliveryFee,
                 discount_amount: sDiscount,
@@ -444,6 +445,12 @@ export const createOrder = async (req, res) => {
             // WhatsApp Notif to Boutique/Supplier
             if (targetPhone) {
                 notifySupplierOfNewOrder(targetPhone, order.id, order.total_amount).catch(e => console.error("WA NOTIF ERR:", e));
+            }
+
+            // WhatsApp Notif to Customer (Priority to dedicated phone)
+            const customerWhatsApp = whatsapp_notif_phone || guest_phone;
+            if (customerWhatsApp) {
+                sendNewOrderWhatsApp(customerWhatsApp, order.id, order.total_amount).catch(e => console.error("WA CUST NOTIF ERR:", e));
             }
         }
 

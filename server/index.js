@@ -220,15 +220,29 @@ app.use(express.json({ limit: '10kb' }));
 // 🆘 ROUTE DE SECOURS - À UTILISER SI LES ERREURS 500 PERSISTENT
 app.get("/api/repair-db", async (req, res) => {
     try {
+        const logs = [];
+        const { Otp, Config, Profile, sequelize } = await import('./models/index.js');
         const qi = sequelize.getQueryInterface();
         const { DataTypes } = await import('sequelize');
-        const logs = [];
 
+        logs.push("🚀 Démarrage de la réparation forcée...");
+
+        // 1. Sync Otp table explicitly
+        try {
+            await Otp.sync({ alter: true });
+            logs.push("✅ Table 'otps' synchronisée.");
+        } catch (e) {
+            logs.push("❌ Erreur table otps : " + e.message);
+        }
+
+        // 2. Add missing columns to existing tables
         const columns = [
             { table: 'categories', col: 'commission_rate', def: { type: DataTypes.DECIMAL(5, 2), allowNull: true } },
             { table: 'orders', col: 'dispute_status', def: { type: DataTypes.STRING(30), allowNull: true } },
             { table: 'orders', col: 'is_parent', def: { type: DataTypes.BOOLEAN, defaultValue: false } },
             { table: 'orders', col: 'parent_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
+            { table: 'orders', col: 'whatsapp_notif_phone', def: { type: DataTypes.STRING(30), allowNull: true } },
+            { table: 'delivery_persons', col: 'whatsapp', def: { type: DataTypes.STRING(30), allowNull: true } },
             { table: 'orders', col: 'boutique_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'orders', col: 'supplier_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'order_items', col: 'boutique_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
@@ -236,21 +250,6 @@ app.get("/api/repair-db", async (req, res) => {
             { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } }
         ];
 
-        // 0. Ensure column types are correct (Change if exists but wrong type)
-        try {
-            await qi.changeColumn('orders', 'boutique_id', { type: DataTypes.CHAR(36), allowNull: true });
-        } catch (e) { /* ignore if not exists */ }
-
-        // 1. Force creation of the Dispute table if missing
-        try {
-            const { Dispute } = await import('./models/index.js');
-            await Dispute.sync({ alter: true });
-            logs.push("✅ Table 'Disputes' synchronisée.");
-        } catch (e) {
-            logs.push("❌ Erreur synchro table Disputes : " + e.message);
-        }
-
-        // 2. Add missing columns
         for (const c of columns) {
             try {
                 await qi.addColumn(c.table, c.col, c.def);
@@ -260,12 +259,17 @@ app.get("/api/repair-db", async (req, res) => {
             }
         }
 
-        // 3. Initialisation des commissions (On ne force plus à 10% pour laisser le contrôle à l'admin)
-        logs.push("✅ Vérification des commissions passée (Mode manuel activé).");
+        // 3. Test de connexion finale
+        await sequelize.authenticate();
+        logs.push("✅ Connexion base de données : OK");
 
-        res.json({ message: "Réparation approfondie terminée", details: logs });
+        res.json({ 
+            message: "Réparation terminée. Si les erreurs 500 persistent, vérifiez les logs du serveur.", 
+            details: logs 
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("[REPAIR ERROR]", error);
+        res.status(500).json({ error: error.message, stack: error.stack });
     }
 });
 
@@ -481,15 +485,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- Global Error Handler ---
-app.use((err, req, res, next) => {
-    console.error(`[FATAL ERROR] ${req.method} ${req.url}:`, err);
-    res.status(500).json({ 
-        error: "Erreur interne du serveur", 
-        message: err.message, 
-        path: req.url 
-    });
-});
+// Note: The global errorHandler is already registered at line 330
+// and will handle all errors from the routes above.
 
 const startServer = () => {
     // Timeout global sur les requêtes HTTP (25s) — évite les connexions bloquantes
@@ -597,6 +594,8 @@ sequelize.authenticate()
                     { table: 'orders',                col: 'dispute_status',             def: { type: DataTypes.STRING(30),     allowNull: true } },
                     { table: 'orders',                col: 'is_parent',                  def: { type: DataTypes.BOOLEAN,        defaultValue: false } },
                     { table: 'orders',                col: 'parent_id',                  def: { type: DataTypes.CHAR(36),       allowNull: true } },
+                    { table: 'orders',                col: 'whatsapp_notif_phone',       def: { type: DataTypes.STRING(30),     allowNull: true } },
+                    { table: 'delivery_persons',      col: 'whatsapp',                   def: { type: DataTypes.STRING(30),     allowNull: true } },
                     { table: 'support_messages',      col: 'order_id',                   def: { type: DataTypes.CHAR(36),       allowNull: true } },
                     { table: 'support_messages',      col: 'type',                       def: { type: DataTypes.STRING(20),     defaultValue: 'message' } },
                 ];
