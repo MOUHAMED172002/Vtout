@@ -58,6 +58,11 @@ import BlogDetail from './component/Blogs/BlogDetail';
 import MagPage from './component/Blogs/MagPage';
 import Privacy from './component/Popup/Privacy';
 
+// --- Promotion Pages ---
+import FlashSalePage from './pages/Promotions/FlashSalePage';
+import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
+import KitsPage from './pages/Promotions/KitsPage';
+
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
 import DevenirLivreur from './component/Delivery/DevenirLivreur';
@@ -162,6 +167,9 @@ const AppContent = ({ products, loading }) => {
           <Route path="/products" element={<PublicRoute><><Navbar /><ProductGrid /><Footer /></></PublicRoute>} />
           <Route path="/products/:id" element={<PublicRoute><><Navbar /><ProductPages /><Footer /></></PublicRoute>} />
           <Route path="/products-liste" element={<PublicRoute><><Navbar /><ProductsList /><Footer /></></PublicRoute>} />
+          <Route path="/promotions/flash" element={<PublicRoute><FlashSalePage /></PublicRoute>} />
+          <Route path="/promotions/quantite" element={<PublicRoute><QuantityDiscountPage /></PublicRoute>} />
+          <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
