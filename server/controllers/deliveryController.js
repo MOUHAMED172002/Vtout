@@ -288,16 +288,50 @@ export const getDeliveryStatsAdmin = async (req, res) => {
 };
 
 export const confirmCashRemitted = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const { deliveryPersonId } = req.body;
-        if (!deliveryPersonId) return res.status(400).json({ error: 'ID du livreur requis' });
+        if (!deliveryPersonId) {
+            await t.rollback();
+            return res.status(400).json({ error: 'ID du livreur requis' });
+        }
 
-        const [updatedCount] = await Order.update(
-            { payment_status: 'payé' },
-            { where: { delivery_person_id: deliveryPersonId, payment_method: 'delivery', payment_status: 'en_attente', status: 'livrée' } }
-        );
-        res.json({ message: `Paiements confirmés pour ${updatedCount} commandes.`, count: updatedCount });
+        const lp = await DeliveryPerson.findByPk(deliveryPersonId, { transaction: t });
+        if (!lp) {
+            await t.rollback();
+            return res.status(404).json({ error: 'Livreur non trouvé' });
+        }
+
+        const orders = await Order.findAll({
+            where: { delivery_person_id: deliveryPersonId, payment_method: 'delivery', payment_status: 'en_attente', status: 'livrée' },
+            transaction: t
+        });
+
+        if (orders.length === 0) {
+            await t.rollback();
+            return res.json({ message: "Aucune commande en attente de versement.", count: 0 });
+        }
+
+        for (const order of orders) {
+            await order.update({ payment_status: 'payé' }, { transaction: t });
+
+            // Create a positive offsetting transaction for the delivery person's wallet
+            await FinancialTransaction.create({
+                id: crypto.randomUUID(),
+                user_id: lp.user_id,
+                order_id: order.id,
+                type: 'adjustment',
+                amount: parseFloat(order.total_amount),
+                description: `Versement Espèces #${order.id.slice(0, 8)}`,
+                status: 'completed'
+            }, { transaction: t });
+        }
+
+        await t.commit();
+        res.json({ message: `Paiements confirmés pour ${orders.length} commandes.`, count: orders.length });
     } catch (error) {
+        await t.rollback();
+        console.error("confirmCashRemitted error:", error);
         res.status(500).json({ error: 'Erreur lors de la confirmation du versement' });
     }
 };

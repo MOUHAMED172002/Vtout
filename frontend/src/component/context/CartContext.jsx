@@ -14,11 +14,11 @@ export function CartProvider({ children }) {
   const { user, isLoaded } = useUser();
 
   // Charge le panier initial (Server si connecté, sinon Local)
-  const refreshCart = useCallback(async () => {
+  const refreshCart = useCallback(async (silent = false) => {
     if (!isLoaded) return;
 
     if (user) {
-      setLoading(true);
+      if (!silent) setLoading(true);
       try {
         const token = await getToken();
         const items = await getMyCart(token);
@@ -28,7 +28,7 @@ export function CartProvider({ children }) {
           console.error("refreshCart error", err);
         }
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     } else {
       const saved = localStorage.getItem("cart");
@@ -62,7 +62,7 @@ export function CartProvider({ children }) {
           selected_attributes: productData.selected_attributes || {}
         }, token);
         toast.success("Ajouté au panier !");
-        await refreshCart();
+        await refreshCart(true); // Silent refresh
       } catch (err) {
         console.error("addToCart error", err);
         toast.error("Erreur lors de l'ajout au panier.");
@@ -83,32 +83,39 @@ export function CartProvider({ children }) {
   };
 
   const removeFromCart = async (itemId) => {
+    // Optimistic UI update
+    setCart(prev => prev.filter(item => item.id !== itemId));
+
     if (user) {
       try {
         const token = await getToken();
         await apiRemoveFromCart(itemId, token);
-        await refreshCart();
+        await refreshCart(true); // Silent refresh
         toast.success("Retiré du panier.");
       } catch (err) {
         console.error("removeFromCart error", err);
+        refreshCart(); // Rollback/full reload on error
       }
     } else {
-      setCart(prev => prev.filter(item => item.id !== itemId));
+      toast.success("Retiré du panier.");
     }
   };
 
   const updateQuantity = async (itemId, newQty) => {
     if (newQty < 1) return;
+
+    // Optimistic UI update
+    setCart(prev => prev.map(item => item.id === itemId ? { ...item, quantity: newQty } : item));
+
     if (user) {
       try {
         const token = await getToken();
         await apiUpdateCartItemQuantity(itemId, newQty, token);
-        await refreshCart();
+        await refreshCart(true); // Silent refresh
       } catch (err) {
         console.error("updateQuantity error", err);
+        refreshCart(); // Rollback/full reload on error
       }
-    } else {
-      setCart(prev => prev.map(item => item.id === itemId ? { ...item, quantity: newQty } : item));
     }
   };
 

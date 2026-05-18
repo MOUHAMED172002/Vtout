@@ -169,6 +169,25 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             type: 'wallet'
                         }, { transaction: t });
                     }
+
+                    // For Cash on Delivery, debit the delivery person's wallet by the total order amount
+                    if (order.payment_method === 'delivery') {
+                        const existingDebitTx = await FinancialTransaction.findOne({
+                            where: { order_id: order.id, user_id: lp.user_id, type: 'adjustment', amount: -parseFloat(order.total_amount) },
+                            transaction: t
+                        });
+                        if (!existingDebitTx) {
+                            await FinancialTransaction.create({
+                                id: crypto.randomUUID(),
+                                user_id: lp.user_id,
+                                order_id: order.id,
+                                type: 'adjustment',
+                                amount: -parseFloat(order.total_amount),
+                                description: `Encaissement Espèces #${order.id.slice(0, 8)}`,
+                                status: 'completed'
+                            }, { transaction: t });
+                        }
+                    }
                 }
             }
         }

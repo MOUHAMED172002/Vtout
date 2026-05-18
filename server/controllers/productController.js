@@ -415,8 +415,8 @@ export const createProduct = async (req, res) => {
         const {
             name, description, price, old_price, stock, category_id,
             images, variants, supplierLinks,
-            // Flash sale fields
-            is_flash_sale, flash_sale_end,
+            // Promo fields
+            is_flash_sale, flash_sale_end, is_kit, kit_items, volume_pricing,
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
         } = req.body;
@@ -523,6 +523,9 @@ export const createProduct = async (req, res) => {
             category_id,
             is_flash_sale: isSupplier ? false : (is_flash_sale || false),
             flash_sale_end: isSupplier ? null : (flash_sale_end || null),
+            is_kit: isSupplier ? false : (is_kit || false),
+            kit_items: isSupplier ? null : (kit_items || null),
+            volume_pricing: isSupplier ? null : (volume_pricing || null),
             supplier_id: finalSupplierId || null,
             supplier_price: calculatedSupplierPrice || 0,
             approval_status: finalStatus,
@@ -629,8 +632,8 @@ export const updateProduct = async (req, res) => {
         let {
             name, description, price, old_price, stock, category_id,
             images, variants, supplierLinks,
-            // Flash sale fields
-            is_flash_sale, flash_sale_end,
+            // Promo fields
+            is_flash_sale, flash_sale_end, is_kit, kit_items, volume_pricing,
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
         } = req.body;
@@ -730,6 +733,9 @@ export const updateProduct = async (req, res) => {
         if (finalStock !== undefined) updatePayload.stock = finalStock;
         if (is_flash_sale !== undefined && (!isSupplier || isAdmin)) updatePayload.is_flash_sale = is_flash_sale;
         if (flash_sale_end !== undefined && (!isSupplier || isAdmin)) updatePayload.flash_sale_end = flash_sale_end;
+        if (is_kit !== undefined && (!isSupplier || isAdmin)) updatePayload.is_kit = is_kit;
+        if (kit_items !== undefined && (!isSupplier || isAdmin)) updatePayload.kit_items = kit_items;
+        if (volume_pricing !== undefined && (!isSupplier || isAdmin)) updatePayload.volume_pricing = volume_pricing;
         if (isAdmin && supplier_id !== undefined) updatePayload.supplier_id = supplier_id;
         if (supplier_price !== undefined) updatePayload.supplier_price = supplier_price;
         if (isAdmin && admin_feedback !== undefined) updatePayload.admin_feedback = admin_feedback;

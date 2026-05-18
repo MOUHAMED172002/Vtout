@@ -101,16 +101,69 @@ const ConfigManager = () => {
                     value: JSON.stringify([
                         {
                             id: 1,
-                            img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500',
-                            subtitle: 'Beats Solo Edition',
-                            title: "Sensation",
-                            title2: "Wireless",
-                            color: "from-blue-500/20 to-indigo-500/10",
-                            textColor: "text-blue-600"
+                            img: '/src/assets/hero/hero_shopping.png',
+                            subtitle: 'VOTRE ACHAT EN TOUTE CONFIANCE',
+                            title: "Le shopping en ligne",
+                            title2: "pensé pour le Bénin",
+                            description: "Sur Vtout, des milliers de vendeurs de tout le pays proposent une grande variété de produits sur une plateforme simple, sécurisée et fiable.",
+                            color: "from-emerald-500/20 to-teal-500/10",
+                            textColor: "text-emerald-400"
                         }
                     ]),
                     group: 'hero',
-                    description: 'Diapositives de la page d\'accueil'
+                    description: 'Diapositives de la page d\'accueil (Hero)'
+                });
+            }
+
+            if (!uniqueData.find(c => c.key === 'promotions_carousel')) {
+                uniqueData.push({
+                    key: 'promotions_carousel',
+                    value: JSON.stringify([
+                        {
+                            id: 1,
+                            badge: "Offres Spéciales",
+                            title: "Les meilleures",
+                            titleAccent: "offres du moment",
+                            subtitle: "Profitez de réductions exceptionnelles proposées par nos vendeurs partout au Bénin.",
+                            circleBadgeText: "Jusqu'à",
+                            circleBadgeVal: "-50%",
+                            img: "/src/assets/hero/promo_offers.png",
+                            buttonText: "Voir les offres",
+                            link: "/promotions/flash",
+                            button2Text: "Toutes les catégories",
+                            button2Link: "/categories"
+                        },
+                        {
+                            id: 2,
+                            badge: "Remises en Gros",
+                            title: "Plus d'achats,",
+                            titleAccent: "moins de frais",
+                            subtitle: "Économisez automatiquement par paliers configurés directement par les grossistes.",
+                            circleBadgeText: "Gros",
+                            circleBadgeVal: "-20%",
+                            img: "/src/assets/hero/promo_offers.png",
+                            buttonText: "Voir le gros",
+                            link: "/promotions/quantite",
+                            button2Text: "Toutes les catégories",
+                            button2Link: "/categories"
+                        },
+                        {
+                            id: 3,
+                            badge: "Packs Tout-en-un",
+                            title: "Kits complets",
+                            titleAccent: "à prix sacrifié",
+                            subtitle: "Achetez des lots d'articles complémentaires en 1-clic avec des remises cumulées importantes.",
+                            circleBadgeText: "Pack",
+                            circleBadgeVal: "-30%",
+                            img: "/src/assets/hero/promo_offers.png",
+                            buttonText: "Découvrir",
+                            link: "/promotions/kits",
+                            button2Text: "Toutes les catégories",
+                            button2Link: "/categories"
+                        }
+                    ]),
+                    group: 'hero',
+                    description: 'Bannières promotionnelles de la page d\'accueil'
                 });
             }
 
@@ -285,7 +338,7 @@ const ConfigManager = () => {
                                     <motion.div 
                                         key={cfg.key}
                                         whileHover={{ y: -5 }}
-                                        className={`bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' ? 'md:col-span-2' : ''}`}
+                                        className={`bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' || cfg.key === 'promotions_carousel' ? 'md:col-span-2' : ''}`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
@@ -299,6 +352,13 @@ const ConfigManager = () => {
                                             
                                             {cfg.key === 'hero_carousel' ? (
                                                 <HeroManager 
+                                                    value={cfg.value} 
+                                                    onChange={(newValue) => handleChange(groupKey, cfg.key, newValue)} 
+                                                    onSave={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
+                                                    uploadImage={handleGenericUpload}
+                                                />
+                                            ) : cfg.key === 'promotions_carousel' ? (
+                                                <PromotionsManager 
                                                     value={cfg.value} 
                                                     onChange={(newValue) => handleChange(groupKey, cfg.key, newValue)} 
                                                     onSave={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
@@ -750,6 +810,153 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                 className="w-full py-4 bg-pink-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-pink-200 hover:bg-pink-700 hover:-translate-y-1 transition-all"
             >
                 Enregistrer le Carousel Hero
+            </button>
+        </div>
+    );
+};
+
+const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
+    const items = value ? JSON.parse(value) : [];
+    const [uploadingObj, setUploadingObj] = useState(null);
+
+    const addItem = () => {
+        const newItems = [...items, { 
+            id: Date.now(), 
+            badge: 'Nouvelle Promotion', 
+            title: 'Titre Promo', 
+            titleAccent: 'Accent', 
+            subtitle: 'Description de la promotion', 
+            circleBadgeText: "Jusqu'à",
+            circleBadgeVal: '-30%',
+            img: '/src/assets/hero/promo_offers.png',
+            buttonText: 'Découvrir',
+            link: '/promotions/flash',
+            button2Text: 'Toutes les catégories',
+            button2Link: '/categories'
+        }];
+        onChange(JSON.stringify(newItems));
+    };
+
+    const updateItem = (index, field, newVal) => {
+        const newItems = [...items];
+        newItems[index][field] = newVal;
+        onChange(JSON.stringify(newItems));
+    };
+
+    const removeItem = (index) => {
+        const newItems = items.filter((_, i) => i !== index);
+        onChange(JSON.stringify(newItems));
+    };
+
+    const handleFileChange = async (e, index) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            setUploadingObj(index);
+            const url = await uploadImage(file);
+            updateItem(index, 'img', url);
+        } catch (err) {
+            toast.error("Erreur lors de l'upload de l'image");
+        } finally {
+            setUploadingObj(null);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {items.map((slide, i) => (
+                    <div key={i} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
+                        <button onClick={() => removeItem(i)} className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                            <Trash2 size={14} />
+                        </button>
+                        
+                        <div className="h-40 rounded-2xl overflow-hidden mx-auto bg-white relative flex items-center justify-center border-2 border-dashed border-slate-200 group-hover:border-primary/30 transition-colors">
+                            {uploadingObj === i && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20"><Loader2 className="animate-spin text-primary" size={24}/></div>}
+                            <img src={slide.img} alt="Promo Preview" className="w-full h-full object-contain p-2" />
+                            <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-10">
+                                <span className="bg-white/20 px-4 py-2 rounded-xl text-white text-[10px] font-black backdrop-blur-md flex items-center gap-2 border border-white/20">
+                                    <Plus size={16}/> Remplacer l'image
+                                </span>
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, i)} />
+                            </label>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <input 
+                                value={slide.badge} 
+                                onChange={e => updateItem(i, 'badge', e.target.value)}
+                                placeholder="Badge (ex: Vente Flash)"
+                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input 
+                                    value={slide.title} 
+                                    onChange={e => updateItem(i, 'title', e.target.value)}
+                                    placeholder="Titre de début"
+                                    className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                                <input 
+                                    value={slide.titleAccent} 
+                                    onChange={e => updateItem(i, 'titleAccent', e.target.value)}
+                                    placeholder="Titre accentué"
+                                    className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                            <textarea 
+                                value={slide.subtitle} 
+                                onChange={e => updateItem(i, 'subtitle', e.target.value)}
+                                placeholder="Description"
+                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-bold text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none h-16 resize-none"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input 
+                                    value={slide.circleBadgeText} 
+                                    onChange={e => updateItem(i, 'circleBadgeText', e.target.value)}
+                                    placeholder="Texte Rond (Jusqu'à)"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                />
+                                <input 
+                                    value={slide.circleBadgeVal} 
+                                    onChange={e => updateItem(i, 'circleBadgeVal', e.target.value)}
+                                    placeholder="Valeur Rond (-50%)"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input 
+                                    value={slide.buttonText} 
+                                    onChange={e => updateItem(i, 'buttonText', e.target.value)}
+                                    placeholder="Texte Bouton 1"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none"
+                                />
+                                <input 
+                                    value={slide.link} 
+                                    onChange={e => updateItem(i, 'link', e.target.value)}
+                                    placeholder="Lien Bouton 1"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                
+                <button 
+                    onClick={addItem}
+                    className="border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-6 hover:bg-slate-50 transition-all text-slate-400 hover:text-primary min-h-[350px] group"
+                >
+                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
+                        <Plus size={24} />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest">Ajouter une Promo</span>
+                </button>
+            </div>
+            
+            <button 
+                onClick={onSave}
+                className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all"
+            >
+                Enregistrer les Promotions
             </button>
         </div>
     );

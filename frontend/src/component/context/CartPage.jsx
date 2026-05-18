@@ -16,10 +16,52 @@ export default function CartPage() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
-  const total = displayCart.reduce((sum, item) => sum + (item.price_snapshot || item.price || 0) * item.quantity, 0);
+  const getDiscountInfo = (item) => {
+    let originalPrice = parseFloat(item.price_snapshot || item.price || 0);
+    let discountedPrice = originalPrice;
+    let discountPercent = 0;
+    let isVolumeDiscount = false;
+
+    if (item.product && item.product.volume_pricing) {
+      try {
+        const tiers = typeof item.product.volume_pricing === 'string'
+          ? JSON.parse(item.product.volume_pricing)
+          : item.product.volume_pricing;
+          
+        if (Array.isArray(tiers) && tiers.length > 0) {
+          const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
+          const metTier = sortedTiers.find(t => item.quantity >= t.qty);
+          if (metTier) {
+            discountPercent = parseFloat(metTier.discount || 0);
+            if (discountPercent > 0) {
+              discountedPrice = originalPrice * (1 - discountPercent / 100);
+              isVolumeDiscount = true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing volume pricing in cart:", e);
+      }
+    }
+    return {
+      originalPrice,
+      discountedPrice: Math.round(discountedPrice),
+      discountPercent,
+      isVolumeDiscount
+    };
+  };
+
+  const total = displayCart.reduce((sum, item) => {
+    const { discountedPrice } = getDiscountInfo(item);
+    return sum + discountedPrice * item.quantity;
+  }, 0);
+
   const selectedTotal = displayCart
     .filter((i) => selectedIds.has(i.id))
-    .reduce((sum, item) => sum + (item.price_snapshot || item.price || 0) * item.quantity, 0);
+    .reduce((sum, item) => {
+      const { discountedPrice } = getDiscountInfo(item);
+      return sum + discountedPrice * item.quantity;
+    }, 0);
 
   function toggleSelect(id) {
     setSelectedIds((s) => {
@@ -42,7 +84,16 @@ export default function CartPage() {
 
   function handleCheckout() {
     if (!displayCart.length) return toast.error("Votre panier est vide.");
-    const items = selectedIds.size > 0 ? displayCart.filter(i => selectedIds.has(i.id)) : displayCart;
+    
+    // Map items to include their actual computed promotional/volume price snapshot for downstream checkout validation
+    const items = (selectedIds.size > 0 ? displayCart.filter(i => selectedIds.has(i.id)) : displayCart).map(item => {
+      const { discountedPrice } = getDiscountInfo(item);
+      return {
+        ...item,
+        price_snapshot: discountedPrice // Use calculated dynamic promotional price
+      };
+    });
+    
     const finalTotal = selectedIds.size > 0 ? selectedTotal : total;
     navigate("/checkout", { state: { items, total: finalTotal } });
   }
@@ -148,9 +199,31 @@ export default function CartPage() {
                               }
                             })()}
                           </div>
-                          <p className="text-2xl font-black text-primary pt-1">
-                            {(item.price_snapshot || item.price).toLocaleString()} F
-                          </p>
+                          {(() => {
+                            const { originalPrice, discountedPrice, discountPercent, isVolumeDiscount } = getDiscountInfo(item);
+                            if (isVolumeDiscount) {
+                              return (
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-3 justify-center md:justify-start">
+                                    <span className="text-2xl font-black text-primary">
+                                      {discountedPrice.toLocaleString()} F
+                                    </span>
+                                    <span className="text-sm font-bold text-slate-400 line-through">
+                                      {originalPrice.toLocaleString()} F
+                                    </span>
+                                  </div>
+                                  <span className="inline-block text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full uppercase tracking-tighter">
+                                    🎉 Offre de Gros (-{discountPercent}%)
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return (
+                              <p className="text-2xl font-black text-primary pt-1">
+                                {originalPrice.toLocaleString()} F
+                              </p>
+                            );
+                          })()}
                         </div>
 
                         <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">

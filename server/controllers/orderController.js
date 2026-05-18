@@ -215,7 +215,7 @@ export const createOrder = async (req, res) => {
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
             }
 
-            let unitPrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
+            let basePrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
             // Support both variant_price_id (direct) and variant_id (lookup)
@@ -246,7 +246,7 @@ export const createOrder = async (req, res) => {
                         await transaction.rollback();
                         return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${variantPrice.stock})` });
                     }
-                    unitPrice = parseFloat(variantPrice.price || unitPrice);
+                    basePrice = parseFloat(variantPrice.price || basePrice);
                     variantData = variantPrice;
                     // Inject for downstream usage
                     item.variant_price_id = variantPriceId;
@@ -258,6 +258,28 @@ export const createOrder = async (req, res) => {
                 if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock !== null && lockedProduct.stock < item.quantity) {
                     await transaction.rollback();
                     return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${lockedProduct.stock})` });
+                }
+            }
+
+            // Apply Volume Pricing (Quantity/Bulk Discount) dynamically
+            let unitPrice = basePrice;
+            if (product.volume_pricing) {
+                try {
+                    const tiers = typeof product.volume_pricing === 'string'
+                        ? JSON.parse(product.volume_pricing)
+                        : product.volume_pricing;
+                    if (Array.isArray(tiers) && tiers.length > 0) {
+                        const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
+                        const metTier = sortedTiers.find(t => item.quantity >= t.qty);
+                        if (metTier) {
+                            const discountPercent = parseFloat(metTier.discount || 0);
+                            if (discountPercent > 0) {
+                                unitPrice = basePrice * (1 - discountPercent / 100);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing volume pricing during order creation:", e);
                 }
             }
 

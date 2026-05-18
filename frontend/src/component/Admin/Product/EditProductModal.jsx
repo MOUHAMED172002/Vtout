@@ -5,7 +5,7 @@ import {
   ChevronLeft, Package, Layers, Truck, Info, AlertCircle,
   Upload, Star, Sparkles, Save, ShieldCheck, Search,
   Phone, MessageCircle, CreditCard, MapPin, Store, ExternalLink,
-  CheckCircle2, XCircle, Clock, User
+  CheckCircle2, XCircle, Clock, User, Percent
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -17,7 +17,8 @@ import {
   updateProduct,
   createAttribute,
   addAttributeValue,
-  getAttributesByCategory
+  getAttributesByCategory,
+  getProducts
 } from '../../../services/productService';
 import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -46,6 +47,7 @@ const steps = [
   { id: 'images', title: 'Images', icon: ImageIcon },
   { id: 'fournisseur', title: 'Fournisseur', icon: Truck },
   { id: 'variantes', title: 'Variantes', icon: Layers },
+  { id: 'promotions', title: 'Promotions', icon: Sparkles },
 ];
 
 // ─── Badge statut ──────────────────────────────────────────────────────────────
@@ -189,6 +191,15 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   const [commissionRate, setCommissionRate] = useState(10);
   const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
 
+  // Admin Promotions States
+  const [allProductsList, setAllProductsList] = useState([]);
+  const [selectedKitProductIds, setSelectedKitProductIds] = useState([]);
+  const [kitSearchQuery, setKitSearchQuery] = useState('');
+  const [volumePricingTiers, setVolumePricingTiers] = useState([
+    { qty: 3, discount: 10 },
+    { qty: 5, discount: 20 }
+  ]);
+
   const [imageFiles, setImageFiles] = useState([]);
   const [deliveryTiers, setDeliveryTiers] = useState(DEFAULT_DELIVERY_TIERS);
   const [currentDeliveryFee, setCurrentDeliveryFee] = useState(1000);
@@ -196,7 +207,13 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm({
     defaultValues: {
       stock: 0, variants: [],
-      supplier_price: '', approval_status: 'En attente', admin_feedback: ''
+      supplier_price: '', approval_status: 'En attente', admin_feedback: '',
+      is_flash_sale: false,
+      flash_sale_end: '',
+      is_kit: false,
+      kit_items: [],
+      volume_pricing: [],
+      volume_pricing_enabled: false
     }
   });
 
@@ -241,6 +258,10 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     (async () => {
       try { const cats = await getCategories(); setCategories(cats || []); } catch (e) { console.error(e); }
       try { const attrs = await getAttributes(); setAvailableAttributes(attrs || []); } catch (e) { console.error(e); }
+      try {
+        const prodData = await getProducts({ limit: 100 });
+        setAllProductsList(prodData.products || prodData || []);
+      } catch (e) { console.error("Error fetching all products for kit selection", e); }
       try {
         const { data } = await axios.get(`${API_URL}/configs/key/commission_rate`, { withCredentials: true });
         if (data && data.value) setCommissionRate(parseFloat(data.value));
@@ -321,6 +342,29 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   // Initialisation du formulaire avec le produit existant
   useEffect(() => {
     if (!initialProduct) return;
+    
+    // Parse kit items
+    let parsedKitItems = [];
+    if (initialProduct.kit_items) {
+      try {
+        parsedKitItems = typeof initialProduct.kit_items === 'string' ? JSON.parse(initialProduct.kit_items) : initialProduct.kit_items;
+        if (Array.isArray(parsedKitItems)) setSelectedKitProductIds(parsedKitItems);
+      } catch (e) { console.error("Error parsing kit items", e); }
+    }
+
+    // Parse volume pricing
+    let parsedVolumePricing = [];
+    let isVolumeEnabled = false;
+    if (initialProduct.volume_pricing) {
+      try {
+        parsedVolumePricing = typeof initialProduct.volume_pricing === 'string' ? JSON.parse(initialProduct.volume_pricing) : initialProduct.volume_pricing;
+        if (Array.isArray(parsedVolumePricing) && parsedVolumePricing.length > 0) {
+          setVolumePricingTiers(parsedVolumePricing);
+          isVolumeEnabled = true;
+        }
+      } catch (e) { console.error("Error parsing volume pricing", e); }
+    }
+
     reset({
       name: initialProduct.name || '',
       description: initialProduct.description || '',
@@ -331,6 +375,12 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       approval_status: initialProduct.approval_status || 'En attente',
       admin_feedback: initialProduct.admin_feedback || '',
       supplier_price: initialProduct.supplier_price || '',
+      is_flash_sale: initialProduct.is_flash_sale || false,
+      flash_sale_end: initialProduct.flash_sale_end ? new Date(initialProduct.flash_sale_end).toISOString().substring(0, 16) : '',
+      is_kit: initialProduct.is_kit || false,
+      kit_items: parsedKitItems,
+      volume_pricing: parsedVolumePricing,
+      volume_pricing_enabled: isVolumeEnabled,
       variants: (initialProduct.variants || []).map(v => ({
         ...v,
         price: v.priceRows?.[0]?.price || initialProduct.price,
@@ -470,6 +520,11 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
           image_url: v.image_url || mainImageUrl,
           supplierLinks: (v.supplierLinks || []).map(l => ({ ...l, supplier_price: parseFloat(l.supplier_price) || 0 })),
         })),
+        is_flash_sale: data.is_flash_sale || false,
+        flash_sale_end: data.is_flash_sale ? (data.flash_sale_end || null) : null,
+        is_kit: data.is_kit || false,
+        kit_items: data.is_kit ? JSON.stringify(selectedKitProductIds) : null,
+        volume_pricing: data.volume_pricing_enabled ? JSON.stringify(volumePricingTiers) : null
       };
 
       await updateProduct(initialProduct.id, payload, token);
@@ -844,6 +899,148 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                   ))}
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {currentStep === 4 && (
+            <motion.div key="promotions" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12 pb-10">
+              <div className="flex justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-3xl border border-indigo-100">
+                <div>
+                  <h3 className="text-xl font-black text-indigo-950 uppercase tracking-tighter">Gouvernance Promotionnelle.</h3>
+                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Configurez les offres et restrictions réservées aux administrateurs</p>
+                </div>
+                <span className="text-[9px] bg-indigo-500 text-white px-3 py-1.5 rounded-full font-black uppercase tracking-widest shadow-sm">Réservé Admin</span>
+              </div>
+
+              {/* 1. Vente Flash Section */}
+              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Vente Flash</h4>
+                      <p className="text-xs text-slate-400 font-bold">Activer une vente flash à durée limitée sur ce produit</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" {...register('is_flash_sale')} className="toggle toggle-rose" />
+                </div>
+
+                {watch('is_flash_sale') && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-6 border-t border-slate-100">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
+                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 2. Packs & Kits Section */}
+              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center shadow-inner">
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Pack / Kit Complémentaire</h4>
+                      <p className="text-xs text-slate-400 font-bold">Associer ce produit à d'autres articles pour former un kit complet</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" {...register('is_kit')} className="toggle toggle-success" />
+                </div>
+
+                {watch('is_kit') && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-slate-100">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter des articles complémentaires</label>
+                      <div className="relative">
+                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all" />
+                      </div>
+                    </div>
+
+                    {kitSearchQuery && (
+                      <div className="max-h-48 overflow-y-auto bg-white border border-slate-100 rounded-2xl divide-y divide-slate-50 shadow-lg relative z-20">
+                        {allProductsList.filter(p => p.name.toLowerCase().includes(kitSearchQuery.toLowerCase()) && p.id !== initialProduct?.id).slice(0, 10).map(p => (
+                          <button key={p.id} type="button" onClick={() => {
+                            if (!selectedKitProductIds.includes(p.id)) {
+                              setSelectedKitProductIds([...selectedKitProductIds, p.id]);
+                            }
+                            setKitSearchQuery('');
+                          }} className="w-full text-left px-5 py-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between transition-colors">
+                            <span>{p.name}</span>
+                            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black">{Number(p.price).toLocaleString()} F</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedKitProductIds.length > 0 && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles du lot ({selectedKitProductIds.length})</label>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedKitProductIds.map(id => {
+                            const p = allProductsList.find(x => x.id === id);
+                            return (
+                              <div key={id} className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-2 shadow-sm">
+                                <span>{p?.name || id}</span>
+                                <button type="button" onClick={() => setSelectedKitProductIds(selectedKitProductIds.filter(x => x !== id))} className="text-emerald-500 hover:text-emerald-700 font-bold ml-1">×</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 3. Remise de quantité Section */}
+              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shadow-inner">
+                      <Percent size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Remises sur quantité (De Gros)</h4>
+                      <p className="text-xs text-slate-400 font-bold">Tarification dégressive automatique basée sur le volume acheté</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" {...register('volume_pricing_enabled')} className="toggle toggle-primary" />
+                </div>
+
+                {watch('volume_pricing_enabled') && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-slate-100">
+                    <div className="space-y-2">
+                      {volumePricingTiers.map((tier, idx) => (
+                        <div key={idx} className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
+                            <input type="number" value={tier.qty} onChange={e => {
+                              const copy = [...volumePricingTiers];
+                              copy[idx].qty = parseInt(e.target.value) || 0;
+                              setVolumePricingTiers(copy);
+                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
+                            <input type="number" value={tier.discount} onChange={e => {
+                              const copy = [...volumePricingTiers];
+                              copy[idx].discount = parseInt(e.target.value) || 0;
+                              setVolumePricingTiers(copy);
+                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                          </div>
+                          <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black ml-auto uppercase tracking-widest">Supprimer</button>
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           )}
 
