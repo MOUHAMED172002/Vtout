@@ -247,7 +247,10 @@ app.get("/api/repair-db", async (req, res) => {
             { table: 'orders', col: 'supplier_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'order_items', col: 'boutique_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
             { table: 'support_messages', col: 'order_id', def: { type: DataTypes.CHAR(36), allowNull: true } },
-            { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } }
+            { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } },
+            { table: 'products', col: 'is_kit', def: { type: DataTypes.BOOLEAN, defaultValue: false } },
+            { table: 'products', col: 'kit_items', def: { type: DataTypes.TEXT, allowNull: true } },
+            { table: 'products', col: 'volume_pricing', def: { type: DataTypes.TEXT, allowNull: true } }
         ];
 
         for (const c of columns) {

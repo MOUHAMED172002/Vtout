@@ -52,7 +52,7 @@ export const processProductsForCommunes = async (products) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, approval_status } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, approval_status } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -126,6 +126,14 @@ export const getAllProducts = async (req, res) => {
         if (isFlashSale === 'true') {
             where.is_flash_sale = true;
             where.flash_sale_end = { [Op.gt]: new Date() };
+        }
+
+        if (isKit === 'true') {
+            where.is_kit = true;
+        }
+
+        if (hasVolumePricing === 'true') {
+            where.volume_pricing = { [Op.not]: null };
         }
 
         let order = [['createdAt', 'DESC']];

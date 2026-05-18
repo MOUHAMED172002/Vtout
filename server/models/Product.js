@@ -82,6 +82,34 @@ const Product = sequelize.define('Product', {
     supplier_note: {
         type: DataTypes.TEXT('long'),
         allowNull: true
+    },
+    is_kit: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    kit_items: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const val = this.getDataValue('kit_items');
+            if (!val) return null;
+            try { return JSON.parse(val); } catch { return val; }
+        },
+        set(val) {
+            this.setDataValue('kit_items', val ? JSON.stringify(val) : null);
+        }
+    },
+    volume_pricing: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const val = this.getDataValue('volume_pricing');
+            if (!val) return null;
+            try { return JSON.parse(val); } catch { return val; }
+        },
+        set(val) {
+            this.setDataValue('volume_pricing', val ? JSON.stringify(val) : null);
+        }
     }
 }, {
     tableName: 'products',
