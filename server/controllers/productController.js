@@ -126,14 +126,17 @@ export const getAllProducts = async (req, res) => {
         if (isFlashSale === 'true') {
             where.is_flash_sale = true;
             where.flash_sale_end = { [Op.gt]: new Date() };
+            where.supplier_id = { [Op.not]: null };
         }
 
         if (isKit === 'true') {
             where.is_kit = true;
+            where.supplier_id = { [Op.not]: null };
         }
 
         if (hasVolumePricing === 'true') {
             where.volume_pricing = { [Op.not]: null };
+            where.supplier_id = { [Op.not]: null };
         }
 
         let order = [['createdAt', 'DESC']];

@@ -16,6 +16,7 @@ import SmartWatch from './assets/category/smartwatch2-removebg-preview.png';
 // --- Components ---
 import Navbar from './component/Navbar/Navbar';
 import Hero from './component/Hero/Hero';
+import PromotionsBanners from './component/Hero/PromotionsBanners';
 import Category from './component/Category/Category';
 import Category2 from './component/Category/Category2';
 import Services from './component/Services/Services';
@@ -133,6 +134,7 @@ const AppContent = ({ products, loading }) => {
       <>
         <Navbar />
         <Hero />
+        <PromotionsBanners />
         <Category />
         <ProductGrid products={products} showButton={true} loading={loading} />
         <Services />
