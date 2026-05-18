@@ -35,9 +35,13 @@ export default function QuantityDiscountPage() {
     const fetchVolumePricingProducts = async () => {
       try {
         setLoading(true);
-        // Fetch products; let's fetch normal products and apply simulated volume prices for the showcase
-        const data = await getProducts({ limit: 20 });
-        const list = data.products || data || [];
+        let data = await getProducts({ hasVolumePricing: 'true', limit: 30 });
+        let list = data.products || data || [];
+        if (list.length === 0) {
+          // Graceful fallback for demo
+          data = await getProducts({ limit: 20 });
+          list = data.products || data || [];
+        }
         setProducts(list);
         
         // Initial quantity = 1 for all products
@@ -257,14 +261,16 @@ export default function QuantityDiscountPage() {
                       <div className="flex gap-3">
                         <div className="flex items-center bg-slate-100 rounded-xl px-2">
                           <button 
-                            onClick={() => handleQtyChange(p.id, 'dec')}
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleQtyChange(p.id, 'dec'); }}
                             className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors"
                           >
                             <Minus size={16} />
                           </button>
                           <span className="w-8 text-center font-mono font-black text-slate-900">{selectedQty}</span>
                           <button 
-                            onClick={() => handleQtyChange(p.id, 'inc', p.stock)}
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleQtyChange(p.id, 'inc', p.stock); }}
                             className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors"
                           >
                             <Plus size={16} />
@@ -272,7 +278,8 @@ export default function QuantityDiscountPage() {
                         </div>
 
                         <button 
-                          onClick={() => handleAddToCart(p)}
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(p); }}
                           className="flex-1 bg-slate-900 hover:bg-blue-600 text-white rounded-xl py-3 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all duration-300"
                         >
                           <ShoppingBag size={14} /> Ajouter au panier

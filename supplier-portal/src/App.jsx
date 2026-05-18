@@ -20,6 +20,7 @@ import SupplierWallet from './pages/SupplierWallet';
 import SupplierStats from './pages/SupplierStats';
 import SupplierPolicies from './pages/SupplierPolicies';
 import SupplierBoutiques from './pages/SupplierBoutiques';
+import SupplierPromotions from './pages/SupplierPromotions';
 
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
@@ -95,6 +96,7 @@ function App() {
             {/* Protected Routes (inside Layout) */}
             <Route path="/dashboard" element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />
             <Route path="/mes-produits" element={<ProtectedRoute><SupplierProducts /></ProtectedRoute>} />
+            <Route path="/promotions" element={<ProtectedRoute><SupplierPromotions /></ProtectedRoute>} />
             <Route path="/mes-commandes" element={<ProtectedRoute><SupplierOrders /></ProtectedRoute>} />
             <Route path="/ajouter-produit" element={<ProtectedRoute><AddProductSupplier /></ProtectedRoute>} />
             <Route path="/edit-product/:id" element={<ProtectedRoute><EditProductSupplier /></ProtectedRoute>} />

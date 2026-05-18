@@ -384,6 +384,17 @@ export const createOrder = async (req, res) => {
                 }
             }
 
+            if (!actualSupplierId && boutiqueItems.length > 0) {
+                actualSupplierId = boutiqueItems[0].product.supplier_id;
+                if (actualSupplierId && !targetPhone) {
+                    const fallbackSupplier = await Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'user' }], transaction });
+                    if (fallbackSupplier) {
+                        targetPhone = fallbackSupplier.whatsapp || fallbackSupplier.phone || fallbackSupplier.user?.phone;
+                    }
+                }
+            }
+
+
             let bSubtotal = boutiqueItems.reduce((sum, bi) => sum + (bi.unitPrice * bi.item.quantity), 0);
             
             // Calcul dynamique des frais de livraison pour CETTE boutique précise

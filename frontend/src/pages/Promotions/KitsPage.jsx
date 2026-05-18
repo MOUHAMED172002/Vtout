@@ -44,10 +44,58 @@ export default function KitsPage() {
     const fetchKits = async () => {
       try {
         setLoading(true);
-        // Fetch products to construct high-fidelity combo kits
-        const data = await getProducts({ limit: 12 });
-        const list = data.products || data || [];
-        const builtKits = createMockKits(list);
+        // 1. Fetch real kit products from database
+        const realKitsData = await getProducts({ isKit: 'true', limit: 20 });
+        const realKitProducts = realKitsData.products || realKitsData || [];
+        
+        // 2. Fetch all products to resolve items or to build fallback mock kits
+        const allProductsData = await getProducts({ limit: 40 });
+        const allProducts = allProductsData.products || allProductsData || [];
+        
+        let builtKits = [];
+        
+        if (realKitProducts.length > 0) {
+          // Parse and build real kits
+          builtKits = realKitProducts.map(p => {
+            let itemIds = [];
+            if (p.kit_items) {
+              try {
+                itemIds = typeof p.kit_items === 'string' ? JSON.parse(p.kit_items) : p.kit_items;
+              } catch (e) {}
+            }
+            
+            // Find the actual product objects matching the itemIds
+            const resolvedItems = Array.isArray(itemIds) 
+              ? itemIds.map(id => allProducts.find(item => item.id === id)).filter(Boolean)
+              : [];
+              
+            // If we couldn't resolve any items, gracefully fallback to some random products
+            const items = resolvedItems.length > 0 
+              ? resolvedItems 
+              : allProducts.slice(0, 2);
+              
+            const originalPrice = items.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+            
+            return {
+              id: p.id,
+              name: p.name,
+              description: p.description || "Un ensemble d'articles soigneusement sélectionnés par le vendeur pour une expérience ultime à prix réduit.",
+              tag: "Offre Vendeur",
+              discountBadge: p.old_price && p.price ? `Économie de ${Math.round(p.old_price - p.price)} F` : "Lot Économique",
+              items: items,
+              originalPrice: originalPrice || parseFloat(p.old_price || p.price),
+              kitPrice: parseFloat(p.price),
+              isReal: true,
+              productObj: p
+            };
+          });
+        }
+        
+        // If no real kits in database, create the mock ones as a high-fidelity demonstration
+        if (builtKits.length === 0) {
+          builtKits = createMockKits(allProducts);
+        }
+        
         setKits(builtKits);
       } catch (err) {
         console.error("Erreur chargement Kits:", err);
@@ -57,21 +105,27 @@ export default function KitsPage() {
     };
     fetchKits();
   }, []);
-
+ 
   const handleBuyKit = (kit) => {
     if (addToCart) {
-      // Add each item in the kit to the cart with the discounted price apportioned
-      const ratio = kit.kitPrice / kit.originalPrice;
-      kit.items.forEach(item => {
-        const itemDiscountedPrice = Math.round(parseFloat(item.price) * ratio);
-        addToCart({
-          ...item,
-          price: itemDiscountedPrice,
-          original_base_price: item.price,
-          name: `${item.name} (Dans le ${kit.name})`
-        }, 1);
-      });
-      alert(`Félicitations ! Les articles du "${kit.name}" ont été ajoutés à votre panier avec une réduction spéciale !`);
+      if (kit.isReal) {
+        // Add the kit product itself to the cart
+        addToCart(kit.productObj, 1);
+        alert(`Félicitations ! Le pack "${kit.name}" a été ajouté à votre panier avec une réduction spéciale !`);
+      } else {
+        // Fallback for simulated kits
+        const ratio = kit.kitPrice / kit.originalPrice;
+        kit.items.forEach(item => {
+          const itemDiscountedPrice = Math.round(parseFloat(item.price) * ratio);
+          addToCart({
+            ...item,
+            price: itemDiscountedPrice,
+            original_base_price: item.price,
+            name: `${item.name} (Dans le ${kit.name})`
+          }, 1);
+        });
+        alert(`Félicitations ! Les articles du "${kit.name}" ont été ajoutés à votre panier avec une réduction spéciale !`);
+      }
     }
   };
 

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Package, PlusCircle, LogOut,
-    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon
+    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon, Sparkles
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import PortalSwitcher from './Shared/PortalSwitcher';
@@ -20,6 +20,7 @@ const navLinks = [
     { to: '/mes-boutiques', icon: Store, label: 'Mes Boutiques' },
     { to: '/mes-commandes', icon: ShoppingBag, label: 'Mes Commandes' },
     { to: '/mes-produits', icon: Package, label: 'Mes Produits' },
+    { to: '/promotions', icon: Sparkles, label: 'Mes Promotions' },
     { to: '/ajouter-produit', icon: PlusCircle, label: 'Ajouter un produit' },
     { to: '/portefeuille', icon: Wallet, label: 'Mon Portefeuille' },
     { to: '/statistiques', icon: TrendingUp, label: 'Statistiques' },

@@ -1,204 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Image1 from '../../assets/hero/headphone.png';
-import Image2 from '../../assets/category/vr.png';
-import Image3 from '../../assets/category/macbook.png';
-import { ArrowRight, Sparkles, Loader2, Flame, Percent, Package, Clock } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Lock, Truck, Headphones } from 'lucide-react';
 import { motion } from 'framer-motion';
-import api from '../../services/api';
-
-const HeroData = [
-    {
-        id: 1,
-        img: Image1,
-        subtitle: 'Beats Solo Edition',
-        title: "Sensation",
-        title2: "Wireless",
-        color: "from-blue-500/20 to-indigo-500/10",
-        textColor: "text-blue-600"
-    },
-    {
-        id: 2,
-        img: Image2,
-        subtitle: 'Futur Immédiat',
-        title: "Réalité",
-        title2: "Virtuelle",
-        color: "from-emerald-500/20 to-teal-500/10",
-        textColor: "text-emerald-600"
-    },
-    {
-        id: 3,
-        img: Image3,
-        subtitle: 'Performance Pro',
-        title: "MacBook",
-        title2: "M3 Ultra",
-        color: "from-orange-500/20 to-amber-500/10",
-        textColor: "text-orange-600"
-    },
-];
-
-// Helper to format countdown timer
-const getCountdownString = (seconds) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
+import heroImage from '../../assets/hero/hero_shopping.png';
 
 const Hero = () => {
     const navigate = useNavigate();
-    const [heroData, setHeroData] = useState(HeroData);
-    const [loading, setLoading] = useState(true);
-    
-    // Live countdown starting at 6 hours for visual engagement (resets daily)
-    const [timeLeft, setTimeLeft] = useState(21600); 
-
-    useEffect(() => {
-        const fetchHeroConfig = async () => {
-            try {
-                const { data } = await api.get('/configs/public');
-                const heroConfig = data.find(c => c.key === 'hero_carousel');
-                if (heroConfig && heroConfig.value) {
-                    setHeroData(JSON.parse(heroConfig.value));
-                }
-            } catch (error) {
-                console.error("Erreur chargement config Hero:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchHeroConfig();
-    }, []);
-
-    // Timer effect
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTimeLeft(prev => (prev > 0 ? prev - 1 : 21600));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const settings = {
-        dots: true,
-        infinite: true,
-        speed: 800,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 5000,
-        cssEase: "cubic-bezier(0.87, 0, 0.13, 1)",
-        pauseOnHover: false,
-        dotsClass: "slick-dots custom-dots",
-    };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-96">
-                <Loader2 className="animate-spin text-primary w-10 h-10" />
-            </div>
-        );
-    }
 
     return (
-        <section className="relative pt-6 md:pt-10 overflow-hidden">
-            <div className="container px-4 md:px-8">
-                <div className="w-full hero-bg-color rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-100 relative overflow-hidden">
-                    <Slider {...settings}>
-                        {heroData.map((data) => (
-                            <div key={data.id} className="outline-none">
-                                <div className="grid grid-cols-1 md:grid-cols-12 min-h-[480px] md:min-h-[580px] relative px-8 md:px-14 py-12 md:py-0 items-center">
+        <section className="relative pt-6 md:pt-10 overflow-hidden bg-slate-950">
+            {/* Background Glows */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-                                    {/* Background Accents */}
-                                    <div className={`absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-br ${data.color} rounded-full blur-3xl opacity-60`}></div>
+            <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+                <div className="w-full bg-[#0b1329]/80 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-14 border border-slate-800/80 shadow-2xl relative overflow-hidden">
+                    
+                    {/* Background Subtle Mesh */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-                                    {/* Text Content */}
-                                    <div className="md:col-span-7 flex flex-col justify-center relative z-10 text-center md:text-left space-y-4 md:space-y-6">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 15 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5 }}
-                                            className={`flex items-center gap-2 font-black uppercase tracking-[0.4em] text-[10px] md:text-xs ${data.textColor} justify-center md:justify-start`}
-                                        >
-                                            <Sparkles size={14} /> {data.subtitle}
-                                        </motion.div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
+                        
+                        {/* Left Side: Content */}
+                        <div className="lg:col-span-7 space-y-6 md:space-y-8 text-left">
+                            
+                            {/* Confidence Badge */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold tracking-wider uppercase"
+                            >
+                                <ShieldCheck size={16} className="text-emerald-400" />
+                                Votre achat en toute confiance
+                            </motion.div>
 
-                                        <div className="space-y-1">
-                                            <motion.h1
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ duration: 0.6, delay: 0.1 }}
-                                                className="text-4xl md:text-6xl xl:text-7xl font-black text-gray-900 leading-[0.95] tracking-tight"
-                                            >
-                                                {data.title}
-                                            </motion.h1>
-                                            <motion.h2
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ duration: 0.6, delay: 0.2 }}
-                                                className="text-3xl md:text-5xl xl:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-300 leading-[0.95]"
-                                            >
-                                                {data.title2}
-                                            </motion.h2>
-                                        </div>
+                            {/* Main Title */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className="space-y-2"
+                            >
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+                                    Le shopping en ligne <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                                        pensé pour le Bénin
+                                    </span>
+                                </h1>
+                            </motion.div>
 
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 15 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: 0.3 }}
-                                            className="pt-4"
-                                        >
-                                            <button
-                                                onClick={() => navigate('/products-liste')}
-                                                className="group relative inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-2xl text-sm font-black hover:bg-primary transition-all duration-300 shadow-lg hover:shadow-primary/20 active:scale-95"
-                                            >
-                                                Explorer
-                                                <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
-                                            </button>
-                                        </motion.div>
+                            {/* Subtitle */}
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                                className="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl font-medium"
+                            >
+                                Sur Vtout, des milliers de vendeurs de tout le pays proposent une grande variété 
+                                de produits sur une plateforme simple, sécurisée et fiable.
+                            </motion.p>
+
+                            {/* Value Props Row */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                                className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4 border-t border-slate-800/80"
+                            >
+                                {/* Prop 1 */}
+                                <div className="flex gap-3">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        <ShieldCheck size={18} className="text-emerald-400" />
                                     </div>
-
-                                    {/* Image Section */}
-                                    <div className="md:col-span-5 relative z-10 flex items-center justify-center mt-6 md:mt-0">
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.85 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ duration: 0.8, ease: "easeOut" }}
-                                            className="relative w-full max-w-[200px] md:max-w-[340px]"
-                                        >
-                                            <div className="absolute inset-0 bg-white/20 rounded-full blur-3xl scale-125"></div>
-                                            <img
-                                                src={data.img}
-                                                className="w-full h-auto object-contain drop-shadow-xl relative z-10"
-                                                alt={data.title}
-                                            />
-                                        </motion.div>
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-white text-xs md:text-sm font-bold">Paiement à la réception</h4>
+                                        <p className="text-slate-500 text-[10px] md:text-xs">Payez quand vous recevez votre commande</p>
                                     </div>
-
                                 </div>
-                            </div>
-                        ))}
-                    </Slider>
+
+                                {/* Prop 2 */}
+                                <div className="flex gap-3">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        <Lock size={16} className="text-emerald-400" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-white text-xs md:text-sm font-bold">Transactions sécurisées</h4>
+                                        <p className="text-slate-500 text-[10px] md:text-xs">Vos données et vos paiements sont protégés</p>
+                                    </div>
+                                </div>
+
+                                {/* Prop 3 */}
+                                <div className="flex gap-3">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        <Truck size={18} className="text-emerald-400" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-white text-xs md:text-sm font-bold">Livraison simplifiée</h4>
+                                        <p className="text-slate-500 text-[10px] md:text-xs">Suivi et coordination des commandes</p>
+                                    </div>
+                                </div>
+
+                                {/* Prop 4 */}
+                                <div className="flex gap-3">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        <Headphones size={18} className="text-emerald-400" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-white text-xs md:text-sm font-bold">Support 7j/7</h4>
+                                        <p className="text-slate-500 text-[10px] md:text-xs">Une équipe à votre écoute à tout moment</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Buttons */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                className="flex flex-wrap gap-4 pt-4"
+                            >
+                                <button
+                                    onClick={() => navigate('/products-liste')}
+                                    className="group inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm md:text-base px-6 py-4 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-600/20 active:scale-95 cursor-pointer"
+                                >
+                                    Explorer la marketplace
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/about')}
+                                    className="inline-flex items-center justify-center border border-slate-700 hover:border-slate-500 text-white hover:bg-slate-800/30 font-bold text-sm md:text-base px-6 py-4 rounded-xl transition-all duration-300 active:scale-95 cursor-pointer"
+                                >
+                                    Comment ça marche ?
+                                </button>
+                            </motion.div>
+                        </div>
+
+                        {/* Right Side: Graphic */}
+                        <div className="lg:col-span-5 flex items-center justify-center relative mt-6 lg:mt-0">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="relative w-full max-w-[320px] md:max-w-[400px]"
+                            >
+                                {/* Premium backing glows */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 rounded-full blur-3xl scale-125 pointer-events-none animate-pulse" />
+                                
+                                <img
+                                    src={heroImage}
+                                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 animate-float"
+                                    alt="Vtout Online Shopping Benin"
+                                    style={{ animation: 'float 6s ease-in-out infinite' }}
+                                />
+                            </motion.div>
+                        </div>
+
+                    </div>
+
+                    {/* Sliding dots indicators */}
+                    <div className="flex justify-center gap-2 mt-8 md:mt-12">
+                        <span className="w-6 h-2 rounded-full bg-emerald-500 transition-all duration-300" />
+                        <span className="w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-600 cursor-pointer transition-all duration-300" />
+                        <span className="w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-600 cursor-pointer transition-all duration-300" />
+                    </div>
+
                 </div>
             </div>
 
+            {/* Custom Animations */}
             <style>{`
-                .custom-dots {
-                    bottom: 25px !important;
+                @keyframes float {
+                    0% { transform: translateY(0px); }
+                    50% { transform: translateY(-12px); }
+                    100% { transform: translateY(0px); }
                 }
-                .custom-dots li button:before {
-                    content: '' !important;
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: #cbd5e1;
-                    transition: all 0.3s;
-                }
-                .custom-dots li.slick-active button:before {
-                    background: #f97316;
-                    transform: scale(1.4);
+                .animate-float {
+                    animation: float 6s ease-in-out infinite;
                 }
             `}</style>
         </section>

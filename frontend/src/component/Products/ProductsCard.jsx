@@ -110,7 +110,10 @@ export default function ProductCard({ product, onFavoriteChange }) {
     let finalCurrent = 0;
     let finalBase = bPrice;
 
-    if (bPrice > 0 && foundVariant && minVariantPrice < bPrice) {
+    if (product.old_price && Number(product.old_price) > bPrice) {
+      finalBase = Number(product.old_price);
+      finalCurrent = bPrice;
+    } else if (bPrice > 0 && foundVariant && minVariantPrice < bPrice) {
       finalCurrent = minVariantPrice;
     } else if (bPrice > 0) {
       finalCurrent = bPrice;
