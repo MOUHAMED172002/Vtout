@@ -314,17 +314,6 @@ export const confirmCashRemitted = async (req, res) => {
 
         for (const order of orders) {
             await order.update({ payment_status: 'payé' }, { transaction: t });
-
-            // Create a positive offsetting transaction for the delivery person's wallet
-            await FinancialTransaction.create({
-                id: crypto.randomUUID(),
-                user_id: lp.user_id,
-                order_id: order.id,
-                type: 'adjustment',
-                amount: parseFloat(order.total_amount),
-                description: `Versement Espèces #${order.id.slice(0, 8)}`,
-                status: 'completed'
-            }, { transaction: t });
         }
 
         await t.commit();
