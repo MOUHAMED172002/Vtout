@@ -31,6 +31,7 @@ const steps = [
     { id: 'attributes', title: 'Attributs', icon: Hash },
     { id: 'images', title: 'Images', icon: ImageIcon },
     { id: 'variants', title: 'Variantes & Prix', icon: Layers },
+    { id: 'promotions', title: 'Promotions', icon: Sparkles }
 ];
 
 const InlineAdder = ({ label, onAdd, loading }) => {
@@ -81,6 +82,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const [boutiques, setBoutiques] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [myProducts, setMyProducts] = useState([]);
     
     // Attributes handling
     const [availableAttributes, setAvailableAttributes] = useState([]);
@@ -102,7 +104,13 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             variants: initialData.variants || [],
             supplier_price: initialData.supplier_price || '',
             stock: initialData.stock || 0,
-            supplier_note: initialData.supplier_note || ''
+            supplier_note: initialData.supplier_note || '',
+            is_flash_sale: initialData.is_flash_sale || false,
+            flash_sale_end: initialData.flash_sale_end ? new Date(initialData.flash_sale_end).toISOString().substring(0, 16) : '',
+            is_kit: initialData.is_kit || false,
+            kit_items: initialData.kit_items || [],
+            volume_pricing_enabled: !!initialData.volume_pricing,
+            volume_pricing: initialData.volume_pricing ? (typeof initialData.volume_pricing === 'string' ? JSON.parse(initialData.volume_pricing) : initialData.volume_pricing) : [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }]
         } : {
             name: '',
             description: '',
@@ -111,7 +119,13 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             variants: [],
             supplier_price: '',
             stock: 0,
-            supplier_note: ''
+            supplier_note: '',
+            is_flash_sale: false,
+            flash_sale_end: '',
+            is_kit: false,
+            kit_items: [],
+            volume_pricing_enabled: false,
+            volume_pricing: [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }]
         }
     });
 
@@ -123,16 +137,18 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     useEffect(() => {
         const fetchInitialData = async () => {
             const token = await getToken();
-            const [catData, boutData, attrData, tiersData] = await Promise.all([
+            const [catData, boutData, attrData, tiersData, productsResp] = await Promise.all([
                 getCategories(),
                 import('../../services/supplierService').then(s => s.getMyBoutiques(token)),
                 getAttributes(),
-                getDeliveryFeeTiers()
+                getDeliveryFeeTiers(),
+                getProducts({ limit: 100 }).catch(e => ({ products: [] }))
             ]);
             setCategories(catData || []);
             setBoutiques(boutData || []);
             setAvailableAttributes(attrData || []);
             setDeliveryTiers(tiersData || []);
+            setMyProducts(productsResp?.products || productsResp || []);
 
             const commData = await axios.get(`${API_URL}/configs/public`).catch(e => ({ data: [] }));
             const commissionConfig = commData.data.find(c => c.key === 'commission_rate');
@@ -347,7 +363,12 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                     supplier_id: 'me',
                     supplier_price: finalSupplierPrice,
                     supplier_sku: data.sku || null
-                }] : []
+                }] : [],
+                is_flash_sale: data.is_flash_sale,
+                flash_sale_end: data.is_flash_sale ? data.flash_sale_end : null,
+                is_kit: data.is_kit,
+                kit_items: data.is_kit ? data.kit_items : null,
+                volume_pricing: data.volume_pricing_enabled ? data.volume_pricing : null
             };
 
             if (initialData?.id) {
@@ -686,6 +707,156 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     </div>
                                 )}
                             </div>
+                        </motion.div>
+                    )}
+
+                    {currentStep === 4 && (
+                        <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                            
+                            {/* 1. Flash Sales Option */}
+                            <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:border-rose-200 transition-all space-y-6">
+                                <label className="flex items-center gap-4 cursor-pointer select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        {...register("is_flash_sale")}
+                                        className="checkbox checkbox-rose checkbox-md rounded-xl"
+                                    />
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                                            <Flame size={18} className="text-rose-500 fill-rose-500 animate-pulse" /> Activer une Vente Flash
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Offre limitée dans le temps</p>
+                                    </div>
+                                </label>
+
+                                {watch("is_flash_sale") && (
+                                    <div className="p-6 bg-rose-50/50 rounded-2xl border border-rose-100 space-y-4 animate-in slide-in-from-top-4 duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-rose-500 px-2 block">Date & Heure de Fin de la Vente Flash</label>
+                                            <input 
+                                                type="datetime-local" 
+                                                {...register("flash_sale_end")} 
+                                                className="w-full bg-white border border-rose-200 rounded-2xl px-6 py-4 text-sm font-bold text-rose-600 outline-none focus:ring-4 focus:ring-rose-500/10 transition-all"
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-rose-400 font-bold italic px-2">Remarque : Le produit apparaîtra automatiquement dans la section "Ventes Flash" de la page d'accueil avec un compte à rebours en temps réel.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 2. Volume Discounts Option */}
+                            <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:border-blue-200 transition-all space-y-6">
+                                <label className="flex items-center gap-4 cursor-pointer select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        {...register("volume_pricing_enabled")}
+                                        className="checkbox checkbox-primary checkbox-md rounded-xl"
+                                    />
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                                            <Percent size={18} className="text-blue-500" /> Activer des Remises sur Quantité
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Plus l'acheteur en commande, moins il paie</p>
+                                    </div>
+                                </label>
+
+                                {watch("volume_pricing_enabled") && (
+                                    <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-6 animate-in slide-in-from-top-4 duration-300">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 block px-2">Configuration des paliers de quantité</span>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {/* Tier 1 */}
+                                            <div className="bg-white p-4 rounded-xl border border-blue-200/50 space-y-2">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase block">Palier 1</span>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="number" 
+                                                        placeholder="Qté" 
+                                                        {...register("volume_pricing.0.qty")} 
+                                                        className="w-20 bg-slate-50 rounded-lg p-2 text-center text-xs font-black"
+                                                    />
+                                                    <input 
+                                                        type="number" 
+                                                        placeholder="Remise %" 
+                                                        {...register("volume_pricing.0.discount")} 
+                                                        className="flex-1 bg-slate-50 rounded-lg p-2 text-center text-xs font-black text-blue-600"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Tier 2 */}
+                                            <div className="bg-white p-4 rounded-xl border border-blue-200/50 space-y-2">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase block">Palier 2</span>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="number" 
+                                                        placeholder="Qté" 
+                                                        {...register("volume_pricing.1.qty")} 
+                                                        className="w-20 bg-slate-50 rounded-lg p-2 text-center text-xs font-black"
+                                                    />
+                                                    <input 
+                                                        type="number" 
+                                                        placeholder="Remise %" 
+                                                        {...register("volume_pricing.1.discount")} 
+                                                        className="flex-1 bg-slate-50 rounded-lg p-2 text-center text-xs font-black text-blue-600"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-blue-400 font-bold italic px-2">Exemple par défaut : 3 articles ou plus = 10% de remise unitaire, 5 articles ou plus = 20% de remise unitaire.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 3. Product Kits/Packs Option */}
+                            <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:border-emerald-200 transition-all space-y-6">
+                                <label className="flex items-center gap-4 cursor-pointer select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        {...register("is_kit")}
+                                        className="checkbox checkbox-secondary checkbox-md rounded-xl"
+                                    />
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                                            <Package size={18} className="text-emerald-500" /> Vendre comme Kit / Pack Économique
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Regrouper plusieurs produits ensemble</p>
+                                    </div>
+                                </label>
+
+                                {watch("is_kit") && (
+                                    <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-4 animate-in slide-in-from-top-4 duration-300">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block px-2">Sélectionnez les autres articles inclus dans ce kit</span>
+                                        
+                                        {myProducts.length > 0 ? (
+                                            <div className="max-h-48 overflow-y-auto space-y-2 bg-white p-4 rounded-xl border border-emerald-200/50">
+                                                {myProducts.map(p => (
+                                                    <label key={p.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-lg">
+                                                        <input 
+                                                            type="checkbox"
+                                                            value={p.id}
+                                                            onChange={(e) => {
+                                                                const current = watch("kit_items") || [];
+                                                                if (e.target.checked) {
+                                                                    setValue("kit_items", [...current, p.id]);
+                                                                } else {
+                                                                    setValue("kit_items", current.filter(id => id !== p.id));
+                                                                }
+                                                            }}
+                                                            checked={(watch("kit_items") || []).includes(p.id)}
+                                                            className="checkbox checkbox-secondary checkbox-xs rounded"
+                                                        />
+                                                        <span className="text-xs font-bold text-slate-800">{p.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[10px] text-slate-400 font-bold px-2">Vous n'avez pas encore d'autres produits à combiner dans ce kit.</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
                         </motion.div>
                     )}
                 </AnimatePresence>
