@@ -12,15 +12,17 @@ import {
 } from "../../services/deliveryService";
 import { getCommunesParDepartement } from "../../utils/communes";
 import { initSocket, sendLocation } from "../../services/socketService";
-import { Search } from "lucide-react";
 import DeliveryMapLink from "../Shared/DeliveryMapLink";
 import {
+    Search,
     Package,
     MapPin,
     Navigation,
     CheckCircle2,
     Clock,
     ChevronRight,
+    ChevronDown,
+    ChevronUp,
     TrendingUp,
     Star,
     Activity,
@@ -30,7 +32,11 @@ import {
     Banknote,
     RefreshCcw,
     AlertOctagon,
-    Edit2
+    Edit2,
+    Phone,
+    Map,
+    Store,
+    Check
 } from "lucide-react";
 import NotificationCenter from "../Shared/NotificationCenter";
 import PortalSwitcher from "../Shared/PortalSwitcher";
@@ -57,6 +63,7 @@ export default function DeliveryDashboard() {
     const [saveDetails, setSaveDetails] = useState(false);
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [vehicleData, setVehicleData] = useState({ vehicle_type: '', vehicle_model: '', license_plate: '' });
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
 
     const abortControllerRef = useRef(null);
     const isFetchingRef = useRef(false);
@@ -598,131 +605,290 @@ export default function DeliveryDashboard() {
                                             </p>
                                         </div>
                                     ) : (
-                                        activeOrders.map(order => (
-                                            <div key={order.id} className="bg-base-100 rounded-3xl p-6 md:p-8 border-2 border-primary/20 shadow-xl shadow-primary/5 space-y-6 md:space-y-8">
-                                                <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                                                    <div className="space-y-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-lg uppercase tracking-widest">En Transit</span>
-                                                            <span className="text-[10px] font-bold text-base-content/40">Màj il y a 5 min</span>
-                                                        </div>
-                                                        <h3 className="text-2xl font-black text-base-content tracking-tighter">Vers : {order.address?.city}</h3>
-                                                        <p className="text-base-content/60 font-bold flex items-center gap-2 mb-4"><MapPin size={16} /> {order.address?.address_line}</p>
+                                        <div className="space-y-4">
+                                            {activeOrders.map(order => {
+                                                const isExpanded = expandedOrderId === order.id;
+                                                const isPickedUp = ['expediee', 'expédiée'].includes(order.status);
+                                                const orderRef = order.id ? order.id.slice(0, 8).toUpperCase() : "";
+                                                const totalAmount = Number(order.total_amount || 0);
+                                                const deliveryFee = Number(order.delivery_fee || 1000);
+                                                const isCod = order.payment_method === 'delivery';
 
-                                                        {/* Pickup List */}
-                                                        <div className="bg-base-200 rounded-2xl p-5 border border-base-content/10 space-y-3">
-                                                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-[0.2em] flex items-center gap-2">
-                                                                <Package size={12} /> Liste de colisage
-                                                            </p>
-                                                            {order.items?.map(item => (
-                                                                <div key={item.id} className="flex items-center justify-between group">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-12 h-12 bg-base-100 rounded-xl flex items-center justify-center font-black text-xs text-primary shadow-sm border border-base-content/10 overflow-hidden shrink-0">
-                                                                            {item.product?.images?.[0]?.image_url ? (
-                                                                                <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
-                                                                            ) : (
-                                                                                <span className="text-primary">{item.quantity}</span>
-                                                                            )}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="text-xs font-black text-primary">x{item.quantity}</span>
-                                                                                <p className="text-xs font-black text-slate-700">{item.product?.name}</p>
-                                                                            </div>
-                                                                            {item.variant && (
-                                                                                <p className="text-[9px] font-bold text-slate-400 italic">
-                                                                                    {item.variant.attribute_values || item.variant.sku}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="w-5 h-5 rounded-full border-2 border-base-content/10 group-hover:border-primary transition-colors"></div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-
-                                                        {/* Client Info */}
-                                                        <div className="bg-base-100 rounded-2xl p-5 border-2 border-base-content/10 space-y-2 mt-4 shadow-sm">
-                                                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-[0.2em] flex items-center gap-2">
-                                                                <User size={12} /> Client (Destination)
-                                                            </p>
-                                                            <p className="text-sm font-black text-base-content">{order.user?.fullname || order.guest_name || "Client"}</p>
-                                                            <p className="text-xs font-bold text-base-content/60 flex items-center gap-2">
-                                                                <MapPin size={12} /> {order.address?.address_line}, {order.address?.city}
-                                                            </p>
-                                                            <a href={`tel:${order.user?.phone || order.guest_phone || order.address?.phone}`} className="inline-flex items-center gap-2 px-4 py-2 bg-neutral text-neutral-content rounded-xl text-[10px] font-black uppercase mt-2 hover:bg-primary transition-colors">
-                                                                📞 Appeler le client
-                                                            </a>
-                                                        </div>
-
-                                                        {/* Supplier Info */}
-                                                        {['confirmée', 'assignée'].includes(order.status) && (
-                                                            <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 space-y-2 mt-4">
-                                                                <p className="text-[10px] font-black uppercase text-amber-600 tracking-[0.2em] flex items-center gap-2">
-                                                                    <MapPin size={12} /> Point de Collecte
-                                                                </p>
-                                                                <p className="text-sm font-black text-slate-900">{order.supplier?.name}</p>
-                                                                <p className="text-xs font-bold text-slate-500 leading-tight">
-                                                                    {order.supplier?.address_line}, {order.supplier?.quartier_label}
-                                                                </p>
-                                                                <p className="text-xs font-black text-amber-700 pt-1 flex items-center gap-2">
-                                                                    📞 {order.supplier?.phone}
-                                                                </p>
-                                                            </div>
-                                                        )}
-
-                                                        {order.payment_method === 'delivery' && (
-                                                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-black text-xs uppercase tracking-widest mt-2 shadow-sm">
-                                                                <Banknote size={16} /> ENCAISSER CASH : {Number(order.total_amount).toLocaleString()} F
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="bg-base-200 p-6 rounded-2xl text-right min-w-[150px]">
-                                                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Valeur colis</p>
-                                                        <p className="text-2xl font-black text-primary">{Number(order.total_amount).toLocaleString()} F</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    {['confirmée', 'assignée'].includes(order.status) ? (
-                                                        <div className="grid grid-cols-[1fr_auto] gap-2">
-                                                            <button
-                                                                onClick={() => handleStatusUpdate(order.id, 'expédiée')}
-                                                                className="w-full btn btn-primary h-16 rounded-2xl font-black gap-3 text-lg"
-                                                            >
-                                                                <Truck size={24} /> Récupérer le colis
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRelease(order.id)}
-                                                                className="w-16 h-16 btn bg-rose-50 hover:bg-rose-100 text-rose-500 border-none rounded-2xl"
-                                                                title="Désassigner la course"
-                                                            >
-                                                                <X size={24} />
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(order.id, 'livrée')}
-                                                            className="w-full btn btn-primary h-16 rounded-2xl font-black gap-3 text-lg"
+                                                return (
+                                                    <div 
+                                                        key={order.id} 
+                                                        className={`bg-base-100 rounded-[2rem] border transition-all duration-300 overflow-hidden shadow-lg ${
+                                                            isExpanded 
+                                                                ? 'border-primary shadow-primary/5 ring-1 ring-primary/20' 
+                                                                : 'border-base-content/10 hover:border-primary/45 hover:shadow-xl'
+                                                        }`}
+                                                    >
+                                                        {/* Summary Header */}
+                                                        <div 
+                                                            onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                                                            className="p-5 md:p-6 flex items-center justify-between gap-4 cursor-pointer select-none"
                                                         >
-                                                            <CheckCircle2 size={24} /> Confirmer Livraison
-                                                        </button>
-                                                    )}
+                                                            <div className="flex items-center gap-4 min-w-0">
+                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+                                                                    isPickedUp 
+                                                                        ? 'bg-emerald-500/10 text-emerald-500' 
+                                                                        : 'bg-amber-500/10 text-amber-500'
+                                                                }`}>
+                                                                    <Truck size={22} className={!isPickedUp ? 'animate-pulse' : ''} />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="flex items-center flex-wrap gap-2">
+                                                                        <span className="text-[10px] font-black uppercase tracking-wider text-base-content/40">
+                                                                            RÉF. #{orderRef}
+                                                                        </span>
+                                                                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                                                                            isPickedUp 
+                                                                                ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/20' 
+                                                                                : 'bg-amber-500/15 text-amber-600 border border-amber-500/20'
+                                                                        }`}>
+                                                                            {isPickedUp ? "En Transit" : "À Collecter"}
+                                                                        </span>
+                                                                    </div>
+                                                                    <h4 className="text-sm md:text-base font-black text-base-content truncate mt-1">
+                                                                        {order.address?.city || "Destination"} - {order.address?.address_line || "Quartier"}
+                                                                    </h4>
+                                                                </div>
+                                                            </div>
 
-                                                    {/* Google Maps route */}
-                                                    <DeliveryMapLink
-                                                        supplierLat={order.supplier?.lat}
-                                                        supplierLng={order.supplier?.lng}
-                                                        supplierAddress={order.supplier?.address_line || order.supplier?.commune_label}
-                                                        clientLat={order.address?.lat}
-                                                        clientLng={order.address?.lng}
-                                                        clientAddress={order.address?.quartier_label
-                                                            ? `${order.address.quartier_label}, ${order.address.commune_label}`
-                                                            : order.address?.commune_label || order.address?.city}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
+                                                            <div className="flex items-center gap-4 shrink-0">
+                                                                <div className="text-right hidden sm:block">
+                                                                    <p className="text-[8px] font-black text-base-content/30 uppercase tracking-widest">Gain estimé</p>
+                                                                    <p className="text-base font-black text-primary">{deliveryFee.toLocaleString()} F</p>
+                                                                </div>
+                                                                <div className={`w-8 h-8 rounded-xl bg-base-200/50 flex items-center justify-center text-base-content/40 hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180 text-primary bg-primary/10' : ''}`}>
+                                                                    <ChevronDown size={18} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Mobile stats line */}
+                                                        <div className="px-5 pb-4 pt-0 flex sm:hidden items-center justify-between border-t border-dashed border-base-content/5 mt-[-4px]">
+                                                            <div className="flex items-center gap-1.5 text-xs text-base-content/50">
+                                                                <Store size={12} /> <span className="font-bold truncate max-w-[120px]">{order.supplier?.name || "Vendeur"}</span>
+                                                            </div>
+                                                            <p className="text-xs font-black text-primary">Gain : {deliveryFee.toLocaleString()} F</p>
+                                                        </div>
+
+                                                        {/* Collapsible Content */}
+                                                        <AnimatePresence initial={false}>
+                                                            {isExpanded && (
+                                                                <motion.div
+                                                                    initial={{ height: 0, opacity: 0 }}
+                                                                    animate={{ height: "auto", opacity: 1 }}
+                                                                    exit={{ height: 0, opacity: 0 }}
+                                                                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                                                                >
+                                                                    <div className="px-5 pb-6 md:px-6 md:pb-8 pt-2 border-t border-base-content/5 space-y-6">
+                                                                        
+                                                                        {/* Milestones grid */}
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                                            
+                                                                            {/* Milestone 1: Pickup */}
+                                                                            <div className={`p-5 rounded-2xl border transition-all ${
+                                                                                isPickedUp 
+                                                                                    ? 'bg-base-200/40 border-base-content/5 opacity-80' 
+                                                                                    : 'bg-amber-500/5 border-amber-500/20 shadow-sm'
+                                                                            }`}>
+                                                                                <div className="flex items-center justify-between mb-3">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
+                                                                                            isPickedUp 
+                                                                                                ? 'bg-slate-200 text-slate-650' 
+                                                                                                : 'bg-amber-500 text-white'
+                                                                                        }`}>
+                                                                                            1
+                                                                                        </div>
+                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-base-content/60' : 'text-amber-600'}`}>
+                                                                                            Point de Collecte
+                                                                                        </h5>
+                                                                                    </div>
+                                                                                    {isPickedUp ? (
+                                                                                        <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">Récupéré</span>
+                                                                                    ) : (
+                                                                                        <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase animate-pulse">À Récupérer</span>
+                                                                                    )}
+                                                                                </div>
+                                                                                
+                                                                                <div className="space-y-3">
+                                                                                    <div>
+                                                                                        <h4 className="text-sm font-black text-base-content">{order.supplier?.name || "Boutique Vendeur"}</h4>
+                                                                                        <p className="text-[11px] text-base-content/60 leading-relaxed font-bold mt-0.5">
+                                                                                            {order.supplier?.address_line}, {order.supplier?.quartier_label || order.supplier?.commune_label}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    
+                                                                                    <div className="flex flex-wrap gap-2 pt-1">
+                                                                                        {order.supplier?.phone && (
+                                                                                            <a 
+                                                                                                href={`tel:${order.supplier.phone}`}
+                                                                                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-neutral hover:bg-primary hover:text-white text-neutral-content rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm"
+                                                                                            >
+                                                                                                <Phone size={11} /> Appeler : {order.supplier.phone}
+                                                                                            </a>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Milestone 2: Delivery */}
+                                                                            <div className={`p-5 rounded-2xl border transition-all ${
+                                                                                isPickedUp 
+                                                                                    ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm' 
+                                                                                    : 'bg-base-200/40 border-base-content/5 opacity-80'
+                                                                            }`}>
+                                                                                <div className="flex items-center justify-between mb-3">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
+                                                                                            isPickedUp 
+                                                                                                ? 'bg-emerald-500 text-white' 
+                                                                                                : 'bg-slate-200 text-slate-655'
+                                                                                        }`}>
+                                                                                            2
+                                                                                        </div>
+                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-emerald-600' : 'text-base-content/60'}`}>
+                                                                                            Lieu de Livraison
+                                                                                        </h5>
+                                                                                    </div>
+                                                                                    {isPickedUp && (
+                                                                                        <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase animate-pulse">À Livrer</span>
+                                                                                    )}
+                                                                                </div>
+
+                                                                                <div className="space-y-3">
+                                                                                    <div>
+                                                                                        <h4 className="text-sm font-black text-base-content">
+                                                                                            {order.user?.fullname || order.guest_name || "Client"}
+                                                                                        </h4>
+                                                                                        <p className="text-[11px] text-base-content/60 leading-relaxed font-bold mt-0.5">
+                                                                                            {order.address?.address_line}, {order.address?.city}
+                                                                                        </p>
+                                                                                    </div>
+
+                                                                                    <div className="flex flex-wrap gap-2 pt-1">
+                                                                                        {(order.user?.phone || order.guest_phone || order.address?.phone) && (
+                                                                                            <a 
+                                                                                                href={`tel:${order.user?.phone || order.guest_phone || order.address?.phone}`}
+                                                                                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-neutral hover:bg-primary hover:text-white text-neutral-content rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm"
+                                                                                            >
+                                                                                                <Phone size={11} /> Appeler Client
+                                                                                            </a>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                        </div>
+
+                                                                        {/* Colis / Package items */}
+                                                                        <div className="bg-base-200/50 p-4 rounded-2xl border border-base-content/5 space-y-3">
+                                                                            <p className="text-[9px] font-black uppercase text-base-content/40 tracking-wider flex items-center gap-1.5">
+                                                                                <Package size={13} /> Liste des Articles
+                                                                            </p>
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                                                                {order.items?.map(item => (
+                                                                                    <div 
+                                                                                        key={item.id} 
+                                                                                        className="flex items-center gap-3 bg-base-100 p-3 rounded-xl border border-base-content/5 shadow-sm"
+                                                                                    >
+                                                                                        <div className="w-10 h-10 rounded-lg bg-base-200 overflow-hidden border border-base-content/5 shrink-0 flex items-center justify-center">
+                                                                                            {item.product?.images?.[0]?.image_url ? (
+                                                                                                <img 
+                                                                                                    src={item.product.images[0].image_url} 
+                                                                                                    alt="" 
+                                                                                                    className="w-full h-full object-cover" 
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <Package size={14} className="text-base-content/20" />
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <div className="min-w-0">
+                                                                                            <p className="text-xs font-black text-base-content truncate">
+                                                                                                {item.product?.name}
+                                                                                            </p>
+                                                                                            <p className="text-[10px] font-bold text-primary">
+                                                                                                Quantité : x{item.quantity}
+                                                                                            </p>
+                                                                                            {item.variant && (
+                                                                                                <p className="text-[8px] font-bold text-slate-400 truncate italic">
+                                                                                                    {item.variant.attribute_values || item.variant.sku}
+                                                                                                </p>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* COD Cash Information */}
+                                                                        {isCod && (
+                                                                            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3 text-emerald-600">
+                                                                                <Banknote size={20} className="shrink-0" />
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-black uppercase tracking-wider">Montant à Encaisser chez le Client</p>
+                                                                                    <p className="text-sm font-bold mt-0.5">Veuillez collecter <span className="font-black text-base underline">{totalAmount.toLocaleString()} F CFA</span> en espèces.</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* Navigation link / GPS */}
+                                                                        <div className="bg-base-200/50 p-4 rounded-2xl border border-base-content/5">
+                                                                            <p className="text-[9px] font-black uppercase text-base-content/40 tracking-wider mb-2 flex items-center gap-1.5">
+                                                                                <Navigation size={13} /> Itinéraire GPS de Livraison
+                                                                            </p>
+                                                                            <DeliveryMapLink
+                                                                                supplierLat={order.supplier?.lat}
+                                                                                supplierLng={order.supplier?.lng}
+                                                                                supplierAddress={order.supplier?.address_line || order.supplier?.commune_label}
+                                                                                clientLat={order.address?.lat}
+                                                                                clientLng={order.address?.lng}
+                                                                                clientAddress={order.address?.quartier_label
+                                                                                    ? `${order.address.quartier_label}, ${order.address.commune_label}`
+                                                                                    : order.address?.commune_label || order.address?.city}
+                                                                            />
+                                                                        </div>
+
+                                                                        {/* Fulfill Action Buttons */}
+                                                                        <div className="pt-4 border-t border-dashed border-base-content/5 flex gap-3">
+                                                                            {!isPickedUp ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        onClick={() => handleStatusUpdate(order.id, 'expédiée')}
+                                                                                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl py-4 px-6 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-all active:scale-[0.98]"
+                                                                                    >
+                                                                                        <Truck size={16} /> Colis Récupéré
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleRelease(order.id)}
+                                                                                        className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 rounded-2xl px-5 font-black text-xs uppercase tracking-wider flex items-center justify-center transition-all active:scale-[0.98]"
+                                                                                        title="Désassigner la course"
+                                                                                    >
+                                                                                        Abandonner
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : (
+                                                                                <button
+                                                                                    onClick={() => handleStatusUpdate(order.id, 'livrée')}
+                                                                                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl py-4 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 transition-all active:scale-[0.98]"
+                                                                                >
+                                                                                    <CheckCircle2 size={16} /> Confirmer la Livraison (Client)
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     )
                                 )}
 

@@ -72,7 +72,8 @@ const Footer = () => {
                             <LogoText className="text-3xl" />
                         </Link>
                         <p className="text-base-content/70 leading-relaxed max-w-xs">
-                            Votre destination shopping unique au Bénin. Comme notre nom l'indique, chez {appName}, on vend tout.
+                            Votre marketplace de référence au Bénin.<br />
+                            Sur {appName}, des vendeurs de tout le pays proposent une grande variété de produits sur une plateforme simple et sécurisée.
                         </p>
                         <div className="flex gap-4">
                             {socials.instagram && (

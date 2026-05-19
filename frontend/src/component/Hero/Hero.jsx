@@ -16,7 +16,7 @@ const Hero = () => {
     const { theme } = useTheme();
 
     // Determine if theme is dark
-    const darkThemes = ["vtout", "dark", "synthwave", "cyberpunk", "luxury", "dracula"];
+    const darkThemes = ["dark", "synthwave", "cyberpunk", "luxury", "dracula"];
     const isDark = darkThemes.includes(theme);
 
     useEffect(() => {

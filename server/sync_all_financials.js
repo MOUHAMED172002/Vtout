@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Order, FinancialTransaction, DeliveryPerson, sequelize } from './models/index.js';
 import { processOrderFinancials } from './services/financialService.js';
 

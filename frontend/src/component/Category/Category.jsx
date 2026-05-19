@@ -9,43 +9,43 @@ export default function Category() {
   const [parents, setParents] = useState([]);
   const [activeParent, setActiveParent] = useState(null);
   const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0, id: null });
+  const navigate = useNavigate();
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0, id: null });
 
-    const handleMouseMove = (e, id) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMousePos({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-            id
-        });
-    };
+  const handleMouseMove = (e, id) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      id
+    });
+  };
 
-    useEffect(() => {
-        async function fetchCategories() {
-            try {
-                const data = await getCategories();
-                setAllCategories(data || []);
-                const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
-                const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
-                setParents(parentCats);
-                if (parentCats.length > 0) setActiveParent(parentCats[0]);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchCategories();
-    }, []);
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const data = await getCategories();
+        setAllCategories(data || []);
+        const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
+        const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
+        setParents(parentCats);
+        if (parentCats.length > 0) setActiveParent(parentCats[0]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCategories();
+  }, []);
 
-    const children = activeParent
-        ? allCategories.filter(c => c.parent_id === activeParent.id)
-        : [];
+  const children = activeParent
+    ? allCategories.filter(c => c.parent_id === activeParent.id)
+    : [];
 
-    if (loading) {
+  if (loading) {
     return (
-      <div className="container py-20 flex justify-center">
+      <div className="container py-10 flex justify-center">
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -97,7 +97,7 @@ export default function Category() {
                   }`}
               >
                 {/* Effect 4: Spotlight Overlay */}
-                <div 
+                <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                   style={{
                     background: mousePos.id === cat.id ? `radial-gradient(circle 50px at ${mousePos.x}px ${mousePos.y}px, rgba(249, 115, 22, 0.15), transparent)` : ''

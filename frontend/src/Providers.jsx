@@ -5,6 +5,7 @@ import { ClerkProvider } from './lib/AuthHooks';
 import { CartProvider } from './component/context/CartContext';
 import { ProfileProvider } from './component/context/useProfile';
 import { ConfigProvider } from './component/context/ConfigContext';
+import { ThemeProvider } from './component/context/ThemeContext';
 
 export const Providers = ({ children }) => {
     return (
@@ -12,10 +13,12 @@ export const Providers = ({ children }) => {
             <ClerkProvider>
                 <ConfigProvider>
                     <ProfileProvider>
-                        <CartProvider>
-                            {children}
-                            <Toaster position="top-center" reverseOrder={false} />
-                        </CartProvider>
+                        <ThemeProvider>
+                            <CartProvider>
+                                {children}
+                                <Toaster position="top-center" reverseOrder={false} />
+                            </CartProvider>
+                        </ThemeProvider>
                     </ProfileProvider>
                 </ConfigProvider>
             </ClerkProvider>
