@@ -276,6 +276,165 @@ app.get("/api/repair-db", async (req, res) => {
     }
 });
 
+// ROUTE DE DIAGNOSTIC PUBLIC POUR DOKPLOY
+app.get("/api/diagnostics", async (req, res) => {
+    const { key, action, orderId, userId } = req.query;
+    if (key !== "MouhmedDiagnostics2026") {
+        return res.status(403).json({ error: "Clé secrète de diagnostic invalide ou manquante." });
+    }
+
+    const report = {
+        timestamp: new Date().toISOString(),
+        database: "unknown",
+        errors: [],
+        data: {}
+    };
+
+    try {
+        const { Profile, Supplier, FinancialTransaction, Order, sequelize, User } = await import('./models/index.js');
+        
+        // 1. Connexion DB
+        try {
+            await sequelize.authenticate();
+            report.database = "CONNECTED";
+        } catch (dbErr) {
+            report.database = "CONNECTION_FAILED";
+            report.errors.push("DB Connection error: " + dbErr.message);
+            return res.status(500).json(report);
+        }
+
+        // Action: sync-role (Manuellement forcer le rôle de fournisseur)
+        if (action === "sync-role" && userId) {
+            report.data.syncResult = {};
+            try {
+                const profile = await Profile.findByPk(userId);
+                const userRow = await User.findByPk(userId);
+                if (profile) {
+                    await profile.update({ role: 'fournisseur' });
+                    report.data.syncResult.profileUpdated = "fournisseur";
+                }
+                if (userRow) {
+                    await userRow.update({ role: 'fournisseur' });
+                    report.data.syncResult.userTableUpdated = "fournisseur";
+                }
+                await sequelize.query(
+                    'UPDATE user SET role = :role WHERE id = :id',
+                    {
+                        replacements: { role: 'fournisseur', id: userId },
+                        type: sequelize.QueryTypes.UPDATE
+                    }
+                );
+                report.data.syncResult.rawSqlRun = true;
+            } catch (err) {
+                report.errors.push("Sync-role action failed: " + err.message);
+            }
+            return res.json(report);
+        }
+
+        // Action: process-financials (Forcer le traitement financier d'une commande)
+        if (action === "process-financials" && orderId) {
+            report.data.financialsResult = {};
+            try {
+                const { processOrderFinancials } = await import('./services/financialService.js');
+                await processOrderFinancials(orderId);
+                report.data.financialsResult.success = true;
+            } catch (finErr) {
+                report.data.financialsResult.success = false;
+                report.data.financialsResult.error = finErr.message;
+                report.errors.push("processOrderFinancials error: " + finErr.message);
+            }
+            return res.json(report);
+        }
+
+        // 2. Rôles dans Profile
+        try {
+            const profileRoles = await Profile.findAll({
+                attributes: ['role', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+                group: ['role'],
+                raw: true
+            });
+            report.data.profileRoles = profileRoles;
+        } catch (e) {
+            report.errors.push("Error querying profile roles: " + e.message);
+        }
+
+        // 3. Rôles dans la table user
+        try {
+            const userTableRoles = await sequelize.query("SELECT role, COUNT(id) as count FROM user GROUP BY role", {
+                type: sequelize.QueryTypes.SELECT
+            });
+            report.data.userTableRoles = userTableRoles;
+        } catch (e) {
+            report.errors.push("Error querying user table roles: " + e.message);
+        }
+
+        // 4. Derniers fournisseurs
+        try {
+            const lastSuppliers = await Supplier.findAll({
+                limit: 5,
+                order: [['created_at', 'DESC']],
+                include: [{ model: Profile, as: 'user', attributes: ['id', 'email', 'role'] }]
+            });
+            report.data.lastSuppliers = lastSuppliers.map(s => ({
+                id: s.id,
+                name: s.name,
+                status: s.status,
+                user_id: s.user_id,
+                profileRole: s.user?.role,
+                profileEmail: s.user?.email
+            }));
+        } catch (e) {
+            report.errors.push("Error querying suppliers: " + e.message);
+        }
+
+        // 5. Requête gains brute pour le dashboard
+        try {
+            const { Op } = await import('sequelize');
+            const since = new Date();
+            since.setDate(since.getDate() - 30);
+            const allGains = await FinancialTransaction.findAll({
+                where: {
+                    type: 'earning',
+                    status: 'completed',
+                    createdAt: { [Op.gte]: since }
+                },
+                include: [{
+                    model: Profile,
+                    as: 'user',
+                    attributes: ['role']
+                }],
+                attributes: [
+                    [sequelize.col('user.role'), 'role'],
+                    [sequelize.fn('SUM', sequelize.col('amount')), 'total']
+                ],
+                group: [sequelize.col('user.role')],
+                raw: true
+            });
+            report.data.rawGainsResult = allGains;
+        } catch (e) {
+            report.errors.push("Error querying raw gains: " + e.message);
+        }
+
+        // 6. Dernières commandes
+        try {
+            const lastOrders = await Order.findAll({
+                limit: 10,
+                order: [['created_at', 'DESC']],
+                attributes: ['id', 'status', 'total_amount', 'supplier_id', 'delivery_person_id', 'payment_status']
+            });
+            report.data.lastOrders = lastOrders;
+        } catch (e) {
+            report.errors.push("Error querying last orders: " + e.message);
+        }
+
+        res.json(report);
+
+    } catch (criticalErr) {
+        report.errors.push("Critical diagnostics error: " + criticalErr.message);
+        res.status(500).json(report);
+    }
+});
+
 app.use("/api/auth/whatsapp", authWhatsAppRoutes);
 app.use("/api/auth", betterAuthMiddleware);
 
