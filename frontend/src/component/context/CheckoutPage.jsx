@@ -12,10 +12,30 @@ import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRigh
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();
-  const isWhatsAppUser = user?.email?.endsWith("@whatsapp.vtout.com");
+  const { user, isSignedIn, isLoaded } = useUser();
+  const isGuest = isLoaded ? !isSignedIn : false;
+
+  const isWhatsAppUser = (user?.email || user?.primaryEmailAddress?.emailAddress)?.endsWith("@whatsapp.vtout.com");
   const [whatsappNotifPhone, setWhatsappNotifPhone] = useState("");
+
+  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
+  const [address, setAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("delivery");
+  const [loading, setLoading] = useState(false);
+  const [showFedaPayModal, setShowFedaPayModal] = useState(false);
+  const [fedapayReady, setFedapayReady] = useState(false);
+
   // Steps: 1 (Contact), 2 (Address), 3 (Payment), 4 (Summary), 5 (WhatsApp Prompt if needed), 6 (Done)
-  const [step, setStep] = useState(isGuest ? 1 : 2);
+  const [step, setStep] = useState(2);
+  const [hasAdjustedStep, setHasAdjustedStep] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && !hasAdjustedStep) {
+      setStep(isSignedIn ? 2 : 1);
+      setHasAdjustedStep(true);
+    }
+  }, [isLoaded, isSignedIn, hasAdjustedStep]);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { refreshCart } = useCart();
