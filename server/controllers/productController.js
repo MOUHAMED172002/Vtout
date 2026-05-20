@@ -521,11 +521,11 @@ export const createProduct = async (req, res) => {
             old_price: old_price || 0,
             stock: finalStock,
             category_id,
-            is_flash_sale: isSupplier ? false : (is_flash_sale || false),
-            flash_sale_end: isSupplier ? null : (flash_sale_end || null),
-            is_kit: isSupplier ? false : (is_kit || false),
-            kit_items: isSupplier ? null : (kit_items || null),
-            volume_pricing: isSupplier ? null : (volume_pricing || null),
+            is_flash_sale: is_flash_sale || false,
+            flash_sale_end: flash_sale_end || null,
+            is_kit: is_kit || false,
+            kit_items: kit_items || null,
+            volume_pricing: volume_pricing || null,
             supplier_id: finalSupplierId || null,
             supplier_price: calculatedSupplierPrice || 0,
             approval_status: finalStatus,
@@ -731,11 +731,11 @@ export const updateProduct = async (req, res) => {
         if (finalPrice !== undefined) updatePayload.price = finalPrice;
         if (old_price !== undefined) updatePayload.old_price = old_price;
         if (finalStock !== undefined) updatePayload.stock = finalStock;
-        if (is_flash_sale !== undefined && (!isSupplier || isAdmin)) updatePayload.is_flash_sale = is_flash_sale;
-        if (flash_sale_end !== undefined && (!isSupplier || isAdmin)) updatePayload.flash_sale_end = flash_sale_end;
-        if (is_kit !== undefined && (!isSupplier || isAdmin)) updatePayload.is_kit = is_kit;
-        if (kit_items !== undefined && (!isSupplier || isAdmin)) updatePayload.kit_items = kit_items;
-        if (volume_pricing !== undefined && (!isSupplier || isAdmin)) updatePayload.volume_pricing = volume_pricing;
+        if (is_flash_sale !== undefined) updatePayload.is_flash_sale = is_flash_sale;
+        if (flash_sale_end !== undefined) updatePayload.flash_sale_end = flash_sale_end;
+        if (is_kit !== undefined) updatePayload.is_kit = is_kit;
+        if (kit_items !== undefined) updatePayload.kit_items = kit_items;
+        if (volume_pricing !== undefined) updatePayload.volume_pricing = volume_pricing;
         if (isAdmin && supplier_id !== undefined) updatePayload.supplier_id = supplier_id;
         if (supplier_price !== undefined) updatePayload.supplier_price = supplier_price;
         if (isAdmin && admin_feedback !== undefined) updatePayload.admin_feedback = admin_feedback;

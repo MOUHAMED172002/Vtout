@@ -3,7 +3,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import {
     X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
     ChevronLeft, Package, Layers, Truck, Info, AlertCircle,
-    Upload, Star, Sparkles, Hash, Search as SearchIcon
+    Upload, Star, Sparkles, Hash, Search as SearchIcon, Percent, Flame
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -23,7 +23,7 @@ import {
     getProducts
 } from '../../services/productService';
 import { uploadSingleImage } from '../../services/uploadService';
-import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../../services/deliveryFeeService';
+import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, reverseSupplierPrice } from '../../services/deliveryFeeService';
 import CategorySearchModal from './CategorySearchModal';
 import CustomSelect from '../Shared/CustomSelect';
 
@@ -111,7 +111,10 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             is_kit: initialData.is_kit || false,
             kit_items: initialData.kit_items || [],
             volume_pricing_enabled: !!initialData.volume_pricing,
-            volume_pricing: initialData.volume_pricing ? (typeof initialData.volume_pricing === 'string' ? JSON.parse(initialData.volume_pricing) : initialData.volume_pricing) : [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }]
+            volume_pricing: initialData.volume_pricing ? (typeof initialData.volume_pricing === 'string' ? JSON.parse(initialData.volume_pricing) : initialData.volume_pricing) : [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }],
+            is_promo: initialData.old_price && parseFloat(initialData.old_price) > parseFloat(initialData.price) ? true : false,
+            old_supplier_price: '',
+            discount_percent: ''
         } : {
             name: '',
             description: '',
@@ -126,7 +129,10 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             is_kit: false,
             kit_items: [],
             volume_pricing_enabled: false,
-            volume_pricing: [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }]
+            volume_pricing: [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }],
+            is_promo: false,
+            old_supplier_price: '',
+            discount_percent: ''
         }
     });
 
@@ -174,6 +180,16 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                     existingUrl: img.image_url || img.url
                 })));
             }
+            if (initialData && initialData.old_price && parseFloat(initialData.old_price) > parseFloat(initialData.price)) {
+                const oldSupPrice = reverseSupplierPrice(initialData.old_price, tiersData || []);
+                setValue('old_supplier_price', oldSupPrice);
+                setValue('is_promo', true);
+                const currentSupPrice = parseFloat(initialData.supplier_price) || 0;
+                if (oldSupPrice > 0 && currentSupPrice > 0) {
+                    const pct = Math.round(((oldSupPrice - currentSupPrice) / oldSupPrice) * 100);
+                    setValue('discount_percent', pct);
+                }
+            }
         };
         fetchInitialData();
     }, [getToken, setValue, initialData]);
@@ -197,6 +213,32 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             setCommissionRate(prev => prev !== effectiveRate ? effectiveRate : prev);
         }
     }, [selectedCategoryId, categories]);
+
+    const isPromo = watch('is_promo');
+    const watchedOldPrice = watch('old_supplier_price');
+    const watchedDiscount = watch('discount_percent');
+
+    // Sync supplier_price based on old_supplier_price and discount_percent
+    useEffect(() => {
+        if (!isPromo) return;
+        const oldP = parseFloat(watchedOldPrice) || 0;
+        const pct = parseFloat(watchedDiscount) || 0;
+        if (oldP > 0 && pct > 0 && pct < 100) {
+            const calculatedNewPrice = Math.round(oldP * (1 - pct / 100));
+            if (Math.abs((parseFloat(globalSupplierPrice) || 0) - calculatedNewPrice) > 2) {
+                setValue('supplier_price', calculatedNewPrice);
+            }
+        }
+    }, [isPromo, watchedOldPrice, watchedDiscount]);
+
+    const computedPercentage = useMemo(() => {
+        const oldP = parseFloat(watchedOldPrice) || 0;
+        const newP = parseFloat(globalSupplierPrice) || 0;
+        if (oldP > 0 && newP > 0 && oldP > newP) {
+            return Math.round(((oldP - newP) / oldP) * 100);
+        }
+        return 0;
+    }, [watchedOldPrice, globalSupplierPrice]);
 
     const addAttributeValueLocal = async (attributeId, value) => {
         setInlineLoading(true);
@@ -346,6 +388,14 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             
             const finalPublicPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
 
+            let finalOldPrice = 0;
+            if (data.is_promo) {
+                const oldSupplierPriceVal = parseFloat(data.old_supplier_price) || 0;
+                if (oldSupplierPriceVal > 0) {
+                    finalOldPrice = computePublicPrice(oldSupplierPriceVal, deliveryTiers);
+                }
+            }
+
             const payload = {
                 name: data.name,
                 description: data.description,
@@ -353,6 +403,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 images: uploadedImages,
                 supplier_note: data.supplier_note,
                 price: finalPublicPrice,
+                old_price: finalOldPrice || 0,
                 supplier_price: finalSupplierPrice,
                 stock: parseInt(data.stock) || 0,
                 status: 'draft',
@@ -714,6 +765,84 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                     {currentStep === 4 && (
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
                             
+                            {/* 0. Réduction Simple Option */}
+                            <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:border-indigo-200 transition-all space-y-6">
+                                <label className="flex items-center gap-4 cursor-pointer select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        {...register("is_promo")}
+                                        className="checkbox checkbox-indigo checkbox-md rounded-xl"
+                                    />
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                                            <Percent size={18} className="text-indigo-500" /> Activer une Réduction Simple (Prix Barré)
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Appliquez un prix barré attrayant sur la boutique</p>
+                                    </div>
+                                </label>
+
+                                {watch("is_promo") && (
+                                    <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-6 animate-in slide-in-from-top-4 duration-300">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 block px-2">Configuration de la réduction</span>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black text-slate-400 uppercase block px-1">Ancien Prix Vendeur (Original)</label>
+                                                <input 
+                                                    type="number" 
+                                                    placeholder="Ex: 10000"
+                                                    {...register("old_supplier_price")} 
+                                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black text-slate-400 uppercase block px-1">Remise en % (facultatif)</label>
+                                                <input 
+                                                    type="number" 
+                                                    placeholder="Ex: 15"
+                                                    {...register("discount_percent")} 
+                                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-indigo-600 outline-none focus:ring-4 focus:ring-indigo-500/10"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black text-slate-400 uppercase block px-1">Nouveau Prix Vendeur (Calculé / Saisi)</label>
+                                                <input 
+                                                    type="number" 
+                                                    placeholder="Ex: 8500"
+                                                    {...register("supplier_price")} 
+                                                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-emerald-600 outline-none focus:ring-4 focus:ring-indigo-500/10"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Dynamic price calculations display */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-100 flex flex-col gap-2">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase">Aperçu du prix sur l'application :</span>
+                                            <div className="flex items-baseline gap-3">
+                                                {watchedOldPrice && (
+                                                    <span className="text-sm font-bold text-slate-400 line-through">
+                                                        {computePublicPrice(watchedOldPrice, deliveryTiers).toLocaleString()} F CFA
+                                                    </span>
+                                                )}
+                                                <span className="text-xl font-black text-slate-900">
+                                                    {computePublicPrice(globalSupplierPrice || 0, deliveryTiers).toLocaleString()} F CFA
+                                                </span>
+                                                {computedPercentage > 0 && (
+                                                    <span className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black">
+                                                        -{computedPercentage}%
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-[9px] text-slate-400 font-bold">
+                                                * Le prix public calculé inclut les frais de livraison correspondants.
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* 1. Flash Sales Option */}
                             <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-2xl hover:border-rose-200 transition-all space-y-6">
                                 <label className="flex items-center gap-4 cursor-pointer select-none">
