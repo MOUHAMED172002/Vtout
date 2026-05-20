@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
@@ -83,7 +83,14 @@ export const getOrderById = async (req, res) => {
                     model: OrderItem,
                     as: 'items',
                     include: [
-                        { model: Product, as: 'product', include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }] },
+                        { 
+                            model: Product, 
+                            as: 'product', 
+                            include: [
+                                { model: ProductImage, as: 'images', where: { is_main: true }, required: false },
+                                { model: Category, as: 'category' }
+                            ] 
+                        },
                         { model: ProductVariant, as: 'variant' }
                     ]
                 },
@@ -127,27 +134,59 @@ export const getOrderById = async (req, res) => {
         const role = req.auth?.role;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const isAdmin = role === 'admin' || adminEmails.includes(req.auth?.email?.toLowerCase());
- 
-        if (isAdmin) return res.json({ ...order.toJSON(), siblings });
- 
+
+        // Calculate dynamic delivery, platform and supplier fees/earnings
+        const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
+        const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
+        const deliveryTiers = await getDeliveryFeeTiers();
+
+        const orderJson = order.toJSON();
+        let totalBaseMarketingFee = 0;
+        let adminTotal = 0;
+        let subtotal = 0;
+
+        if (orderJson.items) {
+            for (const item of orderJson.items) {
+                const itemSupplierPrice = item.product?.supplier_price || 0;
+                const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                totalBaseMarketingFee += itemMarketingFee * item.quantity;
+
+                let itemRate = globalCommissionRate;
+                if (item.product?.category?.commission_rate) {
+                    itemRate = parseFloat(item.product.category.commission_rate) / 100;
+                }
+
+                const itemBasePrice = parseFloat(item.price) - itemMarketingFee;
+                adminTotal += (itemBasePrice * item.quantity) * itemRate;
+                subtotal += parseFloat(item.price) * item.quantity;
+            }
+        }
+
+        const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
+        orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+        orderJson.admin_commission = adminTotal;
+        orderJson.supplier_earnings = subtotal - adminTotal - totalBaseMarketingFee;
+
+        if (isAdmin) return res.json({ ...orderJson, siblings });
+
         // 1. Check if user is the owner
-        if (order.user_id && order.user_id === userId) return res.json({ ...order.toJSON(), siblings });
+        if (order.user_id && order.user_id === userId) return res.json({ ...orderJson, siblings });
 
         // 2. Guest Order access (if it's a guest order and they have the ID)
-        if (!order.user_id) return res.json({ ...order.toJSON(), siblings });
- 
+        if (!order.user_id) return res.json({ ...orderJson, siblings });
+
         // 3. Check if user is the assigned supplier
         if (userId) {
             const supplier = await Supplier.findOne({ where: { user_id: userId } });
-            if (supplier && order.supplier_id === supplier.id) return res.json(order.toJSON());
+            if (supplier && order.supplier_id === supplier.id) return res.json(orderJson);
         }
- 
+
         // 4. Check if user is the assigned rider
         if (userId) {
             const rider = await DeliveryPerson.findOne({ where: { user_id: userId } });
-            if (rider && order.delivery_person_id === rider.id) return res.json(order.toJSON());
+            if (rider && order.delivery_person_id === rider.id) return res.json(orderJson);
         }
- 
+
         return res.status(403).json({ error: 'Accès non autorisé à cette commande' });
 
 

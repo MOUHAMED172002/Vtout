@@ -578,7 +578,7 @@ export default function DeliveryDashboard() {
                                                 <div className="flex items-center gap-8 w-full lg:w-auto justify-between border-t lg:border-t-0 lg:border-l border-base-content/10 pt-6 lg:pt-0 lg:pl-8">
                                                     <div className="space-y-1">
                                                         <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Gain Course</p>
-                                                        <p className="text-2xl font-black text-primary">{(order.delivery_fee || 1000).toLocaleString()} F</p>
+                                                        <p className="text-2xl font-black text-primary">{(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 1000)).toLocaleString()} F</p>
                                                     </div>
                                                     <button
                                                         onClick={() => handleAssign(order.id)}
@@ -611,7 +611,7 @@ export default function DeliveryDashboard() {
                                                 const isPickedUp = ['expediee', 'expédiée'].includes(order.status);
                                                 const orderRef = order.id ? order.id.slice(0, 8).toUpperCase() : "";
                                                 const totalAmount = Number(order.total_amount || 0);
-                                                const deliveryFee = Number(order.delivery_fee || 1000);
+                                                const deliveryFee = Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 1000));
                                                 const isCod = order.payment_method === 'delivery';
 
                                                 return (
@@ -691,19 +691,19 @@ export default function DeliveryDashboard() {
                                                                             {/* Milestone 1: Pickup */}
                                                                             <div className={`p-5 rounded-2xl border transition-all ${
                                                                                 isPickedUp 
-                                                                                    ? 'bg-base-200/40 border-base-content/5 opacity-80' 
+                                                                                    ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm' 
                                                                                     : 'bg-amber-500/5 border-amber-500/20 shadow-sm'
                                                                             }`}>
                                                                                 <div className="flex items-center justify-between mb-3">
                                                                                     <div className="flex items-center gap-2">
                                                                                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
                                                                                             isPickedUp 
-                                                                                                ? 'bg-slate-200 text-slate-650' 
+                                                                                                ? 'bg-emerald-500 text-white' 
                                                                                                 : 'bg-amber-500 text-white'
                                                                                         }`}>
                                                                                             1
                                                                                         </div>
-                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-base-content/60' : 'text-amber-600'}`}>
+                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-emerald-600' : 'text-amber-600'}`}>
                                                                                             Point de Collecte
                                                                                         </h5>
                                                                                     </div>
@@ -739,18 +739,18 @@ export default function DeliveryDashboard() {
                                                                             <div className={`p-5 rounded-2xl border transition-all ${
                                                                                 isPickedUp 
                                                                                     ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm' 
-                                                                                    : 'bg-base-200/40 border-base-content/5 opacity-80'
+                                                                                    : 'bg-blue-500/5 border-blue-500/10 shadow-sm'
                                                                             }`}>
                                                                                 <div className="flex items-center justify-between mb-3">
                                                                                     <div className="flex items-center gap-2">
                                                                                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
                                                                                             isPickedUp 
                                                                                                 ? 'bg-emerald-500 text-white' 
-                                                                                                : 'bg-slate-200 text-slate-655'
+                                                                                                : 'bg-blue-500 text-white'
                                                                                         }`}>
                                                                                             2
                                                                                         </div>
-                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-emerald-600' : 'text-base-content/60'}`}>
+                                                                                        <h5 className={`text-xs font-black uppercase tracking-wider ${isPickedUp ? 'text-emerald-600' : 'text-blue-600'}`}>
                                                                                             Lieu de Livraison
                                                                                         </h5>
                                                                                     </div>
@@ -911,7 +911,7 @@ export default function DeliveryDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-black text-slate-900 text-sm">{Number(order.delivery_fee || 0).toLocaleString()} F</p>
+                                                    <p className="font-black text-slate-900 text-sm">{Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0)).toLocaleString()} F</p>
                                                     <p className="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Gain encaissé</p>
                                                 </div>
                                             </div>

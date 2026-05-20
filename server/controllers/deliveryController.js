@@ -2,6 +2,7 @@ import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductIma
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
 
 
 export const getAvailableOrders = async (req, res) => {
@@ -30,7 +31,24 @@ export const getAvailableOrders = async (req, res) => {
             ],
             order: [['created_at', 'ASC']]
         });
-        res.json(orders);
+
+        const deliveryTiers = await getDeliveryFeeTiers();
+        const ordersJson = orders.map(order => {
+            const orderJson = order.toJSON();
+            let totalBaseMarketingFee = 0;
+            if (orderJson.items) {
+                for (const item of orderJson.items) {
+                    const itemSupplierPrice = item.product?.supplier_price || 0;
+                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                }
+            }
+            const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
+            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            return orderJson;
+        });
+
+        res.json(ordersJson);
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la récupération des commandes disponibles', details: error.message });
     }
@@ -176,7 +194,24 @@ export const getMyDeliveries = async (req, res) => {
             ],
             order: [['updated_at', 'DESC']]
         });
-        res.json(orders);
+
+        const deliveryTiers = await getDeliveryFeeTiers();
+        const ordersJson = orders.map(order => {
+            const orderJson = order.toJSON();
+            let totalBaseMarketingFee = 0;
+            if (orderJson.items) {
+                for (const item of orderJson.items) {
+                    const itemSupplierPrice = item.product?.supplier_price || 0;
+                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                }
+            }
+            const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
+            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            return orderJson;
+        });
+
+        res.json(ordersJson);
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la récupération de vos courses', details: error.message });
     }

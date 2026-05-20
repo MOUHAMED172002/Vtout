@@ -221,17 +221,21 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                     <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                        <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Gain Fournisseur</p>
-                          <p className="text-xl font-black text-slate-900">{(order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0).toLocaleString()} F</p>
+                          <p className="text-xl font-black text-slate-900">
+                            {Number(order.supplier_earnings !== undefined ? order.supplier_earnings : (order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0)).toLocaleString()} F
+                          </p>
                        </div>
                        <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100">
                           <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Part Plateforme (Vtout)</p>
                           <p className="text-xl font-black text-indigo-600">
-                            {((Number(order.total_amount) || 0) - (Number(order.delivery_fee) || 0) - (order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0)).toLocaleString()} F
+                            {Number(order.admin_commission !== undefined ? order.admin_commission : ((Number(order.total_amount) || 0) - (Number(order.delivery_fee) || 0) - (order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0))).toLocaleString()} F
                           </p>
                        </div>
                        <div className="p-5 bg-amber-50 rounded-3xl border border-amber-100">
                           <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Frais Livraison (Livreur)</p>
-                          <p className="text-xl font-black text-amber-600">{(order.delivery_fee || 1000).toLocaleString()} F</p>
+                          <p className="text-xl font-black text-amber-600">
+                            {Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 1000)).toLocaleString()} F
+                          </p>
                        </div>
                     </div>
 
