@@ -737,7 +737,13 @@ export const updateOrderStatus = async (req, res) => {
         // 2. Financial logging on delivery
         const isDelivered = (mappedStatus === 'livrée') && (oldStatus !== 'livrée');
         if (isDelivered) {
-            await processOrderFinancials(order.id);
+            try {
+                await processOrderFinancials(order.id);
+            } catch (financialErr) {
+                console.error(`[ROLLBACK] processOrderFinancials failed for order ${order.id}, reverting status:`, financialErr);
+                await order.update({ status: oldStatus });
+                return res.status(500).json({ error: 'Erreur lors du traitement financier. Le statut a été restauré. Veuillez réessayer.' });
+            }
         }
 
 

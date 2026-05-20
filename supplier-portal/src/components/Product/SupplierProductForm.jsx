@@ -19,7 +19,8 @@ import {
     getAttributesByCategory,
     createProduct,
     updateProduct,
-    searchProducts
+    searchProducts,
+    getProducts
 } from '../../services/productService';
 import { uploadSingleImage } from '../../services/uploadService';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../../services/deliveryFeeService';

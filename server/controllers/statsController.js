@@ -62,7 +62,7 @@ export const getDashboardStats = async (req, res) => {
 
             allGains.forEach(g => {
                 const total = parseFloat(g.total || 0);
-                const role = (g.role || '').toLowerCase();
+                const role = (g['user.role'] || g.role || '').toLowerCase();
                 if (role === 'admin') stats.admin_profit = total;
                 else if (role === 'livreur') stats.delivery_profits = total;
                 else if (role === 'fournisseur') stats.supplier_profits = total;

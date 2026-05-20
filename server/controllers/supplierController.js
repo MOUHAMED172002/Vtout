@@ -98,8 +98,42 @@ export const updateSupplier = async (req, res) => {
         });
 
 
-        // Notify supplier if status changed to active or suspended
+        // Synchronize user role when supplier becomes active
         if (status && status !== oldStatus) {
+            if (status === 'active' && supplier.user_id) {
+                try {
+                    const profile = await Profile.findByPk(supplier.user_id);
+                    if (profile) {
+                        await profile.update({ role: 'fournisseur' });
+                        await sequelize.query(
+                            'UPDATE user SET role = :role WHERE id = :id',
+                            {
+                                replacements: { role: 'fournisseur', id: supplier.user_id },
+                                type: sequelize.QueryTypes.UPDATE
+                            }
+                        );
+                    }
+                } catch (roleErr) {
+                    console.error('Failed to sync supplier role:', roleErr);
+                }
+            } else if (status === 'suspended' && supplier.user_id) {
+                try {
+                    const profile = await Profile.findByPk(supplier.user_id);
+                    if (profile && profile.role === 'fournisseur') {
+                        await profile.update({ role: 'user' });
+                        await sequelize.query(
+                            'UPDATE user SET role = :role WHERE id = :id',
+                            {
+                                replacements: { role: 'user', id: supplier.user_id },
+                                type: sequelize.QueryTypes.UPDATE
+                            }
+                        );
+                    }
+                } catch (roleErr) {
+                    console.error('Failed to reset supplier role:', roleErr);
+                }
+            }
+
             const email = supplier.user?.email;
             if (email) {
                 sendSupplierApprovalNotification(email, supplier, status).catch(err => 
