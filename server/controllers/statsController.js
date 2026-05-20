@@ -40,32 +40,28 @@ export const getDashboardStats = async (req, res) => {
             stats.customers = new Set(orders30.map(o => o.user_id)).size;
             stats.avg_order_value = stats.orders > 0 ? stats.revenue / stats.orders : 0;
             
-            // Calcul des gains par rôle via les FinancialTransactions
+            // Calcul des gains par rôle via les FinancialTransactions (basé sur la description)
             const allGains = await FinancialTransaction.findAll({
                 where: {
                     type: 'earning',
                     status: 'completed',
                     createdAt: { [Op.gte]: since }
                 },
-                include: [{
-                    model: Profile,
-                    as: 'user',
-                    attributes: ['role']
-                }],
-                attributes: [
-                    [sequelize.col('user.role'), 'role'],
-                    [sequelize.fn('SUM', sequelize.col('amount')), 'total']
-                ],
-                group: [sequelize.col('user.role')],
+                attributes: ['amount', 'description'],
                 raw: true
             });
 
             allGains.forEach(g => {
-                const total = parseFloat(g.total || 0);
-                const role = (g['user.role'] || g.role || '').toLowerCase();
-                if (role === 'admin') stats.admin_profit = total;
-                else if (role === 'livreur') stats.delivery_profits = total;
-                else if (role === 'fournisseur') stats.supplier_profits = total;
+                const amount = parseFloat(g.amount || 0);
+                const desc = (g.description || '').toLowerCase();
+                
+                if (desc.startsWith('com. vente') || desc.startsWith('com.vente')) {
+                    stats.admin_profit += amount;
+                } else if (desc.startsWith('course')) {
+                    stats.delivery_profits += amount;
+                } else if (desc.startsWith('vente')) {
+                    stats.supplier_profits += amount;
+                }
             });
 
             recentOrders = await Order.findAll({

@@ -398,16 +398,7 @@ app.get("/api/diagnostics", async (req, res) => {
                     status: 'completed',
                     createdAt: { [Op.gte]: since }
                 },
-                include: [{
-                    model: Profile,
-                    as: 'user',
-                    attributes: ['role']
-                }],
-                attributes: [
-                    [sequelize.col('user.role'), 'role'],
-                    [sequelize.fn('SUM', sequelize.col('amount')), 'total']
-                ],
-                group: [sequelize.col('user.role')],
+                attributes: ['amount', 'description'],
                 raw: true
             });
             report.data.rawGainsResult = allGains;

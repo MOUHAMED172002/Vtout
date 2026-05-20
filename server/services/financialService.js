@@ -106,7 +106,17 @@ export const processOrderFinancials = async (orderIdOrObject) => {
 
                     // Admin Commission
                     if (adminTotal > 0) {
-                        const admin = await Profile.findOne({ where: { role: 'admin' }, transaction: t });
+                        // Find admin by ADMIN_EMAILS env (the admin's profile role may not be 'admin'
+                        // if they are also registered as a supplier/fournisseur)
+                        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+                        let admin = await Profile.findOne({ where: { role: 'admin' }, transaction: t });
+                        if (!admin && adminEmails.length > 0) {
+                            const { Op } = await import('sequelize');
+                            admin = await Profile.findOne({
+                                where: { email: { [Op.in]: adminEmails } },
+                                transaction: t
+                            });
+                        }
                         if (admin) {
                             await FinancialTransaction.create({
                                 id: crypto.randomUUID(),
