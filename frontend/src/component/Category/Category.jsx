@@ -68,17 +68,42 @@ export default function Category() {
             Par <span className="text-slate-300 italic font-serif">Catégories.</span>
           </h2>
         </div>
-        <button
-          onClick={() => navigate("/categories")}
-          className="group flex items-center gap-3 px-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-        >
-          Voir tout <LucideIcons.ArrowRight className="group-hover:translate-x-1 transition-transform" size={14} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/promotions")}
+            className="group flex items-center gap-2 px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-amber-600 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+          >
+            <LucideIcons.Flame className="group-hover:animate-bounce" size={14} /> Promotions
+          </button>
+          <button
+            onClick={() => navigate("/categories")}
+            className="group flex items-center gap-3 px-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+          >
+            Voir tout <LucideIcons.ArrowRight className="group-hover:translate-x-1 transition-transform" size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Tier 1: Parent Carousel (Small Squares) */}
       <div className="relative group/carousel mb-10">
         <div className="flex overflow-x-auto gap-4 pb-6 no-scrollbar snap-x scroll-smooth">
+          {/* Static Promotions Card */}
+          <motion.button
+            key="promo-static"
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/promotions')}
+            className="flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400 shadow-xl shadow-amber-500/20 text-white"
+          >
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none" />
+            <div className="text-2xl md:text-3xl transition-transform duration-500 relative z-10 group-hover:scale-110">
+              <LucideIcons.Flame size={28} className="text-white animate-pulse" />
+            </div>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tight text-center line-clamp-1 px-1 relative z-10 text-white">
+              Promotions
+            </span>
+          </motion.button>
+
           {parents.map((cat) => {
             const isEmoji = /\p{Emoji}/u.test(cat.icon);
             const Icon = !isEmoji && LucideIcons[cat.icon] ? LucideIcons[cat.icon] : LucideIcons.LayoutPanelTop;

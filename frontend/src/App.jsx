@@ -60,6 +60,7 @@ import MagPage from './component/Blogs/MagPage';
 import Privacy from './component/Popup/Privacy';
 
 // --- Promotion Pages ---
+import PromotionsHub from './pages/Promotions/PromotionsHub';
 import FlashSalePage from './pages/Promotions/FlashSalePage';
 import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
 import KitsPage from './pages/Promotions/KitsPage';
@@ -169,6 +170,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/products" element={<PublicRoute><><Navbar /><ProductGrid /><Footer /></></PublicRoute>} />
           <Route path="/products/:id" element={<PublicRoute><><Navbar /><ProductPages /><Footer /></></PublicRoute>} />
           <Route path="/products-liste" element={<PublicRoute><><Navbar /><ProductsList /><Footer /></></PublicRoute>} />
+          <Route path="/promotions" element={<PublicRoute><PromotionsHub /></PublicRoute>} />
           <Route path="/promotions/flash" element={<PublicRoute><FlashSalePage /></PublicRoute>} />
           <Route path="/promotions/quantite" element={<PublicRoute><QuantityDiscountPage /></PublicRoute>} />
           <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />

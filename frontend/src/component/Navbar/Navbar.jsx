@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Truck,
-  FileText
+  FileText,
+  Flame
 } from "lucide-react";
 import { useUser } from "../../lib/AuthHooks";
 import { SignedIn, SignedOut } from "../../lib/AuthGuards";
@@ -31,6 +32,7 @@ import PortalSwitcher from "../Shared/PortalSwitcher";
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
   { id: 2, name: "Boutique", link: "/products-liste", icon: <ShoppingBag size={20} /> },
+  { id: 3, name: "Promotions", link: "/promotions", icon: <Flame size={20} /> },
   { id: 4, name: "À propos", link: "/about", icon: <Info size={20} /> },
 ];
 

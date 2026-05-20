@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/clerk-shim';
 import { getMySupplierProducts } from '../services/supplierService';
 import { updateProduct } from '../services/productService';
-import { Sparkles, Flame, Percent, Package, Search as SearchIcon, Edit, Trash2, PlusCircle, CheckCircle2, Clock, Info } from 'lucide-react';
+import { Sparkles, Flame, Percent, Package, Search as SearchIcon, Edit, Trash2, Plus, Clock, CheckCircle2, X, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SupplierPromotions = ({ globalSearchQuery }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'flash', 'volume', 'kit'
+  const [activeTab, setActiveTab] = useState('all'); 
   const { getToken } = useAuth();
 
-  // Promotions management modal state
+  // Modal & Flow State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState(1); // 1: Select Product, 2: Configure Promo
+  const [productSearch, setProductSearch] = useState('');
+  
   const [activePromoProduct, setActivePromoProduct] = useState(null);
   const [isAddMode, setIsAddMode] = useState(false);
+  
   const [promoForm, setPromoForm] = useState({
     is_flash_sale: false,
     flash_sale_end: '',
@@ -34,7 +39,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       const list = await getMySupplierProducts(token);
       setProducts(list || []);
     } catch (err) {
-      console.error("Error loading products for promotions:", err);
+      console.error("Error loading products:", err);
       toast.error("Erreur de chargement des produits.");
     } finally {
       setLoading(false);
@@ -47,34 +52,31 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
 
   const searchQuery = globalSearchQuery !== undefined ? globalSearchQuery : localSearch;
 
-  // Filter products that have promotions active
+  // Filter Active Promotions
   const promoProducts = products.filter(p => {
     const hasFlash = !!p.is_flash_sale;
     const hasVolume = !!p.volume_pricing;
     const hasKit = !!p.is_kit;
     
-    // Match tabs
     if (activeTab === 'flash' && !hasFlash) return false;
     if (activeTab === 'volume' && !hasVolume) return false;
     if (activeTab === 'kit' && !hasKit) return false;
     if (activeTab === 'all' && !hasFlash && !hasVolume && !hasKit) return false;
 
-    // Match search
     if (searchQuery) {
       return p.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
     return true;
   });
 
-  // Products available to ADD new promotions
+  // Eligible products for new promos
   const eligibleProductsForPromo = products.filter(p => {
     const hasFlash = !!p.is_flash_sale;
     const hasVolume = !!p.volume_pricing;
     const hasKit = !!p.is_kit;
     return !hasFlash && !hasVolume && !hasKit;
-  });
+  }).filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
 
-  // Calculate statistics
   const stats = {
     total: products.filter(p => p.is_flash_sale || p.volume_pricing || p.is_kit).length,
     flash: products.filter(p => p.is_flash_sale).length,
@@ -82,10 +84,34 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     kit: products.filter(p => p.is_kit).length
   };
 
-  const openPromoModal = (product, isAdding = false) => {
-    setActivePromoProduct(product);
-    setIsAddMode(isAdding);
+  // Open Modal to Create New Promo
+  const handleStartNewPromo = () => {
+    setIsAddMode(true);
+    setModalStep(1);
+    setActivePromoProduct(null);
+    setProductSearch('');
+    setIsModalOpen(true);
+  };
 
+  // Select Product in Step 1
+  const handleSelectProduct = (product) => {
+    setActivePromoProduct(product);
+    setPromoForm({
+      is_flash_sale: false,
+      flash_sale_end: '',
+      is_kit: false,
+      kit_items: [],
+      volume_pricing_enabled: false,
+      volume_pricing: [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }]
+    });
+    setModalStep(2);
+  };
+
+  // Open Modal to Edit Existing Promo
+  const handleEditPromo = (product) => {
+    setIsAddMode(false);
+    setActivePromoProduct(product);
+    
     let parsedVolumePricing = [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }];
     if (product.volume_pricing) {
       try {
@@ -112,10 +138,18 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       volume_pricing_enabled: !!product.volume_pricing,
       volume_pricing: parsedVolumePricing
     });
+    
+    setModalStep(2);
+    setIsModalOpen(true);
   };
 
   const handleSavePromo = async () => {
     if (!activePromoProduct) return;
+    if (!promoForm.is_flash_sale && !promoForm.volume_pricing_enabled && !promoForm.is_kit) {
+      toast.error("Veuillez activer au moins un type de promotion.");
+      return;
+    }
+
     setSavingPromo(true);
     try {
       const token = await getToken();
@@ -139,528 +173,442 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       };
 
       await updateProduct(activePromoProduct.id, payload, token);
-      toast.success(isAddMode ? "Promotion ajoutée !" : "Promotion mise à jour !");
-      setActivePromoProduct(null);
+      toast.success(isAddMode ? "Promotion ajoutée avec succès !" : "Promotion mise à jour !");
+      setIsModalOpen(false);
       fetchProducts();
     } catch (error) {
-      console.error("Save promotions error:", error);
-      toast.error("Erreur de mise à jour de la promotion.");
+      console.error("Save error:", error);
+      toast.error("Erreur de sauvegarde.");
     } finally {
       setSavingPromo(false);
     }
   };
 
   const handleRemovePromo = async (product) => {
-    if (!window.confirm(`Voulez-vous vraiment retirer toutes les promotions actives sur "${product.name}" ?`)) return;
-    
+    if (!window.confirm(`Désactiver toutes les promotions sur "${product.name}" ?`)) return;
     try {
       const token = await getToken();
       const payload = {
-        name: product.name,
-        description: product.description,
-        category_id: product.category_id,
-        price: product.price,
-        supplier_price: product.supplier_price,
-        stock: product.stock,
-        boutique_id: product.boutique_id,
-        secondary_boutique_ids: product.secondary_boutique_ids,
-        variants: product.variants,
-        supplierLinks: product.supplierLinks,
+        ...product,
         is_flash_sale: false,
         flash_sale_end: null,
         is_kit: false,
         kit_items: null,
         volume_pricing: null
       };
-
       await updateProduct(product.id, payload, token);
-      toast.success("Promotions désactivées avec succès !");
+      toast.success("Promotions désactivées !");
       fetchProducts();
     } catch (err) {
-      console.error("Remove promotions error:", err);
-      toast.error("Erreur lors de la suppression de la promotion.");
+      toast.error("Erreur de suppression.");
     }
   };
 
   return (
-    <div className="p-6 md:p-12 space-y-8 bg-slate-50 min-h-screen">
-      
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200/60 pb-6">
+    <div className="p-4 md:p-8 space-y-8 bg-slate-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-600 font-black uppercase text-[10px] tracking-wider px-3 py-1 rounded-full shadow-sm">
-            <Sparkles size={12} className="fill-indigo-50" /> Espace Promotions
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight mt-2 uppercase">
-            Mes Promotions Actives
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <Sparkles className="text-indigo-500" size={32} />
+            Mes Promotions
           </h1>
-          <p className="text-slate-500 font-bold text-xs">
-            Suivez, modifiez et configurez les promotions (Ventes Flash, Prix Dégressifs, Packs Kits) de vos produits.
+          <p className="text-slate-500 font-medium mt-2 max-w-xl">
+            Boostez vos ventes en créant des offres attractives. Gérez vos ventes flash, prix dégressifs et packs depuis cet espace.
           </p>
         </div>
+        <button 
+          onClick={handleStartNewPromo}
+          className="group relative px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 hover:shadow-indigo-600/40 transition-all flex items-center gap-2 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+          <Plus size={18} className="relative z-10" />
+          <span className="relative z-10">Nouvelle Promotion</span>
+        </button>
       </div>
 
-      {/* Stats Overview Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Promos */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-full translate-x-4 -translate-y-4 blur-xl pointer-events-none" />
-          <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0">
-            <Sparkles size={20} />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {[
+          { label: 'Total Actives', count: stats.total, icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Ventes Flash', count: stats.flash, icon: Flame, color: 'text-rose-500', bg: 'bg-rose-50' },
+          { label: 'Prix Dégressifs', count: stats.volume, icon: Percent, color: 'text-blue-500', bg: 'bg-blue-50' },
+          { label: 'Packs & Kits', count: stats.kit, icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-50' }
+        ].map((stat, i) => (
+          <div key={i} className="bg-white rounded-[2rem] p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
+              <stat.icon size={24} />
+            </div>
+            <div>
+              <p className="text-3xl font-black text-slate-900">{stat.count}</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">{stat.label}</p>
+            </div>
           </div>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total en cours</span>
-            <p className="font-mono text-3xl font-black text-slate-900 mt-0.5">{stats.total}</p>
-          </div>
-        </div>
-
-        {/* Flash Sales */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-50 rounded-full translate-x-4 -translate-y-4 blur-xl pointer-events-none" />
-          <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 shrink-0">
-            <Flame size={20} className="fill-rose-500" />
-          </div>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Ventes Flash</span>
-            <p className="font-mono text-3xl font-black text-slate-900 mt-0.5">{stats.flash}</p>
-          </div>
-        </div>
-
-        {/* Volume Pricing */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-full translate-x-4 -translate-y-4 blur-xl pointer-events-none" />
-          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 shrink-0">
-            <Percent size={20} />
-          </div>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Paliers de quantité</span>
-            <p className="font-mono text-3xl font-black text-slate-900 mt-0.5">{stats.volume}</p>
-          </div>
-        </div>
-
-        {/* Kits */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-full translate-x-4 -translate-y-4 blur-xl pointer-events-none" />
-          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
-            <Package size={20} />
-          </div>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Packs & Kits</span>
-            <p className="font-mono text-3xl font-black text-slate-900 mt-0.5">{stats.kit}</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-white border border-slate-100 p-4 rounded-3xl shadow-sm">
-        
-        {/* Search */}
-        <div className="relative group max-w-md flex-1">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+      {/* Filters & Search */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 bg-white p-2 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="flex overflow-x-auto no-scrollbar p-2">
+          {[
+            { id: 'all', label: 'Toutes' },
+            { id: 'flash', label: 'Flash' },
+            { id: 'volume', label: 'Dégressifs' },
+            { id: 'kit', label: 'Kits' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-slate-900 text-white shadow-md' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 max-w-sm p-2">
+          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Rechercher une promotion..."
-            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
+            className="w-full bg-slate-50 border border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 transition-all outline-none"
           />
         </div>
-
-        {/* Tabs & Trigger */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex bg-slate-50 rounded-2xl p-1 border border-slate-100">
-            {[
-              { id: 'all', label: 'Toutes' },
-              { id: 'flash', label: 'Flash' },
-              { id: 'volume', label: 'Remises' },
-              { id: 'kit', label: 'Kits' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' 
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Quick Create Promotion */}
-          <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn bg-indigo-500 hover:bg-indigo-600 border-none text-white rounded-2xl py-3 px-5 font-black text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg shadow-indigo-500/25">
-              <PlusCircle size={16} /> Créer une Promotion
-            </label>
-            <ul tabIndex={0} className="dropdown-content menu p-3 shadow-2xl bg-white rounded-3xl border border-slate-100 w-72 mt-2 z-30 space-y-2">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 py-1 block">Sélectionnez un produit :</span>
-              <div className="max-h-60 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                {eligibleProductsForPromo.length > 0 ? (
-                  eligibleProductsForPromo.map(product => (
-                    <li key={product.id}>
-                      <button 
-                        onClick={() => openPromoModal(product, true)}
-                        className="flex flex-col items-start gap-1 p-2 hover:bg-slate-50 rounded-xl text-left w-full transition-all"
-                      >
-                        <span className="font-bold text-xs text-slate-800 line-clamp-1">{product.name}</span>
-                        <span className="text-[9px] font-mono text-slate-400">{product.price} F CFA</span>
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <p className="text-[10px] text-center text-slate-400 font-bold py-4">Tous vos produits sont déjà en promotion !</p>
-                )}
-              </div>
-            </ul>
-          </div>
-        </div>
-
       </div>
 
-      {/* Main Promotions Table */}
-      <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table w-full border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Produit</th>
-                <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Types de Promotion</th>
-                <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Détails / Règles</th>
-                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100 animate-pulse">
-                    <td className="px-8 py-6"><div className="h-4 bg-slate-100 rounded w-1/3" /></td>
-                    <td className="px-8 py-6"><div className="h-4 bg-slate-100 rounded w-1/4" /></td>
-                    <td className="px-8 py-6"><div className="h-4 bg-slate-100 rounded w-1/2" /></td>
-                    <td className="px-8 py-6"><div className="h-8 bg-slate-100 rounded w-16 ml-auto" /></td>
-                  </tr>
-                ))
-              ) : promoProducts.length > 0 ? (
-                promoProducts.map((p) => (
-                  <motion.tr 
-                    key={p.id}
-                    layout
-                    className="border-b border-slate-100/80 hover:bg-slate-50/50 transition-all duration-200"
-                  >
-                    {/* Product Name & Image */}
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
-                          {p.images && p.images[0] ? (
-                            <img src={p.images[0].image_url} alt={p.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <Package size={16} className="text-slate-300" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-slate-800 text-sm tracking-tight line-clamp-1">{p.name}</h4>
-                          <span className="font-mono text-[10px] font-bold text-slate-400">{p.price} F CFA</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Promotion Active Badges */}
-                    <td className="px-8 py-6">
-                      <div className="flex flex-wrap gap-2">
-                        {p.is_flash_sale && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 border border-rose-100 text-rose-500 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm animate-pulse">
-                            <Flame size={12} className="fill-rose-500" /> Vente Flash
-                          </span>
-                        )}
-                        {p.volume_pricing && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 border border-blue-100 text-blue-500 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
-                            <Percent size={12} /> Dégressif
-                          </span>
-                        )}
-                        {p.is_kit && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
-                            <Package size={12} /> Pack Kit
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Promotion Details / Rules Description */}
-                    <td className="px-8 py-6">
-                      <div className="text-xs font-semibold text-slate-500 space-y-1">
-                        {p.is_flash_sale && (
-                          <div className="flex items-center gap-1.5 text-rose-600">
-                            <Clock size={12} />
-                            <span>Fin de vente flash : {p.flash_sale_end ? new Date(p.flash_sale_end).toLocaleString('fr-FR') : "Non configuré"}</span>
-                          </div>
-                        )}
-                        {p.volume_pricing && (
-                          <div className="flex items-center gap-1.5 text-blue-600 font-bold">
-                            <CheckCircle2 size={12} />
-                            <span>Remise active (Volume) : {(() => {
-                              try {
-                                const tiers = typeof p.volume_pricing === 'string' ? JSON.parse(p.volume_pricing) : p.volume_pricing;
-                                return Array.isArray(tiers) ? tiers.map(t => `${t.qty}x: -${t.discount}%`).join(' | ') : "Configuré";
-                              } catch(e) { return "Active"; }
-                            })()}</span>
-                          </div>
-                        )}
-                        {p.is_kit && (
-                          <div className="flex items-center gap-1.5 text-emerald-600">
-                            <Package size={12} />
-                            <span>Packs d'articles complémentaires configurés et combinés</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Quick Edit Actions */}
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => openPromoModal(p)}
-                          className="btn btn-sm btn-circle bg-slate-50 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 border-none transition-all"
-                          title="Modifier la promotion"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleRemovePromo(p)}
-                          className="btn btn-sm btn-circle bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 border-none transition-all"
-                          title="Supprimer la promotion"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <Sparkles size={48} className="text-slate-200" />
-                      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Aucune promotion trouvée</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Grid of Active Promotions */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1,2,3].map(i => (
+             <div key={i} className="bg-white h-64 rounded-[2rem] border border-slate-100 animate-pulse" />
+          ))}
         </div>
-      </div>
-
-      {/* Promotions Unified Custom Modal */}
-      {activePromoProduct && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-xl w-full p-8 md:p-10 space-y-6 relative overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar">
-            
-            {/* Header */}
-            <div className="flex justify-between items-start border-b border-slate-100 pb-4">
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <Sparkles className="text-indigo-500 animate-pulse" /> {isAddMode ? "Ajouter une Promotion" : "Modifier la Promotion"}
-                </h2>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
-                  Produit : {activePromoProduct.name}
-                </p>
+      ) : promoProducts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promoProducts.map(p => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              key={p.id} 
+              className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+            >
+              <div className="h-40 bg-slate-50 relative flex items-center justify-center p-4">
+                 {p.images && p.images[0] ? (
+                    <img src={p.images[0].image_url} alt={p.name} className="w-full h-full object-contain mix-blend-multiply" />
+                 ) : (
+                    <ImageIcon size={48} className="text-slate-200" />
+                 )}
+                 <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    {p.is_flash_sale && <div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg"><Flame size={14} /></div>}
+                    {p.volume_pricing && <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg"><Percent size={14} /></div>}
+                    {p.is_kit && <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg"><Package size={14} /></div>}
+                 </div>
               </div>
-              <button 
-                onClick={() => setActivePromoProduct(null)}
-                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all font-black text-xl"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Form */}
-            <div className="space-y-6 pt-4">
-              
-              {/* 1. Flash Sales Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input 
-                    type="checkbox" 
-                    checked={promoForm.is_flash_sale}
-                    onChange={(e) => setPromoForm({ ...promoForm, is_flash_sale: e.target.checked })}
-                    className="checkbox checkbox-rose rounded-lg"
-                  />
-                  <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
-                      <Flame size={16} className="text-rose-500 fill-rose-500" /> Activer la Vente Flash
-                    </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Offre à durée limitée</p>
-                  </div>
-                </label>
-
-                {promoForm.is_flash_sale && (
-                  <div className="space-y-2 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
-                    <label className="text-[9px] font-black uppercase text-rose-500 block">Fin de la promotion</label>
-                    <input 
-                      type="datetime-local" 
-                      value={promoForm.flash_sale_end}
-                      onChange={(e) => setPromoForm({ ...promoForm, flash_sale_end: e.target.value })}
-                      className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-xs font-black text-rose-600 outline-none"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* 2. Volume Pricing Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input 
-                    type="checkbox" 
-                    checked={promoForm.volume_pricing_enabled}
-                    onChange={(e) => setPromoForm({ ...promoForm, volume_pricing_enabled: e.target.checked })}
-                    className="checkbox checkbox-primary rounded-lg"
-                  />
-                  <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
-                      <Percent size={16} className="text-blue-500" /> Activer des remises sur quantité
-                    </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Plus l'acheteur achète, moins il paie</p>
-                  </div>
-                </label>
-
-                {promoForm.volume_pricing_enabled && (
-                  <div className="space-y-4 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Tier 1 */}
-                      <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase block">Palier 1</span>
-                        <div className="flex gap-1.5">
-                          <input 
-                            type="number" 
-                            placeholder="Qté" 
-                            value={promoForm.volume_pricing[0]?.qty || 3}
-                            onChange={(e) => {
-                              const newTiers = [...promoForm.volume_pricing];
-                              newTiers[0] = { ...newTiers[0], qty: parseInt(e.target.value) || 0 };
-                              setPromoForm({ ...promoForm, volume_pricing: newTiers });
-                            }}
-                            className="w-12 bg-slate-50 rounded p-1 text-center text-xs font-black outline-none border border-slate-200"
-                          />
-                          <input 
-                            type="number" 
-                            placeholder="Remise %" 
-                            value={promoForm.volume_pricing[0]?.discount || 10}
-                            onChange={(e) => {
-                              const newTiers = [...promoForm.volume_pricing];
-                              newTiers[0] = { ...newTiers[0], discount: parseInt(e.target.value) || 0 };
-                              setPromoForm({ ...promoForm, volume_pricing: newTiers });
-                            }}
-                            className="flex-1 bg-slate-50 rounded p-1 text-center text-xs font-black text-blue-600 outline-none border border-slate-200"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Tier 2 */}
-                      <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase block">Palier 2</span>
-                        <div className="flex gap-1.5">
-                          <input 
-                            type="number" 
-                            placeholder="Qté" 
-                            value={promoForm.volume_pricing[1]?.qty || 5}
-                            onChange={(e) => {
-                              const newTiers = [...promoForm.volume_pricing];
-                              newTiers[1] = { ...newTiers[1], qty: parseInt(e.target.value) || 0 };
-                              setPromoForm({ ...promoForm, volume_pricing: newTiers });
-                            }}
-                            className="w-12 bg-slate-50 rounded p-1 text-center text-xs font-black outline-none border border-slate-200"
-                          />
-                          <input 
-                            type="number" 
-                            placeholder="Remise %" 
-                            value={promoForm.volume_pricing[1]?.discount || 20}
-                            onChange={(e) => {
-                              const newTiers = [...promoForm.volume_pricing];
-                              newTiers[1] = { ...newTiers[1], discount: parseInt(e.target.value) || 0 };
-                              setPromoForm({ ...promoForm, volume_pricing: newTiers });
-                            }}
-                            className="flex-1 bg-slate-50 rounded p-1 text-center text-xs font-black text-blue-600 outline-none border border-slate-200"
-                          />
-                        </div>
-                      </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <h3 className="text-lg font-black text-slate-900 line-clamp-1">{p.name}</h3>
+                <p className="text-sm font-bold text-slate-500 mt-1">{p.price} F CFA</p>
+                
+                <div className="mt-4 space-y-2 flex-1">
+                  {p.is_flash_sale && (
+                    <div className="flex items-center gap-2 text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-xl">
+                      <Clock size={14} /> Fin: {p.flash_sale_end ? new Date(p.flash_sale_end).toLocaleDateString() : 'N/A'}
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Product Kits Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input 
-                    type="checkbox" 
-                    checked={promoForm.is_kit}
-                    onChange={(e) => setPromoForm({ ...promoForm, is_kit: e.target.checked })}
-                    className="checkbox checkbox-success rounded-lg"
-                  />
-                  <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
-                      <Package size={16} className="text-emerald-500" /> Définir comme Pack Kit
-                    </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Combine plusieurs produits ensemble</p>
-                  </div>
-                </label>
-
-                {promoForm.is_kit && (
-                  <div className="space-y-3 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
-                    <span className="text-[9px] font-black uppercase text-emerald-600 block">Produits dans le kit</span>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1 custom-scrollbar">
-                      {products.filter(item => item.id !== activePromoProduct.id).map(item => {
-                        const isChecked = promoForm.kit_items.includes(item.id);
-                        return (
-                          <label key={item.id} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-100 cursor-pointer select-none">
-                            <input 
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) => {
-                                const list = e.target.checked 
-                                  ? [...promoForm.kit_items, item.id]
-                                  : promoForm.kit_items.filter(id => id !== item.id);
-                                setPromoForm({ ...promoForm, kit_items: list });
-                              }}
-                              className="checkbox checkbox-xs rounded"
-                            />
-                            <span className="text-[10px] font-bold text-slate-700 line-clamp-1">{item.name}</span>
-                          </label>
-                        );
-                      })}
+                  )}
+                  {p.volume_pricing && (
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 p-2 rounded-xl">
+                      <Percent size={14} /> Prix Dégressif actif
                     </div>
-                  </div>
-                )}
+                  )}
+                  {p.is_kit && (
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-xl">
+                      <Package size={14} /> Kit Promo configuré
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 mt-6">
+                  <button onClick={() => handleEditPromo(p)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-2">
+                    <Edit size={14} /> Modifier
+                  </button>
+                  <button onClick={() => handleRemovePromo(p)} className="w-12 h-12 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4 pt-4 border-t border-slate-100">
-              <button 
-                onClick={() => setActivePromoProduct(null)}
-                className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-wider text-[10px] transition-all"
-              >
-                Annuler
-              </button>
-              <button 
-                onClick={handleSavePromo}
-                disabled={savingPromo}
-                className="flex-1 py-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-wider text-[10px] transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
-              >
-                {savingPromo ? (
-                  <span className="loading loading-spinner loading-xs"></span>
-                ) : (
-                  <span>Enregistrer</span>
-                )}
-              </button>
-            </div>
-
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-[3rem] p-16 text-center border border-slate-100 flex flex-col items-center justify-center">
+          <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-slate-300" />
           </div>
+          <h3 className="text-2xl font-black text-slate-900">Aucune promotion active</h3>
+          <p className="text-slate-500 mt-2 max-w-sm">Créez votre première promotion pour augmenter la visibilité et les ventes de vos produits.</p>
+          <button onClick={handleStartNewPromo} className="mt-8 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all">
+            Créer une promotion
+          </button>
         </div>
       )}
 
+      {/* The Master Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-12">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-full flex flex-col relative z-10 overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                  {modalStep === 2 && isAddMode && (
+                    <button onClick={() => setModalStep(1)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                      <ArrowLeft size={18} className="text-slate-600" />
+                    </button>
+                  )}
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900">
+                      {isAddMode ? 'Nouvelle Promotion' : 'Modifier la Promotion'}
+                    </h2>
+                    <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                      {modalStep === 1 ? 'Étape 1: Choix du produit' : 'Étape 2: Configuration'}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Modal Body - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-slate-50/50">
+                
+                {modalStep === 1 && (
+                  <div className="space-y-6">
+                    <div className="relative max-w-md mx-auto">
+                      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                      <input 
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Rechercher un produit à promouvoir..."
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all outline-none"
+                      />
+                    </div>
+                    
+                    {eligibleProductsForPromo.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Package size={48} className="mx-auto text-slate-300 mb-4" />
+                        <p className="text-slate-500 font-bold">Aucun produit éligible trouvé.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {eligibleProductsForPromo.map(prod => (
+                          <div 
+                            key={prod.id}
+                            onClick={() => handleSelectProduct(prod)}
+                            className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer transition-all flex flex-col gap-3 group"
+                          >
+                            <div className="h-32 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden">
+                              {prod.images && prod.images[0] ? (
+                                <img src={prod.images[0].image_url} alt={prod.name} className="h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
+                              ) : (
+                                <ImageIcon size={32} className="text-slate-300" />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-black text-slate-800 text-sm line-clamp-1">{prod.name}</h4>
+                              <p className="text-xs font-bold text-slate-400 mt-1">{prod.price} F CFA</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {modalStep === 2 && activePromoProduct && (
+                  <div className="space-y-8 max-w-3xl mx-auto">
+                    {/* Selected Product Banner */}
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
+                      <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center">
+                        {activePromoProduct.images?.[0] ? <img src={activePromoProduct.images[0].image_url} className="w-full h-full object-contain" alt=""/> : <ImageIcon size={24} className="text-slate-300"/>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Produit sélectionné</p>
+                        <h4 className="font-black text-slate-900">{activePromoProduct.name}</h4>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Flash Sale Toggle Card */}
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_flash_sale ? 'border-rose-500 bg-rose-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_flash_sale ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                            <Flame size={24} />
+                          </div>
+                          <input type="checkbox" className="checkbox checkbox-rose" checked={promoForm.is_flash_sale} onChange={(e) => setPromoForm({...promoForm, is_flash_sale: e.target.checked})} />
+                        </div>
+                        <h4 className="font-black text-slate-900 text-lg">Vente Flash</h4>
+                        <p className="text-xs font-bold text-slate-500 mt-1">Durée limitée</p>
+                      </label>
+
+                      {/* Volume Pricing Toggle Card */}
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.volume_pricing_enabled ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.volume_pricing_enabled ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                            <Percent size={24} />
+                          </div>
+                          <input type="checkbox" className="checkbox checkbox-info" checked={promoForm.volume_pricing_enabled} onChange={(e) => setPromoForm({...promoForm, volume_pricing_enabled: e.target.checked})} />
+                        </div>
+                        <h4 className="font-black text-slate-900 text-lg">Dégressif</h4>
+                        <p className="text-xs font-bold text-slate-500 mt-1">Prix par quantité</p>
+                      </label>
+
+                      {/* Kit Toggle Card */}
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_kit ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_kit ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                            <Package size={24} />
+                          </div>
+                          <input type="checkbox" className="checkbox checkbox-success" checked={promoForm.is_kit} onChange={(e) => setPromoForm({...promoForm, is_kit: e.target.checked})} />
+                        </div>
+                        <h4 className="font-black text-slate-900 text-lg">Pack Kit</h4>
+                        <p className="text-xs font-bold text-slate-500 mt-1">Vente groupée</p>
+                      </label>
+                    </div>
+
+                    {/* Settings Sections */}
+                    <div className="space-y-4">
+                      {promoForm.is_flash_sale && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-rose-100">
+                          <h4 className="font-black text-rose-600 mb-4 flex items-center gap-2"><Clock size={18}/> Configuration Vente Flash</h4>
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-2">Date et heure de fin</label>
+                            <input 
+                              type="datetime-local" 
+                              value={promoForm.flash_sale_end}
+                              onChange={(e) => setPromoForm({ ...promoForm, flash_sale_end: e.target.value })}
+                              className="w-full max-w-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-50 transition-all"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {promoForm.volume_pricing_enabled && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-blue-100">
+                          <h4 className="font-black text-blue-600 mb-4 flex items-center gap-2"><Percent size={18}/> Configuration Prix Dégressif</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[0, 1].map(index => (
+                              <div key={index} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Palier {index + 1}</span>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex-1">
+                                    <label className="text-xs font-bold text-slate-500 block mb-1">Quantité (min)</label>
+                                    <input 
+                                      type="number" min="1"
+                                      value={promoForm.volume_pricing[index]?.qty || ''}
+                                      onChange={(e) => {
+                                        const newTiers = [...promoForm.volume_pricing];
+                                        newTiers[index] = { ...newTiers[index], qty: parseInt(e.target.value) || 0 };
+                                        setPromoForm({ ...promoForm, volume_pricing: newTiers });
+                                      }}
+                                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-slate-900 outline-none"
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <label className="text-xs font-bold text-slate-500 block mb-1">Remise (%)</label>
+                                    <input 
+                                      type="number" min="1" max="99"
+                                      value={promoForm.volume_pricing[index]?.discount || ''}
+                                      onChange={(e) => {
+                                        const newTiers = [...promoForm.volume_pricing];
+                                        newTiers[index] = { ...newTiers[index], discount: parseInt(e.target.value) || 0 };
+                                        setPromoForm({ ...promoForm, volume_pricing: newTiers });
+                                      }}
+                                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {promoForm.is_kit && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-emerald-100">
+                          <h4 className="font-black text-emerald-600 mb-4 flex items-center gap-2"><Package size={18}/> Produits Complémentaires (Kit)</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                            {products.filter(item => item.id !== activePromoProduct.id).map(item => {
+                              const isChecked = promoForm.kit_items.includes(item.id);
+                              return (
+                                <label key={item.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-emerald-200'}`}>
+                                  <input 
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      const list = e.target.checked 
+                                        ? [...promoForm.kit_items, item.id]
+                                        : promoForm.kit_items.filter(id => id !== item.id);
+                                      setPromoForm({ ...promoForm, kit_items: list });
+                                    }}
+                                    className="checkbox checkbox-success checkbox-sm"
+                                  />
+                                  <div className="flex-1">
+                                    <span className="text-xs font-bold text-slate-800 line-clamp-1">{item.name}</span>
+                                    <span className="text-[10px] font-bold text-slate-400">{item.price} F CFA</span>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              {modalStep === 2 && activePromoProduct && (
+                <div className="px-8 py-5 border-t border-slate-100 bg-white flex gap-4 shrink-0">
+                  <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-wider text-xs transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={handleSavePromo}
+                    disabled={savingPromo}
+                    className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-wider text-xs transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
+                  >
+                    {savingPromo ? <span className="loading loading-spinner loading-sm"></span> : <span>Sauvegarder la Promotion</span>}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

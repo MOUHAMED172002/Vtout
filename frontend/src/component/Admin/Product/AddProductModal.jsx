@@ -19,7 +19,7 @@ import {
   getProducts,
   createCategory
 } from '../../../services/productService';
-import { getSuppliers, createSupplier } from '../../../services/supplierService';
+import { getSuppliers, createSupplier, getMyBoutiques, getAllBoutiques } from '../../../services/supplierService';
 import { uploadSingleImage } from '../../../services/uploadService';
 import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -109,6 +109,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   
   // Suppliers States
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
+  const [selectedBoutiqueId, setSelectedBoutiqueId] = useState("");
+  const [boutiques, setBoutiques] = useState([]);
   const [globalSupplierPrice, setGlobalSupplierPrice] = useState("");
   const [creatingSupplier, setCreatingSupplier] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(false);
@@ -328,16 +330,23 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
     try {
       const token = await getToken();
-      if (token && !isSupplier) {
-        const sups = await getSuppliers(token);
-        setSuppliers(sups || []);
-        
-        // Also fetch all products for kits selection
-        const prodData = await getProducts({ limit: 100 });
-        setAllProductsList(prodData.products || prodData || []);
+      if (token) {
+        if (!isSupplier) {
+          const sups = await getSuppliers(token);
+          setSuppliers(sups || []);
+          const bts = await getAllBoutiques(token);
+          setBoutiques(bts || []);
+          
+          // Also fetch all products for kits selection
+          const prodData = await getProducts({ limit: 100 });
+          setAllProductsList(prodData.products || prodData || []);
+        } else {
+          const bts = await getMyBoutiques(token);
+          setBoutiques(bts || []);
+        }
       }
     } catch (err) {
-      console.error("Erreur fetching suppliers or products for kits:", err);
+      console.error("Erreur fetching suppliers, boutiques or products for kits:", err);
     }
 
     try {
@@ -536,6 +545,11 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
       toast.error("Veuillez sélectionner un fournisseur.");
       return;
     }
+    if (!selectedBoutiqueId) {
+      setCurrentStep(3);
+      toast.error("Veuillez sélectionner une boutique.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -574,7 +588,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         flash_sale_end: !isSupplier && data.is_flash_sale ? (data.flash_sale_end || null) : null,
         is_kit: !isSupplier ? (data.is_kit || false) : false,
         kit_items: !isSupplier && data.is_kit ? JSON.stringify(selectedKitProductIds) : null,
-        volume_pricing: !isSupplier && data.volume_pricing_enabled ? JSON.stringify(volumePricingTiers) : null
+        volume_pricing: !isSupplier && data.volume_pricing_enabled ? JSON.stringify(volumePricingTiers) : null,
+        boutique_id: selectedBoutiqueId
       };
 
       if (onCreate) {
@@ -854,18 +869,30 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {!isSupplier ? (
-                    <select value={selectedSupplierId} onChange={e => { setSelectedSupplierId(e.target.value); setCreatingSupplier(e.target.value === 'new'); }} className="select select-bordered rounded-2xl">
-                      <option value="">Fournisseur...</option>
-                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      <option value="new">+ Nouveau</option>
+                  <div className="space-y-4">
+                    {!isSupplier ? (
+                      <select value={selectedSupplierId} onChange={e => { setSelectedSupplierId(e.target.value); setCreatingSupplier(e.target.value === 'new'); }} className="select select-bordered rounded-2xl w-full">
+                        <option value="">Fournisseur...</option>
+                        {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        <option value="new">+ Nouveau</option>
+                      </select>
+                    ) : (
+                      <div className="p-4 bg-white rounded-2xl flex items-center gap-3 w-full border border-slate-100">
+                        <Truck className="text-primary" />
+                        <span className="font-black text-sm">Fournisseur Connecté</span>
+                      </div>
+                    )}
+
+                    <select value={selectedBoutiqueId} onChange={e => setSelectedBoutiqueId(e.target.value)} className="select select-bordered rounded-2xl w-full">
+                      <option value="">Sélectionnez la Boutique...</option>
+                      {boutiques
+                        .filter(b => isSupplier ? true : b.supplier_id === selectedSupplierId)
+                        .map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
                     </select>
-                  ) : (
-                    <div className="p-4 bg-white rounded-2xl flex items-center gap-3">
-                      <Truck className="text-primary" />
-                      <span className="font-black text-sm">Fournisseur Connecté</span>
-                    </div>
-                  )}
+                  </div>
+
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase text-slate-400">Net Fournisseur (Votre gain)</label>
                     <div className="relative">

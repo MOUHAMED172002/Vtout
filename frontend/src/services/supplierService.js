@@ -41,6 +41,20 @@ export const getMySupplierProfile = async (token) => {
     return data;
 };
 
+export const getMyBoutiques = async (token) => {
+    const { data } = await api.get('/suppliers/me/boutiques', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
+export const getAllBoutiques = async (token) => {
+    const { data } = await api.get('/suppliers/boutiques-all', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
 export const createSupplier = async (supplierData, token) => {
     const { data } = await api.post('/suppliers', supplierData, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
