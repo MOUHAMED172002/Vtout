@@ -1,7 +1,7 @@
 import {
     Order, OrderItem, Product, Profile, ProductImage, Category,
     ProductVariant, ProductVariantPrice, Supplier, SupplierProduct,
-    FailedSearch, FinancialTransaction
+    FailedSearch, FinancialTransaction, DeliveryPerson
 } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';

@@ -209,7 +209,7 @@ const SupplierDashboard = ({ globalSearchQuery }) => {
                                     <div>
                                         <p className="text-sm font-black text-slate-900">{product.name}</p>
                                         <div className="flex items-center gap-3">
-                                            <p className="text-[10px] font-bold text-slate-400">{(parseFloat(product.price) * 0.9).toLocaleString()} F (Gain Net)</p>
+                                            <p className="text-[10px] font-bold text-slate-400">{(parseFloat(product.supplier_price || product.price * 0.9)).toLocaleString()} F (Gain Net)</p>
                                             {product.approval_status === 'approved' && (
                                                 <p className="text-[10px] font-black text-primary">Vente: {product.price} F</p>
                                             )}

@@ -19,14 +19,14 @@ export default function DeliveryFeeTiersManager() {
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState(null);
+    const [localToast, setLocalToast] = useState(null);
     const [simulation, setSimulation] = useState(null);
     const [simPrice, setSimPrice] = useState("");
     const [simLoading, setSimLoading] = useState(false);
 
     const showToast = (msg, type = "success") => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
+        setLocalToast({ msg, type });
+        setTimeout(() => setLocalToast(null), 3500);
     };
 
     const fetchTiers = useCallback(async () => {
@@ -123,19 +123,19 @@ export default function DeliveryFeeTiersManager() {
 
             {/* Toast */}
             <AnimatePresence>
-                {toast && (
+                {localToast && (
                     <motion.div
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -12 }}
                         className={`flex items-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold border ${
-                            toast.type === "error"
+                            localToast.type === "error"
                                 ? "bg-red-50 text-red-700 border-red-100"
                                 : "bg-emerald-50 text-emerald-700 border-emerald-100"
                         }`}
                     >
-                        {toast.type === "error" ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
-                        {toast.msg}
+                        {localToast.type === "error" ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+                        {localToast.msg}
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
-import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock } from '../services/whatsappService.js';
+import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
 
 
@@ -737,6 +737,16 @@ export const updateOrderStatus = async (req, res) => {
             }
         } catch (_) {}
 
+        // WhatsApp Notif to Supplier
+        if (order.supplier_id && status) {
+            Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'user' }] }).then(s => {
+                const phone = s?.whatsapp || s?.phone || s?.user?.phone;
+                if (phone) {
+                    notifySupplierOfOrderStatusUpdate(phone, order.id, mappedStatus).catch(() => {});
+                }
+            }).catch(() => {});
+        }
+
         // WhatsApp Notif to Deliverer (if assigned)
         if (req.body.delivery_person_id) {
             DeliveryPerson.findByPk(req.body.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] }).then(deliverer => {
@@ -788,6 +798,25 @@ export const updateOrderStatus = async (req, res) => {
 
         // 3. Handle Cancellations & Returns (Escrow protection & Customer Refund)
         if ((mappedStatus === 'annulée' || mappedStatus === 'retournée') && (oldStatus !== 'annulée' && oldStatus !== 'retournée')) {
+            // WhatsApp notification and unassignment of deliverer
+            if (order.delivery_person_id) {
+                try {
+                    const deliverer = await DeliveryPerson.findByPk(order.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] });
+                    const driverPhone = deliverer?.phone || deliverer?.profile?.phone;
+                    if (driverPhone) {
+                        notifyDelivererOfOrderStatusUpdate(driverPhone, order.id, mappedStatus).catch(() => {});
+                    }
+                } catch (e) {
+                    console.error("DELIVERER CANCELLATION NOTIFICATION ERROR:", e);
+                }
+                
+                try {
+                    await order.update({ delivery_person_id: null, assigned_at: null });
+                } catch (e) {
+                    console.error("DELIVERER UNASSIGNMENT ERROR:", e);
+                }
+            }
+
             // Re-increment stock if it was previously confirmed/deducted
             if (['confirmée', 'expédiée', 'livrée'].includes(oldStatus)) {
                 try {

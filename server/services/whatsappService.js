@@ -246,3 +246,37 @@ export const notifyAdmin = async (message) => {
         await sendWhatsAppMessage(phone, adminMessage);
     }
 };
+
+/**
+ * Alerter le fournisseur d'un changement de statut de la commande
+ */
+export const notifySupplierOfOrderStatusUpdate = async (supplierPhone, orderId, status) => {
+    const { notifSupplier } = await getWhatsAppConfigs();
+    if (!notifSupplier || !supplierPhone) return;
+    const statusMessages = {
+        'confirmée': 'a été *confirmée* par le client et est en préparation.',
+        'expédiée': 'a été *expédiée* ! Le livreur l\'a récupérée.',
+        'livrée': 'a été livrée au client avec succès. Vos gains ont été crédités sur votre portefeuille !',
+        'annulée': 'a été *annulée*.',
+        'retournée': 'a été marquée comme *retournée*.'
+    };
+    const statusMsg = statusMessages[status] || `est maintenant : *${status}*`;
+    const message = `🔔 *VTOUT : Statut de commande modifié*\nLa commande #${orderId.slice(0, 8)} ${statusMsg}`;
+    return sendWhatsAppMessage(supplierPhone, message);
+};
+
+/**
+ * Alerter le livreur d'un changement de statut de la commande
+ */
+export const notifyDelivererOfOrderStatusUpdate = async (delivererPhone, orderId, status) => {
+    const { notifDeliverer } = await getWhatsAppConfigs();
+    if (!notifDeliverer || !delivererPhone) return;
+    const statusMessages = {
+        'annulée': 'a été *annulée*. Veuillez ne pas effectuer la livraison.',
+        'retournée': 'a été marquée comme *retournée*.'
+    };
+    const statusMsg = statusMessages[status];
+    if (!statusMsg) return; // Seules les annulations/retours ou autres statuts pertinents
+    const message = `🛵 *VTOUT : Annulation de course*\nLa course #${orderId.slice(0, 8)} ${statusMsg}`;
+    return sendWhatsAppMessage(delivererPhone, message);
+};

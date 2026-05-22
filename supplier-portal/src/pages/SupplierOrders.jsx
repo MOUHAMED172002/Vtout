@@ -30,8 +30,9 @@ const normalizeStatus = (s) => {
 const getEstimatedGain = (order) => {
     let total = 0;
     order.items?.forEach(item => {
-        // Le fournisseur gagne le prix vendu moins la commission admin (estimée à 10%)
-        const gainPerItem = parseFloat(item.price) * 0.9;
+        const gainPerItem = item.product?.supplier_price 
+            ? parseFloat(item.product.supplier_price) 
+            : parseFloat(item.price) * 0.9;
         total += parseFloat(gainPerItem) * item.quantity;
     });
     return total;

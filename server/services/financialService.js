@@ -91,7 +91,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             order_id: order.id,
                             type: 'earning',
                             amount: supplierTotal,
-                            description: `Vente #${order.id.slice(0, 8)}`,
+                            description: `Vente (Boutique) #${order.id.slice(0, 8)}`,
                             status: 'completed'
                         }, { transaction: t });
                         
@@ -124,7 +124,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                                 order_id: order.id,
                                 type: 'earning',
                                 amount: adminTotal,
-                                description: `Com. Vente #${order.id.slice(0, 8)}`,
+                                description: `Com. Vente (Admin) #${order.id.slice(0, 8)}`,
                                 status: 'completed'
                             }, { transaction: t });
                         }
@@ -167,7 +167,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             order_id: order.id,
                             type: 'earning',
                             amount: totalDelivererFee,
-                            description: `Course #${order.id.slice(0, 8)}`,
+                            description: `Course (Livreur) #${order.id.slice(0, 8)}`,
                             status: 'completed'
                         }, { transaction: t });
 

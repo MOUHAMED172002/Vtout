@@ -750,14 +750,14 @@ export const updateProduct = async (req, res) => {
 
         // Notify supplier (background)
         if (approval_status && (approval_status === 'approved' || approval_status === 'rejected')) {
-            Product.findByPk(id, { include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'profile' }] }] }).then(product => {
+            Product.findByPk(id, { include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'user' }] }] }).then(product => {
                 if (product && product.supplier) {
                     const email = product.supplier.email;
                     if (email) {
                         sendProductApprovalNotification(email, product, approval_status, admin_feedback).catch(console.error);
                     }
                     
-                    const phone = product.supplier.whatsapp || product.supplier.phone || product.supplier.profile?.phone;
+                    const phone = product.supplier.whatsapp || product.supplier.phone || product.supplier.user?.phone;
                     if (phone) {
                         notifyProductStatusUpdate(phone, product.name, approval_status, admin_feedback).catch(console.error);
                     }
@@ -841,6 +841,22 @@ export const updateProduct = async (req, res) => {
                     });
                     
                     await SupplierProduct.bulkCreate(supplierRows, { transaction });
+                } else {
+                    // Fallback default supplier link matching createProduct logic
+                    let vFinalPrice = v.price || price || 0;
+                    let vSupplierPrice = v.supplier_price;
+                    if (vSupplierPrice === undefined) {
+                        vSupplierPrice = Math.round(vFinalPrice * (1 - commissionRate));
+                    }
+                    await SupplierProduct.create({
+                        supplier_id: productToEdit.supplier_id,
+                        product_id: id,
+                        variant_id: newVariant.id,
+                        supplier_sku: v.sku || null,
+                        supplier_price: vSupplierPrice,
+                        available: true,
+                        approval_status: productToEdit.approval_status
+                    }, { transaction });
                 }
             }
         } else if (supplierLinks) {

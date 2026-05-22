@@ -9,7 +9,7 @@ export const getAvailableOrders = async (req, res) => {
     try {
         const orders = await Order.findAll({
             where: {
-                status: { [Op.in]: ['confirmée'] },
+                status: { [Op.in]: ['confirmée', 'expédiée', 'expediee'] },
                 delivery_person_id: null,
                 supplier_id: { [Op.not]: null }
             },
@@ -70,7 +70,7 @@ export const assignToMe = async (req, res) => {
         if (order.delivery_person_id) return res.status(400).json({ error: 'Commande déjà assignée' });
 
         // SECURITE : Vérifier que la commande est valide pour l'assignation
-        if (!['confirmee', 'confirmée', 'en_attente'].includes(order.status)) {
+        if (!['confirmee', 'confirmée', 'en_attente', 'expediee', 'expédiée'].includes(order.status)) {
             return res.status(400).json({ error: 'Cette commande n\'est plus disponible.' });
         }
 
@@ -89,7 +89,8 @@ export const assignToMe = async (req, res) => {
             });
         }
 
-        await order.update({ delivery_person_id: deliveryPerson.id, assigned_at: new Date(), status: 'confirmée' });
+        const newStatus = ['expediee', 'expédiée'].includes(order.status) ? order.status : 'confirmée';
+        await order.update({ delivery_person_id: deliveryPerson.id, assigned_at: new Date(), status: newStatus });
         res.json({ message: 'Commande assignée avec succès', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de l\'assignation de la commande' });
@@ -176,7 +177,10 @@ export const getMyDeliveries = async (req, res) => {
         if (!deliveryPerson) return res.json([]);
 
         const orders = await Order.findAll({
-            where: { delivery_person_id: deliveryPerson.id },
+            where: {
+                delivery_person_id: deliveryPerson.id,
+                status: { [Op.notIn]: ['annulée', 'annulee', 'retournée', 'retournee'] }
+            },
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
