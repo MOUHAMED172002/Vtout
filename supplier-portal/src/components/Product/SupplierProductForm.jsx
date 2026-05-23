@@ -139,6 +139,11 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const selectedCategoryId = watch('category_id');
     const variants = watch('variants');
     const globalSupplierPrice = watch('supplier_price');
+    const watchedKitItems = watch('kit_items') || [];
+    const currentProductPublicPrice = computePublicPrice(parseFloat(globalSupplierPrice) || 0, deliveryTiers);
+    const selectedKitProducts = myProducts.filter(p => watchedKitItems.includes(p.id) && p.id !== initialData?.id);
+    const kitItemsPublicValue = selectedKitProducts.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+    const kitBundleValue = currentProductPublicPrice + kitItemsPublicValue;
 
     // Fetch initial data
     useEffect(() => {
@@ -1033,9 +1038,9 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                             <div className="mt-8 pt-8 border-t border-emerald-100/50 space-y-4 flex-1 flex flex-col animate-in fade-in slide-in-from-top-4 duration-300">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block px-1">Produits inclus dans ce kit :</span>
                                                 
-                                                {myProducts.length > 0 ? (
+                                                {myProducts.filter(p => p.id !== initialData?.id).length > 0 ? (
                                                     <div className="flex-1 max-h-48 overflow-y-auto space-y-2 bg-white p-4 rounded-2xl border border-slate-100 custom-scrollbar">
-                                                        {myProducts.map(p => (
+                                                        {myProducts.filter(p => p.id !== initialData?.id).map(p => (
                                                             <label key={p.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-xl transition-colors">
                                                                 <input 
                                                                     type="checkbox"
@@ -1058,6 +1063,17 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                 ) : (
                                                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
                                                         <p className="text-[10px] text-slate-400 font-bold italic">Aucun autre produit disponible pour créer un pack.</p>
+                                                    </div>
+                                                )}
+                                                {watchedKitItems.length > 0 && (
+                                                    <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-3xl p-4 text-slate-700">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Valeur totale du kit</p>
+                                                        <p className="mt-2 text-lg font-black text-slate-900">{kitBundleValue.toLocaleString()} F CFA</p>
+                                                        <p className="text-[10px] text-slate-500 mt-1">Prix public estimé du produit principal : {currentProductPublicPrice.toLocaleString()} F CFA</p>
+                                                        {kitItemsPublicValue > 0 && (
+                                                            <p className="text-[10px] text-slate-500">Valeur ajoutée des articles inclus : {kitItemsPublicValue.toLocaleString()} F CFA</p>
+                                                        )}
+                                                        <p className="mt-2 text-[11px] font-black text-emerald-600">Ajustez le prix vendeur pour proposer un pack attractif.</p>
                                                     </div>
                                                 )}
                                             </div>

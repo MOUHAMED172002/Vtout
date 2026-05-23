@@ -266,6 +266,11 @@ export default function QuantityDiscountPage() {
                               </span>
                             )}
                           </div>
+                          {matchedTier && (Math.round(basePrice - activePrice) > 0) && (
+                            <div className="text-[10px] text-slate-500 mt-2">
+                              <span className="font-black">Économie unitaire :</span> {(Math.round(basePrice - activePrice)).toLocaleString()} F
+                            </div>
+                          )}
                         </div>
                         
                         <div className="text-right">
@@ -273,6 +278,11 @@ export default function QuantityDiscountPage() {
                           <span className="font-mono text-xl md:text-2xl font-black text-blue-600 block mt-0.5">
                             {Math.round(activePrice * selectedQty).toLocaleString()} F
                           </span>
+                          {matchedTier && (Math.round((basePrice - activePrice) * selectedQty) > 0) && (
+                            <div className="text-[10px] text-slate-500 mt-1">
+                              <span className="font-black">Économie totale :</span> {(Math.round((basePrice - activePrice) * selectedQty)).toLocaleString()} F
+                            </div>
+                          )}
                         </div>
                       </div>
 

@@ -106,6 +106,8 @@ const PromotionsBanners = () => {
         slidesToScroll: 1,
         autoplay: promoData.length > 1,
         autoplaySpeed: 5000,
+        adaptiveHeight: true,
+        arrows: false,
         cssEase: "cubic-bezier(0.87, 0, 0.13, 1)",
         pauseOnHover: false,
         dotsClass: "slick-dots custom-promo-dots",

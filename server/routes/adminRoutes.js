@@ -13,6 +13,7 @@ router.patch('/disputes/:id', requireAuth, requireAdmin, disputeController.updat
 
 // Maintenance / Sync - Temporairement public pour débloquer le terminal
 router.get('/sync-financials', requireAuth, requireAdmin, financialController.adminSyncFinancials);
+router.post('/sync-financials', requireAuth, requireAdmin, financialController.adminSyncFinancials);
 
 // Price Migration - Fix stale variant prices (admin only)
 router.post('/fix-variant-prices', requireAuth, requireAdmin, fixVariantPrices);

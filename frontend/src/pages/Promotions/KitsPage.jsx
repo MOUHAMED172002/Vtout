@@ -253,7 +253,8 @@ export default function KitsPage() {
                           <span className="font-mono text-xs font-bold text-slate-400 line-through">
                             Au lieu de {Math.round(kit.originalPrice).toLocaleString()} F
                           </span>
-                          <span className="inline-block mt-2 bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 text-[10px] font-black uppercase tracking-wider py-1.5 px-3 rounded-lg text-center font-bold">
+                          <span className="text-sm font-black text-emerald-700 mt-2">Économie: {Math.max(0, Math.round(kit.originalPrice - kit.kitPrice)).toLocaleString()} F</span>
+                          <span className="inline-block mt-2 bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 text-[10px] font-black uppercase tracking-wider py-1.5 px-3 rounded-lg text-center">
                             {kit.discountBadge}
                           </span>
                         </div>

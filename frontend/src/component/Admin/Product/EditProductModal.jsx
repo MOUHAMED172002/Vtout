@@ -233,6 +233,13 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     return path.join(' > ');
   }, [selectedCategory, categories]);
 
+  const kitItemsTotal = useMemo(() => {
+    return selectedKitProductIds.reduce((sum, id) => {
+      const product = allProductsList.find(item => item.id === id);
+      return sum + (parseFloat(product?.price) || 0);
+    }, 0);
+  }, [selectedKitProductIds, allProductsList]);
+
   // Update commission rate with inheritance (search up the tree)
   useEffect(() => {
     if (!selectedCategoryId || !categories.length) return;
@@ -294,6 +301,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   }, []);
 
   const watchPrice = watch('price');
+  const watchOldPrice = watch('old_price');
   const watchSupplierPrice = watch('supplier_price');
 
   useEffect(() => {
@@ -928,9 +936,32 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                 </div>
 
                 {watch('is_flash_sale') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-6 border-t border-slate-100">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
-                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-slate-100">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix promo</label>
+                        <input type="number" {...register('price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix normal</label>
+                        <input type="number" {...register('old_price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                      </div>
+                    </div>
+
+                    {(watchOldPrice && watchPrice && watchOldPrice > watchPrice) && (
+                      <div className="p-4 rounded-3xl bg-rose-50 border border-rose-100 text-rose-700 text-sm font-bold">
+                        <div className="flex items-center justify-between gap-4">
+                          <span>Réduction flash appliquée</span>
+                          <span>{Math.round(((watchOldPrice - watchPrice) / watchOldPrice) * 100)}% de réduction</span>
+                        </div>
+                        <div className="text-slate-500 text-xs">Économie de {Math.round(watchOldPrice - watchPrice).toLocaleString()} F sur ce produit</div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
+                      <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                    </div>
                   </motion.div>
                 )}
               </div>
@@ -977,20 +1008,50 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     )}
 
                     {selectedKitProductIds.length > 0 && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles du lot ({selectedKitProductIds.length})</label>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedKitProductIds.map(id => {
-                            const p = allProductsList.find(x => x.id === id);
-                            return (
-                              <div key={id} className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-2 shadow-sm">
-                                <span>{p?.name || id}</span>
-                                <button type="button" onClick={() => setSelectedKitProductIds(selectedKitProductIds.filter(x => x !== id))} className="text-emerald-500 hover:text-emerald-700 font-bold ml-1">×</button>
-                              </div>
-                            );
-                          })}
+                      <>
+                        <div className="grid gap-4 md:grid-cols-3 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles sélectionnés</span>
+                            <span className="text-sm font-black text-slate-900">{selectedKitProductIds.length}</span>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Somme des prix</span>
+                            <span className="text-sm font-black text-slate-900">{kitItemsTotal.toLocaleString()} F</span>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix kit actuel</span>
+                            <span className="text-sm font-black text-slate-900">{Number(watchPrice || 0).toLocaleString()} F</span>
+                          </div>
                         </div>
-                      </div>
+                        <div className="mt-4">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Définir le prix du kit (F)</label>
+                          <input
+                            type="number"
+                            value={watchPrice || ''}
+                            onChange={e => setValue('price', Number(e.target.value || 0))}
+                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none mt-2"
+                          />
+                        </div>
+                        {watchPrice && kitItemsTotal > Number(watchPrice || 0) && (
+                          <div className="p-4 rounded-3xl border border-emerald-100 bg-emerald-50 text-emerald-700 text-sm font-bold">
+                            Économie estimée : {Math.round(kitItemsTotal - Number(watchPrice || 0)).toLocaleString()} F
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles du lot ({selectedKitProductIds.length})</label>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedKitProductIds.map(id => {
+                              const p = allProductsList.find(x => x.id === id);
+                              return (
+                                <div key={id} className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-2 shadow-sm">
+                                  <span>{p?.name || id}</span>
+                                  <button type="button" onClick={() => setSelectedKitProductIds(selectedKitProductIds.filter(x => x !== id))} className="text-emerald-500 hover:text-emerald-700 font-bold ml-1">×</button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
                     )}
                   </motion.div>
                 )}
@@ -1014,28 +1075,58 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                 {watch('volume_pricing_enabled') && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-slate-100">
                     <div className="space-y-2">
-                      {volumePricingTiers.map((tier, idx) => (
-                        <div key={idx} className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
-                            <input type="number" value={tier.qty} onChange={e => {
-                              const copy = [...volumePricingTiers];
-                              copy[idx].qty = parseInt(e.target.value) || 0;
-                              setVolumePricingTiers(copy);
-                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                      {volumePricingTiers.map((tier, idx) => {
+                      const basePrice = parseFloat(watchPrice) || 0;
+                      const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(basePrice * (1 - tier.discount / 100))) : 0;
+                      const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
+                      const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.qty) : 0;
+                      return (
+                        <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                          <div className="space-y-3">
+                            <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
+                              <input type="number" value={tier.qty} onChange={e => {
+                                const copy = [...volumePricingTiers];
+                                copy[idx].qty = parseInt(e.target.value) || 0;
+                                setVolumePricingTiers(copy);
+                              }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
+                              <input type="number" value={tier.discount} onChange={e => {
+                                const copy = [...volumePricingTiers];
+                                copy[idx].discount = parseInt(e.target.value) || 0;
+                                setVolumePricingTiers(copy);
+                              }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
-                            <input type="number" value={tier.discount} onChange={e => {
-                              const copy = [...volumePricingTiers];
-                              copy[idx].discount = parseInt(e.target.value) || 0;
-                              setVolumePricingTiers(copy);
-                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+
+                          <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs font-black text-slate-700">
+                            {basePrice > 0 ? (
+                              <>
+                                <p className="uppercase tracking-widest text-slate-400">Prix unitaire après remise</p>
+                                <p className="text-sm text-slate-900 mt-1">{discountedUnitPrice.toLocaleString()} F</p>
+                                <p className="mt-2 text-[10px] text-slate-500">Économie par unité : {savings.toLocaleString()} F</p>
+                                <p className="text-[10px] text-slate-500">Économie totale à {tier.qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
+                                {/* Seller revenue estimation */}
+                                <div className="mt-3 pt-3 border-t border-slate-100">
+                                  <p className="uppercase tracking-widest text-slate-400">Revenu estimé & gains</p>
+                                  <p className="text-sm text-slate-900 mt-1">Revenu estimé avant frais: {discountedUnitPrice.toLocaleString()} F</p>
+                                  <p className="text-[10px] text-slate-500">Revenu après commission ({commissionRate}%): {Math.round(discountedUnitPrice * (1 - (commissionRate || 0) / 100)).toLocaleString()} F / unité</p>
+                                  <p className="text-[10px] text-slate-500">Gain net estimé (après commission & livraison ≈ {currentDeliveryFee} F): {Math.max(0, Math.round((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee)).toLocaleString()} F / unité</p>
+                                  <p className="text-[10px] text-slate-500">Gain net estimé pour {tier.qty} unités : {Math.max(0, Math.round(((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee) * tier.qty)).toLocaleString()} F</p>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-slate-400">Définissez le prix du produit pour voir le prix final par palier.</p>
+                            )}
                           </div>
-                          <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black ml-auto uppercase tracking-widest">Supprimer</button>
+
+                          <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black md:justify-self-end uppercase tracking-widest">Supprimer</button>
                         </div>
-                      ))}
+                      );
+                    })}
                     </div>
                     <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
                   </motion.div>

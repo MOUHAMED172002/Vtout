@@ -33,7 +33,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     is_promo: false,
     old_supplier_price: '',
     discount_percent: '',
-    supplier_price: ''
+    supplier_price: '',
+    kit_price: ''
   });
   const [savingPromo, setSavingPromo] = useState(false);
 
@@ -90,6 +91,19 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     return !hasFlash && !hasVolume && !hasKit && !hasPromo;
   }).filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
 
+  const selectedKitProducts = useMemo(() => {
+    if (!activePromoProduct || promoForm.kit_items.length === 0) return [];
+    return products.filter(item => item.id !== activePromoProduct.id && promoForm.kit_items.includes(item.id));
+  }, [activePromoProduct, promoForm.kit_items, products]);
+
+  const kitBundleValue = useMemo(() => {
+    if (!activePromoProduct) return 0;
+    const baseValue = parseFloat(activePromoProduct.price) || 0;
+    return selectedKitProducts.reduce((sum, item) => sum + (parseFloat(item.price) || 0), baseValue);
+  }, [activePromoProduct, selectedKitProducts]);
+
+  const kitPublicPreview = computePublicPrice(parseFloat(promoForm.supplier_price) || activePromoProduct?.supplier_price || 0, deliveryTiers);
+
   const stats = {
     total: products.filter(p => p.is_flash_sale || p.volume_pricing || p.is_kit || (p.old_price && parseFloat(p.old_price) > parseFloat(p.price))).length,
     flash: products.filter(p => p.is_flash_sale).length,
@@ -120,7 +134,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       is_promo: false,
       old_supplier_price: '',
       discount_percent: '',
-      supplier_price: product.supplier_price || ''
+      supplier_price: product.supplier_price || '',
+      kit_price: product.price || ''
     });
     setModalStep(2);
   };
@@ -167,7 +182,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       is_promo: isPromoActive,
       old_supplier_price: oldSupPrice,
       discount_percent: calculatedDiscountPercent,
-      supplier_price: product.supplier_price || ''
+      supplier_price: product.supplier_price || '',
+      kit_price: product.price || ''
     });
     
     setModalStep(2);
@@ -195,8 +211,12 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
           finalOldPrice = computePublicPrice(oldSup, deliveryTiers);
           finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
         }
+      } else if (promoForm.is_flash_sale || promoForm.is_kit) {
+        finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
+        if (promoForm.is_flash_sale) {
+          finalOldPrice = activePromoProduct.price;
+        }
       } else {
-        // If simple promo is not enabled, make sure supplier_price is the original one
         finalSupplierPrice = activePromoProduct.supplier_price;
         finalPrice = activePromoProduct.price;
       }
@@ -571,48 +591,53 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
 
                     {/* Settings Sections */}
                     <div className="space-y-4">
-                      {promoForm.is_promo && (
+                      {(promoForm.is_promo || promoForm.is_flash_sale || promoForm.is_kit) && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-violet-100 space-y-4">
-                          <h4 className="font-black text-violet-600 mb-2 flex items-center gap-2"><Tag size={18}/> Configuration de la Réduction Simple</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-black text-slate-400 uppercase">Ancien Prix Vendeur</label>
-                              <input 
-                                type="number" 
-                                placeholder="Ex: 10000"
-                                value={promoForm.old_supplier_price}
-                                onChange={(e) => {
-                                  const oldVal = parseFloat(e.target.value) || 0;
-                                  const pct = parseFloat(promoForm.discount_percent) || 0;
-                                  let newVal = promoForm.supplier_price;
-                                  if (oldVal > 0 && pct > 0) {
-                                    newVal = Math.round(oldVal * (1 - pct / 100));
-                                  }
-                                  setPromoForm({ ...promoForm, old_supplier_price: e.target.value, supplier_price: newVal });
-                                }}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
-                              />
+                          <h4 className="font-black text-violet-600 mb-2 flex items-center gap-2"><Tag size={18}/> Configuration du Prix Promo</h4>
+                          {promoForm.is_promo && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase">Ancien Prix Vendeur</label>
+                                <input 
+                                  type="number" 
+                                  placeholder="Ex: 10000"
+                                  value={promoForm.old_supplier_price}
+                                  onChange={(e) => {
+                                    const oldVal = parseFloat(e.target.value) || 0;
+                                    const pct = parseFloat(promoForm.discount_percent) || 0;
+                                    let newVal = promoForm.supplier_price;
+                                    if (oldVal > 0 && pct > 0) {
+                                      newVal = Math.round(oldVal * (1 - pct / 100));
+                                    }
+                                    setPromoForm({ ...promoForm, old_supplier_price: e.target.value, supplier_price: newVal });
+                                  }}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase">Remise (%)</label>
+                                <input 
+                                  type="number" 
+                                  placeholder="Ex: 15"
+                                  value={promoForm.discount_percent}
+                                  onChange={(e) => {
+                                    const pct = parseFloat(e.target.value) || 0;
+                                    const oldVal = parseFloat(promoForm.old_supplier_price) || 0;
+                                    let newVal = promoForm.supplier_price;
+                                    if (oldVal > 0 && pct > 0 && pct < 100) {
+                                      newVal = Math.round(oldVal * (1 - pct / 100));
+                                    }
+                                    setPromoForm({ ...promoForm, discount_percent: e.target.value, supplier_price: newVal });
+                                  }}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
+                                />
+                              </div>
                             </div>
+                          )}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <label className="text-[10px] font-black text-slate-400 uppercase">Remise (%)</label>
-                              <input 
-                                type="number" 
-                                placeholder="Ex: 15"
-                                value={promoForm.discount_percent}
-                                onChange={(e) => {
-                                  const pct = parseFloat(e.target.value) || 0;
-                                  const oldVal = parseFloat(promoForm.old_supplier_price) || 0;
-                                  let newVal = promoForm.supplier_price;
-                                  if (oldVal > 0 && pct > 0 && pct < 100) {
-                                    newVal = Math.round(oldVal * (1 - pct / 100));
-                                  }
-                                  setPromoForm({ ...promoForm, discount_percent: e.target.value, supplier_price: newVal });
-                                }}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[10px] font-black text-slate-400 uppercase">Nouveau Prix Vendeur</label>
+                              <label className="text-[10px] font-black text-slate-400 uppercase">Prix Vendeur Promo</label>
                               <input 
                                 type="number" 
                                 placeholder="Ex: 8500"
@@ -621,10 +646,15 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-emerald-600 outline-none focus:bg-white focus:border-emerald-200"
                               />
                             </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-slate-400 uppercase">Prix public estimé</label>
+                              <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-slate-900">
+                                {computePublicPrice(parseFloat(promoForm.supplier_price) || activePromoProduct?.supplier_price || 0, deliveryTiers).toLocaleString()} F CFA
+                              </div>
+                            </div>
                           </div>
 
-                          {/* Preview box */}
-                          {parseFloat(promoForm.old_supplier_price) > 0 && (
+                          {promoForm.is_promo && parseFloat(promoForm.old_supplier_price) > 0 && (
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col gap-1">
                               <span className="text-[9px] font-black text-slate-400 uppercase">Aperçu du prix sur l'application :</span>
                               <div className="flex items-baseline gap-3">
@@ -641,6 +671,12 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                 )}
                               </div>
                             </div>
+                          )}
+
+                          {(!promoForm.is_promo && (promoForm.is_flash_sale || promoForm.is_kit)) && (
+                            <p className="text-[10px] text-slate-500 leading-relaxed">
+                              Saisissez un prix vendeur réduit pour cette offre. La page affichera ensuite le prix promo correspondant.
+                            </p>
                           )}
                         </motion.div>
                       )}
@@ -698,6 +734,26 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                               </div>
                             ))}
                           </div>
+                          <div className="mt-4 bg-blue-50 border border-blue-100 rounded-3xl p-4 text-slate-700">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">Aperçu des paliers</p>
+                            {promoForm.volume_pricing.map((tier, index) => {
+                              const baseSupplier = parseFloat(promoForm.supplier_price) || activePromoProduct.supplier_price || 0;
+                              const tierSupplier = baseSupplier * (1 - (parseFloat(tier.discount) || 0) / 100);
+                              const tierPublic = computePublicPrice(tierSupplier, deliveryTiers);
+                              return (
+                                <div key={index} className="mt-3 rounded-2xl bg-white border border-blue-100 p-3 text-[11px] font-bold text-slate-700">
+                                  <div className="flex justify-between gap-3">
+                                    <span>{tier.qty || 0}+ unités</span>
+                                    <span>-{tier.discount || 0}%</span>
+                                  </div>
+                                  <div className="mt-2 flex justify-between gap-3 text-slate-500">
+                                    <span>Prix unitaire env.</span>
+                                    <span>{tierPublic.toLocaleString()} F CFA</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </motion.div>
                       )}
 
@@ -728,6 +784,19 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                               );
                             })}
                           </div>
+                          {promoForm.kit_items.length > 0 && (
+                            <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-3xl p-4 text-slate-700">
+                              <p className="text-xs font-black uppercase tracking-widest text-emerald-700">Valeur totale du kit</p>
+                              <p className="mt-2 text-lg font-black text-slate-900">{kitBundleValue.toLocaleString()} F CFA</p>
+                              <p className="text-[10px] text-slate-500 mt-1">Prix public estimé avec le prix vendeur actuel : <span className="font-black text-slate-900">{kitPublicPreview.toLocaleString()} F CFA</span></p>
+                              {kitBundleValue > kitPublicPreview && (
+                                <p className="mt-2 text-[11px] font-black text-emerald-600">Économie potentielle : {(kitBundleValue - kitPublicPreview).toLocaleString()} F CFA</p>
+                              )}
+                            </div>
+                          )}
+                          <p className="mt-4 text-[10px] text-slate-500 leading-relaxed">
+                            Le prix vendeur réduit ci-dessus s'appliquera au kit. Sélectionnez vos produits, puis ajustez le prix vendeur promo pour définir votre offre de pack.
+                          </p>
                         </motion.div>
                       )}
                     </div>

@@ -1073,6 +1073,16 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                             );
                           })}
                         </div>
+
+                        <div className="mt-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Définir le prix du kit (F)</label>
+                          <input
+                            type="number"
+                            value={watchPrice || ''}
+                            onChange={e => setValue('price', Number(e.target.value || 0))}
+                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none mt-2"
+                          />
+                        </div>
                       </div>
                     )}
                   </motion.div>
@@ -1097,28 +1107,55 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 {watch('volume_pricing_enabled') && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-slate-100">
                     <div className="space-y-2">
-                      {volumePricingTiers.map((tier, idx) => (
-                        <div key={idx} className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
-                            <input type="number" value={tier.qty} onChange={e => {
-                              const copy = [...volumePricingTiers];
-                              copy[idx].qty = parseInt(e.target.value) || 0;
-                              setVolumePricingTiers(copy);
-                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                      {volumePricingTiers.map((tier, idx) => {
+                        const basePrice = parseFloat(watchPrice) || 0;
+                        const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(basePrice * (1 - tier.discount / 100))) : 0;
+                        const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
+                        const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.qty) : 0;
+                        return (
+                          <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div className="space-y-3">
+                              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
+                                <input type="number" value={tier.qty} onChange={e => {
+                                  const copy = [...volumePricingTiers];
+                                  copy[idx].qty = parseInt(e.target.value) || 0;
+                                  setVolumePricingTiers(copy);
+                                }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
+                                <input type="number" value={tier.discount} onChange={e => {
+                                  const copy = [...volumePricingTiers];
+                                  copy[idx].discount = parseInt(e.target.value) || 0;
+                                  setVolumePricingTiers(copy);
+                                }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                              </div>
+                            </div>
+                            <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs font-black text-slate-700">
+                              {basePrice > 0 ? (
+                                <>
+                                  <p className="uppercase tracking-widest text-slate-400">Prix unitaire après remise</p>
+                                  <p className="text-sm text-slate-900 mt-1">{discountedUnitPrice.toLocaleString()} F</p>
+                                  <p className="mt-2 text-[10px] text-slate-500">Économie par unité : {savings.toLocaleString()} F</p>
+                                  <p className="text-[10px] text-slate-500">Économie totale à {tier.qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
+                                </>
+                              ) : (
+                                <p className="text-slate-400">Définissez le prix du produit pour voir le prix final par palier.</p>
+                              )}
+                            </div>
+                            <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black md:justify-self-end uppercase tracking-widest">Supprimer</button>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
-                            <input type="number" value={tier.discount} onChange={e => {
-                              const copy = [...volumePricingTiers];
-                              copy[idx].discount = parseInt(e.target.value) || 0;
-                              setVolumePricingTiers(copy);
-                            }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
-                          </div>
-                          <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black ml-auto uppercase tracking-widest">Supprimer</button>
-                        </div>
-                      ))}
+                        );
+                      })}
+                    </div>
+                    <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          )}
                     </div>
                     <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
                   </motion.div>
