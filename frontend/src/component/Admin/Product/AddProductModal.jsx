@@ -637,6 +637,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
     currentVariants[vIndex].supplierLinks.splice(sIndex, 1);
     setValue('variants', currentVariants);
   };
+  const formatPrice = (price) => Number(price || 0).toLocaleString();
 
   return (
     <div className={layout === 'modal' ? "fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/40 backdrop-blur-sm" : ""}>
@@ -1156,13 +1157,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               </div>
             </motion.div>
           )}
-                    </div>
-                    <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          )}
+                   
+          
         </AnimatePresence>
       </div>
 
