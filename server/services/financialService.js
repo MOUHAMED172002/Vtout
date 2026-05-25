@@ -58,15 +58,14 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                     const deliveryTiers = await getDeliveryFeeTiers();
  
                     for (const item of items) {
-                        const itemSubtotal = parseFloat(item.price) * item.quantity;
-                        subtotal += itemSubtotal;
-                        
-                        // Extract base marketing fee for this item
+                        const itemClientPrice = parseFloat(item.price);
+                        subtotal += itemClientPrice * item.quantity;
+
                         const itemSupplierPrice = item.product?.supplier_price || 0;
                         const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                        const itemVendorBasePrice = itemClientPrice - itemMarketingFee;
                         totalBaseMarketingFee += itemMarketingFee * item.quantity;
 
-                        // Use category commission rate if available
                         let itemRate = globalCommissionRate;
                         if (item.product?.category_id) {
                             const category = await item.product.getCategory({ transaction: t });
@@ -74,15 +73,14 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                                 itemRate = parseFloat(category.commission_rate) / 100;
                             }
                         }
-                        
-                        // Commission is calculated ONLY on the net item price (public price - marketing fee)
-                        const itemBasePrice = parseFloat(item.price) - itemMarketingFee;
-                        adminTotal += (itemBasePrice * item.quantity) * itemRate;
+
+                        const commissionDeducted = Math.round((itemVendorBasePrice * item.quantity) * itemRate);
+                        adminTotal += commissionDeducted;
                     }
- 
+
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
-                    // Le fournisseur touche : Total articles - Commission - Frais marketing (déjà inclus dans le prix article)
-                    const supplierTotal = subtotal - adminTotal - totalBaseMarketingFee;
+                    // Le fournisseur touche : Total client - Commission (le marketing fee est traité séparément pour le livreur)
+                    const supplierTotal = subtotal - adminTotal;
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({
@@ -90,6 +88,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             user_id: supplier.user_id,
                             order_id: order.id,
                             type: 'earning',
+                            source: 'supplier',
                             amount: supplierTotal,
                             description: `Vente (Boutique) #${order.id.slice(0, 8)}`,
                             status: 'completed'
@@ -166,6 +165,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             user_id: lp.user_id,
                             order_id: order.id,
                             type: 'earning',
+                            source: 'deliverer',
                             amount: totalDelivererFee,
                             description: `Course (Livreur) #${order.id.slice(0, 8)}`,
                             status: 'completed'

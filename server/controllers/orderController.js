@@ -495,6 +495,7 @@ export const createOrder = async (req, res) => {
             }, { transaction });
 
             for (const { product, item, unitPrice, variantData } of boutiqueItems) {
+                // Price should represent the final unit price facturé au client.
                 await OrderItem.create({
                     order_id: order.id,
                     product_id: product.id,

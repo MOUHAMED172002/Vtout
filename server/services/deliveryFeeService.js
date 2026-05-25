@@ -1,12 +1,15 @@
 /**
  * deliveryFeeService.js
  * ─────────────────────────────────────────────────────────────
- * Calcule les frais de livraison embarqués dans le prix public
- * d'un produit, en fonction de tranches configurables par l'admin.
+ * Modèle de prix :
+ *   Le vendeur entre un prix vendeur brut P_vendeur.
+ *   Le prix client final = P_vendeur + frais marketing/transport.
+ *   La commission admin est prélevée uniquement sur le prix vendeur.
  *
  * Principe :
  *   Prix public = Prix vendeur + Frais livraison (selon tranche)
- *   Commission vendeur = (Prix public - Frais livraison) × (1 - taux)
+ *   Gain net fournisseur = Prix vendeur - Commission admin
+ *   Commission admin = Prix vendeur × taux_commission
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -62,7 +65,7 @@ export function computeDeliveryFee(supplierPrice, tiers = DEFAULT_TIERS) {
 /**
  * Calcule le prix public à partir du prix vendeur.
  * Prix public = Prix vendeur + Frais livraison (selon tranche)
- * @param {number} supplierPrice
+ * @param {number} supplierPrice - Le prix proposé par le vendeur
  * @param {Array}  tiers
  * @returns {number}
  */

@@ -751,6 +751,7 @@ sequelize.authenticate()
                     { table: 'delivery_persons',      col: 'whatsapp',                   def: { type: DataTypes.STRING(30),     allowNull: true } },
                     { table: 'support_messages',      col: 'order_id',                   def: { type: DataTypes.CHAR(36),       allowNull: true } },
                     { table: 'support_messages',      col: 'type',                       def: { type: DataTypes.STRING(20),     defaultValue: 'message' } },
+                    { table: 'financial_transactions', col: 'source',                    def: { type: DataTypes.STRING(32),     allowNull: true } },
                 ];
 
 

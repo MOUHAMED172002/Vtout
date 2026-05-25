@@ -496,13 +496,18 @@ export const createProduct = async (req, res) => {
         let finalPrice = price;
         let calculatedSupplierPrice = supplier_price;
 
-        // Strictly enforce commission rate calculation on backend (excluding dynamic delivery fee)
+        // Strictly enforce commission rate calculation on backend.
+        // Supplier net earnings = seller price - commission.
         if (finalPrice !== undefined && finalPrice > 0) {
             const deliveryFee = computeDeliveryFee(finalPrice, tiers);
-            calculatedSupplierPrice = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
+            const commissionAmount = Math.round(finalPrice * commissionRate);
+            calculatedSupplierPrice = Math.round(finalPrice - commissionAmount);
         } else if (calculatedSupplierPrice !== undefined && !finalPrice) {
-            finalPrice = computePublicPrice(calculatedSupplierPrice, tiers);
-            calculatedSupplierPrice = Math.round(calculatedSupplierPrice * (1 - commissionRate));
+            // If only supplier_price is provided, infer the seller price
+            // from the net amount and the commission rate.
+            const inferredSellerPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
+            finalPrice = inferredSellerPrice;
+            calculatedSupplierPrice = Math.round(calculatedSupplierPrice);
         }
 
 

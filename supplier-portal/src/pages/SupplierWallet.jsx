@@ -105,20 +105,29 @@ export default function SupplierWallet() {
                     </div>
                     
                     <div className="space-y-4">
-                        {stats.transactions.length > 0 ? stats.transactions.map(t => (
-                            <div key={t.id} className="bg-white p-6 rounded-3xl border border-slate-50 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${t.type === 'earning' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-                                    {t.type === 'earning' ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                        {stats.transactions.length > 0 ? stats.transactions.map(t => {
+                            const sourceLabel = t.source === 'supplier'
+                                ? 'Gain vendeur'
+                                : t.source === 'deliverer'
+                                    ? 'Gain livreur'
+                                    : t.type === 'earning'
+                                        ? 'Gain'
+                                        : 'Transaction';
+                            return (
+                                <div key={t.id} className="bg-white p-6 rounded-3xl border border-slate-50 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${t.type === 'earning' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                                        {t.type === 'earning' ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-black text-slate-900 text-sm">{sourceLabel} · {t.description}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(t.createdAt || t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>
+                                    </div>
+                                    <div className={`text-lg font-black ${t.type === 'earning' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                                        {t.type === 'earning' ? '+' : '-'} {Number(t.amount).toLocaleString()} F
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <p className="font-black text-slate-900 text-sm">{t.description}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(t.createdAt || t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>
-                                </div>
-                                <div className={`text-lg font-black ${t.type === 'earning' ? 'text-emerald-500' : 'text-slate-900'}`}>
-                                    {t.type === 'earning' ? '+' : '-'} {Number(t.amount).toLocaleString()} F
-                                </div>
-                            </div>
-                        )) : (
+                            );
+                        }) : (
                             <div className="text-center py-10 bg-slate-50 rounded-3xl text-slate-400 font-bold text-sm">
                                 Aucune transaction pour le moment.
                             </div>
