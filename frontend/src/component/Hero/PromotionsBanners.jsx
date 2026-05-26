@@ -164,10 +164,10 @@ const PromotionsBanners = () => {
                     <Slider {...settings}>
                         {promoData.map((slide) => (
                             <div key={slide.id || slide._id} className="outline-none">
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center px-8 md:px-14 py-12 md:py-14 relative">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-10 py-8 md:py-10 relative">
                                     
                                     {/* Left Side: Content */}
-                                    <div className="lg:col-span-7 space-y-6 md:space-y-8 text-left relative z-10">
+                                    <div className="lg:col-span-7 space-y-5 md:space-y-7 text-left relative z-10 max-w-3xl">
                                         
                                         {/* Special Offers Badge */}
                                         <motion.div 
@@ -182,7 +182,7 @@ const PromotionsBanners = () => {
                                         {/* Main Title & Circle Badge Wrapper */}
                                         <div className="relative">
                                             <div className="space-y-2">
-                                                <h2 className={`text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight ${textTitleClass}`}>
+                                                <h2 className={`text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight ${textTitleClass}`}>
                                                     {slide.title || 'Les meilleures'} <br />
                                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-yellow-400">
                                                         {slide.titleAccent || 'offres du moment'}
@@ -190,9 +190,9 @@ const PromotionsBanners = () => {
                                                 </h2>
                                             </div>
 
-                                            {/* Golden Circle Badge (Floating) */}
+                                            {/* Golden Circle Badge (desktop only) */}
                                             {slide.circleBadgeVal && (
-                                                <div className={`absolute -top-6 right-0 lg:right-[-20px] w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-yellow-400 flex flex-col items-center justify-center text-center shadow-lg border-4 pointer-events-none z-20 ${badgeBorderClass}`}>
+                                                <div className={`hidden lg:flex absolute -top-6 right-0 lg:right-[-20px] w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-yellow-400 flex-col items-center justify-center text-center shadow-lg border-4 pointer-events-none z-20 ${badgeBorderClass}`}>
                                                     <span className="text-[10px] font-black uppercase text-[#022c22] tracking-wider leading-none">{slide.circleBadgeText || "Jusqu'à"}</span>
                                                     <span className="text-2xl font-black text-[#022c22] leading-none mt-1">{slide.circleBadgeVal}</span>
                                                 </div>
@@ -222,8 +222,8 @@ const PromotionsBanners = () => {
                                         </div>
                                     </div>
 
-                                    {/* Right Side: Podiums with iPhone, Sneaker, Watch & Handbag */}
-                                    <div className="lg:col-span-5 flex items-center justify-center relative mt-10 lg:mt-0">
+                                    {/* Right Side: Podiums with image shown only on desktop */}
+                                    <div className="lg:col-span-5 hidden lg:flex items-center justify-center relative mt-10 lg:mt-0">
                                         <div className="relative w-full max-w-[320px] md:max-w-[400px]">
                                             {/* Platform Backing Glow */}
                                             <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-emerald-500/10 rounded-full blur-3xl scale-125 pointer-events-none animate-pulse" />

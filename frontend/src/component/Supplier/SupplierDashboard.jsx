@@ -10,9 +10,11 @@ import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChar
 import PortalSwitcher from '../Shared/PortalSwitcher';
 import ThemeSelector from '../context/ThemeSelector';
 import NotificationCenter from '../Shared/NotificationCenter';
+import { useAppConfig } from '../context/ConfigContext';
 
 const SupplierDashboard = () => {
     const { user, getToken, signOut } = useAuth();
+    const { getConfig } = useAppConfig();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [updatingLocation, setUpdatingLocation] = useState(false);
@@ -22,6 +24,8 @@ const SupplierDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
     const [boutiqueData, setBoutiqueData] = useState({ name: '', whatsapp: '', momo_number: '' });
+    const [localSearch, setLocalSearch] = useState('');
+    const [commissionRate, setCommissionRate] = useState(0.10);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -42,6 +46,18 @@ const SupplierDashboard = () => {
                     const ords = await getMySupplierOrders(token);
                     setOrders(ords || []);
                 }
+
+                // Fetch commission rate
+                try {
+                    const configRes = await fetch(import.meta.env.VITE_API_URL + '/configs/public', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const configs = await configRes.json();
+                    const commConfig = configs.find(c => c.key === 'commission_rate');
+                    if (commConfig?.value) {
+                        setCommissionRate(parseFloat(commConfig.value) / 100);
+                    }
+                } catch (err) { console.error("Commission rate fetch error:", err); }
             } catch (error) {
                 console.error(error);
                 if (error.response?.status === 404) {
@@ -101,6 +117,12 @@ const SupplierDashboard = () => {
         { label: 'Produits en ligne', value: products.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
         { label: 'En attente', value: products.filter(p => p.approval_status === 'En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
         { label: 'Total Commandes', value: orders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
+        { 
+            label: 'Gains en attente', 
+            value: `${Math.round(orders.filter(o => o.status !== 'livrée' && o.status !== 'livree').reduce((sum, o) => sum + Number(o.supplier_earnings || 0), 0)).toLocaleString()} F`,
+            icon: <Navigation className="text-emerald-500" />, 
+            color: 'bg-emerald-50' 
+        },
     ];
 
     return (
@@ -109,8 +131,8 @@ const SupplierDashboard = () => {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full justify-between lg:justify-start">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 mb-2">Bienvenue, {user?.fullName || user?.firstName}</h1>
-                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Espace Gestion Fournisseur</p>
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 mb-2">{getConfig('supplier_dashboard_welcome_title', 'Bienvenue')}, {user?.fullName || user?.firstName}</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">{getConfig('supplier_dashboard_subtitle', 'Espace Gestion Fournisseur')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ThemeSelector />
@@ -124,7 +146,7 @@ const SupplierDashboard = () => {
                         onClick={() => navigate('/fournisseur/ajouter-produit')}
                         className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
                     >
-                        <Plus size={18} /> Produit
+                        <Plus size={18} /> {getConfig('supplier_dashboard_new_product_button', 'Produit')}
                     </button>
                     <button
                         onClick={async () => {
@@ -176,13 +198,13 @@ const SupplierDashboard = () => {
                                 <Search size={14} className="text-slate-400" />
                                 <input 
                                     type="text"
-                                    placeholder="Rechercher..."
+                                    placeholder={getConfig('supplier_dashboard_search_placeholder', 'Rechercher...')}
                                     className="bg-transparent border-none text-xs font-bold text-slate-600 focus:ring-0 w-24 lg:w-40"
                                     value={localSearch}
                                     onChange={(e) => setLocalSearch(e.target.value)}
                                 />
                             </div>
-                            <button className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline">Voir tout</button>
+                            <button className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline">{getConfig('supplier_dashboard_view_all_button', 'Voir tout')}</button>
                         </div>
                     </div>
 
@@ -223,8 +245,8 @@ const SupplierDashboard = () => {
                                     <Package size={24} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h3 className="text-xl font-black tracking-tighter">Informations Boutique</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Nom et contacts</p>
+                                    <h3 className="text-xl font-black tracking-tighter">{getConfig('supplier_dashboard_shop_title', 'Informations Boutique')}</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{getConfig('supplier_dashboard_shop_subtitle', 'Nom et contacts')}</p>
                                 </div>
                             </div>
                             <button 
@@ -238,15 +260,15 @@ const SupplierDashboard = () => {
                         {profile && (
                             <div className="space-y-4 p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 relative group overflow-hidden">
                                 <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Nom de la boutique</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{getConfig('supplier_dashboard_shop_name_label', 'Nom de la boutique')}</p>
                                     <p className="text-lg font-black text-slate-900 leading-tight">{profile.name || "Ma Boutique"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Numéro WhatsApp</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{getConfig('supplier_dashboard_shop_whatsapp_label', 'Numéro WhatsApp')}</p>
                                     <p className="text-sm font-bold text-emerald-600">{profile.whatsapp || "Non renseigné"}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Mobile Money</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{getConfig('supplier_dashboard_shop_momo_label', 'Mobile Money')}</p>
                                     <p className="text-sm font-bold text-amber-600">{profile.momo_number || "Non renseigné"}</p>
                                 </div>
                             </div>
@@ -268,7 +290,7 @@ const SupplierDashboard = () => {
                             <button 
                                 onClick={() => setShowAddressModal(true)}
                                 className="p-3 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all"
-                                title="Modifier l'adresse"
+                                title={getConfig('supplier_dashboard_address_edit_button', 'Modifier l\'adresse')}
                             >
                                 <Edit2 size={18} />
                             </button>
@@ -282,7 +304,7 @@ const SupplierDashboard = () => {
                                      </div>
                                      <div className="space-y-4 relative z-10">
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Localité</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{getConfig('supplier_dashboard_address_locality_label', 'Localité')}</p>
                                             <p className="text-lg font-black text-slate-900 leading-tight">
                                                 {profile.quartier_label ? `${profile.quartier_label}, ` : ''}
                                                 {profile.commune_label}
@@ -292,7 +314,7 @@ const SupplierDashboard = () => {
 
                                         {profile.address_line && (
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Précisions</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{getConfig('supplier_dashboard_address_details_label', 'Précisions')}</p>
                                                 <p className="text-sm font-bold text-slate-700">{profile.address_line}</p>
                                             </div>
                                         )}
@@ -335,7 +357,7 @@ const SupplierDashboard = () => {
                                             <Package size={40} />
                                         </div>
                                         <p className="text-white/40 font-bold text-xs uppercase tracking-widest leading-loose">
-                                            Aucune commande <br /> en attente de préparation
+                                            {getConfig('supplier_dashboard_no_orders_title', 'Aucune commande en attente de préparation')}
                                         </p>
                                     </>
                                 ) : (
@@ -349,7 +371,7 @@ const SupplierDashboard = () => {
                                     </div>
                                 )}
                                 <button className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                    Actualiser
+                                    {getConfig('supplier_dashboard_refresh_button', 'Actualiser')}
                                 </button>
                             </div>
                         </div>
@@ -425,8 +447,8 @@ const SupplierDashboard = () => {
                                         <Package size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tighter">Boutique</h3>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mise à jour</p>
+                                        <h3 className="text-xl font-black tracking-tighter">{getConfig('supplier_dashboard_boutique_modal_title', 'Boutique')}</h3>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{getConfig('supplier_dashboard_boutique_modal_subtitle', 'Mise à jour')}</p>
                                     </div>
                                 </div>
                                 <button 
@@ -472,7 +494,7 @@ const SupplierDashboard = () => {
                                     type="submit"
                                     className="w-full py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/30 hover:bg-slate-900 transition-all"
                                 >
-                                    Enregistrer
+                                    {getConfig('supplier_dashboard_boutique_modal_save_button', 'Enregistrer')}
                                 </button>
                             </form>
                         </motion.div>

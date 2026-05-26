@@ -3,7 +3,7 @@ import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierPro
 import { Op } from 'sequelize';
 import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
 
 export const processProductsForCommunes = async (products) => {
     const tiers = await getDeliveryFeeTiers();
@@ -496,20 +496,15 @@ export const createProduct = async (req, res) => {
         let finalPrice = price;
         let calculatedSupplierPrice = supplier_price;
 
-        // Strictly enforce commission rate calculation on backend.
-        // Supplier net earnings = seller price - commission.
-        if (finalPrice !== undefined && finalPrice > 0) {
-            const deliveryFee = computeDeliveryFee(finalPrice, tiers);
-            const commissionAmount = Math.round(finalPrice * commissionRate);
-            calculatedSupplierPrice = Math.round(finalPrice - commissionAmount);
-        } else if (calculatedSupplierPrice !== undefined && !finalPrice) {
-            // If only supplier_price is provided, infer the seller price
-            // from the net amount and the commission rate.
-            const inferredSellerPrice = Math.round(calculatedSupplierPrice / (1 - commissionRate));
-            finalPrice = inferredSellerPrice;
-            calculatedSupplierPrice = Math.round(calculatedSupplierPrice);
+        if (calculatedSupplierPrice !== undefined && calculatedSupplierPrice !== null && Number(calculatedSupplierPrice) > 0) {
+            const supplierPrice = Number(calculatedSupplierPrice);
+            finalPrice = computePublicPrice(supplierPrice, tiers);
+            calculatedSupplierPrice = Math.round(supplierPrice);
+        } else if (finalPrice !== undefined && finalPrice > 0) {
+            const decomposed = decomposePublicPrice(finalPrice, commissionRate, tiers);
+            calculatedSupplierPrice = Math.round(decomposed.supplierPrice);
+            finalPrice = Math.round(calculatedSupplierPrice + decomposed.deliveryFee);
         }
-
 
         let finalStock = stock || 0;
         if (variants && variants.length > 0) {
@@ -698,19 +693,12 @@ export const updateProduct = async (req, res) => {
         // Calcul dynamique des frais de livraison par tranche
         const tiers = await getDeliveryFeeTiers();
 
-        if (isSupplier && !isAdmin) {
-            if (finalPrice !== undefined && finalPrice > 0) {
-                const deliveryFee = computeDeliveryFee(finalPrice, tiers);
-                supplier_price = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
-            }
-        } else {
-            // For admins, allow explicit supplier_price, but sync if missing
-            if (finalPrice !== undefined && supplier_price === undefined && finalPrice > 0) {
-                const deliveryFee = computeDeliveryFee(finalPrice, tiers);
-                supplier_price = Math.round((finalPrice - deliveryFee) * (1 - commissionRate));
-            } else if (finalPrice === undefined && supplier_price !== undefined) {
-                finalPrice = computePublicPrice(supplier_price, tiers);
-            }
+        if (finalPrice !== undefined && finalPrice > 0 && (supplier_price === undefined || supplier_price === null)) {
+            const decomposed = decomposePublicPrice(finalPrice, commissionRate, tiers);
+            supplier_price = Math.round(decomposed.supplierPrice);
+            finalPrice = Math.round(supplier_price + decomposed.deliveryFee);
+        } else if ((finalPrice === undefined || finalPrice === null) && supplier_price !== undefined && supplier_price !== null) {
+            finalPrice = computePublicPrice(supplier_price, tiers);
         }
 
         // Sync approval_status to SupplierProduct if it changed

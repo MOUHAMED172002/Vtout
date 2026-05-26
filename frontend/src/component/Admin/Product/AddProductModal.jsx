@@ -202,39 +202,21 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
   const watchPrice = watch('price');
 
-  // Sync: price change -> update globalSupplierPrice (Deductive logic)
-  useEffect(() => {
-    if (isInternalPriceChange) {
-      setIsInternalPriceChange(false);
-      return;
-    }
-    if (watchPrice) {
-        const publicPrice = parseFloat(watchPrice) || 0;
-        const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-        const calculated = Math.round(publicPrice - fee);
-        
-        if (calculated !== parseFloat(globalSupplierPrice)) {
-            setIsInternalPriceChange(true);
-            setGlobalSupplierPrice(calculated.toString());
-            setCurrentDeliveryFee(fee);
-        }
-    }
-  }, [watchPrice]);
-
-  // Sync: globalSupplierPrice change -> update price (Reverse calculation)
+  // Sync: globalSupplierPrice (seller price) change -> update price (public price)
+  // Public price = seller price + marketing fee
   useEffect(() => {
     if (isInternalPriceChange) {
       setIsInternalPriceChange(false);
       return;
     }
     if (globalSupplierPrice) {
-        const supplierPrice = parseFloat(globalSupplierPrice) || 0;
-        const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
-        const calculated = Math.round(supplierPrice + fee);
+        const sellerPrice = parseFloat(globalSupplierPrice) || 0;
+        const fee = computeDeliveryFee(sellerPrice, deliveryTiers);
+        const publicPrice = Math.round(sellerPrice + fee);
         
-        if (calculated !== parseFloat(watchPrice)) {
+        if (publicPrice !== parseFloat(watchPrice)) {
             setIsInternalPriceChange(true);
-            setValue('price', calculated);
+            setValue('price', publicPrice);
             setCurrentDeliveryFee(fee);
         }
     }
@@ -895,9 +877,9 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Net Fournisseur (Votre gain)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400">Prix Vendeur (avant commission)</label>
                     <div className="relative">
-                      <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Accordé (FCFA)" />
+                      <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Vendeur (FCFA)" />
                       <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-indigo-300">FCFA</span>
                     </div>
                   </div>
@@ -911,23 +893,23 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Votre gain net ({Math.round(100 - commissionRate)}%)</p>
-                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatPrice(Math.round((globalSupplierPrice || 0) * (1 - commissionRate / 100)))} F</p>
+                          <div className="space-y-1">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">Commission ({commissionRate}%)</p>
+                            <p className="text-sm font-black text-orange-500">-{Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Votre Gain Net</p>
+                            <p className="text-base font-black text-emerald-600 tracking-tighter">{formatPrice(Math.round((globalSupplierPrice || 0) * (1 - commissionRate / 100)))} F</p>
                           </div>
                         <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison (Marketing)</p>
                             <div className="flex items-center gap-1.5">
-                                <p className="text-sm font-black text-emerald-600">{currentDeliveryFee.toLocaleString()} F</p>
-                                <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
+                                <p className="text-sm font-black text-emerald-600">+{currentDeliveryFee.toLocaleString()} F</p>
+                                <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter\">Offerte Client</span>
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">- Com. ({commissionRate}%)</p>
-                            <p className="text-sm font-black text-orange-500">{Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
-                        </div>
                         <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
-                            <p className="text-[9px] font-bold text-indigo-500 uppercase">Prix Client Final</p>
+                            <p className="text-[9px] font-bold text-indigo-500 uppercase">= Prix Client</p>
                             <p className="text-base font-black text-indigo-500">{Number(watchPrice).toLocaleString()} F</p>
                         </div>
                     </div>

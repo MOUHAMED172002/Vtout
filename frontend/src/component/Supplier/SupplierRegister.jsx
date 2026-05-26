@@ -6,10 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Check, MapPin, Phone, MessageCircle, CreditCard, ShieldCheck, Store, Loader2, UserCheck } from 'lucide-react';
 import AddressSelector from '../context/AddressSelector';
 import SupplierBlockModal from '../Shared/SupplierBlockModal';
+import CountryPhoneSelector from '../Shared/CountryPhoneSelector';
 import { registerSelfSupplier } from '../../services/supplierService';
 import api from '../../services/api';
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
 
 const SupplierRegister = () => {
     const [step, setStep] = useState(1);
@@ -180,22 +179,22 @@ const SupplierRegister = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     {/* Phone */}
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1"><Phone size={12} /> Téléphone <span className="text-rose-500">*</span></label>
-                                        <div className={phoneWrap(errors.phone)}>
-                                            <PhoneInput international defaultCountry="BJ" value={formData.phone} onChange={val => set('phone', val)} className="w-full bg-slate-50 rounded-3xl pl-6 pr-6 py-3.5 font-black text-sm [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full" placeholder="+229 00 00 00 00" />
-                                        </div>
-                                        {errors.phone && <p className="text-rose-500 text-[11px] font-bold px-4">{errors.phone}</p>}
-                                    </div>
+                                    <CountryPhoneSelector 
+                                        label="Téléphone" 
+                                        value={formData.phone} 
+                                        onChange={val => set('phone', val)} 
+                                        error={errors.phone}
+                                        required={true}
+                                    />
 
                                     {/* WhatsApp */}
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 px-4 flex items-center gap-1"><MessageCircle size={12} /> WhatsApp <span className="text-rose-500">*</span></label>
-                                        <div className={phoneWrap(errors.whatsapp)}>
-                                            <PhoneInput international defaultCountry="BJ" value={formData.whatsapp} onChange={val => set('whatsapp', val)} className="w-full bg-slate-50 rounded-3xl pl-6 pr-6 py-3.5 font-black text-sm [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full" placeholder="+229 00 00 00 00" />
-                                        </div>
-                                        {errors.whatsapp ? <p className="text-rose-500 text-[11px] font-bold px-4">{errors.whatsapp}</p> : <p className="text-emerald-600 text-[10px] font-bold px-4">📲 Alertes nouvelles commandes</p>}
-                                    </div>
+                                    <CountryPhoneSelector 
+                                        label="WhatsApp" 
+                                        value={formData.whatsapp} 
+                                        onChange={val => set('whatsapp', val)} 
+                                        error={errors.whatsapp}
+                                        required={true}
+                                    />
                                 </div>
 
                                 {/* MoMo */}

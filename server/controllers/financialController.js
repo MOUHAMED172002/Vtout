@@ -22,16 +22,19 @@ export const getMyFinancials = async (req, res) => {
                 'type',
                 [sequelize.fn('SUM', sequelize.col('amount')), 'total']
             ],
-            group: ['type']
+            group: ['type'],
+            raw: true
         });
         
         let balance = 0;
-        summary.forEach(s => {
-            const val = parseFloat(s.get('total') || 0);
-            if (s.type === 'earning') balance += val;
-            if (s.type === 'payout') balance -= val;
-            if (s.type === 'adjustment') balance += val; // can be negative
-        });
+        if (summary && summary.length > 0) {
+            summary.forEach(s => {
+                const val = parseFloat(s.total || 0);
+                if (s.type === 'earning') balance += val;
+                if (s.type === 'payout') balance -= val;
+                if (s.type === 'adjustment') balance += val; // can be negative
+            });
+        }
         
         console.log("[Financials] Querying transactions...");
         const transactions = await FinancialTransaction.findAll({
@@ -215,7 +218,6 @@ export const adminProcessPayout = async (req, res) => {
 export const adminSyncFinancials = async (req, res) => {
     try {
         const { processOrderFinancials } = await import('../services/financialService.js');
-        const { DeliveryPerson, Supplier } = await import('../models/index.js');
 
         console.log("🚀 [AdminSync] Starting Global Financial Sync...");
         
@@ -241,12 +243,12 @@ export const adminSyncFinancials = async (req, res) => {
         // 2. Mark all earning as completed
         await FinancialTransaction.update(
             { status: 'completed' },
-            { where: { type: 'earning', status: ['pending', null] } }
+            { where: { type: 'earning', status: { [Op.in]: ['pending', null] } } }
         );
 
         // 3. Find ALL delivered orders
         const orders = await Order.findAll({ 
-            where: { status: ['livrée', 'livree'] } 
+            where: { status: { [Op.in]: ['livrée', 'livree'] } } 
         });
 
         let feesFixed = 0;

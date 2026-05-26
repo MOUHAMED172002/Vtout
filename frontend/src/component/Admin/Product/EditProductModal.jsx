@@ -41,6 +41,21 @@ const computeDeliveryFee = (supplierPrice, tiers = DEFAULT_DELIVERY_TIERS) => {
   return tiers[tiers.length - 1]?.fee ?? 1000;
 };
 
+const decomposePublicPrice = (publicPrice, tiers = DEFAULT_DELIVERY_TIERS) => {
+  const price = Number(publicPrice) || 0;
+  for (const tier of tiers) {
+    const supplierPrice = price - tier.fee;
+    if (supplierPrice >= tier.min && supplierPrice < tier.max) {
+      return { supplierPrice, deliveryFee: tier.fee };
+    }
+  }
+  const fallbackFee = tiers[tiers.length - 1]?.fee ?? 1000;
+  return {
+    supplierPrice: Math.round(price - fallbackFee),
+    deliveryFee: fallbackFee
+  };
+};
+
 // ─── Étapes ───────────────────────────────────────────────────────────────────
 const steps = [
   { id: 'info', title: 'Informations', icon: Info },
@@ -309,7 +324,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     setCurrentDeliveryFee(fee);
   }, [watchSupplierPrice, deliveryTiers]);
 
-  // Logic: When selling price changes, calculate what supplier gets
+  // Logic: When public price changes, derive the supplier base price
   useEffect(() => {
     if (isInternalPriceChange) {
       setIsInternalPriceChange(false);
@@ -317,16 +332,16 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     }
     if (watchPrice) {
       const publicPrice = parseFloat(watchPrice) || 0;
-      const fee = computeDeliveryFee(publicPrice - currentDeliveryFee, deliveryTiers); 
-      const calculated = Math.round(publicPrice - fee);
-      
+      const decomposed = decomposePublicPrice(publicPrice, deliveryTiers);
+      const calculated = Math.round(decomposed.supplierPrice);
+
       if (calculated !== parseFloat(watchSupplierPrice)) {
         setIsInternalPriceChange(true);
         setValue('supplier_price', calculated);
-        setCurrentDeliveryFee(fee);
+        setCurrentDeliveryFee(decomposed.deliveryFee);
       }
     }
-  }, [watchPrice]);
+  }, [watchPrice, deliveryTiers, watchSupplierPrice, setValue]);
 
   // Logic: Reverse calculation if supplier price is explicitly touched
   useEffect(() => {

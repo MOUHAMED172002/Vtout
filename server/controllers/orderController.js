@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from '../services/deliveryFeeService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -39,19 +39,52 @@ export const getMySupplierOrders = async (req, res) => {
             where: { supplier_id: supplier.id },
             order: [['created_at', 'DESC']],
             include: [
-                { model: Address, as: 'address' },
                 { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label', 'whatsapp', 'phone'] },
                 { 
                     model: OrderItem, 
                     as: 'items',
                     include: [
-                        { model: Product, as: 'product', attributes: ['name', 'price', 'supplier_price'] },
+                        { model: Product, as: 'product', attributes: ['name', 'price', 'supplier_price'], include: [{ model: Category, as: 'category', attributes: ['commission_rate'] }] },
                         { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label'] }
                     ] 
                 }
             ]
         });
-        res.json(orders);
+
+        const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
+        const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
+        const deliveryTiers = await getDeliveryFeeTiers();
+
+        const enrichedOrders = orders.map(order => {
+            const orderJson = order.toJSON();
+            let supplierTotal = 0;
+            let adminTotal = 0;
+            let totalBaseMarketingFee = 0;
+
+            if (orderJson.items) {
+                for (const item of orderJson.items) {
+                    const itemClientPrice = parseFloat(item.price) || 0;
+                    let itemRate = globalCommissionRate;
+                    if (item.product?.category?.commission_rate) {
+                        itemRate = parseFloat(item.product.category.commission_rate) / 100;
+                    }
+                    const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
+                    const commissionAmount = Math.round(decomposed.supplierPrice * itemRate);
+                    totalBaseMarketingFee += decomposed.deliveryFee * item.quantity;
+                    adminTotal += commissionAmount * item.quantity;
+                    supplierTotal += Math.round((decomposed.supplierPrice - commissionAmount) * item.quantity);
+                }
+            }
+
+            return {
+                ...orderJson,
+                supplier_earnings: supplierTotal,
+                admin_commission: adminTotal,
+                deliverer_fee: totalBaseMarketingFee + parseFloat(orderJson.delivery_fee || 0)
+            };
+        });
+
+        res.json(enrichedOrders);
     } catch (error) {
         console.error("GET MY SUPPLIER ORDERS ERROR:", error);
         res.status(500).json({ error: 'Erreur Serveur', details: error.message });
@@ -143,29 +176,33 @@ export const getOrderById = async (req, res) => {
         const orderJson = order.toJSON();
         let totalBaseMarketingFee = 0;
         let adminTotal = 0;
+        let supplierTotal = 0;
         let subtotal = 0;
 
         if (orderJson.items) {
             for (const item of orderJson.items) {
-                const itemSupplierPrice = item.product?.supplier_price || 0;
-                const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                totalBaseMarketingFee += itemMarketingFee * item.quantity;
-
+                const itemClientPrice = parseFloat(item.price) || 0;
                 let itemRate = globalCommissionRate;
                 if (item.product?.category?.commission_rate) {
                     itemRate = parseFloat(item.product.category.commission_rate) / 100;
                 }
 
-                const itemBasePrice = parseFloat(item.price) - itemMarketingFee;
-                adminTotal += (itemBasePrice * item.quantity) * itemRate;
-                subtotal += parseFloat(item.price) * item.quantity;
+                const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
+                const itemSupplierPrice = decomposed.supplierPrice;
+                const itemMarketingFee = decomposed.deliveryFee;
+                const commissionAmount = Math.round(itemSupplierPrice * itemRate);
+
+                totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                adminTotal += commissionAmount * item.quantity;
+                supplierTotal += Math.round((itemSupplierPrice - commissionAmount) * item.quantity);
+                subtotal += itemClientPrice * item.quantity;
             }
         }
 
         const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
         orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
         orderJson.admin_commission = adminTotal;
-        orderJson.supplier_earnings = subtotal - adminTotal - totalBaseMarketingFee;
+        orderJson.supplier_earnings = supplierTotal;
 
         if (isAdmin) return res.json({ ...orderJson, siblings });
 
@@ -178,7 +215,17 @@ export const getOrderById = async (req, res) => {
         // 3. Check if user is the assigned supplier
         if (userId) {
             const supplier = await Supplier.findOne({ where: { user_id: userId } });
-            if (supplier && order.supplier_id === supplier.id) return res.json(orderJson);
+            if (supplier && order.supplier_id === supplier.id) {
+                const safeOrder = { ...orderJson };
+                delete safeOrder.guest_name;
+                delete safeOrder.guest_email;
+                delete safeOrder.guest_phone;
+                delete safeOrder.user;
+                delete safeOrder.address;
+                delete safeOrder.address_id;
+                delete safeOrder.user_id;
+                return res.json(safeOrder);
+            }
         }
 
         // 4. Check if user is the assigned rider
@@ -254,7 +301,9 @@ export const createOrder = async (req, res) => {
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
             }
 
-            let basePrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
+            let basePrice = (item.price !== undefined && item.price !== null && Number(item.price) > 0)
+                ? parseFloat(item.price)
+                : parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
             // Support both variant_price_id (direct) and variant_id (lookup)
@@ -300,9 +349,9 @@ export const createOrder = async (req, res) => {
                 }
             }
 
-            // Apply Volume Pricing (Quantity/Bulk Discount) dynamically
+            // Apply Volume Pricing (Quantity/Bulk Discount) dynamically only when no explicit item price is provided
             let unitPrice = basePrice;
-            if (product.volume_pricing) {
+            if ((item.price === undefined || item.price === null || Number(item.price) <= 0) && product.volume_pricing) {
                 try {
                     const tiers = typeof product.volume_pricing === 'string'
                         ? JSON.parse(product.volume_pricing)

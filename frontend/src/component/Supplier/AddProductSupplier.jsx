@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import AddProductModal from '../Admin/Product/AddProductModal';
 import { useProfile } from '../context/useProfile';
 import { ShieldAlert, Clock, ArrowLeft } from 'lucide-react';
+import { useAppConfig } from '../context/ConfigContext';
 
 const AddProductSupplier = () => {
     const navigate = useNavigate();
     const { user: profile, loading: profileLoading } = useProfile();
+    const { getConfig } = useAppConfig();
 
     if (profileLoading) {
         return (
@@ -24,19 +26,19 @@ const AddProductSupplier = () => {
                         <ShieldAlert size={40} />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Accès Restreint</h2>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{getConfig('supplier_add_product_blocked_title', 'Accès Restreint')}</h2>
                         <p className="text-sm font-bold text-slate-400 leading-relaxed italic">
-                            Votre compte fournisseur est actuellement <span className="text-amber-600 uppercase">en attente d'approbation</span> ou <span className="text-red-500 uppercase">suspendu</span>.
+                            {getConfig('supplier_add_product_blocked_subtitle', 'Votre compte fournisseur est actuellement en attente d\'approbation ou suspendu.')}
                         </p>
                     </div>
                     <p className="text-xs font-medium text-slate-500">
-                        L'administrateur doit valider votre profil avant que vous ne puissiez commencer à vendre vos produits sur la plateforme.
+                        {getConfig('supplier_add_product_blocked_message', 'L\'administrateur doit valider votre profil avant que vous ne puissiez commencer à vendre vos produits sur la plateforme.')}
                     </p>
                     <button 
                         onClick={() => navigate('/fournisseur/dashboard')}
                         className="btn btn-block bg-slate-900 border-none text-white rounded-2xl h-14 font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all flex items-center gap-2"
                     >
-                        <ArrowLeft size={16} /> Retour au Dashboard
+                        <ArrowLeft size={16} /> {getConfig('supplier_add_product_blocked_button', 'Retour au Dashboard')}
                     </button>
                 </div>
             </div>

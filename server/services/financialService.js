@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
-import { getDeliveryFeeTiers, computeDeliveryFee } from './deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from './deliveryFeeService.js';
 
 export const processOrderFinancials = async (orderIdOrObject) => {
     const t = await sequelize.transaction();
@@ -56,15 +56,11 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                     const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
                     const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
                     const deliveryTiers = await getDeliveryFeeTiers();
+                    let supplierTotal = 0;
  
                     for (const item of items) {
-                        const itemClientPrice = parseFloat(item.price);
+                        const itemClientPrice = parseFloat(item.price) || 0;
                         subtotal += itemClientPrice * item.quantity;
-
-                        const itemSupplierPrice = item.product?.supplier_price || 0;
-                        const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                        const itemVendorBasePrice = itemClientPrice - itemMarketingFee;
-                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
 
                         let itemRate = globalCommissionRate;
                         if (item.product?.category_id) {
@@ -74,13 +70,17 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             }
                         }
 
-                        const commissionDeducted = Math.round((itemVendorBasePrice * item.quantity) * itemRate);
-                        adminTotal += commissionDeducted;
+                        const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
+                        const effectiveSupplierPrice = decomposed.supplierPrice;
+                        const itemMarketingFee = decomposed.deliveryFee;
+                        const commissionDeducted = Math.round(effectiveSupplierPrice * itemRate);
+
+                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                        adminTotal += commissionDeducted * item.quantity;
+                        supplierTotal += Math.round((effectiveSupplierPrice - commissionDeducted) * item.quantity);
                     }
 
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
-                    // Le fournisseur touche : Total client - Commission (le marketing fee est traité séparément pour le livreur)
-                    const supplierTotal = subtotal - adminTotal;
 
                     if (supplierTotal > 0) {
                         await FinancialTransaction.create({

@@ -118,13 +118,13 @@ const Hero = () => {
                     <Slider {...settings}>
                         {heroData.map((slide) => (
                             <div key={slide.id || slide._id} className="outline-none">
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center px-8 md:px-14 py-12 md:py-14 relative">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-10 py-8 md:py-10 relative">
                                     
                                     {/* Slide Highlight Glow */}
-                                    <div className={`absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-br ${slide.color || 'from-emerald-500/20 to-teal-500/10'} rounded-full blur-3xl opacity-60 pointer-events-none`}></div>
+                                    <div className={`absolute -top-20 -left-20 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br ${slide.color || 'from-emerald-500/20 to-teal-500/10'} rounded-full blur-3xl opacity-60 pointer-events-none`}></div>
 
                                     {/* Left Side: Content */}
-                                    <div className="lg:col-span-7 space-y-6 md:space-y-8 text-left relative z-10">
+                                    <div className="lg:col-span-7 space-y-5 md:space-y-7 text-left relative z-10 max-w-3xl">
                                         
                                         {/* Confidence Badge */}
                                         <motion.div 
@@ -138,7 +138,7 @@ const Hero = () => {
 
                                         {/* Main Title */}
                                         <div className="space-y-2">
-                                            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight ${textTitleClass}`}>
+                                            <h1 className={`text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight ${textTitleClass}`}>
                                                 {slide.title || 'Le shopping en ligne' } <br />
                                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400">
                                                     {slide.title2 || 'pensé pour le Bénin'}
@@ -216,8 +216,8 @@ const Hero = () => {
                                         </div>
                                     </div>
 
-                                    {/* Right Side: Graphic */}
-                                    <div className="lg:col-span-5 flex items-center justify-center relative mt-6 lg:mt-0">
+                                    {/* Right Side: Graphic (desktop only) */}
+                                    <div className="lg:col-span-5 hidden lg:flex items-center justify-center relative mt-6 lg:mt-0">
                                         <div className="relative w-full max-w-[320px] md:max-w-[400px]">
                                             {/* Premium backing glows */}
                                             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 rounded-full blur-3xl scale-125 pointer-events-none animate-pulse" />

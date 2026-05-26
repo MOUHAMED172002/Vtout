@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Config } from '../models/index.js';
+import { getTextTemplate, getTextConfig } from './textTemplateService.js';
 
 /**
  * Helper : Formater le numéro pour Green API
@@ -120,7 +121,11 @@ export const sendWhatsAppMessage = async (to, body) => {
 export const sendNewOrderWhatsApp = async (to, orderId, amount) => {
     const { notifCustomer } = await getWhatsAppConfigs();
     if (!notifCustomer) return;
-    const messageBody = `📦 *Nouvelle commande Vtout !*\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nMerci de votre confiance !`;
+    const messageBody = await getTextTemplate(
+        'whatsapp_new_order_customer',
+        `📦 *Nouvelle commande Vtout !*\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nMerci de votre confiance !`,
+        { orderId: orderId.slice(0, 8), amount: Number(amount).toLocaleString() }
+    );
     return sendWhatsAppMessage(to, messageBody);
 };
 
@@ -131,10 +136,18 @@ export const notifySupplierOfNewOrder = async (supplierPhone, orderId, amount, i
     const { notifSupplier } = await getWhatsAppConfigs();
     if (!notifSupplier || !supplierPhone) return;
     
-    let message = `🔔 *VTOUT : Nouvelle commande !*\nVous avez une nouvelle commande à préparer.\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nConnectez-vous à votre portail fournisseur pour voir les détails.`;
+    let message = await getTextTemplate(
+        'whatsapp_new_order_supplier',
+        `🔔 *VTOUT : Nouvelle commande !*\nVous avez une nouvelle commande à préparer.\nID: #${orderId.slice(0, 8)}\nMontant: ${Number(amount).toLocaleString()} F.\n\nConnectez-vous à votre portail fournisseur pour voir les détails.`,
+        { orderId: orderId.slice(0, 8), amount: Number(amount).toLocaleString() }
+    );
     
     if (isReminder) {
-        message = `⏳ *VTOUT : RAPPEL - Commande en attente !*\nLa commande #${orderId.slice(0, 8)} (${Number(amount).toLocaleString()} F) attend toujours votre préparation.\n\nMerci de la confirmer rapidement pour éviter tout retard de livraison.`;
+        message = await getTextTemplate(
+            'whatsapp_reminder_order_supplier',
+            `⏳ *VTOUT : RAPPEL - Commande en attente !*\nLa commande #${orderId.slice(0, 8)} (${Number(amount).toLocaleString()} F) attend toujours votre préparation.\n\nMerci de la confirmer rapidement pour éviter tout retard de livraison.`,
+            { orderId: orderId.slice(0, 8), amount: Number(amount).toLocaleString() }
+        );
     }
 
     return sendWhatsAppMessage(supplierPhone, message);
@@ -146,7 +159,11 @@ export const notifySupplierOfNewOrder = async (supplierPhone, orderId, amount, i
 export const notifySupplierOfLowStock = async (supplierPhone, productName, remainingStock) => {
     const { notifSupplier } = await getWhatsAppConfigs();
     if (!notifSupplier || !supplierPhone) return;
-    const message = `⚠️ *VTOUT : Alerte Stock Bas !*\nLe produit *${productName}* est presque épuisé.\nStock restant : *${remainingStock}* unités.\n\nPensez à vous réapprovisionner rapidement pour éviter une rupture !`;
+    const message = await getTextTemplate(
+        'whatsapp_low_stock_supplier',
+        `⚠️ *VTOUT : Alerte Stock Bas !*\nLe produit *${productName}* est presque épuisé.\nStock restant : *${remainingStock}* unités.\n\nPensez à vous réapprovisionner rapidement pour éviter une rupture !`,
+        { productName, remainingStock }
+    );
     return sendWhatsAppMessage(supplierPhone, message);
 };
 
@@ -156,7 +173,11 @@ export const notifySupplierOfLowStock = async (supplierPhone, productName, remai
 export const notifyDelivererOfAssignment = async (delivererPhone, orderId) => {
     const { notifDeliverer } = await getWhatsAppConfigs();
     if (!notifDeliverer || !delivererPhone) return;
-    const message = `🛵 *VTOUT : Nouvelle course !*\nUne commande vous a été assignée.\nID: #${orderId.slice(0, 8)}\nVeuillez vous rendre chez le fournisseur pour la récupération.`;
+    const message = await getTextTemplate(
+        'whatsapp_deliverer_assignment',
+        `🛵 *VTOUT : Nouvelle course !*\nUne commande vous a été assignée.\nID: #${orderId.slice(0, 8)}\nVeuillez vous rendre chez le fournisseur pour la récupération.`,
+        { orderId: orderId.slice(0, 8) }
+    );
     return sendWhatsAppMessage(delivererPhone, message);
 };
 
@@ -172,9 +193,25 @@ export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, statu
         'livrée': 'a été *livrée*. Merci d\'avoir choisi Vtout !',
         'annulée': 'a été *annulée*.',
     };
-    const statusMsg = statusMessages[status] || `est maintenant : *${status}*`;
-    const message = `📦 *VTOUT : Mise à jour de commande*\nVotre commande #${orderId.slice(0, 8)} ${statusMsg}`;
+    const defaultStatus = statusMessages[status] || `est maintenant : *${status}*`;
+    const defaultBody = `📦 *VTOUT : Mise à jour de commande*\nVotre commande #${orderId.slice(0, 8)} ${defaultStatus}`;
+    const message = await getTextTemplate(
+        'whatsapp_order_status_customer',
+        defaultBody,
+        { orderId: orderId.slice(0, 8), status }
+    );
     return sendWhatsAppMessage(customerPhone, message);
+};
+
+const normalizeStatusKey = (status) => {
+    const mapping = {
+        'confirmée': 'confirmee',
+        'expédiée': 'expediee',
+        'livrée': 'livree',
+        'annulée': 'annulee',
+        'retournée': 'retournee'
+    };
+    return mapping[status] || String(status).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 };
 
 /**
@@ -189,7 +226,13 @@ export const notifySupplierStatusUpdate = async (supplierPhone, status) => {
         'suspendu': '⚠️ *Alerte :* Votre compte fournisseur Vtout a été temporairement suspendu. Veuillez contacter l\'administration.',
         'rejeté': '❌ *Désolé :* Votre demande d\'inscription comme fournisseur Vtout a été rejetée.',
     };
-    const message = messages[status] || `Votre statut fournisseur est maintenant : *${status}*`;
+    const statusKey = normalizeStatusKey(status);
+    const key = `whatsapp_supplier_status_${statusKey}`;
+    const message = await getTextTemplate(
+        key,
+        messages[status] || `Votre statut fournisseur est maintenant : *${status}*`,
+        { status }
+    );
     return sendWhatsAppMessage(supplierPhone, message);
 };
 
@@ -200,9 +243,16 @@ export const notifyDelivererStatusUpdate = async (delivererPhone, isVerified) =>
     const { notifDeliverer } = await getWhatsAppConfigs();
     if (!notifDeliverer || !delivererPhone) return;
 
-    const message = isVerified 
-        ? '✅ *Félicitations !* Votre compte livreur Vtout a été vérifié. Vous pouvez maintenant prendre des courses.' 
-        : '⏳ *Vtout :* Votre compte livreur est actuellement en attente de vérification.';
+    const key = isVerified ? 'whatsapp_deliverer_status_verified' : 'whatsapp_deliverer_status_pending';
+    const defaultMessage = isVerified
+        ? '✅ *Félicitations !* Votre compte livreur Vtout a été vérifié. Vous pouvez maintenant prendre des courses.'
+        : '⏳ *VTOUT :* Votre compte livreur est actuellement en attente de vérification.';
+
+    const message = await getTextTemplate(
+        key,
+        defaultMessage,
+        { isVerified }
+    );
     return sendWhatsAppMessage(delivererPhone, message);
 };
 
@@ -213,13 +263,19 @@ export const notifyProductStatusUpdate = async (supplierPhone, productName, stat
     const { notifSupplier } = await getWhatsAppConfigs();
     if (!notifSupplier || !supplierPhone) return;
 
-    const messages = {
-        'approved': `✅ *Produit Approuvé !*\nVotre produit *${productName}* a été validé et est maintenant en ligne.`,
-        'rejected': `❌ *Produit Rejeté :*\nVotre produit *${productName}* n'a pas été validé.\nMotif : ${feedback || 'Non spécifié'}`
-    };
-    const message = messages[status];
-    if (!message) return;
+    const key = `whatsapp_product_status_${status}`;
+    const defaultMessage = status === 'approved'
+        ? `✅ *Produit Approuvé !*\nVotre produit *${productName}* a été validé et est maintenant en ligne.`
+        : status === 'rejected'
+            ? `❌ *Produit Rejeté :*\nVotre produit *${productName}* n'a pas été validé.\nMotif : ${feedback || 'Non spécifié'}`
+            : null;
 
+    if (!defaultMessage) return;
+    const message = await getTextTemplate(
+        key,
+        defaultMessage,
+        { productName, feedback }
+    );
     return sendWhatsAppMessage(supplierPhone, message);
 };
 
@@ -228,7 +284,11 @@ export const notifyProductStatusUpdate = async (supplierPhone, productName, stat
  */
 export const notifySupportReply = async (phone, ticketId) => {
     if (!phone) return;
-    const message = `💬 *VTOUT : Nouveau message support*\nNous avons répondu à votre demande (Ticket #${ticketId.slice(0, 8)}).\nConsultez votre tableau de bord pour voir la réponse.`;
+    const message = await getTextTemplate(
+        'whatsapp_support_reply',
+        `💬 *VTOUT : Nouveau message support*\nNous avons répondu à votre demande (Ticket #${ticketId.slice(0, 8)}).\nConsultez votre tableau de bord pour voir la réponse.`,
+        { ticketId: ticketId.slice(0, 8) }
+    );
     return sendWhatsAppMessage(phone, message);
 };
 
@@ -239,7 +299,8 @@ export const notifyAdmin = async (message) => {
     const { adminPhones } = await getWhatsAppConfigs();
     if (!adminPhones) return;
     
-    const adminMessage = `🚩 *VTOUT ADMIN NOTIF*\n${message}`;
+    const prefix = await getTextConfig('whatsapp_admin_prefix', '🚩 *VTOUT ADMIN NOTIF*', 'messages');
+    const adminMessage = `${prefix}\n${message}`;
     const phones = adminPhones.split(',').map(p => p.trim()).filter(p => p);
     
     for (const phone of phones) {
@@ -253,6 +314,7 @@ export const notifyAdmin = async (message) => {
 export const notifySupplierOfOrderStatusUpdate = async (supplierPhone, orderId, status) => {
     const { notifSupplier } = await getWhatsAppConfigs();
     if (!notifSupplier || !supplierPhone) return;
+    const statusKey = normalizeStatusKey(status);
     const statusMessages = {
         'confirmée': 'a été *confirmée* par le client et est en préparation.',
         'expédiée': 'a été *expédiée* ! Le livreur l\'a récupérée.',
@@ -260,8 +322,12 @@ export const notifySupplierOfOrderStatusUpdate = async (supplierPhone, orderId, 
         'annulée': 'a été *annulée*.',
         'retournée': 'a été marquée comme *retournée*.'
     };
-    const statusMsg = statusMessages[status] || `est maintenant : *${status}*`;
-    const message = `🔔 *VTOUT : Statut de commande modifié*\nLa commande #${orderId.slice(0, 8)} ${statusMsg}`;
+    const defaultStatus = statusMessages[status] || `est maintenant : *${status}*`;
+    const message = await getTextTemplate(
+        `whatsapp_supplier_order_status_${statusKey}`,
+        `🔔 *VTOUT : Statut de commande modifié*\nLa commande #${orderId.slice(0, 8)} ${defaultStatus}`,
+        { orderId: orderId.slice(0, 8), status }
+    );
     return sendWhatsAppMessage(supplierPhone, message);
 };
 
@@ -271,12 +337,17 @@ export const notifySupplierOfOrderStatusUpdate = async (supplierPhone, orderId, 
 export const notifyDelivererOfOrderStatusUpdate = async (delivererPhone, orderId, status) => {
     const { notifDeliverer } = await getWhatsAppConfigs();
     if (!notifDeliverer || !delivererPhone) return;
+    const statusKey = normalizeStatusKey(status);
     const statusMessages = {
         'annulée': 'a été *annulée*. Veuillez ne pas effectuer la livraison.',
         'retournée': 'a été marquée comme *retournée*.'
     };
     const statusMsg = statusMessages[status];
     if (!statusMsg) return; // Seules les annulations/retours ou autres statuts pertinents
-    const message = `🛵 *VTOUT : Annulation de course*\nLa course #${orderId.slice(0, 8)} ${statusMsg}`;
+    const message = await getTextTemplate(
+        `whatsapp_deliverer_order_status_${statusKey}`,
+        `🛵 *VTOUT : Annulation de course*\nLa course #${orderId.slice(0, 8)} ${statusMsg}`,
+        { orderId: orderId.slice(0, 8), status }
+    );
     return sendWhatsAppMessage(delivererPhone, message);
 };

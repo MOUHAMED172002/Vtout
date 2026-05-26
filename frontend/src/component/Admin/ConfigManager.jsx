@@ -167,6 +167,552 @@ const ConfigManager = () => {
                 });
             }
 
+            if (!uniqueData.find(c => c.key === 'whatsapp_admin_prefix')) {
+                uniqueData.push({
+                    key: 'whatsapp_admin_prefix',
+                    value: '🚩 *VTOUT ADMIN NOTIF*',
+                    group: 'messages',
+                    description: 'Préfixe WhatsApp utilisé pour les notifications admin'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_new_order_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_new_order_customer',
+                    value: '📦 *Nouvelle commande Vtout !*\nID: #{{orderId}}\nMontant: {{amount}} F.\n\nMerci de votre confiance !',
+                    group: 'messages',
+                    description: 'Message WhatsApp client pour nouvelle commande'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_new_order_supplier')) {
+                uniqueData.push({
+                    key: 'whatsapp_new_order_supplier',
+                    value: '🔔 *VTOUT : Nouvelle commande !*\nVous avez une nouvelle commande à préparer.\nID: #{{orderId}}\nMontant: {{amount}} F.\n\nConnectez-vous à votre portail fournisseur pour voir les détails.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur pour nouvelle commande'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_reminder_order_supplier')) {
+                uniqueData.push({
+                    key: 'whatsapp_reminder_order_supplier',
+                    value: '⏳ *VTOUT : RAPPEL - Commande en attente !*\nLa commande #{{orderId}} ({{amount}} F) attend toujours votre préparation.\n\nMerci de la confirmer rapidement pour éviter tout retard de livraison.',
+                    group: 'messages',
+                    description: 'Message de rappel WhatsApp fournisseur pour commande en attente'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_low_stock_supplier')) {
+                uniqueData.push({
+                    key: 'whatsapp_low_stock_supplier',
+                    value: '⚠️ *VTOUT : Alerte Stock Bas !*\nLe produit *{{productName}}* est presque épuisé.\nStock restant : *{{remainingStock}}* unités.\n\nPensez à vous réapprovisionner rapidement pour éviter une rupture !',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur pour alerte stock bas'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_deliverer_assignment')) {
+                uniqueData.push({
+                    key: 'whatsapp_deliverer_assignment',
+                    value: '🛵 *VTOUT : Nouvelle course !*\nUne commande vous a été assignée.\nID: #{{orderId}}\nVeuillez vous rendre chez le fournisseur pour la récupération.',
+                    group: 'messages',
+                    description: 'Message WhatsApp livreur pour assignment de course'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer',
+                    value: '📦 *VTOUT : Mise à jour de commande*\nVotre commande #{{orderId}} est maintenant *{{status}}*.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client pour mise à jour de statut'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'email_subject_new_order_admin')) {
+                uniqueData.push({
+                    key: 'email_subject_new_order_admin',
+                    value: '🚀 Nouvelle Commande #{{orderId}}',
+                    group: 'messages',
+                    description: 'Sujet email admin pour nouvelle commande'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'email_subject_order_status_customer')) {
+                uniqueData.push({
+                    key: 'email_subject_order_status_customer',
+                    value: '📦 Commande #{{orderId}} : {{status}}',
+                    group: 'messages',
+                    description: 'Sujet email client pour mise à jour commande'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'email_subject_invoice')) {
+                uniqueData.push({
+                    key: 'email_subject_invoice',
+                    value: '🧾 Votre Reçu - Commande #{{orderId}}',
+                    group: 'messages',
+                    description: 'Sujet email client pour facture'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'email_subject_product_approval')) {
+                uniqueData.push({
+                    key: 'email_subject_product_approval',
+                    value: '✅ Mise à jour produit : {{status}}',
+                    group: 'messages',
+                    description: 'Sujet email fournisseur pour approbation produit'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'email_subject_supplier_status')) {
+                uniqueData.push({
+                    key: 'email_subject_supplier_status',
+                    value: '{{status}} : Statut fournisseur',
+                    group: 'messages',
+                    description: 'Sujet email fournisseur pour mise à jour de statut'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_support_reply')) {
+                uniqueData.push({
+                    key: 'whatsapp_support_reply',
+                    value: '💬 *VTOUT : Nouveau message support*\nNous avons répondu à votre demande (Ticket #{{ticketId}}).\nConsultez votre tableau de bord pour voir la réponse.',
+                    group: 'messages',
+                    description: 'Message WhatsApp pour réponse support'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_deliverer_status_verified')) {
+                uniqueData.push({
+                    key: 'whatsapp_deliverer_status_verified',
+                    value: '✅ *Félicitations !* Votre compte livreur Vtout a été vérifié. Vous pouvez maintenant prendre des courses.',
+                    group: 'messages',
+                    description: 'Message WhatsApp livreur lorsque le compte est vérifié'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_deliverer_status_pending')) {
+                uniqueData.push({
+                    key: 'whatsapp_deliverer_status_pending',
+                    value: '⏳ *VTOUT :* Votre compte livreur est actuellement en attente de vérification.',
+                    group: 'messages',
+                    description: 'Message WhatsApp livreur lorsque le compte est en attente'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_product_status_approved')) {
+                uniqueData.push({
+                    key: 'whatsapp_product_status_approved',
+                    value: '✅ *Produit Approuvé !*\nVotre produit *{{productName}}* a été validé et est maintenant en ligne.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur pour produit approuvé'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_product_status_rejected')) {
+                uniqueData.push({
+                    key: 'whatsapp_product_status_rejected',
+                    value: '❌ *Produit Rejeté :*\nVotre produit *{{productName}}* n\'a pas été validé.\nMotif : {{feedback}}',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur pour produit rejeté'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_order_status_confirmee')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_order_status_confirmee',
+                    value: '🔔 *VTOUT : Statut de commande modifié*\nLa commande #{{orderId}} a été *confirmée* par le client et est en préparation.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque la commande est confirmée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_order_status_expediee')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_order_status_expediee',
+                    value: '🔔 *VTOUT : Statut de commande modifié*\nLa commande #{{orderId}} a été *expédiée* ! Le livreur l\'a récupérée.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque la commande est expédiée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_order_status_livree')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_order_status_livree',
+                    value: '🔔 *VTOUT : Statut de commande modifié*\nLa commande #{{orderId}} a été livrée au client avec succès. Vos gains ont été crédités sur votre portefeuille !',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque la commande est livrée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_order_status_annulee')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_order_status_annulee',
+                    value: '🔔 *VTOUT : Statut de commande modifié*\nLa commande #{{orderId}} a été *annulée*.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque la commande est annulée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_order_status_retournee')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_order_status_retournee',
+                    value: '🔔 *VTOUT : Statut de commande modifié*\nLa commande #{{orderId}} a été marquée comme *retournée*.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque la commande est retournée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_deliverer_order_status_annulee')) {
+                uniqueData.push({
+                    key: 'whatsapp_deliverer_order_status_annulee',
+                    value: '🛵 *VTOUT : Annulation de course*\nLa course #{{orderId}} a été *annulée*. Veuillez ne pas effectuer la livraison.',
+                    group: 'messages',
+                    description: 'Message WhatsApp livreur lorsque la course est annulée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_deliverer_order_status_retournee')) {
+                uniqueData.push({
+                    key: 'whatsapp_deliverer_order_status_retournee',
+                    value: '🛵 *VTOUT : Annulation de course*\nLa course #{{orderId}} a été marquée comme *retournée*.',
+                    group: 'messages',
+                    description: 'Message WhatsApp livreur lorsque la course est retournée'
+                });
+            }
+
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_welcome_title')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_welcome_title',
+                    value: 'Bienvenue',
+                    group: 'supplier',
+                    description: 'Titre de bienvenue sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_subtitle',
+                    value: 'Espace Gestion Fournisseur',
+                    group: 'supplier',
+                    description: 'Sous-titre du dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_new_product_button')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_new_product_button',
+                    value: 'Produit',
+                    group: 'supplier',
+                    description: 'Libellé du bouton pour ajouter un produit'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_search_placeholder')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_search_placeholder',
+                    value: 'Rechercher...',
+                    group: 'supplier',
+                    description: 'Placeholder de recherche sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_view_all_button')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_view_all_button',
+                    value: 'Voir tout',
+                    group: 'supplier',
+                    description: 'Libellé du bouton voir tout sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_status_approved')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_status_approved',
+                    value: 'Approuvé',
+                    group: 'supplier',
+                    description: 'Statut texte pour produit approuvé'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_status_pending')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_status_pending',
+                    value: 'En attente',
+                    group: 'supplier',
+                    description: 'Statut texte pour produit en attente'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_shop_title')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_shop_title',
+                    value: 'Informations Boutique',
+                    group: 'supplier',
+                    description: 'Titre de la section informations boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_shop_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_shop_subtitle',
+                    value: 'Nom et contacts',
+                    group: 'supplier',
+                    description: 'Sous-titre de la section boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_shop_name_label')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_shop_name_label',
+                    value: 'Nom de la boutique',
+                    group: 'supplier',
+                    description: 'Label du nom de boutique sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_shop_whatsapp_label')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_shop_whatsapp_label',
+                    value: 'Numéro WhatsApp',
+                    group: 'supplier',
+                    description: 'Label du numéro WhatsApp sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_shop_momo_label')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_shop_momo_label',
+                    value: 'Mobile Money',
+                    group: 'supplier',
+                    description: 'Label du numéro mobile money sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_address_title')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_address_title',
+                    value: 'Adresse Professionnelle',
+                    group: 'supplier',
+                    description: 'Titre de la section adresse professionnelle'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_address_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_address_subtitle',
+                    value: 'Renseignement pour la logistique',
+                    group: 'supplier',
+                    description: 'Sous-titre de la section adresse'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_address_locality_label')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_address_locality_label',
+                    value: 'Localité',
+                    group: 'supplier',
+                    description: 'Label de localité sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_address_details_label')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_address_details_label',
+                    value: 'Précisions',
+                    group: 'supplier',
+                    description: 'Label des précisions d adresse sur le dashboard fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_address_edit_button')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_address_edit_button',
+                    value: 'Modifier l\'adresse',
+                    group: 'supplier',
+                    description: 'Libellé du bouton modifier l adresse'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_no_orders_title')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_no_orders_title',
+                    value: 'Aucune commande en attente de préparation',
+                    group: 'supplier',
+                    description: 'Message affiché quand il n\'y a pas de commande à préparer'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_refresh_button')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_refresh_button',
+                    value: 'Actualiser',
+                    group: 'supplier',
+                    description: 'Libellé du bouton actualiser'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_boutique_modal_title')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_boutique_modal_title',
+                    value: 'Boutique',
+                    group: 'supplier',
+                    description: 'Titre du modal boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_boutique_modal_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_boutique_modal_subtitle',
+                    value: 'Mise à jour',
+                    group: 'supplier',
+                    description: 'Sous-titre du modal boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_dashboard_boutique_modal_save_button')) {
+                uniqueData.push({
+                    key: 'supplier_dashboard_boutique_modal_save_button',
+                    value: 'Enregistrer',
+                    group: 'supplier',
+                    description: 'Libellé du bouton enregistrer sur le modal boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_add_product_blocked_title')) {
+                uniqueData.push({
+                    key: 'supplier_add_product_blocked_title',
+                    value: 'Accès Restreint',
+                    group: 'supplier',
+                    description: 'Titre de la page produit bloqué pour fournisseur non actif'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_add_product_blocked_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_add_product_blocked_subtitle',
+                    value: 'Accès limité',
+                    group: 'supplier',
+                    description: 'Sous-titre de la page produit bloqué pour fournisseur non actif'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_add_product_blocked_message')) {
+                uniqueData.push({
+                    key: 'supplier_add_product_blocked_message',
+                    value: 'Votre compte fournisseur est actuellement en attente d\'approbation ou suspendu. L\'administrateur doit valider votre profil avant que vous ne puissiez commencer à vendre vos produits sur la plateforme.',
+                    group: 'supplier',
+                    description: 'Message d explication pour fournisseur non actif'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_add_product_blocked_button')) {
+                uniqueData.push({
+                    key: 'supplier_add_product_blocked_button',
+                    value: 'Retour au Dashboard',
+                    group: 'supplier',
+                    description: 'Libellé du bouton retour au dashboard sur page bloquée'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_sign_up_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_sign_up_button',
+                    value: 'S\'inscrire',
+                    group: 'supplier',
+                    description: 'Libellé du bouton inscription sur la page fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_sign_in_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_sign_in_button',
+                    value: 'Se Connecter',
+                    group: 'supplier',
+                    description: 'Libellé du bouton connexion sur la page fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_heading_signup')) {
+                uniqueData.push({
+                    key: 'supplier_register_heading_signup',
+                    value: 'Devenir Fournisseur',
+                    group: 'supplier',
+                    description: 'Titre de l en-tête pour l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_heading_signin')) {
+                uniqueData.push({
+                    key: 'supplier_register_heading_signin',
+                    value: 'Connexion Partenaire',
+                    group: 'supplier',
+                    description: 'Titre de l en-tête pour la connexion fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_steps_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_steps_title',
+                    value: 'Étapes d inscription',
+                    group: 'supplier',
+                    description: 'Titre de la barre des étapes du formulaire fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step2_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_step2_title',
+                    value: 'Infos Partenaire',
+                    group: 'supplier',
+                    description: 'Titre de l étape contact et paiement'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step2_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_step2_subtitle',
+                    value: 'Tous les champs sont obligatoires',
+                    group: 'supplier',
+                    description: 'Sous titre de l étape contact et paiement'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step3_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_step3_title',
+                    value: 'Adresse de Boutique',
+                    group: 'supplier',
+                    description: 'Titre de l étape localisation fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step3_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_step3_subtitle',
+                    value: 'Localisation exacte pour la logistique',
+                    group: 'supplier',
+                    description: 'Sous titre de l étape localisation fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step4_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_step4_title',
+                    value: 'Dernière Étape',
+                    group: 'supplier',
+                    description: 'Titre de la dernière étape du formulaire fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step4_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_step4_subtitle',
+                    value: 'Accord de partenariat et confidentialité',
+                    group: 'supplier',
+                    description: 'Sous titre de la dernière étape du formulaire fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_terms_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_terms_title',
+                    value: 'Conditions du programme Fournisseur',
+                    group: 'supplier',
+                    description: 'Titre des conditions pour l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_terms_accept_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_terms_accept_label',
+                    value: 'J\'ai lu et j\'accepte les termes du contrat ci-dessus.',
+                    group: 'supplier',
+                    description: 'Label du checkbox d acceptation des termes fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_submit_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_submit_button',
+                    value: 'Finaliser mon Inscription',
+                    group: 'supplier',
+                    description: 'Libellé du bouton de validation inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_blockmodal_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_blockmodal_title',
+                    value: 'Session Active Détectée',
+                    group: 'supplier',
+                    description: 'Titre du modal indiquant une session active'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_blockmodal_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_blockmodal_subtitle',
+                    value: 'Compte Séparé Requis',
+                    group: 'supplier',
+                    description: 'Sous titre du modal session active'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_blockmodal_message')) {
+                uniqueData.push({
+                    key: 'supplier_register_blockmodal_message',
+                    value: 'Vous êtes déjà connecté. Pour une meilleure expérience, vous devez créer un nouveau compte dédié exclusivement à votre boutique.',
+                    group: 'supplier',
+                    description: 'Message du modal session active pour fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_blockmodal_action')) {
+                uniqueData.push({
+                    key: 'supplier_register_blockmodal_action',
+                    value: 'Créer un nouveau compte marchand',
+                    group: 'supplier',
+                    description: 'Texte du bouton action du modal session active'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'about_team')) {
                 uniqueData.push({
                     key: 'about_team',
@@ -278,6 +824,8 @@ const ConfigManager = () => {
         features: <Truck className="text-rose-500" />,
         api: <Plus className="text-cyan-500" />,
         about: <Users className="text-indigo-500" />,
+        supplier: <Store className="text-emerald-500" />,
+        messages: <Mail className="text-fuchsia-500" />,
         general: <Settings className="text-slate-500" />
     };
 
@@ -291,6 +839,8 @@ const ConfigManager = () => {
         features: "Fonctionnalités & Tarifs",
         api: "API & Services Externes",
         about: "Page À Propos (Équipe)",
+        supplier: "Portail Fournisseur",
+        messages: "Textes de notification & messages",
         general: "Paramètres Généraux"
     };
 
@@ -404,6 +954,14 @@ const ConfigManager = () => {
                                                         placeholder="URL manuelle (optionnel)"
                                                     />
                                                 </div>
+                                            ) : (cfg.group === 'messages' || cfg.key.toLowerCase().includes('whatsapp') || cfg.key.toLowerCase().includes('email_subject')) ? (
+                                                <textarea
+                                                    rows={6}
+                                                    value={cfg.value || ''}
+                                                    onChange={(e) => handleChange(groupKey, cfg.key, e.target.value)}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-vertical"
+                                                    placeholder="Saisissez un texte ou un template avec {{orderId}}, {{status}}, etc..."
+                                                />
                                             ) : (
                                                 <input 
                                                     type="text"

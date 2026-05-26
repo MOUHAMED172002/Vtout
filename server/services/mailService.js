@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import 'dotenv/config';
 import { Config } from '../models/index.js';
+import { getTextTemplate } from './textTemplateService.js';
 
 /**
  * Get email config: DB values take priority over .env
@@ -177,31 +178,54 @@ const sendMail = async (to, subject, html) => {
 export const sendOrderNotificationToAdmin = async (order) => {
     const cfg = await getEmailConfig();
     const adminEmail = cfg.adminEmail;
-    return sendMail(adminEmail, `🚀 Nouvelle Commande #${order.id.slice(0, 8)}`, templates.orderAdmin(order));
+    const subject = await getTextTemplate(
+        'email_subject_new_order_admin',
+        `🚀 Nouvelle Commande #${order.id.slice(0, 8)}`,
+        { orderId: order.id.slice(0, 8) }
+    );
+    return sendMail(adminEmail, subject, templates.orderAdmin(order));
 };
 
 export const sendOrderUpdateToCustomer = async (order, statusLabel) => {
     const email = order.guest_email || order.user_email;
     if (!email) return;
-    return sendMail(email, `📦 Commande #${order.id.slice(0, 8)} : ${statusLabel}`, templates.statusUpdate(order, statusLabel));
+    const subject = await getTextTemplate(
+        'email_subject_order_status_customer',
+        `📦 Commande #${order.id.slice(0, 8)} : ${statusLabel}`,
+        { orderId: order.id.slice(0, 8), status: statusLabel }
+    );
+    return sendMail(email, subject, templates.statusUpdate(order, statusLabel));
 };
 
 export const sendProductApprovalNotification = async (supplierEmail, product, status, feedback) => {
     if (!supplierEmail) return;
-    const subject = status === 'approved' ? '✅ Produit Approuvé' : '❌ Produit Refusé';
+    const subject = await getTextTemplate(
+        'email_subject_product_approval',
+        status === 'approved' ? '✅ Produit Approuvé' : '❌ Produit Refusé',
+        { productName: product.name, status }
+    );
     return sendMail(supplierEmail, subject, templates.productApproval(product, status, feedback));
 };
 
 export const sendSupplierApprovalNotification = async (supplierEmail, supplier, status) => {
     if (!supplierEmail) return;
-    const subject = status === 'active' ? '✅ Compte Fournisseur Approuvé' : '⚠️ Compte Fournisseur Suspendu';
+    const subject = await getTextTemplate(
+        'email_subject_supplier_status',
+        status === 'active' ? '✅ Compte Fournisseur Approuvé' : '⚠️ Compte Fournisseur Suspendu',
+        { supplierName: supplier.name, status }
+    );
     return sendMail(supplierEmail, subject, templates.supplierApproval(supplier, status));
 };
 
 export const sendInvoiceEmail = async (order, items) => {
     const email = order.guest_email || order.user_email;
     if (!email) return;
-    return sendMail(email, `🧾 Votre Reçus - Commande #${order.id.slice(0, 8)}`, generateInvoiceTemplate(order, items));
+    const subject = await getTextTemplate(
+        'email_subject_invoice',
+        `🧾 Votre Reçus - Commande #${order.id.slice(0, 8)}`,
+        { orderId: order.id.slice(0, 8) }
+    );
+    return sendMail(email, subject, generateInvoiceTemplate(order, items));
 };
 
 /**
