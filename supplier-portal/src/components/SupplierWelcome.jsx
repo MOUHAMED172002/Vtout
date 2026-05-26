@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Store, Check, MapPin, Phone, MessageCircle, CreditCard, ShieldCheck, ChevronRight, ChevronLeft, Building2 } from 'lucide-react';
 import { useAuth } from './clerk-shim';
 import { registerSupplier } from '../services/supplierService';
+import api from '../services/api';
 import { toast } from 'react-hot-toast';
 import AddressSelector from './Shared/AddressSelector';
 
@@ -11,6 +12,25 @@ export default function SupplierWelcome({ user }) {
     const [step, setStep] = useState(1);
     const { getToken } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [configs, setConfigs] = useState({});
+
+    const getConfig = (key, fallback) => configs[key] || fallback;
+    const formatConfig = (key, fallback, vars = {}) => {
+        const text = getConfig(key, fallback);
+        return Object.keys(vars).reduce((current, varName) => current.replace(new RegExp(`{{${varName}}}`, 'g'), vars[varName]), text);
+    };
+
+    useEffect(() => {
+        api.get('/configs/public')
+            .then((res) => {
+                const map = {};
+                res.data.forEach((config) => {
+                    map[config.key] = config.value;
+                });
+                setConfigs(map);
+            })
+            .catch(() => {});
+    }, []);
 
     const [formData, setFormData] = useState({
         shopName: '',
@@ -33,6 +53,12 @@ export default function SupplierWelcome({ user }) {
     const handleNext = () => setStep(s => s + 1);
     const handleBack = () => setStep(s => s - 1);
 
+    const steps = [
+        { id: 1, label: getConfig('supplier_welcome_step1_label', 'Boutique'), icon: Store },
+        { id: 2, label: getConfig('supplier_welcome_step2_label', 'Localisation'), icon: MapPin },
+        { id: 3, label: getConfig('supplier_welcome_step3_label', 'Accord Marchand'), icon: ShieldCheck },
+    ];
+
     const handleSubmit = async () => {
         try {
             setLoading(true);
@@ -53,12 +79,6 @@ export default function SupplierWelcome({ user }) {
         }
     };
 
-    const steps = [
-        { id: 1, title: 'Boutique', icon: <Store size={20} /> },
-        { id: 2, title: 'Localisation', icon: <MapPin size={20} /> },
-        { id: 3, title: 'Accord Marchand', icon: <ShieldCheck size={20} /> },
-    ];
-
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 md:px-0 max-w-4xl mx-auto">
             
@@ -68,10 +88,10 @@ export default function SupplierWelcome({ user }) {
                     <Building2 size={32} />
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900">
-                    Propulsez vos ventes.
+                    {getConfig('supplier_welcome_page_title', 'Propulsez vos ventes.')}
                 </h1>
                 <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] md:text-xs max-w-lg mx-auto">
-                    Bonjour {user?.firstName}, finalisez la configuration de votre boutique en 3 petites étapes pour commencer à vendre sur Vtout.
+                    {formatConfig('supplier_welcome_page_subtitle', 'Bonjour {{firstName}}, finalisez la configuration de votre boutique en 3 petites étapes pour commencer à vendre sur Vtout.', { firstName: user?.firstName || '' })}
                 </p>
             </div>
 
@@ -90,7 +110,7 @@ export default function SupplierWelcome({ user }) {
                                 {step > s.id ? <Check size={20} /> : s.icon}
                             </div>
                             <span className={`text-[10px] font-black uppercase tracking-widest ${step >= s.id ? 'text-primary' : 'text-slate-400'}`}>
-                                {s.title}
+                                {s.label}
                             </span>
                         </div>
                     ))}
@@ -103,13 +123,12 @@ export default function SupplierWelcome({ user }) {
                     {step === 1 && (
                         <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center border-b border-slate-50 pb-8">
-                                <h2 className="text-2xl font-black text-slate-900 mb-2">Informations de la Boutique</h2>
-                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Comment les clients vont-ils vous connaître ?</p>
-                            </div>
+                                    <h2 className="text-2xl font-black text-slate-900 mb-2">{getConfig('supplier_welcome_shop_title', 'Informations de la Boutique')}</h2>
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_welcome_shop_subtitle', 'Comment les clients vont-ils vous connaître ?')}</p>
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">Nom de la Boutique / Entreprise</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">{getConfig('supplier_welcome_shop_name_label', 'Nom de la Boutique / Entreprise')}</label>
                                     <input
                                         type="text"
                                         value={formData.shopName}
@@ -121,7 +140,7 @@ export default function SupplierWelcome({ user }) {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">Téléphone Principal</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">{getConfig('supplier_welcome_phone_label', 'Téléphone Principal')}</label>
                                         <div className="relative">
                                             <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                             <input
@@ -135,7 +154,7 @@ export default function SupplierWelcome({ user }) {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 px-4 flex items-center gap-2">
-                                            <MessageCircle size={14} /> WhatsApp
+                                            <MessageCircle size={14} /> {getConfig('supplier_welcome_whatsapp_label', 'WhatsApp')}
                                         </label>
                                         <input
                                             type="tel"
@@ -149,7 +168,7 @@ export default function SupplierWelcome({ user }) {
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 px-4 flex items-center gap-2">
-                                        <CreditCard size={14} /> Numéro Mobile Money
+                                        <CreditCard size={14} /> {getConfig('supplier_welcome_momo_label', 'Numéro Mobile Money')}
                                     </label>
                                     <input
                                         type="tel"
@@ -158,13 +177,13 @@ export default function SupplierWelcome({ user }) {
                                         className="w-full bg-amber-50 border-none rounded-3xl px-8 py-5 font-black text-sm text-slate-900 focus:ring-2 focus:ring-amber-500/20 transition-all"
                                         placeholder="Numéro pour vos règlements..."
                                     />
-                                    <p className="px-4 text-[9px] font-bold text-amber-600">Sur ce numéro vous recevrez vos paiements de Vtout.</p>
+                                    <p className="px-4 text-[9px] font-bold text-amber-600">{getConfig('supplier_welcome_momo_note', 'Sur ce numéro vous recevrez vos paiements de Vtout.')}</p>
                                 </div>
                             </div>
 
                             <div className="pt-4">
                                 <button onClick={handleNext} disabled={!formData.shopName || !formData.phone} className="w-full py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50">
-                                    Étape Suivante <ChevronRight size={18} />
+                                    {getConfig('supplier_welcome_next_button', 'Étape Suivante')} <ChevronRight size={18} />
                                 </button>
                             </div>
                         </motion.div>
@@ -173,8 +192,8 @@ export default function SupplierWelcome({ user }) {
                     {step === 2 && (
                         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center border-b border-slate-50 pb-8">
-                                <h2 className="text-2xl font-black text-slate-900 mb-2">Où récupérer les colis ?</h2>
-                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Indiquez l'adresse de collecte pour nos livreurs</p>
+                                <h2 className="text-2xl font-black text-slate-900 mb-2">{getConfig('supplier_welcome_step2_title', 'Où récupérer les colis ?')}</h2>
+                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_welcome_step2_subtitle', 'Indiquez l adresse de collecte pour nos livreurs')}</p>
                             </div>
 
                             <div className="space-y-6">
@@ -202,7 +221,7 @@ export default function SupplierWelcome({ user }) {
                                     <ChevronLeft size={24} />
                                 </button>
                                 <button onClick={handleNext} disabled={!formData.quartier_label} className="flex-1 py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50">
-                                    Continuer <ChevronRight size={18} />
+                                    {getConfig('supplier_welcome_continue_button', 'Continuer')} <ChevronRight size={18} />
                                 </button>
                             </div>
                         </motion.div>
@@ -212,17 +231,16 @@ export default function SupplierWelcome({ user }) {
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center bg-slate-50 rounded-[2rem] p-6 mb-8">
                                 <ShieldCheck size={40} className="mx-auto text-primary mb-4" />
-                                <h2 className="text-2xl font-black text-slate-900 mb-2">Accord Marchand</h2>
-                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Signature et validation</p>
+                                <h2 className="text-2xl font-black text-slate-900 mb-2">{getConfig('supplier_welcome_step3_title', 'Accord Marchand')}</h2>
+                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_welcome_step3_subtitle', 'Signature et validation')}</p>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="max-h-[150px] overflow-y-auto p-6 rounded-3xl bg-slate-50 text-[10px] font-bold text-slate-500 leading-relaxed custom-scrollbar border border-slate-100">
-                                    <p className="mb-2 uppercase text-slate-900 font-black">Règles de fonctionnement</p>
-                                    <p className="mb-2">1. Les prix que vous saisissez sont les <span className="font-black text-primary">prix finaux affichés aux clients</span>.</p>
-                                    <p className="mb-2">2. Vtout prélève une commission en pourcentage sur chaque vente effectuée.</p>
-                                    <p className="mb-2">3. Les colis doivent être prêts dès qu'une commande est confirmée.</p>
-                                    <p>4. Vos gains seront transférés via Mobile Money après livraison réussie au client.</p>
+                                    <p className="mb-2 uppercase text-slate-900 font-black">{getConfig('supplier_welcome_terms_title', 'Règles de fonctionnement')}</p>
+                                    {getConfig('supplier_welcome_terms_list', '1. Les prix que vous saisissez sont les prix finaux affichés aux clients.\n2. Vtout prélève une commission en pourcentage sur chaque vente effectuée.\n3. Les colis doivent être prêts dès qu une commande est confirmée.\n4. Vos gains seront transférés via Mobile Money après livraison réussie au client.').split('\n').map((line, index) => (
+                                        <p key={index} className={index < 3 ? 'mb-2' : ''}>{line}</p>
+                                    ))}
                                 </div>
 
                                 <label className="flex items-center gap-4 cursor-pointer p-6 rounded-3xl border-2 border-slate-100 hover:border-primary/50 transition-all group">
@@ -233,19 +251,19 @@ export default function SupplierWelcome({ user }) {
                                         className="w-6 h-6 rounded-lg text-primary focus:ring-0 border-slate-200 transition-all cursor-pointer"
                                     />
                                     <span className="text-xs font-black text-slate-600 group-hover:text-primary transition-colors">
-                                        J'accepte ces conditions pour la vente sur Vtout Marketplace.
+                                        {getConfig('supplier_welcome_terms_accept_label', 'J accepte ces conditions pour la vente sur Vtout Marketplace.')}
                                     </span>
                                 </label>
 
                                 {formData.termsAccepted && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 pt-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary px-4">Signature Électronique</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary px-4">{getConfig('supplier_welcome_signature_label', 'Signature Électronique')}</label>
                                         <input
                                             type="text"
                                             value={formData.electronicSignature}
                                             onChange={(e) => setFormData({ ...formData, electronicSignature: e.target.value })}
                                             className="w-full bg-primary/5 border-2 border-primary/20 rounded-3xl px-8 py-5 font-black text-[13px] text-primary focus:ring-2 focus:ring-primary/40 transition-all font-serif italic placeholder:text-primary/30 placeholder:not-italic placeholder:font-sans"
-                                            placeholder="Saisissez votre nom complet ici..."
+                                            placeholder={getConfig('supplier_welcome_signature_placeholder', 'Saisissez votre nom complet ici...')}
                                         />
                                     </motion.div>
                                 )}
@@ -263,7 +281,7 @@ export default function SupplierWelcome({ user }) {
                                     {loading ? (
                                         <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                     ) : (
-                                        'Activer ma Boutique'
+                                        getConfig('supplier_welcome_submit_button', 'Activer ma Boutique')
                                     )}
                                 </button>
                             </div>

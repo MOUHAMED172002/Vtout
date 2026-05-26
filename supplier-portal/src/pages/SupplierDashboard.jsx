@@ -3,7 +3,7 @@ import { useAuth, useUser } from '../components/clerk-shim';
 import { Package, Plus, Clock, CheckCircle, XCircle, ChevronRight, BarChart3, Store, Banknote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getMySupplierProducts, getMySupplierProfile } from '../services/supplierService';
+import { getMySupplierProducts, getMySupplierProfile, getMyBoutiques } from '../services/supplierService';
 import { getMySupplierOrders } from '../services/orderService';
 import SupplierWelcome from '../components/SupplierWelcome';
 import BoutiqueModal from '../components/BoutiqueModal';
@@ -29,29 +29,42 @@ const SupplierDashboard = ({ globalSearchQuery }) => {
             const token = await getToken();
             if (!token) return;
 
-            // Check if supplier profile exists
-            const profile = await getMySupplierProfile(token);
-            setSupplierProfile(profile);
+            // Check if supplier profile exists and if there are any active boutiques.
+            let profile = null;
+            let boutiquesData = [];
 
-            if (!profile) {
+            try {
+                profile = await getMySupplierProfile(token);
+                setSupplierProfile(profile);
+            } catch (err) {
+                profile = null;
+            }
+
+            try {
+                boutiquesData = await getMyBoutiques(token);
+                setBoutiques(boutiquesData || []);
+            } catch (err) {
+                boutiquesData = [];
+            }
+
+            const hasSupplierSection = Boolean(profile || (boutiquesData && boutiquesData.length > 0));
+            if (!hasSupplierSection) {
                 setIsNotSupplier(true);
                 setLoading(false);
                 return;
             }
 
-            const [productsData, ordersData, boutiquesData, financialData] = await Promise.all([
+            const [productsData, ordersData, financialData] = await Promise.all([
                 getMySupplierProducts(token),
                 getMySupplierOrders(token),
-                import('../services/supplierService').then(s => s.getMyBoutiques(token)),
                 import('../services/api').then(m => m.default.get('/financials/my-status', { headers: { Authorization: `Bearer ${token}` } }))
             ]);
+
             setProducts(productsData || []);
             setOrders(ordersData || []);
-            setBoutiques(boutiquesData || []);
             setBalance(financialData?.data?.balance || 0);
         } catch (profileError) {
             setIsNotSupplier(true);
-            setLoading(false);
         } finally {
             setLoading(false);
         }

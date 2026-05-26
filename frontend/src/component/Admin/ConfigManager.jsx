@@ -625,6 +625,30 @@ const ConfigManager = () => {
                     description: 'Sous titre de l étape création de compte fournisseur'
                 });
             }
+            if (!uniqueData.find(c => c.key === 'supplier_register_checking_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_checking_title',
+                    value: 'Vérification en cours...',
+                    group: 'supplier',
+                    description: 'Titre affiché lorsqu on vérifie le compte fournisseur existant'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_checking_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_checking_subtitle',
+                    value: 'Préparation de votre espace partenaire',
+                    group: 'supplier',
+                    description: 'Sous titre affiché pendant la vérification du compte fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_use_other_account_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_use_other_account_button',
+                    value: 'Utiliser un autre compte',
+                    group: 'supplier',
+                    description: 'Libellé du bouton pour changer de compte fournisseur'
+                });
+            }
             if (!uniqueData.find(c => c.key === 'supplier_register_already_registered')) {
                 uniqueData.push({
                     key: 'supplier_register_already_registered',
@@ -839,6 +863,206 @@ const ConfigManager = () => {
                     value: 'Créer un nouveau compte marchand',
                     group: 'supplier',
                     description: 'Texte du bouton action du modal session active'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_page_title')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_page_title',
+                    value: 'Propulsez vos ventes.',
+                    group: 'supplier',
+                    description: 'Titre principal de la page d accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_page_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_page_subtitle',
+                    value: 'Bonjour {{firstName}}, finalisez la configuration de votre boutique en 3 petites étapes pour commencer à vendre sur Vtout.',
+                    group: 'supplier',
+                    description: 'Sous-titre de la page d accueil vendeur avec insertion de prénom'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step1_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step1_label',
+                    value: 'Boutique',
+                    group: 'supplier',
+                    description: 'Étiquette étape 1 du processus d inscription vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step2_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step2_label',
+                    value: 'Localisation',
+                    group: 'supplier',
+                    description: 'Étiquette étape 2 du processus d inscription vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step3_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step3_label',
+                    value: 'Accord Marchand',
+                    group: 'supplier',
+                    description: 'Étiquette étape 3 du processus d inscription vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_shop_title')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_shop_title',
+                    value: 'Informations de la Boutique',
+                    group: 'supplier',
+                    description: 'Titre de la section informations boutique du formulaire vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_shop_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_shop_subtitle',
+                    value: 'Comment les clients vont-ils vous connaître ?',
+                    group: 'supplier',
+                    description: 'Sous-titre de la section informations boutique du formulaire vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_shop_name_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_shop_name_label',
+                    value: 'Nom de la Boutique / Entreprise',
+                    group: 'supplier',
+                    description: 'Libellé du champ nom de la boutique dans l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_phone_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_phone_label',
+                    value: 'Téléphone Principal',
+                    group: 'supplier',
+                    description: 'Libellé du champ téléphone principal dans l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_whatsapp_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_whatsapp_label',
+                    value: 'WhatsApp',
+                    group: 'supplier',
+                    description: 'Libellé du champ WhatsApp dans l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_momo_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_momo_label',
+                    value: 'Numéro Mobile Money',
+                    group: 'supplier',
+                    description: 'Libellé du champ Mobile Money dans l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_momo_note')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_momo_note',
+                    value: 'Sur ce numéro vous recevrez vos paiements de Vtout.',
+                    group: 'supplier',
+                    description: 'Note explicative liée au champ Mobile Money'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step2_title')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step2_title',
+                    value: 'Où récupérer les colis ?',
+                    group: 'supplier',
+                    description: 'Titre de la section localisation sur l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step2_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step2_subtitle',
+                    value: 'Indiquez l adresse de collecte pour nos livreurs',
+                    group: 'supplier',
+                    description: 'Sous-titre de la section localisation sur l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step3_title')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step3_title',
+                    value: 'Accord Marchand',
+                    group: 'supplier',
+                    description: 'Titre de la section accord marchand du formulaire vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_step3_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_step3_subtitle',
+                    value: 'Signature et validation',
+                    group: 'supplier',
+                    description: 'Sous-titre de la section accord marchand du formulaire vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_terms_title')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_terms_title',
+                    value: 'Règles de fonctionnement',
+                    group: 'supplier',
+                    description: 'Titre de la liste des règles de fonctionnement vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_terms_list')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_terms_list',
+                    value: '1. Les prix que vous saisissez sont les prix finaux affichés aux clients.\n2. Vtout prélève une commission en pourcentage sur chaque vente effectuée.\n3. Les colis doivent être prêts dès qu une commande est confirmée.\n4. Vos gains seront transférés via Mobile Money après livraison réussie au client.',
+                    group: 'supplier',
+                    description: 'Liste des règles de fonctionnement sur la page vendeur (séparées par saut de ligne)'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_terms_accept_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_terms_accept_label',
+                    value: 'J accepte ces conditions pour la vente sur Vtout Marketplace.',
+                    group: 'supplier',
+                    description: 'Label du checkbox d acceptation des conditions vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_signature_label')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_signature_label',
+                    value: 'Signature Électronique',
+                    group: 'supplier',
+                    description: 'Libellé du champ signature électronique sur la page vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_signature_placeholder')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_signature_placeholder',
+                    value: 'Saisissez votre nom complet ici...',
+                    group: 'supplier',
+                    description: 'Placeholder du champ signature électronique sur la page vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_continue_button')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_continue_button',
+                    value: 'Continuer',
+                    group: 'supplier',
+                    description: 'Libellé du bouton continuer dans la page vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_submit_button')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_submit_button',
+                    value: 'Activer ma Boutique',
+                    group: 'supplier',
+                    description: 'Libellé du bouton de soumission sur la page vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_next_button')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_next_button',
+                    value: 'Étape Suivante',
+                    group: 'supplier',
+                    description: 'Libellé du bouton suivant lors de l accueil vendeur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_welcome_continue_button')) {
+                uniqueData.push({
+                    key: 'supplier_welcome_continue_button',
+                    value: 'Continuer',
+                    group: 'supplier',
+                    description: 'Libellé du bouton continuer sur l accueil vendeur'
                 });
             }
 

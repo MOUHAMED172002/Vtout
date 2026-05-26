@@ -156,8 +156,8 @@ const SupplierRegister = () => {
                             ) : (
                                 <div className="space-y-8 text-center py-12">
                                     <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto stroke-[2]" />
-                                    <div><h3 className="text-2xl font-black text-slate-900">Vérification en cours...</h3><p className="text-slate-400 text-[11px] uppercase tracking-widest font-bold mt-2">Préparation de votre espace partenaire</p></div>
-                                    <button onClick={async () => { await signOut(); window.location.reload(); }} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-colors">Utiliser un autre compte</button>
+                                    <div><h3 className="text-2xl font-black text-slate-900">{getConfig('supplier_register_checking_title', 'Vérification en cours...')}</h3><p className="text-slate-400 text-[11px] uppercase tracking-widest font-bold mt-2">{getConfig('supplier_register_checking_subtitle', 'Préparation de votre espace partenaire')}</p></div>
+                                    <button onClick={async () => { await signOut(); window.location.reload(); }} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-colors">{getConfig('supplier_register_use_other_account_button', 'Utiliser un autre compte')}</button>
                                 </div>
                             )}
                         </motion.div>
