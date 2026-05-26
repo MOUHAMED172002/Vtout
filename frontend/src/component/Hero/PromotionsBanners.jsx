@@ -41,7 +41,7 @@ const PromotionsBanners = () => {
                             buttonText: "Voir les offres",
                             link: "/promotions/flash",
                             button2Text: "Toutes les catégories",
-                            button2Link: "/categories"
+                            button2Link: "/promotions"
                         },
                         {
                             id: 2,
@@ -55,7 +55,7 @@ const PromotionsBanners = () => {
                             buttonText: "Voir le gros",
                             link: "/promotions/quantite",
                             button2Text: "Toutes les catégories",
-                            button2Link: "/categories"
+                            button2Link: "/promotions"
                         },
                         {
                             id: 3,
@@ -69,7 +69,7 @@ const PromotionsBanners = () => {
                             buttonText: "Découvrir",
                             link: "/promotions/kits",
                             button2Text: "Toutes les catégories",
-                            button2Link: "/categories"
+                            button2Link: "/promotions"
                         }
                     ]);
                 }
@@ -88,7 +88,7 @@ const PromotionsBanners = () => {
                         buttonText: "Voir les offres",
                         link: "/promotions/flash",
                         button2Text: "Toutes les catégories",
-                        button2Link: "/categories"
+                        button2Link: "/promotions"
                     }
                 ]);
             } finally {
@@ -214,7 +214,7 @@ const PromotionsBanners = () => {
                                                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                             </button>
                                             <button
-                                                onClick={() => navigate(slide.button2Link || '/categories')}
+                                                onClick={() => navigate(slide.button2Link || '/promotions')}
                                                 className={`inline-flex items-center justify-center border font-bold text-sm md:text-base px-6 py-4 rounded-xl transition-all duration-300 active:scale-95 cursor-pointer ${buttonOutlineClass}`}
                                             >
                                                 {slide.button2Text || 'Toutes les catégories'}

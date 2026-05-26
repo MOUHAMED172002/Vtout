@@ -18,7 +18,8 @@ import {
     Layout,
     Star,
     Users,
-    UserCircle2
+    UserCircle2,
+    Store
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -606,6 +607,134 @@ const ConfigManager = () => {
                     value: 'Étapes d inscription',
                     group: 'supplier',
                     description: 'Titre de la barre des étapes du formulaire fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step1_title')) {
+                uniqueData.push({
+                    key: 'supplier_register_step1_title',
+                    value: 'Compte',
+                    group: 'supplier',
+                    description: 'Titre de l étape création de compte fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_step1_subtitle')) {
+                uniqueData.push({
+                    key: 'supplier_register_step1_subtitle',
+                    value: 'Créez votre compte d\'accès',
+                    group: 'supplier',
+                    description: 'Sous titre de l étape création de compte fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_already_registered')) {
+                uniqueData.push({
+                    key: 'supplier_register_already_registered',
+                    value: 'Déjà inscrit ? Cliquez sur Se Connecter.',
+                    group: 'supplier',
+                    description: 'Texte invitant les utilisateurs inscrits à se connecter'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_no_account')) {
+                uniqueData.push({
+                    key: 'supplier_register_no_account',
+                    value: 'Pas encore de compte ? Cliquez sur S\'inscrire.',
+                    group: 'supplier',
+                    description: 'Texte invitant les nouveaux utilisateurs à s inscrire'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_shop_name_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_shop_name_label',
+                    value: 'Nom de la Boutique',
+                    group: 'supplier',
+                    description: 'Label du champ nom de la boutique lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_shop_name_placeholder')) {
+                uniqueData.push({
+                    key: 'supplier_register_shop_name_placeholder',
+                    value: 'Ex: BENIN STORE SARL',
+                    group: 'supplier',
+                    description: 'Placeholder du champ nom de la boutique'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_phone_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_phone_label',
+                    value: 'Téléphone',
+                    group: 'supplier',
+                    description: 'Label du champ téléphone lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_whatsapp_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_whatsapp_label',
+                    value: 'WhatsApp',
+                    group: 'supplier',
+                    description: 'Label du champ WhatsApp lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_momo_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_momo_label',
+                    value: 'Numéro Mobile Money (MoMo)',
+                    group: 'supplier',
+                    description: 'Label du champ Mobile Money lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_momo_note')) {
+                uniqueData.push({
+                    key: 'supplier_register_momo_note',
+                    value: '💰 Vos paiements après livraison',
+                    group: 'supplier',
+                    description: 'Note expliquant l utilisation du numéro Mobile Money'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_back_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_back_button',
+                    value: 'Retour',
+                    group: 'supplier',
+                    description: 'Libellé du bouton précédent lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_next_button')) {
+                uniqueData.push({
+                    key: 'supplier_register_next_button',
+                    value: 'Étape Suivante',
+                    group: 'supplier',
+                    description: 'Libellé du bouton suivant lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_address_description_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_address_description_label',
+                    value: 'Description précise de l\'adresse',
+                    group: 'supplier',
+                    description: 'Label du champ de description d adresse lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_address_description_placeholder')) {
+                uniqueData.push({
+                    key: 'supplier_register_address_description_placeholder',
+                    value: 'Ex: Face pharmacie du peuple, 1er bâtiment rouge',
+                    group: 'supplier',
+                    description: 'Placeholder du champ de description d adresse'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_signature_label')) {
+                uniqueData.push({
+                    key: 'supplier_register_signature_label',
+                    value: 'Signature Électronique',
+                    group: 'supplier',
+                    description: 'Label du champ signature électronique lors de l inscription fournisseur'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'supplier_register_signature_placeholder')) {
+                uniqueData.push({
+                    key: 'supplier_register_signature_placeholder',
+                    value: 'Tapez votre nom complet pour signer...',
+                    group: 'supplier',
+                    description: 'Placeholder du champ signature électronique'
                 });
             }
             if (!uniqueData.find(c => c.key === 'supplier_register_step2_title')) {

@@ -7,6 +7,7 @@ import { ChevronRight, ChevronLeft, Check, MapPin, Phone, MessageCircle, CreditC
 import AddressSelector from '../context/AddressSelector';
 import SupplierBlockModal from '../Shared/SupplierBlockModal';
 import CountryPhoneSelector from '../Shared/CountryPhoneSelector';
+import { useAppConfig } from '../context/ConfigContext';
 import { registerSelfSupplier } from '../../services/supplierService';
 import api from '../../services/api';
 
@@ -15,6 +16,7 @@ const SupplierRegister = () => {
     const [authMode, setAuthMode] = useState('signUp');
     const { isLoaded, isSignedIn, user } = useUser();
     const { getToken, signOut } = useAuth();
+    const { getConfig } = useAppConfig();
     const [showBlockModal, setShowBlockModal] = useState(false);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -98,10 +100,10 @@ const SupplierRegister = () => {
     };
 
     const steps = [
-        { id: 1, title: 'Compte', icon: <Store size={20} /> },
-        { id: 2, title: 'Contact & Paiement', icon: <Phone size={20} /> },
-        { id: 3, title: 'Localisation', icon: <MapPin size={20} /> },
-        { id: 4, title: 'Validation', icon: <ShieldCheck size={20} /> },
+        { id: 1, title: getConfig('supplier_register_step1_title', 'Compte'), icon: <Store size={20} /> },
+        { id: 2, title: getConfig('supplier_register_step2_title', 'Contact & Paiement'), icon: <Phone size={20} /> },
+        { id: 3, title: getConfig('supplier_register_step3_title', 'Localisation'), icon: <MapPin size={20} /> },
+        { id: 4, title: getConfig('supplier_register_step4_title', 'Validation'), icon: <ShieldCheck size={20} /> },
     ];
 
     if (!isLoaded) return null;
@@ -139,16 +141,16 @@ const SupplierRegister = () => {
                             {!isSignedIn ? (
                                 <div className="space-y-6">
                                     <div className="flex justify-center gap-4">
-                                        <button onClick={() => setAuthMode('signUp')} className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>S'inscrire</button>
-                                        <button onClick={() => setAuthMode('signIn')} className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>Se Connecter</button>
+                                        <button onClick={() => setAuthMode('signUp')} className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signUp' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>{getConfig('supplier_register_sign_up_button', 'S\'inscrire')}</button>
+                                        <button onClick={() => setAuthMode('signIn')} className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'signIn' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>{getConfig('supplier_register_sign_in_button', 'Se Connecter')}</button>
                                     </div>
                                     <div className="text-center">
-                                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">{authMode === 'signUp' ? 'Devenir Fournisseur' : 'Connexion Partenaire'}</h2>
-                                        {!isLoggingIn && <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Étape 1 : Créez votre compte d'accès</p>}
+                                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">{authMode === 'signUp' ? getConfig('supplier_register_heading_signup', 'Devenir Fournisseur') : getConfig('supplier_register_heading_signin', 'Connexion Partenaire')}</h2>
+                                        {!isLoggingIn && <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_register_step1_subtitle', 'Étape 1 : Créez votre compte d\'accès')}</p>}
                                     </div>
                                     {authMode === 'signUp' ? <SignUp /> : <SignIn />}
                                     <p className="text-center text-xs font-bold text-slate-400 italic">
-                                        {authMode === 'signUp' ? 'Déjà inscrit ? Cliquez sur Se Connecter.' : 'Pas encore de compte ? Cliquez sur S\'inscrire.'}
+                                        {authMode === 'signUp' ? getConfig('supplier_register_already_registered', 'Déjà inscrit ? Cliquez sur Se Connecter.') : getConfig('supplier_register_no_account', 'Pas encore de compte ? Cliquez sur S\'inscrire.')}
                                     </p>
                                 </div>
                             ) : (
@@ -165,22 +167,22 @@ const SupplierRegister = () => {
                     {step === 2 && (
                         <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center border-b border-slate-100 pb-6">
-                                <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-1">Infos Partenaire</h2>
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Tous les champs sont obligatoires</p>
+                                <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-1">{getConfig('supplier_register_step2_title', 'Infos Partenaire')}</h2>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_register_step2_subtitle', 'Tous les champs sont obligatoires')}</p>
                             </div>
 
                             <div className="space-y-5">
                                 {/* Shop name */}
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1">Nom de la Boutique <span className="text-rose-500">*</span></label>
-                                    <input type="text" value={formData.shopName} onChange={e => set('shopName', e.target.value)} className={fieldClass(errors.shopName)} placeholder="Ex: BENIN STORE SARL" />
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1">{getConfig('supplier_register_shop_name_label', 'Nom de la Boutique')} <span className="text-rose-500">*</span></label>
+                                    <input type="text" value={formData.shopName} onChange={e => set('shopName', e.target.value)} className={fieldClass(errors.shopName)} placeholder={getConfig('supplier_register_shop_name_placeholder', 'Ex: BENIN STORE SARL')} />
                                     {errors.shopName && <p className="text-rose-500 text-[11px] font-bold px-4">{errors.shopName}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     {/* Phone */}
                                     <CountryPhoneSelector 
-                                        label="Téléphone" 
+                                        label={getConfig('supplier_register_phone_label', 'Téléphone')} 
                                         value={formData.phone} 
                                         onChange={val => set('phone', val)} 
                                         error={errors.phone}
@@ -189,7 +191,7 @@ const SupplierRegister = () => {
 
                                     {/* WhatsApp */}
                                     <CountryPhoneSelector 
-                                        label="WhatsApp" 
+                                        label={getConfig('supplier_register_whatsapp_label', 'WhatsApp')} 
                                         value={formData.whatsapp} 
                                         onChange={val => set('whatsapp', val)} 
                                         error={errors.whatsapp}
@@ -198,18 +200,20 @@ const SupplierRegister = () => {
                                 </div>
 
                                 {/* MoMo */}
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 px-4 flex items-center gap-1"><CreditCard size={12} /> Numéro Mobile Money (Momo Pay) <span className="text-rose-500">*</span></label>
-                                    <div className={phoneWrap(errors.momoNumber)}>
-                                        <PhoneInput international defaultCountry="BJ" value={formData.momoNumber} onChange={val => set('momoNumber', val)} className="w-full bg-slate-50 rounded-3xl pl-6 pr-6 py-3.5 font-black text-sm [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full" placeholder="+229 00 00 00 00" />
-                                    </div>
-                                    {errors.momoNumber ? <p className="text-rose-500 text-[11px] font-bold px-4">{errors.momoNumber}</p> : <p className="text-amber-600 text-[10px] font-bold px-4">💰 Vos paiements après livraison</p>}
-                                </div>
+                                <CountryPhoneSelector
+                                    label={getConfig('supplier_register_momo_label', 'Numéro Mobile Money (MoMo)')}
+                                    value={formData.momoNumber}
+                                    onChange={val => set('momoNumber', val)}
+                                    error={errors.momoNumber}
+                                    required={true}
+                                />
+                                {errors.momoNumber ? <p className="text-rose-500 text-[11px] font-bold px-4">{errors.momoNumber}</p> : <p className="text-amber-600 text-[10px] font-bold px-4">{getConfig('supplier_register_momo_note', '💰 Vos paiements après livraison')}</p>}
+                                
                             </div>
 
                             <div className="flex gap-4 pt-2">
                                 <button onClick={() => setStep(s => s - 1)} className="p-5 bg-slate-100 text-slate-400 rounded-3xl hover:bg-slate-200 transition-all"><ChevronLeft size={24} /></button>
-                                <button onClick={() => { if (validateStep2()) setStep(s => s + 1); }} className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all shadow-xl">Étape Suivante</button>
+                                <button onClick={() => { if (validateStep2()) setStep(s => s + 1); }} className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all shadow-xl">{getConfig('supplier_register_next_button', 'Étape Suivante')}</button>
                             </div>
                         </motion.div>
                     )}
@@ -218,8 +222,8 @@ const SupplierRegister = () => {
                     {step === 3 && (
                         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                             <div className="text-center">
-                                <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-1">Adresse de Boutique</h2>
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Localisation exacte pour la logistique</p>
+                                <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-1">{getConfig('supplier_register_step3_title', 'Adresse de Boutique')}</h2>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_register_step3_subtitle', 'Localisation exacte pour la logistique')}</p>
                             </div>
 
                             <AddressSelector requirePhone={false} onChange={loc => {
@@ -235,8 +239,8 @@ const SupplierRegister = () => {
 
                             {/* Address detail input */}
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1"><MapPin size={12} /> Description précise de l'adresse <span className="text-rose-500">*</span></label>
-                                <input type="text" value={formData.address_line} onChange={e => set('address_line', e.target.value)} className={fieldClass(errors.address_line)} placeholder="Ex: Face pharmacie du peuple, 1er bâtiment rouge" />
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1"><MapPin size={12} /> {getConfig('supplier_register_address_description_label', 'Description précise de l\'adresse')} <span className="text-rose-500">*</span></label>
+                                <input type="text" value={formData.address_line} onChange={e => set('address_line', e.target.value)} className={fieldClass(errors.address_line)} placeholder={getConfig('supplier_register_address_description_placeholder', 'Ex: Face pharmacie du peuple, 1er bâtiment rouge')} />
                                 {errors.address_line && <p className="text-rose-500 text-[11px] font-bold px-4">{errors.address_line}</p>}
                             </div>
 
@@ -255,7 +259,7 @@ const SupplierRegister = () => {
 
                             <div className="flex gap-4 pt-2">
                                 <button onClick={() => setStep(s => s - 1)} className="p-5 bg-slate-100 text-slate-400 rounded-3xl hover:bg-slate-200 transition-all"><ChevronLeft size={24} /></button>
-                                <button onClick={() => { if (validateStep3()) setStep(s => s + 1); }} className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all shadow-xl">Valider la position</button>
+                                <button onClick={() => { if (validateStep3()) setStep(s => s + 1); }} className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-primary transition-all shadow-xl">{getConfig('supplier_register_next_button', 'Valider la position')}</button>
                             </div>
                         </motion.div>
                     )}
@@ -264,12 +268,12 @@ const SupplierRegister = () => {
                     {step === 4 && (
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center p-8 bg-indigo-50 rounded-[40px] border border-indigo-100">
-                                <h2 className="text-3xl font-black tracking-tighter text-indigo-900 mb-1">Dernière Étape</h2>
-                                <p className="text-indigo-400 font-bold uppercase tracking-widest text-[10px]">Accord de partenariat et confidentialité</p>
+                                <h2 className="text-3xl font-black tracking-tighter text-indigo-900 mb-1">{getConfig('supplier_register_step4_title', 'Dernière Étape')}</h2>
+                                <p className="text-indigo-400 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_register_step4_subtitle', 'Accord de partenariat et confidentialité')}</p>
                             </div>
 
                             <div className="max-h-[240px] overflow-y-auto p-8 rounded-[30px] bg-slate-50 text-[11px] font-bold text-slate-600 leading-relaxed border border-slate-100 shadow-inner">
-                                <h4 className="font-black text-slate-900 text-sm mb-4 uppercase">Conditions du programme Fournisseur</h4>
+                                <h4 className="font-black text-slate-900 text-sm mb-4 uppercase">{getConfig('supplier_register_terms_title', 'Conditions du programme Fournisseur')}</h4>
                                 {policies.length > 0 ? policies.map(p => (
                                     <div key={p.id} className="mb-4"><p className="font-black text-slate-800 text-xs mb-1">{p.title}</p><div className="whitespace-pre-wrap">{p.content}</div></div>
                                 )) : (
@@ -287,11 +291,11 @@ const SupplierRegister = () => {
                             <div className="space-y-4">
                                 <label className="flex items-center gap-4 cursor-pointer p-4 rounded-[30px] border-2 border-slate-100 hover:border-primary transition-all group">
                                     <input type="checkbox" checked={formData.termsAccepted} onChange={e => setFormData(p => ({ ...p, termsAccepted: e.target.checked }))} className="w-8 h-8 rounded-xl border-none bg-slate-100 text-primary focus:ring-0 checked:bg-primary transition-all cursor-pointer" />
-                                    <span className="text-xs font-black text-slate-600 group-hover:text-primary transition-colors">J'ai lu et j'accepte les termes du contrat ci-dessus.</span>
+                                    <span className="text-xs font-black text-slate-600 group-hover:text-primary transition-colors">{getConfig('supplier_register_terms_accept_label', 'J\'ai lu et j\'accepte les termes du contrat ci-dessus.')}</span>
                                 </label>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">Signature Électronique <span className="text-rose-500">*</span></label>
-                                    <input type="text" value={formData.electronicSignature} onChange={e => setFormData(p => ({ ...p, electronicSignature: e.target.value }))} className={fieldClass(!formData.electronicSignature && formData.termsAccepted)} placeholder="Tapez votre nom complet pour signer..." />
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4">{getConfig('supplier_register_signature_label', 'Signature Électronique')} <span className="text-rose-500">*</span></label>
+                                    <input type="text" value={formData.electronicSignature} onChange={e => setFormData(p => ({ ...p, electronicSignature: e.target.value }))} className={fieldClass(!formData.electronicSignature && formData.termsAccepted)} placeholder={getConfig('supplier_register_signature_placeholder', 'Tapez votre nom complet pour signer...')} />
                                 </div>
                             </div>
 
@@ -299,7 +303,7 @@ const SupplierRegister = () => {
                                 <button onClick={() => setStep(s => s - 1)} className="p-5 bg-slate-100 text-slate-400 rounded-3xl hover:bg-slate-200 transition-all"><ChevronLeft size={24} /></button>
                                 <button onClick={handleSubmit} disabled={!formData.termsAccepted || !formData.electronicSignature || isLoading} className="flex-1 py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 flex justify-center items-center gap-2">
                                     {isLoading && <Loader2 className="animate-spin" size={16} />}
-                                    Finaliser mon Inscription
+                                    {getConfig('supplier_register_submit_button', 'Finaliser mon Inscription')}
                                 </button>
                             </div>
                         </motion.div>
@@ -308,7 +312,7 @@ const SupplierRegister = () => {
                 </AnimatePresence>
             </div>
 
-            <SupplierBlockModal isOpen={showBlockModal} onClose={() => handleSignOut(false)} onAction={() => handleSignOut(true)} title="Session Active Détectée" subtitle="Compte Séparé Requis" message="Vous êtes déjà connecté. Pour une meilleure expérience, vous devez créer un nouveau compte dédié exclusivement à votre boutique." actionText="Créer un nouveau compte marchand" icon={UserCheck} variant="emerald" />
+            <SupplierBlockModal isOpen={showBlockModal} onClose={() => handleSignOut(false)} onAction={() => handleSignOut(true)} title={getConfig('supplier_register_blockmodal_title', 'Session Active Détectée')} subtitle={getConfig('supplier_register_blockmodal_subtitle', 'Compte Séparé Requis')} message={getConfig('supplier_register_blockmodal_message', 'Vous êtes déjà connecté. Pour une meilleure expérience, vous devez créer un nouveau compte dédié exclusivement à votre boutique.')} actionText={getConfig('supplier_register_blockmodal_action', 'Créer un nouveau compte marchand')} icon={UserCheck} variant="emerald" />
         </div>
     );
 };

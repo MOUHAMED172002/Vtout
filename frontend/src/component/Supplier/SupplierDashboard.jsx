@@ -190,8 +190,8 @@ const SupplierDashboard = () => {
                 <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-8">
                         <div>
-                            <h3 className="text-xl font-black tracking-tighter">Mes Produits</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestion du catalogue</p>
+                            <h3 className="text-xl font-black tracking-tighter">{getConfig('supplier_dashboard_products_title', 'Mes Produits')}</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{getConfig('supplier_dashboard_products_subtitle', 'Gestion du catalogue')}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="hidden sm:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
@@ -224,9 +224,9 @@ const SupplierDashboard = () => {
                                 </div>
                                 <div className="flex items-center gap-4">
                                     {product.approval_status === 'approved' ? (
-                                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-full">Approuvé</span>
+                                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-full">{getConfig('supplier_dashboard_status_approved', 'Approuvé')}</span>
                                     ) : (
-                                        <span className="px-3 py-1 bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-full">En attente</span>
+                                        <span className="px-3 py-1 bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-full">{getConfig('supplier_dashboard_status_pending', 'En attente')}</span>
                                     )}
                                     <ChevronRight size={16} className="text-slate-300" />
                                 </div>
@@ -283,8 +283,8 @@ const SupplierDashboard = () => {
                                     <MapPin size={24} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h3 className="text-xl font-black tracking-tighter">Adresse Professionnelle</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Renseignement pour la logistique</p>
+                                    <h3 className="text-xl font-black tracking-tighter">{getConfig('supplier_dashboard_address_title', 'Adresse Professionnelle')}</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{getConfig('supplier_dashboard_address_subtitle', 'Renseignement pour la logistique')}</p>
                                 </div>
                             </div>
                             <button 
@@ -336,12 +336,12 @@ const SupplierDashboard = () => {
                             </div>
                         ) : (
                             <div className="py-10 text-center space-y-4">
-                                <p className="text-slate-400 font-bold text-sm italic">Aucune adresse configurée</p>
+                                <p className="text-slate-400 font-bold text-sm italic">{getConfig('supplier_dashboard_no_address_message', 'Aucune adresse configurée')}</p>
                                 <button 
                                     onClick={() => setShowAddressModal(true)}
                                     className="px-6 py-3 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg"
                                 >
-                                    Configurer maintenant
+                                    {getConfig('supplier_dashboard_address_configure_button', 'Configurer maintenant')}
                                 </button>
                             </div>
                         )}
@@ -349,7 +349,7 @@ const SupplierDashboard = () => {
 
                     <div className="bg-slate-900 rounded-[40px] shadow-2xl shadow-indigo-200 p-10 text-white space-y-10 relative overflow-hidden">
                         <div className="relative z-10">
-                            <h3 className="text-xl font-black tracking-tighter mb-8">Commandes à Préparer</h3>
+                            <h3 className="text-xl font-black tracking-tighter mb-8">{getConfig('supplier_dashboard_order_prep_title', 'Commandes à Préparer')}</h3>
                             <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
                                 {orders.length === 0 ? (
                                     <>
@@ -401,7 +401,7 @@ const SupplierDashboard = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-black tracking-tighter">Modifier l'adresse</h3>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Localité et précises pour les livreurs</p>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{getConfig('supplier_dashboard_address_modal_header_subtitle', 'Localité et précises pour les livreurs')}</p>
                                     </div>
                                 </div>
                                 <button 

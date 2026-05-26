@@ -454,6 +454,24 @@ export const createProduct = async (req, res) => {
                         return res.status(403).json({ error: 'Votre compte fournisseur doit être approuvé par l’administrateur avant d’ajouter des produits.' });
                     }
 
+                    const missingSupplierFields = [];
+                    if (!supplierProfile.phone) missingSupplierFields.push('Téléphone');
+                    if (!supplierProfile.whatsapp) missingSupplierFields.push('WhatsApp');
+                    if (!supplierProfile.momo_number) missingSupplierFields.push('Numéro MoMo');
+                    if (!supplierProfile.address_line) missingSupplierFields.push('Adresse');
+                    if (!supplierProfile.departement_id) missingSupplierFields.push('Département');
+                    if (!supplierProfile.commune_id) missingSupplierFields.push('Commune');
+                    if (!supplierProfile.quartier_id) missingSupplierFields.push('Quartier');
+
+                    if (missingSupplierFields.length > 0) {
+                        await transaction.rollback();
+                        return res.status(403).json({
+                            error: 'Profil fournisseur incomplet',
+                            details: `Votre profil fournisseur est incomplet. Veuillez compléter : ${missingSupplierFields.join(', ')}.`,
+                            missingFields: missingSupplierFields
+                        });
+                    }
+
                     // Check selected boutique completeness
                     if (!boutique_id) {
                         await transaction.rollback();
@@ -466,18 +484,24 @@ export const createProduct = async (req, res) => {
                         return res.status(404).json({ error: 'Boutique non trouvée ou ne vous appartient pas.' });
                     }
 
-                    const isBoutiqueComplete = boutique.name && boutique.phone && boutique.address_line && 
-                                              boutique.departement_id && boutique.commune_id && boutique.quartier_id;
-                    
-                    if (!isBoutiqueComplete) {
+                    const missingBoutiqueFields = [];
+                    if (!boutique.name) missingBoutiqueFields.push('Nom de la boutique');
+                    if (!boutique.phone) missingBoutiqueFields.push('Téléphone de la boutique');
+                    if (!boutique.address_line) missingBoutiqueFields.push('Adresse de la boutique');
+                    if (!boutique.departement_id) missingBoutiqueFields.push('Département');
+                    if (!boutique.commune_id) missingBoutiqueFields.push('Commune');
+                    if (!boutique.quartier_id) missingBoutiqueFields.push('Quartier');
+
+                    if (missingBoutiqueFields.length > 0) {
                         await transaction.rollback();
-                        return res.status(403).json({ 
-                            error: 'Boutique incomplète', 
-                            details: `Les informations de la boutique "${boutique.name}" sont incomplètes (Adresse, Téléphone, Ville/Quartier). Veuillez les mettre à jour.` 
+                        return res.status(403).json({
+                            error: 'Boutique incomplète',
+                            details: `Les informations de la boutique "${boutique.name || 'inconnue'}" sont incomplètes. Veuillez compléter : ${missingBoutiqueFields.join(', ')}.`,
+                            missingFields: missingBoutiqueFields
                         });
                     }
                 }
-                
+
                 finalSupplierId = supplierProfile.id;
                 // Suppliers always start with 'En attente' unless they are admins
                 if (isSupplier) finalStatus = 'En attente';

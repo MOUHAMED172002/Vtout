@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronDown, Phone, User2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ChevronDown, Phone } from 'lucide-react';
 
 // Indicatifs téléphoniques West African + France + autres
 const COUNTRIES = [
@@ -32,6 +32,18 @@ export default function CountryPhoneSelector({ value, onChange, label, error, re
   };
 
   const selectedCountry = useMemo(() => extractCountry(value), [value]);
+
+  useEffect(() => {
+    if (!value || !selectedCountry) {
+      setPhoneNumber('');
+      return;
+    }
+
+    const indicatifDigits = selectedCountry.indicatif.replace('+', '');
+    const raw = value.replace(/\D/g, '');
+    const phoneOnly = raw.startsWith(indicatifDigits) ? raw.substring(indicatifDigits.length) : raw;
+    setPhoneNumber(phoneOnly);
+  }, [value, selectedCountry]);
 
   const filteredCountries = COUNTRIES.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
