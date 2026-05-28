@@ -682,6 +682,20 @@ sequelize.authenticate()
             const syncOptions = isProd ? { alter: false } : { alter: true };
             await sequelize.sync(syncOptions);
 
+            // Ensure `financial_transactions.source` exists, even if the migration was skipped previously.
+            try {
+                const [sourceColRows] = await sequelize.query(`
+                    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'financial_transactions' AND COLUMN_NAME = 'source'
+                `);
+                if (!sourceColRows || sourceColRows.length === 0) {
+                    await sequelize.query(`ALTER TABLE financial_transactions ADD COLUMN source VARCHAR(255) NULL`);
+                    console.log('  ✅ [MIGRATION] Added missing financial_transactions.source via raw SQL');
+                }
+            } catch (sourceCheckErr) {
+                console.warn('  ⚠️ [MIGRATION] Could not ensure financial_transactions.source:', sourceCheckErr.message);
+            }
+
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
