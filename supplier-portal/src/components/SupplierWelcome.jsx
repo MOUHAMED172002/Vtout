@@ -123,8 +123,9 @@ export default function SupplierWelcome({ user }) {
                     {step === 1 && (
                         <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="text-center border-b border-slate-50 pb-8">
-                                    <h2 className="text-2xl font-black text-slate-900 mb-2">{getConfig('supplier_welcome_shop_title', 'Informations de la Boutique')}</h2>
-                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_welcome_shop_subtitle', 'Comment les clients vont-ils vous connaître ?')}</p>
+                                <h2 className="text-2xl font-black text-slate-900 mb-2">{getConfig('supplier_welcome_shop_title', 'Informations de la Boutique')}</h2>
+                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">{getConfig('supplier_welcome_shop_subtitle', 'Comment les clients vont-ils vous connaître ?')}</p>
+                            </div>
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
