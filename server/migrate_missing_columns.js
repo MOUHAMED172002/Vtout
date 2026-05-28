@@ -44,6 +44,11 @@ const migrations = [
         column: 'whatsapp',
         sql: `ALTER TABLE boutiques ADD COLUMN whatsapp VARCHAR(255) NULL`
     },
+    {
+        table: 'financial_transactions',
+        column: 'source',
+        sql: `ALTER TABLE financial_transactions ADD COLUMN source VARCHAR(255) NULL`
+    },
 ];
 
 async function columnExists(table, column) {
