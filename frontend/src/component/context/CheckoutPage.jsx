@@ -9,6 +9,7 @@ import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
 import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap, Wallet } from "lucide-react";
 
+import api from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 export default function CheckoutPage() {
   const { getToken } = useAuth();
@@ -72,11 +73,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (user) {
         getToken().then(token => {
-            fetch(`${import.meta.env.VITE_API_URL}/financials/my-status`, {
+            api.get('/financials/my-status', {
                 headers: { Authorization: `Bearer ${token}` }
             })
-            .then(res => res.json())
-            .then(data => setWalletBalance(data.balance || 0))
+            .then(res => setWalletBalance(res.data?.balance || 0))
             .catch(err => console.error("Balance fetch error:", err));
         });
     }

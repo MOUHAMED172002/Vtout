@@ -144,7 +144,11 @@ export default function FlashSalePage() {
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
             >
               {products.map((p, idx) => {
-                const discount = p.old_price && p.price ? Math.round(((p.old_price - p.price) / p.old_price) * 100) : null;
+                const oldPrice = Number(p.old_price || 0);
+                const publicPrice = Number(p.price || 0);
+                const discount = (oldPrice > publicPrice && oldPrice > 0)
+                  ? Math.round(((oldPrice - publicPrice) / oldPrice) * 100)
+                  : null;
                 const progressVal = Math.round((p.stock % 7) * 12 + 28);
                 const itemsLeft = Math.max(1, p.stock % 5 + 2);
                 
@@ -221,9 +225,9 @@ export default function FlashSalePage() {
                           <span className="font-mono text-lg md:text-2xl font-black text-rose-500">
                             {Number(p.price).toLocaleString()} F
                           </span>
-                          {p.old_price && (
+                          {(Number(p.old_price || 0) > Number(p.price || 0)) && (
                             <span className="font-mono text-xs text-slate-400 line-through font-bold">
-                              {Number(p.old_price).toLocaleString()} F
+                              {Number(p.old_price || 0).toLocaleString()} F
                             </span>
                           )}
                         </div>

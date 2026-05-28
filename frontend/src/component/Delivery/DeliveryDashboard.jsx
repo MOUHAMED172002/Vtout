@@ -229,10 +229,8 @@ export default function DeliveryDashboard() {
                         });
                         // Update backend too for persistence
                         getToken().then(token => {
-                            fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/delivery/location`, {
-                                method: 'PUT',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ lat: latitude, lng: longitude })
+                            api.put('/delivery/location', { lat: latitude, lng: longitude }, {
+                                headers: { Authorization: `Bearer ${token}` }
                             }).catch(console.error);
                         });
                     }, (err) => console.warn("GPS error:", err), { enableHighAccuracy: true });

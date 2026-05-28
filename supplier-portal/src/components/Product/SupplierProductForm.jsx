@@ -818,11 +818,16 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                             <input 
                                                                 type="number" 
                                                                 placeholder="Ex: 10000"
-                                                                {...register("old_supplier_price", { required: watch("is_promo") })} 
-                                                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
-                                                            />
+                                                            {...register("old_supplier_price", {
+                                                                validate: value => !watch("is_promo") || (parseFloat(value) > 0) || "Veuillez renseigner un ancien prix valide pour la réduction simple."
+                                                            })} 
+                                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                        />
                                                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">FCFA</span>
                                                         </div>
+                                                        {errors.old_supplier_price && (
+                                                            <p className="text-[11px] text-rose-600 font-black mt-2">{errors.old_supplier_price.message}</p>
+                                                        )}
                                                     </div>
 
                                                     <div className="space-y-2">
@@ -831,11 +836,16 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                             <input 
                                                                 type="number" 
                                                                 placeholder="Ex: 15"
-                                                                {...register("discount_percent")} 
+                                                                {...register("discount_percent", {
+                                                                    validate: value => !watch("is_promo") || ((parseFloat(value) > 0 && parseFloat(value) < 100) || "Pourcentage requis entre 1 et 99 pour la réduction simple.")
+                                                                })} 
                                                                 className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-indigo-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
                                                             />
                                                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-500">%</span>
                                                         </div>
+                                                        {errors.discount_percent && (
+                                                            <p className="text-[11px] text-rose-600 font-black mt-2">{errors.discount_percent.message}</p>
+                                                        )}
                                                     </div>
 
                                                     <div className="space-y-2">
@@ -914,9 +924,21 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                     <label className="text-[10px] font-black uppercase tracking-widest text-rose-600 block px-1">Date & Heure de Fin de la Vente Flash *</label>
                                                     <input 
                                                         type="datetime-local" 
-                                                        {...register("flash_sale_end", { required: watch("is_flash_sale") })} 
+                                                        {...register("flash_sale_end", {
+                                                            validate: value => {
+                                                                if (!watch("is_flash_sale")) return true;
+                                                                if (!value) return "Veuillez renseigner la date de fin de la vente flash.";
+                                                                const selectedDate = new Date(value);
+                                                                if (Number.isNaN(selectedDate.getTime())) return "Date de fin invalide.";
+                                                                if (selectedDate <= new Date()) return "La date de fin doit être dans le futur.";
+                                                                return true;
+                                                            }
+                                                        })} 
                                                         className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold text-rose-600 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/5 transition-all"
                                                     />
+                                                    {errors.flash_sale_end && (
+                                                        <p className="text-[11px] text-rose-600 font-black mt-2">{errors.flash_sale_end.message}</p>
+                                                    )}
                                                 </div>
                                                 <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100/50 flex gap-3">
                                                     <Info size={16} className="text-rose-500 flex-shrink-0 mt-0.5" />

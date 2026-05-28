@@ -438,10 +438,11 @@ app.get("/reset-password", (req, res) => {
 
 // Email verification — public route (no auth required)
 app.use("/api/verify-email", verifyEmailRoutes);
+
 // Fallback pour les anciens liens avec double /api/api/
-app.get("/api/api/verify-email", (req, res) => {
+app.use("/api/api", (req, res) => {
     const target = req.originalUrl.replace("/api/api/", "/api/");
-    res.redirect(target);
+    res.redirect(307, target);
 });
 
 app.use(authMiddleware);
