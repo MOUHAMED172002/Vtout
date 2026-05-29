@@ -388,15 +388,20 @@ app.get("/api/diagnostics", async (req, res) => {
             report.errors.push("Error querying suppliers: " + e.message);
         }
 
-        // 5. Query all transactions for deliverer user logxaPNGRe9nDGOuvFbLqFo7pEKYiPCY
+        // 5. Query delivery persons and transactions for delivery person id 5
         try {
+            const dps = await sequelize.query(`
+                SELECT id, user_id, is_verified, phone FROM delivery_persons
+            `, { type: sequelize.QueryTypes.SELECT });
+            
             const txs = await sequelize.query(`
                 SELECT id, order_id, user_id, type, amount, description, source, status, created_at
                 FROM financial_transactions
-                WHERE user_id = 'logxaPNGRe9nDGOuvFbLqFo7pEKYiPCY'
+                WHERE user_id = (SELECT user_id FROM delivery_persons WHERE id = 5)
                 ORDER BY created_at DESC
             `, { type: sequelize.QueryTypes.SELECT });
-            report.data.rawGainsResult = txs;
+            
+            report.data.rawGainsResult = { dps, txs };
         } catch (e) {
             report.errors.push("Error querying raw gains: " + e.message);
         }
