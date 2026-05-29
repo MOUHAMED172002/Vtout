@@ -142,8 +142,12 @@ export const getAllProducts = async (req, res) => {
         if (isPromo === 'true') {
             where.is_flash_sale = false;
             where.is_kit = false;
-            where.old_price = { [Op.gt]: sequelize.col('price') };
             where.supplier_id = { [Op.not]: null };
+            where.old_price = { [Op.gt]: 0 };
+            where[Op.and] = where[Op.and] || [];
+            where[Op.and].push(
+                sequelize.where(sequelize.col('old_price'), '>', sequelize.col('price'))
+            );
         }
 
         if (isAnyPromo === 'true') {
@@ -154,7 +158,12 @@ export const getAllProducts = async (req, res) => {
                     { is_flash_sale: true },
                     { is_kit: true },
                     { volume_pricing: { [Op.not]: null } },
-                    { old_price: { [Op.gt]: sequelize.col('price') } }
+                    {
+                        [Op.and]: [
+                            { old_price: { [Op.gt]: 0 } },
+                            sequelize.where(sequelize.col('old_price'), '>', sequelize.col('price'))
+                        ]
+                    }
                 ]
             });
         }
