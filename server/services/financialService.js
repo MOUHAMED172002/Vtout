@@ -128,6 +128,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                                 user_id: admin.id,
                                 order_id: order.id,
                                 type: 'earning',
+                                source: 'admin_commission',
                                 amount: adminTotal,
                                 description: `Com. Vente (Admin) #${order.id.slice(0, 8)}`,
                                 status: 'completed'

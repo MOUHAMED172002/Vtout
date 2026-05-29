@@ -52,7 +52,7 @@ export const processProductsForCommunes = async (products) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, approval_status } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -137,6 +137,26 @@ export const getAllProducts = async (req, res) => {
         if (hasVolumePricing === 'true') {
             where.volume_pricing = { [Op.not]: null };
             where.supplier_id = { [Op.not]: null };
+        }
+
+        if (isPromo === 'true') {
+            where.is_flash_sale = false;
+            where.is_kit = false;
+            where.old_price = { [Op.gt]: sequelize.col('price') };
+            where.supplier_id = { [Op.not]: null };
+        }
+
+        if (isAnyPromo === 'true') {
+            where.supplier_id = { [Op.not]: null };
+            where[Op.and] = where[Op.and] || [];
+            where[Op.and].push({
+                [Op.or]: [
+                    { is_flash_sale: true },
+                    { is_kit: true },
+                    { volume_pricing: { [Op.not]: null } },
+                    { old_price: { [Op.gt]: sequelize.col('price') } }
+                ]
+            });
         }
 
         let order = [['createdAt', 'DESC']];
@@ -384,10 +404,7 @@ export const searchProducts = async (req, res) => {
             processedProducts.push(...processedExtra);
         }
 
-        res.json({
-            products: processedProducts,
-            categories: matchingCategories
-        });
+        res.json(processedProducts);
 
         // Log search failure if nothing found
         if (products.length === 0 && matchingCategories.length === 0) {
@@ -401,8 +418,6 @@ export const searchProducts = async (req, res) => {
                 console.error('Failed to log search:', logErr);
             }
         }
-
-        res.json(products);
     } catch (error) {
         console.error('Search error:', error);
         res.status(500).json({ error: 'Erreur lors de la recherche' });

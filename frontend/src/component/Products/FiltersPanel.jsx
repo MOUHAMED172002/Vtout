@@ -23,6 +23,11 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
     maxPrice: 500000,
     attributes: {},
     sort: "recent",
+    isPromo: "",
+    isFlashSale: "",
+    isKit: "",
+    hasVolumePricing: "",
+    isAnyPromo: "",
   });
 
   const [selectedAttrId, setSelectedAttrId] = useState("");
@@ -96,7 +101,18 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
   };
 
   const clearFilters = () => {
-    setFilters({ category_id: "", minPrice: 0, maxPrice: 500000, attributes: {}, sort: "recent" });
+    setFilters({
+      category_id: "",
+      minPrice: 0,
+      maxPrice: 500000,
+      attributes: {},
+      sort: "recent",
+      isPromo: "",
+      isFlashSale: "",
+      isKit: "",
+      hasVolumePricing: "",
+      isAnyPromo: "",
+    });
     setSelectedAttrId("");
   };
 
@@ -123,6 +139,70 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       </div>
 
 
+
+      {/* Promotion Types */}
+      <div className="border-b border-slate-50">
+        <SectionHeader title="Promotions & Offres" sectionKey="promo" icon={Sparkles} />
+        <AnimatePresence>
+          {openSections.promo && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
+              <div className="space-y-2">
+                {[
+                  { id: "all_promos", label: "Toutes les promotions" },
+                  { id: "isPromo", label: "Réductions Directes" },
+                  { id: "isFlashSale", label: "Ventes Flash" },
+                  { id: "hasVolumePricing", label: "Prix Dégressifs" },
+                  { id: "isKit", label: "Packs & Kits" },
+                  { id: "none", label: "Aucune (Normal)" }
+                ].map((p) => {
+                  const handleSelect = () => {
+                    if (p.id === "all_promos") {
+                      updateFilters({
+                        isPromo: "",
+                        isFlashSale: "",
+                        isKit: "",
+                        hasVolumePricing: "",
+                        isAnyPromo: "true"
+                      });
+                    } else if (p.id === "none") {
+                      updateFilters({
+                        isPromo: "",
+                        isFlashSale: "",
+                        isKit: "",
+                        hasVolumePricing: "",
+                        isAnyPromo: ""
+                      });
+                    } else {
+                      updateFilters({
+                        isPromo: p.id === "isPromo" ? "true" : "",
+                        isFlashSale: p.id === "isFlashSale" ? "true" : "",
+                        isKit: p.id === "isKit" ? "true" : "",
+                        hasVolumePricing: p.id === "hasVolumePricing" ? "true" : "",
+                        isAnyPromo: ""
+                      });
+                    }
+                  };
+
+                  const isCurrentlyActive = 
+                    p.id === "all_promos" ? filters.isAnyPromo === "true" :
+                    p.id === "none" ? (!filters.isPromo && !filters.isFlashSale && !filters.isKit && !filters.hasVolumePricing && !filters.isAnyPromo) :
+                    filters[p.id] === "true";
+
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={handleSelect}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${isCurrentlyActive ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Sorting */}
       <div className="border-b border-slate-50">

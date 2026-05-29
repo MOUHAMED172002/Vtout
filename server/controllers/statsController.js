@@ -218,7 +218,67 @@ export const getDashboardStats = async (req, res) => {
             });
         } catch (e) {}
 
-        res.json({ stats, salesChart, topProducts, recentOrders, lowStock, supplierPerformance, topCustomers, categoryDistribution, fulfillmentQueue });
+        // 9. Timeline Analytics by Profile Role (Task 5)
+        let adminTimeline = [];
+        let supplierTimeline = [];
+        let delivererTimeline = [];
+        let buyerTimeline = [];
+
+        try {
+            const roleTimeline = await FinancialTransaction.findAll({
+                attributes: [
+                    [sequelize.fn('DATE', sequelize.col('created_at')), 'day'],
+                    'source',
+                    'description',
+                    [sequelize.fn('SUM', sequelize.col('amount')), 'total']
+                ],
+                where: {
+                    status: 'completed',
+                    type: 'earning',
+                    createdAt: { [Op.gte]: since }
+                },
+                group: [sequelize.fn('DATE', sequelize.col('created_at')), 'source', 'description'],
+                raw: true
+            });
+
+            const adminMap = {};
+            const supplierMap = {};
+            const delivererMap = {};
+            const buyerMap = {};
+
+            // Initialize timeline from salesChart to match all days
+            salesChart.forEach(s => {
+                const day = s.get ? s.get('day') : s.day;
+                adminMap[day] = 0;
+                supplierMap[day] = 0;
+                delivererMap[day] = 0;
+                buyerMap[day] = parseFloat(s.get ? s.get('total') : s.total) || 0;
+            });
+
+            roleTimeline.forEach(rt => {
+                const day = rt.day;
+                const amount = parseFloat(rt.total || 0);
+                const source = rt.source;
+                const desc = (rt.description || '').toLowerCase();
+
+                if (source === 'admin_commission' || desc.startsWith('com. vente') || desc.startsWith('com.vente')) {
+                    adminMap[day] = (adminMap[day] || 0) + amount;
+                } else if (source === 'deliverer' || desc.startsWith('course')) {
+                    delivererMap[day] = (delivererMap[day] || 0) + amount;
+                } else if (source === 'supplier' || desc.startsWith('vente')) {
+                    supplierMap[day] = (supplierMap[day] || 0) + amount;
+                }
+            });
+
+            adminTimeline = Object.keys(adminMap).map(day => ({ day, total: adminMap[day] })).sort((a,b) => a.day.localeCompare(b.day));
+            supplierTimeline = Object.keys(supplierMap).map(day => ({ day, total: supplierMap[day] })).sort((a,b) => a.day.localeCompare(b.day));
+            delivererTimeline = Object.keys(delivererMap).map(day => ({ day, total: delivererMap[day] })).sort((a,b) => a.day.localeCompare(b.day));
+            buyerTimeline = Object.keys(buyerMap).map(day => ({ day, total: buyerMap[day] })).sort((a,b) => a.day.localeCompare(b.day));
+        } catch (e) {
+            console.error("Error creating role timeline stats:", e);
+        }
+
+        res.json({ stats, salesChart, topProducts, recentOrders, lowStock, supplierPerformance, topCustomers, categoryDistribution, fulfillmentQueue, adminTimeline, supplierTimeline, delivererTimeline, buyerTimeline });
     } catch (error) {
         console.error("Dashboard stats error:", error);
         res.status(500).json({ error: error.message });

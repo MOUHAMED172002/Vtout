@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { motion } from "framer-motion";
-import { Flame, Package, Zap, ArrowRight } from "lucide-react";
+import { Flame, Package, Zap, ArrowRight, Tag } from "lucide-react";
 import { useTheme } from "../../component/context/ThemeContext";
 
 export default function PromotionsHub() {
@@ -14,6 +14,16 @@ export default function PromotionsHub() {
   const isDark = darkThemes.includes(theme);
 
   const promos = [
+    {
+      id: "reductions",
+      title: "Réductions Directes",
+      subtitle: "Offres & Remises Spéciales",
+      desc: "Des réductions immédiates appliquées sur vos articles préférés. Pas de chichi, juste des prix cassés !",
+      icon: <Tag size={40} className="text-violet-500" />,
+      color: "from-violet-500 to-purple-500",
+      bgClass: isDark ? "bg-violet-950/20 border-violet-900/50" : "bg-violet-50 border-violet-100",
+      link: "/promotions/reductions"
+    },
     {
       id: "flash",
       title: "Ventes Flash",
@@ -50,7 +60,7 @@ export default function PromotionsHub() {
     <>
       <Navbar />
       <div className={`min-h-screen pt-32 pb-24 transition-colors duration-300 ${isDark ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="container mx-auto px-4 max-w-7xl">
           
           <div className="text-center space-y-4 mb-16">
             <motion.div
@@ -78,7 +88,7 @@ export default function PromotionsHub() {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {promos.map((promo, idx) => (
               <motion.div
                 key={promo.id}

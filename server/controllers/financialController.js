@@ -17,7 +17,14 @@ export const getMyFinancials = async (req, res) => {
         // Calculate current balance (all earnings - all payouts)
         console.log("[Financials] Querying summary...");
         const summary = await FinancialTransaction.findAll({
-            where: { user_id: userId, status: 'completed' },
+            where: { 
+                user_id: userId, 
+                status: 'completed',
+                [Op.or]: [
+                    { source: { [Op.ne]: 'admin_commission' } },
+                    { source: null }
+                ]
+            },
             attributes: [
                 'type',
                 [sequelize.fn('SUM', sequelize.col('amount')), 'total']
@@ -38,7 +45,13 @@ export const getMyFinancials = async (req, res) => {
         
         console.log("[Financials] Querying transactions...");
         const transactions = await FinancialTransaction.findAll({
-            where: { user_id: userId },
+            where: { 
+                user_id: userId,
+                [Op.or]: [
+                    { source: { [Op.ne]: 'admin_commission' } },
+                    { source: null }
+                ]
+            },
             order: [['created_at', 'DESC']],
             limit: 20
         });
@@ -84,7 +97,14 @@ export const requestPayout = async (req, res) => {
         
         // Calculate current balance (all earnings - all payouts)
         const summary = await FinancialTransaction.findAll({
-            where: { user_id: userId, status: 'completed' },
+            where: { 
+                user_id: userId, 
+                status: 'completed',
+                [Op.or]: [
+                    { source: { [Op.ne]: 'admin_commission' } },
+                    { source: null }
+                ]
+            },
             attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
             group: ['type'],
             transaction: t
@@ -175,7 +195,14 @@ export const adminProcessPayout = async (req, res) => {
         if (status === 'paid' && oldStatus !== 'paid') {
             // Re-calculate balance inside the transaction
             const summary = await FinancialTransaction.findAll({
-                where: { user_id: payout.user_id, status: 'completed' },
+                where: { 
+                    user_id: payout.user_id, 
+                    status: 'completed',
+                    [Op.or]: [
+                        { source: { [Op.ne]: 'admin_commission' } },
+                        { source: null }
+                    ]
+                },
                 attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
                 group: ['type'],
                 transaction: t
@@ -292,7 +319,14 @@ export const adminGetSupplierFinancials = async (req, res) => {
         const { userId } = req.params;
         
         const summary = await FinancialTransaction.findAll({
-            where: { user_id: userId, status: 'completed' },
+            where: { 
+                user_id: userId, 
+                status: 'completed',
+                [Op.or]: [
+                    { source: { [Op.ne]: 'admin_commission' } },
+                    { source: null }
+                ]
+            },
             attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
             group: ['type']
         });
@@ -306,7 +340,13 @@ export const adminGetSupplierFinancials = async (req, res) => {
         });
         
         const transactions = await FinancialTransaction.findAll({
-            where: { user_id: userId },
+            where: { 
+                user_id: userId,
+                [Op.or]: [
+                    { source: { [Op.ne]: 'admin_commission' } },
+                    { source: null }
+                ]
+            },
             order: [['created_at', 'DESC']],
             limit: 50
         });

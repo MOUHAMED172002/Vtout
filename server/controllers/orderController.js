@@ -266,8 +266,14 @@ export const createOrder = async (req, res) => {
 
             // Calculate current balance ( earnings - payouts - previous wallet purchases )
             const summary = await FinancialTransaction.findAll({
-
-                where: { user_id: userId, status: 'completed' },
+                where: { 
+                    user_id: userId, 
+                    status: 'completed',
+                    [Op.or]: [
+                        { source: { [Op.ne]: 'admin_commission' } },
+                        { source: null }
+                    ]
+                },
                 attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
                 group: ['type'],
                 transaction
@@ -589,7 +595,14 @@ export const createOrder = async (req, res) => {
             
             // Re-fetch balance inside transaction to be sure
             const summary = await FinancialTransaction.findAll({
-                where: { user_id: userId, status: 'completed' },
+                where: { 
+                    user_id: userId, 
+                    status: 'completed',
+                    [Op.or]: [
+                        { source: { [Op.ne]: 'admin_commission' } },
+                        { source: null }
+                    ]
+                },
                 attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
                 group: ['type'],
                 transaction
