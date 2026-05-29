@@ -391,7 +391,7 @@ app.get("/api/diagnostics", async (req, res) => {
         // 5. Query delivery persons and transactions for delivery person id 5
         try {
             const dps = await sequelize.query(`
-                SELECT id, user_id, is_verified, phone FROM delivery_persons
+                SELECT id, user_id, is_verified FROM delivery_persons
             `, { type: sequelize.QueryTypes.SELECT });
             
             const txs = await sequelize.query(`
