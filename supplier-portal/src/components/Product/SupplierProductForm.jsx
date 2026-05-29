@@ -819,6 +819,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                 type="number" 
                                                                 placeholder="Ex: 10000"
                                                             {...register("old_supplier_price", {
+                                                                required: watch("is_promo") ? "Veuillez renseigner un ancien prix valide pour la réduction simple." : false,
                                                                 validate: value => !watch("is_promo") || (parseFloat(value) > 0) || "Veuillez renseigner un ancien prix valide pour la réduction simple."
                                                             })} 
                                                             className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
@@ -837,6 +838,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                 type="number" 
                                                                 placeholder="Ex: 15"
                                                                 {...register("discount_percent", {
+                                                                    required: watch("is_promo") ? "Pourcentage requis entre 1 et 99 pour la réduction simple." : false,
                                                                     validate: value => !watch("is_promo") || ((parseFloat(value) > 0 && parseFloat(value) < 100) || "Pourcentage requis entre 1 et 99 pour la réduction simple.")
                                                                 })} 
                                                                 className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-indigo-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
@@ -925,6 +927,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                     <input 
                                                         type="datetime-local" 
                                                         {...register("flash_sale_end", {
+                                                            required: watch("is_flash_sale") ? "Veuillez renseigner la date de fin de la vente flash." : false,
                                                             validate: value => {
                                                                 if (!watch("is_flash_sale")) return true;
                                                                 if (!value) return "Veuillez renseigner la date de fin de la vente flash.";

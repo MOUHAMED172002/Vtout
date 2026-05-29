@@ -182,6 +182,7 @@ export default function SupplierWelcome({ user }) {
                                 </div>
                             </div>
 
+
                             <div className="pt-4">
                                 <button onClick={handleNext} disabled={!formData.shopName || !formData.phone} className="w-full py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50">
                                     {getConfig('supplier_welcome_next_button', 'Étape Suivante')} <ChevronRight size={18} />

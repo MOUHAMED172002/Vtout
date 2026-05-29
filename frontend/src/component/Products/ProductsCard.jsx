@@ -124,7 +124,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
       finalCurrent = Number(product.supplier_price || 0);
     }
 
-    const isSale = finalBase > finalCurrent && finalCurrent > 0;
+    const isSale = finalBase > finalCurrent && finalCurrent > 0 && finalBase > 0;
     return {
       currentPrice: finalCurrent,
       basePrice: finalBase,

@@ -30,9 +30,13 @@ const normalizeStatus = (s) => {
 const getEstimatedGain = (order) => {
     let total = 0;
     order.items?.forEach(item => {
+        const commissionRate = item.product?.category?.commission_rate 
+            ? parseFloat(item.product.category.commission_rate) / 100 
+            : 0.12;
+        const multiplier = 1 - commissionRate;
         const gainPerItem = item.product?.supplier_price 
-            ? parseFloat(item.product.supplier_price) 
-            : parseFloat(item.price) * 0.9;
+            ? parseFloat(item.product.supplier_price) * multiplier
+            : parseFloat(item.price) * multiplier;
         total += parseFloat(gainPerItem) * item.quantity;
     });
     return total;
@@ -322,7 +326,7 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                         </div>
                                     </div>
                                     <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                        {(parseFloat(item.price) * 0.9 * item.quantity).toLocaleString()} F
+                                        {((item.product?.supplier_price ? parseFloat(item.product.supplier_price) : parseFloat(item.price)) * item.quantity).toLocaleString()} F
                                     </div>
                                 </div>
                             </div>
