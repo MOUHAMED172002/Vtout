@@ -451,6 +451,15 @@ export const adminAssignOrder = async (req, res) => {
         if (order.status === 'en_attente') updateData.status = 'confirmée';
 
         await order.update(updateData);
+
+        if (order.status === 'livrée' || order.status === 'livree') {
+            try {
+                await processOrderFinancials(order.id);
+            } catch (finErr) {
+                console.error("[Finance] Failed to process financials after admin assign:", finErr);
+            }
+        }
+
         res.json({ message: 'Commande assignée par l\'administrateur', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de l\'assignation administrative' });

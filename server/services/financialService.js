@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Op } from 'sequelize';
 import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from './deliveryFeeService.js';
@@ -39,7 +40,12 @@ export const processOrderFinancials = async (orderIdOrObject) => {
             const supplier = await Supplier.findByPk(order.supplier_id, { transaction: t });
             if (supplier && supplier.user_id) {
                 const existingTx = await FinancialTransaction.findOne({
-                    where: { order_id: order.id, user_id: supplier.user_id, type: 'earning' },
+                    where: { 
+                        order_id: order.id, 
+                        user_id: supplier.user_id, 
+                        type: 'earning',
+                        [Op.or]: [{ source: 'supplier' }, { source: null }]
+                    },
                     transaction: t
                 });
 
@@ -134,10 +140,13 @@ export const processOrderFinancials = async (orderIdOrObject) => {
 
         // 2. Livreur Earning
         if (order.delivery_person_id) {
+            console.log(`[Finance] Livreur section: delivery_person_id=${order.delivery_person_id}`);
             const lp = await DeliveryPerson.findByPk(order.delivery_person_id, { transaction: t });
             if (lp && lp.user_id) {
+                console.log(`[Finance] Livreur found: lp.id=${lp.id}, lp.user_id=${lp.user_id}`);
+                // IMPORTANT: Filter by source='deliverer' to avoid collision with supplier/admin earnings
                 const existingLpTx = await FinancialTransaction.findOne({
-                    where: { order_id: order.id, user_id: lp.user_id, type: 'earning' },
+                    where: { order_id: order.id, user_id: lp.user_id, type: 'earning', source: 'deliverer' },
                     transaction: t
                 });
 
@@ -159,6 +168,7 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = totalBaseMarketingFee + geographicalFee;
 
+                    console.log(`[Finance] Livreur fee calc: baseMarketing=${totalBaseMarketingFee}, geo=${geographicalFee}, total=${totalDelivererFee}`);
                     if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),

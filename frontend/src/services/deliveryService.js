@@ -2,7 +2,9 @@ import api from "./api";
 
 export const registerLivreur = async (token, data) => {
     try {
-        const res = await api.post("/delivery/register", data);
+        const res = await api.post("/delivery/register", data, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         return res.data;
     } catch (err) {
         if (err.response && err.response.data) {
@@ -71,7 +73,9 @@ export const updateServiceZones = async (token, zones) => {
 
 export const getLivreursList = async (token) => {
     try {
-        const res = await api.get("/delivery/admin/list");
+        const res = await api.get("/delivery/admin/list", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         return Array.isArray(res.data) ? res.data : [];
     } catch (err) {
         console.error("Error fetching livreurs:", err);
@@ -80,7 +84,9 @@ export const getLivreursList = async (token) => {
 };
 
 export const adminAssignOrder = async (token, orderId, deliveryPersonId) => {
-    const res = await api.post("/delivery/admin/assign", { orderId, deliveryPersonId });
+    const res = await api.post("/delivery/admin/assign", { orderId, deliveryPersonId }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
