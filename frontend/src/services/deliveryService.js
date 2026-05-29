@@ -28,7 +28,9 @@ export const getMyDeliveries = async (token) => {
 };
 
 export const getDeliveryProfile = async (token) => {
-    const res = await api.get("/delivery/me");
+    const res = await api.get("/delivery/me", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 
@@ -47,7 +49,9 @@ export const releaseOrder = async (token, orderId) => {
 };
 
 export const updateDeliveryStatus = async (token, orderId, status, delivery_code = null, proof_url = null) => {
-    const res = await api.post("/delivery/status", { orderId, status, delivery_code, proof_url });
+    const res = await api.post("/delivery/status", { orderId, status, delivery_code, proof_url }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     return res.data;
 };
 

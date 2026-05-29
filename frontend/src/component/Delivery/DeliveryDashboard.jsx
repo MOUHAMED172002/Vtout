@@ -164,7 +164,9 @@ export default function DeliveryDashboard() {
 
     const fetchFinancials = async (token) => {
         try {
-            const res = await api.get('/financials/my-status');
+            const res = await api.get('/financials/my-status', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             return res.data;
         } catch (err) {
             return { error: err.message };
