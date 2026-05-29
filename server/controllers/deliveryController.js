@@ -1,8 +1,83 @@
 import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, ProductVariant, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
-import { notifyDelivererStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
+import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
+
+const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) => {
+    try {
+        const order = await Order.findByPk(orderId, {
+            include: [
+                { model: Address, as: 'address' },
+                { model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'user' }] },
+                { model: Profile, as: 'user' },
+                { model: DeliveryPerson, as: 'deliveryPerson', include: [{ model: Profile, as: 'profile' }] }
+            ]
+        });
+
+        if (!order) return;
+
+        const customerPhone = order.whatsapp_notif_phone || order.guest_phone || order.user?.phone;
+        const supplierPhone = order.supplier?.whatsapp || order.supplier?.phone || order.supplier?.user?.phone;
+        const delivererPhone = order.deliveryPerson?.phone || order.deliveryPerson?.profile?.phone || order.deliveryPerson?.whatsapp;
+        const delivererName = order.deliveryPerson?.profile?.fullname || 'Livreur';
+        const supplierName = order.supplier?.name || 'Vendeur';
+        
+        const orderRef = order.id.slice(0, 8).toUpperCase();
+        const amountStr = Number(order.total_amount).toLocaleString();
+
+        if (type === 'assignToMe' || type === 'adminAssign') {
+            // Deliverer assigned
+            if (delivererPhone) {
+                const supplierAddress = order.address ? `${order.address.commune_label || ''}, ${order.address.address_line || ''}` : '';
+                await sendWhatsAppMessage(delivererPhone, `🛵 *VTOUT : Course assignée !*\nVous avez été assigné à la commande #${orderRef}.\nVeuillez récupérer le colis chez *${supplierName}* (${supplierPhone || ''}) pour livraison à : ${supplierAddress}.`).catch(() => {});
+            }
+            if (customerPhone) {
+                await sendWhatsAppMessage(customerPhone, `🛵 *VTOUT : Livreur assigné !*\nVotre commande #${orderRef} a été prise en charge par le livreur *${delivererName}* (${delivererPhone || ''}). Il est en route.`).catch(() => {});
+            }
+            if (supplierPhone) {
+                await sendWhatsAppMessage(supplierPhone, `🔔 *VTOUT : Livreur assigné !*\nLe livreur *${delivererName}* (${delivererPhone || ''}) a été assigné pour récupérer la commande #${orderRef}.\nVeuillez préparer le colis.`).catch(() => {});
+            }
+            await notifyAdmin(`🛵 *VTOUT : Course assignée*\nLivreur: *${delivererName}* (${delivererPhone || ''})\nCommande: #${orderRef}\nVendeur: *${supplierName}*`).catch(() => {});
+        } else if (type === 'adminUnassign') {
+            // Deliverer removed
+            const prevPhone = details.prevPhone;
+            if (prevPhone) {
+                await sendWhatsAppMessage(prevPhone, `❌ *VTOUT : Course retirée*\nVous avez été retiré de la course #${orderRef}.`).catch(() => {});
+            }
+            if (customerPhone) {
+                await sendWhatsAppMessage(customerPhone, `⚠️ *VTOUT : Changement de livreur*\nLe livreur précédemment assigné à votre commande #${orderRef} a été retiré. Un nouveau livreur sera bientôt assigné.`).catch(() => {});
+            }
+            if (supplierPhone) {
+                await sendWhatsAppMessage(supplierPhone, `⚠️ *VTOUT : Changement de livreur*\nLe livreur pour la commande #${orderRef} a été retiré.`).catch(() => {});
+            }
+            await notifyAdmin(`❌ *VTOUT : Livreur retiré par l'admin*\nCommande: #${orderRef}`).catch(() => {});
+        } else if (type === 'shipped') {
+            // Shipped
+            if (customerPhone) {
+                await sendWhatsAppMessage(customerPhone, `📦 *VTOUT : Commande en route !*\nVotre commande #${orderRef} a été récupérée par le livreur et est en cours de livraison.`).catch(() => {});
+            }
+            if (supplierPhone) {
+                await sendWhatsAppMessage(supplierPhone, `✅ *VTOUT : Commande récupérée !*\nLe livreur *${delivererName}* a récupéré le colis pour la commande #${orderRef}.`).catch(() => {});
+            }
+            await notifyAdmin(`🛵 *VTOUT : En transit*\nLa commande #${orderRef} a été récupérée par le livreur *${delivererName}* (${delivererPhone || ''}).`).catch(() => {});
+        } else if (type === 'delivered') {
+            // Delivered
+            if (customerPhone) {
+                await sendWhatsAppMessage(customerPhone, `🎉 *VTOUT : Commande livrée !*\nVotre commande #${orderRef} a été livrée avec succès. Merci pour votre achat !`).catch(() => {});
+            }
+            if (supplierPhone) {
+                await sendWhatsAppMessage(supplierPhone, `🎉 *VTOUT : Commande livrée !*\nLa commande #${orderRef} a été livrée par *${delivererName}*. Vos gains ont été crédités.`).catch(() => {});
+            }
+            if (delivererPhone) {
+                await sendWhatsAppMessage(delivererPhone, `💸 *VTOUT : Gain crédité !*\nVotre course #${orderRef} a été marquée comme livrée. Vos gains de livraison ont été crédités sur votre portefeuille.`).catch(() => {});
+            }
+            await notifyAdmin(`✅ *VTOUT : Commande livrée*\nLa commande #${orderRef} a été livrée avec succès par *${delivererName}* (${delivererPhone || ''}).`).catch(() => {});
+        }
+    } catch (e) {
+        console.error("[WhatsApp Logs Helper] Error:", e);
+    }
+};
 
 
 export const getAvailableOrders = async (req, res) => {
@@ -91,6 +166,10 @@ export const assignToMe = async (req, res) => {
 
         const newStatus = ['expediee', 'expédiée'].includes(order.status) ? order.status : 'confirmée';
         await order.update({ delivery_person_id: deliveryPerson.id, assigned_at: new Date(), status: newStatus });
+        
+        // Notify all actors on assignment
+        sendLogisticsWhatsAppNotifications(order.id, 'assignToMe').catch(err => console.error("Notification error:", err));
+
         res.json({ message: 'Commande assignée avec succès', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de l\'assignation de la commande' });
@@ -162,6 +241,13 @@ export const updateDeliveryStatus = async (req, res) => {
                 await order.update({ status: oldStatus });
                 return res.status(500).json({ error: 'Erreur lors du traitement financier. Le statut a été restauré. Veuillez réessayer.' });
             }
+        }
+
+        // Notify all actors on status update from delivery
+        if (mappedStatus === 'expédiée' && oldStatus !== 'expédiée') {
+            sendLogisticsWhatsAppNotifications(order.id, 'shipped').catch(err => console.error("Notification error:", err));
+        } else if (mappedStatus === 'livrée' && oldStatus !== 'livrée') {
+            sendLogisticsWhatsAppNotifications(order.id, 'delivered').catch(err => console.error("Notification error:", err));
         }
 
         res.json({ message: 'Statut mis à jour', order });
@@ -440,7 +526,18 @@ export const adminAssignOrder = async (req, res) => {
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
 
         if (!deliveryPersonId) {
+            // Capture previous deliverer phone before unassigning
+            let prevPhone = null;
+            if (order.delivery_person_id) {
+                const prevDeliverer = await DeliveryPerson.findByPk(order.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] });
+                prevPhone = prevDeliverer?.phone || prevDeliverer?.profile?.phone || prevDeliverer?.whatsapp;
+            }
+
             await order.update({ delivery_person_id: null, assigned_at: null });
+
+            // Notify all actors on unassignment
+            sendLogisticsWhatsAppNotifications(order.id, 'adminUnassign', { prevPhone }).catch(err => console.error("Notification error:", err));
+
             return res.json({ message: 'Livreur retiré de la commande', order });
         }
 
@@ -459,6 +556,9 @@ export const adminAssignOrder = async (req, res) => {
                 console.error("[Finance] Failed to process financials after admin assign:", finErr);
             }
         }
+
+        // Notify all actors on assignment
+        sendLogisticsWhatsAppNotifications(order.id, 'adminAssign').catch(err => console.error("Notification error:", err));
 
         res.json({ message: 'Commande assignée par l\'administrateur', order });
     } catch (error) {

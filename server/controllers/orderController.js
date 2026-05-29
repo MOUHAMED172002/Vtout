@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
-import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate } from '../services/whatsappService.js';
+import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from '../services/deliveryFeeService.js';
 
 
@@ -797,12 +797,37 @@ export const updateOrderStatus = async (req, res) => {
             }).catch(() => {});
         }
 
-        // WhatsApp Notif to Deliverer (if assigned)
+        // WhatsApp Notif to Deliverer (if assigned in this request)
         if (req.body.delivery_person_id) {
             DeliveryPerson.findByPk(req.body.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] }).then(deliverer => {
                 const phone = deliverer?.phone || deliverer?.profile?.phone;
                 if (phone) notifyDelivererOfAssignment(phone, order.id);
             });
+        }
+
+        // WhatsApp Notif to Deliverer (if already assigned and not just assigned in req.body)
+        if (order.delivery_person_id && !req.body.delivery_person_id && status) {
+            DeliveryPerson.findByPk(order.delivery_person_id, { include: [{ model: Profile, as: 'profile' }] }).then(deliverer => {
+                const phone = deliverer?.phone || deliverer?.profile?.phone || deliverer?.whatsapp;
+                if (phone) {
+                    const statusMessages = {
+                        'confirmée': 'est maintenant confirmée par le client et est prête pour la préparation/récupération.',
+                        'expédiée': 'est maintenant expédiée ! Le colis est en transit.',
+                        'livrée': 'a été marquée comme livrée.',
+                        'annulée': 'a été annulée. Veuillez ne pas effectuer la livraison.',
+                        'retournée': 'a été marquée comme retournée.'
+                    };
+                    const msg = statusMessages[mappedStatus];
+                    if (msg) {
+                        sendWhatsAppMessage(phone, `🛵 *VTOUT : Statut de course modifié*\nLa commande #${order.id.slice(0, 8).toUpperCase()} ${msg}`).catch(() => {});
+                    }
+                }
+            }).catch(e => console.error("Error notifying deliverer in updateOrderStatus:", e));
+        }
+
+        // WhatsApp Notif to Admin
+        if (status) {
+            notifyAdmin(`🔔 *VTOUT : Statut de commande modifié*\nCommande: #${order.id.slice(0, 8).toUpperCase()}\nStatut: *${oldStatus}* ➔ *${mappedStatus}*`).catch(() => {});
         }
 
         // 1. Stock deduction on confirmation
