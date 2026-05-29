@@ -52,6 +52,9 @@ export const syncDatabase = async (req, res) => {
             image_url:  { type: DataTypes.TEXT, allowNull: true },
             old_price:  { type: DataTypes.DECIMAL(15, 2), allowNull: true },
         },
+        financial_transactions: {
+            source: { type: DataTypes.STRING(32), allowNull: true }
+        },
         products_: { /* placeholder */ }
     };
 

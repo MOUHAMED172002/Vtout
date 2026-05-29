@@ -250,7 +250,8 @@ app.get("/api/repair-db", async (req, res) => {
             { table: 'support_messages', col: 'type', def: { type: DataTypes.STRING(20), defaultValue: 'message' } },
             { table: 'products', col: 'is_kit', def: { type: DataTypes.BOOLEAN, defaultValue: false } },
             { table: 'products', col: 'kit_items', def: { type: DataTypes.TEXT, allowNull: true } },
-            { table: 'products', col: 'volume_pricing', def: { type: DataTypes.TEXT, allowNull: true } }
+            { table: 'products', col: 'volume_pricing', def: { type: DataTypes.TEXT, allowNull: true } },
+            { table: 'financial_transactions', col: 'source', def: { type: DataTypes.STRING(32), allowNull: true } }
         ];
 
         for (const c of columns) {

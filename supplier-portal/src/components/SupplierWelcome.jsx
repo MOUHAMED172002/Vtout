@@ -54,9 +54,9 @@ export default function SupplierWelcome({ user }) {
     const handleBack = () => setStep(s => s - 1);
 
     const steps = [
-        { id: 1, label: getConfig('supplier_welcome_step1_label', 'Boutique'), icon: Store },
-        { id: 2, label: getConfig('supplier_welcome_step2_label', 'Localisation'), icon: MapPin },
-        { id: 3, label: getConfig('supplier_welcome_step3_label', 'Accord Marchand'), icon: ShieldCheck },
+        { id: 1, label: getConfig('supplier_welcome_step1_label', 'Boutique'), icon: <Store size={20} /> },
+        { id: 2, label: getConfig('supplier_welcome_step2_label', 'Localisation'), icon: <MapPin size={20} /> },
+        { id: 3, label: getConfig('supplier_welcome_step3_label', 'Accord Marchand'), icon: <ShieldCheck size={20} /> },
     ];
 
     const handleSubmit = async () => {
