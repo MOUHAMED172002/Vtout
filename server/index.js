@@ -388,21 +388,15 @@ app.get("/api/diagnostics", async (req, res) => {
             report.errors.push("Error querying suppliers: " + e.message);
         }
 
-        // 5. Requête gains brute pour le dashboard
+        // 5. Query detailed transactions for debugging duplicates
         try {
-            const { Op } = await import('sequelize');
-            const since = new Date();
-            since.setDate(since.getDate() - 30);
-            const allGains = await FinancialTransaction.findAll({
-                where: {
-                    type: 'earning',
-                    status: 'completed',
-                    createdAt: { [Op.gte]: since }
-                },
-                attributes: ['amount', 'description'],
-                raw: true
-            });
-            report.data.rawGainsResult = allGains;
+            const txs = await sequelize.query(`
+                SELECT id, order_id, user_id, type, amount, description, source, status, created_at
+                FROM financial_transactions
+                ORDER BY created_at DESC
+                LIMIT 200
+            `, { type: sequelize.QueryTypes.SELECT });
+            report.data.rawGainsResult = txs;
         } catch (e) {
             report.errors.push("Error querying raw gains: " + e.message);
         }
