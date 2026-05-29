@@ -267,13 +267,44 @@ export const adminSyncFinancials = async (req, res) => {
             );
         }
 
-        // 2. Mark all earning as completed
+        // 2. Tag old null-source transactions with correct source values
+        // This prevents the idempotency checks from missing old transactions
+        console.log("[AdminSync] Tagging old null-source transactions...");
+        const [taggedDeliverer] = await sequelize.query(
+            `UPDATE financial_transactions SET source = 'deliverer' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Course (Livreur)%'`,
+            { type: sequelize.QueryTypes.UPDATE }
+        );
+        const [taggedSupplier] = await sequelize.query(
+            `UPDATE financial_transactions SET source = 'supplier' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Vente (Boutique)%'`,
+            { type: sequelize.QueryTypes.UPDATE }
+        );
+        const [taggedAdmin] = await sequelize.query(
+            `UPDATE financial_transactions SET source = 'admin_commission' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Com. Vente (Admin)%'`,
+            { type: sequelize.QueryTypes.UPDATE }
+        );
+        console.log(`[AdminSync] Tagged: ${taggedDeliverer} deliverer, ${taggedSupplier} supplier, ${taggedAdmin} admin_commission`);
+
+        // 3. Remove duplicate deliverer earnings (keep only the earliest per order+user)
+        console.log("[AdminSync] Removing duplicate deliverer earnings...");
+        const [duplicatesRemoved] = await sequelize.query(
+            `DELETE FROM financial_transactions WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY order_id, user_id, source ORDER BY created_at ASC) as rn
+                    FROM financial_transactions
+                    WHERE type = 'earning' AND source = 'deliverer'
+                ) sub WHERE rn > 1
+            )`,
+            { type: sequelize.QueryTypes.DELETE }
+        );
+        console.log(`[AdminSync] Removed ${duplicatesRemoved || 0} duplicate deliverer transactions`);
+
+        // 4. Mark all earnings as completed
         await FinancialTransaction.update(
             { status: 'completed' },
             { where: { type: 'earning', status: { [Op.in]: ['pending', null] } } }
         );
 
-        // 3. Find ALL delivered orders
+        // 5. Find ALL delivered orders
         const orders = await Order.findAll({ 
             where: { status: { [Op.in]: ['livrée', 'livree'] } } 
         });
@@ -288,13 +319,6 @@ export const adminSyncFinancials = async (req, res) => {
                 feesFixed++;
             }
 
-            // Check if earnings already exist for this order (Livreur or Supplier)
-            const txCount = await FinancialTransaction.count({
-                where: { order_id: order.id, type: 'earning' }
-            });
-
-            // Note: Since I fixed processOrderFinancials to be idempotent internally,
-            // we can call it even if some transactions exist. It will only create missing ones.
             await processOrderFinancials(order);
             processedCount++;
         }
@@ -305,7 +329,9 @@ export const adminSyncFinancials = async (req, res) => {
             stats: {
                 totalDeliveredOrdersFound: orders.length,
                 deliveryFeesFixedTo1000: feesFixed,
-                ordersProcessed: processedCount
+                ordersProcessed: processedCount,
+                duplicatesRemoved: duplicatesRemoved || 0,
+                transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0)
             }
         });
     } catch (error) {

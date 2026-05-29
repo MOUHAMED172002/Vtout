@@ -32,7 +32,7 @@ export default function AdminControlTower() {
         setIsSyncing(true);
         try {
             const res = await api.post('/admin/sync-financials');
-            toast.success(`Synchronisation terminée ! ${res.data.details.transactionsGenerated} nouvelles transactions créées.`);
+            toast.success(`Synchronisation terminée ! ${res.data.stats?.ordersProcessed || 0} commandes traitées.`);
         } catch (error) {
             console.error("Sync error:", error);
             toast.error("Échec de la synchronisation");

@@ -147,7 +147,12 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                 console.log(`[Finance] Livreur found: lp.id=${lp.id}, lp.user_id=${lp.user_id}`);
                 // IMPORTANT: Filter by source='deliverer' to avoid collision with supplier/admin earnings
                 const existingLpTx = await FinancialTransaction.findOne({
-                    where: { order_id: order.id, user_id: lp.user_id, type: 'earning', source: 'deliverer' },
+                    where: { 
+                        order_id: order.id, 
+                        user_id: lp.user_id, 
+                        type: 'earning',
+                        [Op.or]: [{ source: 'deliverer' }, { source: null }]
+                    },
                     transaction: t
                 });
 
