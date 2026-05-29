@@ -388,16 +388,15 @@ app.get("/api/diagnostics", async (req, res) => {
             report.errors.push("Error querying suppliers: " + e.message);
         }
 
-        // 5. Query duplicate earnings for analysis
+        // 5. Query all transactions for deliverer user logxaPNGRe9nDGOuvFbLqFo7pEKYiPCY
         try {
-            const duplicates = await sequelize.query(`
-                SELECT order_id, user_id, type, source, COUNT(*) as count, SUM(amount) as total_amount
+            const txs = await sequelize.query(`
+                SELECT id, order_id, user_id, type, amount, description, source, status, created_at
                 FROM financial_transactions
-                WHERE order_id IS NOT NULL
-                GROUP BY order_id, user_id, type, source
-                HAVING count > 1
+                WHERE user_id = 'logxaPNGRe9nDGOuvFbLqFo7pEKYiPCY'
+                ORDER BY created_at DESC
             `, { type: sequelize.QueryTypes.SELECT });
-            report.data.rawGainsResult = duplicates;
+            report.data.rawGainsResult = txs;
         } catch (e) {
             report.errors.push("Error querying raw gains: " + e.message);
         }
