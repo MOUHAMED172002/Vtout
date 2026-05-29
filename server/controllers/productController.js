@@ -146,7 +146,7 @@ export const getAllProducts = async (req, res) => {
             where.old_price = { [Op.gt]: 0 };
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push(
-                sequelize.where(sequelize.col('old_price'), '>', sequelize.col('price'))
+                sequelize.where(sequelize.col('Product.old_price'), '>', sequelize.col('Product.price'))
             );
         }
 
@@ -161,7 +161,7 @@ export const getAllProducts = async (req, res) => {
                     {
                         [Op.and]: [
                             { old_price: { [Op.gt]: 0 } },
-                            sequelize.where(sequelize.col('old_price'), '>', sequelize.col('price'))
+                            sequelize.where(sequelize.col('Product.old_price'), '>', sequelize.col('Product.price'))
                         ]
                     }
                 ]
