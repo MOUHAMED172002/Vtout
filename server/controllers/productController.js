@@ -143,8 +143,10 @@ export const getAllProducts = async (req, res) => {
             where.is_flash_sale = false;
             where.is_kit = false;
             where.supplier_id = { [Op.not]: null };
-            where.old_price = { [Op.gt]: 0 };
             where[Op.and] = where[Op.and] || [];
+            where[Op.and].push(
+                sequelize.where(sequelize.col('Product.old_price'), '>', 0)
+            );
             where[Op.and].push(
                 sequelize.where(sequelize.col('Product.old_price'), '>', sequelize.col('Product.price'))
             );
@@ -160,7 +162,7 @@ export const getAllProducts = async (req, res) => {
                     { volume_pricing: { [Op.not]: null } },
                     {
                         [Op.and]: [
-                            { old_price: { [Op.gt]: 0 } },
+                            sequelize.where(sequelize.col('Product.old_price'), '>', 0),
                             sequelize.where(sequelize.col('Product.old_price'), '>', sequelize.col('Product.price'))
                         ]
                     }
