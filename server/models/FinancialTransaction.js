@@ -28,27 +28,6 @@ const FinancialTransaction = sequelize.define('FinancialTransaction', {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false
     },
-    // NOUVEAUX CHAMPS POUR TRAÇABILITÉ :
-    vendor_price: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true
-    },
-    marketing_fee: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true
-    },
-    commission_rate_applied: {
-        type: DataTypes.DECIMAL(5, 2),
-        allowNull: true
-    },
-    commission_deducted: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true
-    },
-    net_earning: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true
-    },
     description: {
         type: DataTypes.STRING(255),
         allowNull: true
