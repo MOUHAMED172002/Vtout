@@ -679,7 +679,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="md:col-span-2 space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
-                    <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-lg md:text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all" placeholder="Ex: iPhone 15 Pro Max..." />
+                    <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-lg md:text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/20 outline-none transition-all" placeholder="Ex: iPhone 15 Pro Max..." />
                   </div>
 
                   <div className="space-y-3">
@@ -701,7 +701,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               {/* Description Section */}
               <div className="p-6 md:p-10 bg-white rounded-[2.5rem] border border-slate-100 space-y-6">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description complète</label>
-                <textarea {...register("description")} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Décrivez les points forts du produit..." rows={4} />
+                <textarea {...register("description")} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary/20 transition-all" placeholder="Décrivez les points forts du produit..." rows={4} />
               </div>
 
               {/* Pricing Section (if Admin) */}
@@ -996,7 +996,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 {watch('is_flash_sale') && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-6 border-t border-slate-100">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
-                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                   </motion.div>
                 )}
               </div>
@@ -1022,7 +1022,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter des articles complémentaires</label>
                       <div className="relative">
                         <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all" />
+                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
                       </div>
                     </div>
 
