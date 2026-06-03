@@ -51,7 +51,13 @@ export const updateDeliveryFeeTiersConfig = async (req, res) => {
         sorted[sorted.length - 1].max = null; // = Infinity en service
 
         const value = JSON.stringify(sorted);
-        await Config.upsert({ key: 'delivery_fee_tiers', value, label: 'Tranches frais livraison (JSON)' });
+        const [config, created] = await Config.findOrCreate({
+            where: { key: 'delivery_fee_tiers' },
+            defaults: { value, group: 'marketplace', description: 'Grille des frais de livraison dynamiques (JSON)' }
+        });
+        if (!created) {
+            await config.update({ value });
+        }
 
         res.json({ success: true, tiers: sorted, message: 'Tranches mises à jour avec succès.' });
     } catch (err) {
