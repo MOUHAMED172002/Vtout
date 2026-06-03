@@ -167,7 +167,7 @@ export default function DeliveryFeeTiersManager() {
                                         type="number"
                                         value={tier.min}
                                         onChange={e => handleChange(i, "min", e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                         min={0}
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
@@ -185,7 +185,7 @@ export default function DeliveryFeeTiersManager() {
                                                 type="number"
                                                 value={tier.max ?? ""}
                                                 onChange={e => handleChange(i, "max", e.target.value)}
-                                                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                                 min={tier.min + 1}
                                             />
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
