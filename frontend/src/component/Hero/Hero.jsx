@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { ArrowRight, ShieldCheck, Lock, Truck, Headphones, Loader2 } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { useTheme } from '../context/ThemeContext';
@@ -90,9 +90,6 @@ const Hero = () => {
     
     const textTitleClass = isDark ? "text-white" : "text-slate-900";
     const textSubtitleClass = isDark ? "text-slate-400" : "text-slate-600";
-    const propTitleClass = isDark ? "text-white" : "text-slate-800";
-    const propDescClass = isDark ? "text-slate-500" : "text-slate-500";
-    
     const buttonOutlineClass = isDark 
         ? "border-slate-700 hover:border-slate-500 text-white hover:bg-slate-800/30" 
         : "border-slate-300 hover:border-slate-400 text-slate-800 hover:bg-slate-100/50";
@@ -150,53 +147,6 @@ const Hero = () => {
                                         <p className={`text-sm md:text-base leading-relaxed max-w-2xl font-medium ${textSubtitleClass}`}>
                                             {slide.description || "Sur Vtout, des milliers de vendeurs de tout le pays proposent une grande variété de produits sur une plateforme simple, sécurisée et fiable."}
                                         </p>
-
-                                        {/* Value Props Row */}
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pt-4 border-t border-slate-500/20">
-                                            {/* Prop 1 */}
-                                            <div className="flex gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                    <ShieldCheck size={18} className="text-emerald-500" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <h4 className={`text-xs md:text-sm font-bold ${propTitleClass}`}>Paiement à la réception</h4>
-                                                    <p className={`text-[10px] md:text-xs ${propDescClass}`}>Payez quand vous recevez</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Prop 2 */}
-                                            <div className="flex gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                    <Lock size={16} className="text-emerald-500" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <h4 className={`text-xs md:text-sm font-bold ${propTitleClass}`}>Transactions sécurisées</h4>
-                                                    <p className={`text-[10px] md:text-xs ${propDescClass}`}>Données protégées</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Prop 3 */}
-                                            <div className="flex gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                    <Truck size={18} className="text-emerald-500" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <h4 className={`text-xs md:text-sm font-bold ${propTitleClass}`}>Livraison simplifiée</h4>
-                                                    <p className={`text-[10px] md:text-xs ${propDescClass}`}>Suivi & coordination</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Prop 4 */}
-                                            <div className="flex gap-3">
-                                                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                                    <Headphones size={18} className="text-emerald-500" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <h4 className={`text-xs md:text-sm font-bold ${propTitleClass}`}>Support 7j/7</h4>
-                                                    <p className={`text-[10px] md:text-xs ${propDescClass}`}>À votre écoute</p>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         {/* Buttons */}
                                         <div className="flex flex-wrap gap-4 pt-4">

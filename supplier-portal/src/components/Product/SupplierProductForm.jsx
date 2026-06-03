@@ -493,7 +493,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                         <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
-                                <input {...register("name", { required: true })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
+                                <input {...register("name", { required: true })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
                             </div>
 
                             <div className="space-y-2">
@@ -553,7 +553,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description (Optionnel)</label>
-                                <textarea {...register("description")} rows={4} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" placeholder="Détails du produit..." />
+                                <textarea {...register("description")} rows={4} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Détails du produit..." />
                             </div>
 
                             <div className="space-y-2">
@@ -822,7 +822,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                 required: watch("is_promo") ? "Veuillez renseigner un ancien prix valide pour la réduction simple." : false,
                                                                 validate: value => !watch("is_promo") || (parseFloat(value) > 0) || "Veuillez renseigner un ancien prix valide pour la réduction simple."
                                                             })} 
-                                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all"
                                                         />
                                                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">FCFA</span>
                                                         </div>
@@ -841,7 +841,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                     required: watch("is_promo") ? "Pourcentage requis entre 1 et 99 pour la réduction simple." : false,
                                                                     validate: value => !watch("is_promo") || ((parseFloat(value) > 0 && parseFloat(value) < 100) || "Pourcentage requis entre 1 et 99 pour la réduction simple.")
                                                                 })} 
-                                                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-indigo-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-indigo-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all"
                                                             />
                                                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-500">%</span>
                                                         </div>
@@ -857,7 +857,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                 type="number" 
                                                                 placeholder="Ex: 8500"
                                                                 {...register("supplier_price", { required: true })} 
-                                                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-emerald-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all"
+                                                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-black text-emerald-600 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all"
                                                             />
                                                             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">FCFA</span>
                                                         </div>
@@ -937,7 +937,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                                 return true;
                                                             }
                                                         })} 
-                                                        className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold text-rose-600 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/5 transition-all"
+                                                        className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold text-rose-600 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/20 transition-all"
                                                     />
                                                     {errors.flash_sale_end && (
                                                         <p className="text-[11px] text-rose-600 font-black mt-2">{errors.flash_sale_end.message}</p>

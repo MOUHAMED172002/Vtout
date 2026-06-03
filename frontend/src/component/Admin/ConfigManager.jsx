@@ -1413,7 +1413,7 @@ const ConfigManager = () => {
                                     <select 
                                         value={newConfig.group}
                                         onChange={e => setNewConfig({...newConfig, group: e.target.value})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-black outline-none"
+                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-black outline-none focus:ring-2 focus:ring-primary/20"
                                     >
                                         {Object.keys(groupLabels).map(k => <option key={k} value={k}>{groupLabels[k]}</option>)}
                                     </select>
@@ -1504,19 +1504,19 @@ const TeamManager = ({ value, onChange, onSave, uploadImage }) => {
                             value={member.name} 
                             onChange={e => updateItem(i, 'name', e.target.value)}
                             placeholder="Nom"
-                            className="w-full bg-transparent text-xs font-black text-center focus:outline-none"
+                            className="w-full bg-transparent text-xs font-black text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                         />
-                        <input 
-                            value={member.role} 
+                        <input
+                            value={member.role}
                             onChange={e => updateItem(i, 'role', e.target.value)}
                             placeholder="Rôle"
-                            className="w-full bg-transparent text-[10px] text-slate-400 font-bold text-center focus:outline-none"
+                            className="w-full bg-transparent text-[10px] text-slate-400 font-bold text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                         />
-                        <input 
-                            value={member.avatar} 
+                        <input
+                            value={member.avatar}
                             onChange={e => updateItem(i, 'avatar', e.target.value)}
                             placeholder="URL Avatar manuelle"
-                            className="w-full bg-white/50 p-1 rounded text-[8px] font-mono focus:outline-none"
+                            className="w-full bg-white/50 p-1 rounded text-[8px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                         />
                     </div>
                 ))}
@@ -1570,13 +1570,13 @@ const StatsManager = ({ value, onChange, onSave }) => {
                                 value={stat.value} 
                                 onChange={e => updateItem(i, 'value', e.target.value)}
                                 placeholder="Valeur (ex: 12k+)"
-                                className="w-full bg-transparent font-black text-slate-900 focus:outline-none"
+                                className="w-full bg-transparent font-black text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
-                            <input 
-                                value={stat.label} 
+                            <input
+                                value={stat.label}
                                 onChange={e => updateItem(i, 'label', e.target.value)}
                                 placeholder="Libellé"
-                                className="w-full bg-transparent text-[10px] font-black uppercase text-slate-400 tracking-widest focus:outline-none"
+                                className="w-full bg-transparent text-[10px] font-black uppercase text-slate-400 tracking-widest focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
                         </div>
                     </div>
@@ -1693,13 +1693,13 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                                 value={slide.color} 
                                 onChange={e => updateItem(i, 'color', e.target.value)}
                                 placeholder="Couleur BG (from-X to-Y)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                             <input 
                                 value={slide.textColor} 
                                 onChange={e => updateItem(i, 'textColor', e.target.value)}
                                 placeholder="Couleur Texte (text-X)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                         </div>
                     </div>
@@ -1825,13 +1825,13 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                     value={slide.circleBadgeText} 
                                     onChange={e => updateItem(i, 'circleBadgeText', e.target.value)}
                                     placeholder="Texte Rond (Jusqu'à)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.circleBadgeVal} 
                                     onChange={e => updateItem(i, 'circleBadgeVal', e.target.value)}
                                     placeholder="Valeur Rond (-50%)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -1839,13 +1839,13 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                     value={slide.buttonText} 
                                     onChange={e => updateItem(i, 'buttonText', e.target.value)}
                                     placeholder="Texte Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.link} 
                                     onChange={e => updateItem(i, 'link', e.target.value)}
                                     placeholder="Lien Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                         </div>

@@ -69,7 +69,7 @@ export default function CloudinarySettings() {
           value={cloud[name]}
           onChange={(e) => setCloud({ ...cloud, [name]: e.target.value })}
           placeholder={placeholder}
-          className={`w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 focus:outline-none transition-all`}
+          className={`w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 focus:outline-none transition-all`}
         />
         {secret && (
           <button

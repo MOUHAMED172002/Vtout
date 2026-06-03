@@ -117,7 +117,7 @@ export default function StoreSettings() {
             <input
               value={branding.APP_NAME}
               onChange={(e) => setBranding({ ...branding, APP_NAME: e.target.value })}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all"
             />
           </div>
           <div className="space-y-2">
@@ -125,7 +125,7 @@ export default function StoreSettings() {
             <input
               value={branding.LOGO_URL}
               onChange={(e) => setBranding({ ...branding, LOGO_URL: e.target.value })}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all"
             />
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function StoreSettings() {
                   value={socials[key]}
                   onChange={(e) => setSocials({ ...socials, [key]: e.target.value })}
                   placeholder={`https://${key.toLowerCase()}.com/votre_profil`}
-                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
+                  className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all"
                 />
               </div>
             </div>

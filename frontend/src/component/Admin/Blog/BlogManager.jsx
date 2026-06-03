@@ -307,7 +307,7 @@ const BlogManager = () => {
                       <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Titre de l'article</label>
                       <input
                         required
-                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-lg focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all"
+                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-lg focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all"
                         placeholder="Ex: 5 astuces pour choisir sa smartwatch..."
                         value={formData.title}
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -319,7 +319,7 @@ const BlogManager = () => {
                       <textarea
                         required
                         rows="3"
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-6 font-medium text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all resize-none"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-6 font-medium text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all resize-none"
                         placeholder="Court résumé accrocheur pour la liste..."
                         value={formData.summary}
                         onChange={(e) => setFormData({...formData, summary: e.target.value})}
@@ -333,7 +333,7 @@ const BlogManager = () => {
                       </div>
                       <textarea
                         required
-                        className="w-full min-h-[400px] bg-slate-50 border border-slate-100 rounded-2xl p-6 font-mono text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all"
+                        className="w-full min-h-[400px] bg-slate-50 border border-slate-100 rounded-2xl p-6 font-mono text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all"
                         placeholder="Écrivez votre article ici..."
                         value={formData.content}
                         onChange={(e) => setFormData({...formData, content: e.target.value})}

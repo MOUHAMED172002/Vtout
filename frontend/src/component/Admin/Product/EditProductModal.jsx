@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import {
   X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
@@ -204,7 +204,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   const [selectedValuesMap, setSelectedValuesMap] = useState({});
   const [attrSearchQuery, setAttrSearchQuery] = useState('');
   const [commissionRate, setCommissionRate] = useState(10);
-  const [isInternalPriceChange, setIsInternalPriceChange] = useState(false);
+  const isInternalPriceChange = useRef(false);
 
   // Admin Promotions States
   const [allProductsList, setAllProductsList] = useState([]);
@@ -326,8 +326,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
   // Logic: When public price changes, derive the supplier base price
   useEffect(() => {
-    if (isInternalPriceChange) {
-      setIsInternalPriceChange(false);
+    if (isInternalPriceChange.current) {
+      isInternalPriceChange.current = false;
       return;
     }
     if (watchPrice) {
@@ -336,7 +336,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       const calculated = Math.round(decomposed.supplierPrice);
 
       if (calculated !== parseFloat(watchSupplierPrice)) {
-        setIsInternalPriceChange(true);
+        isInternalPriceChange.current = true;
         setValue('supplier_price', calculated);
         setCurrentDeliveryFee(decomposed.deliveryFee);
       }
@@ -345,17 +345,17 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
   // Logic: Reverse calculation if supplier price is explicitly touched
   useEffect(() => {
-    if (isInternalPriceChange) {
-      setIsInternalPriceChange(false);
+    if (isInternalPriceChange.current) {
+      isInternalPriceChange.current = false;
       return;
     }
     if (watchSupplierPrice) {
       const supplierPrice = parseFloat(watchSupplierPrice) || 0;
       const fee = computeDeliveryFee(supplierPrice, deliveryTiers);
       const calculated = Math.round(supplierPrice + fee);
-      
+
       if (calculated !== parseFloat(watchPrice)) {
-        setIsInternalPriceChange(true);
+        isInternalPriceChange.current = true;
         setValue('price', calculated);
         setCurrentDeliveryFee(fee);
       }
@@ -625,7 +625,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom de l'article</label>
                 <input {...register('name', { required: true })}
-                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-5 text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-blue-500/5 outline-none" />
+                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-5 text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-blue-500/20 outline-none" />
               </div>
 
               <div className="space-y-2">
@@ -658,7 +658,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</label>
                 <textarea {...register('description')} rows={4}
-                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/5 outline-none resize-none" />
+                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/20 outline-none resize-none" />
               </div>
 
 
@@ -677,7 +677,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Statut</label>
                     <select {...register('approval_status')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/10">
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/25">
                       <option value="En attente" className="bg-slate-900 text-amber-500">⏳ En attente</option>
                       <option value="approved" className="bg-slate-900 text-emerald-500">✅ Approuvé</option>
                       <option value="rejected" className="bg-slate-900 text-rose-500">❌ Rejeté</option>
@@ -693,7 +693,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Feedback pour le fournisseur</label>
                     <textarea {...register('admin_feedback')} rows={3}
                       placeholder="Expliquez pourquoi ce produit est approuvé, rejeté, ou ce qui doit être corrigé..."
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:ring-4 focus:ring-amber-500/10 resize-none" />
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:ring-4 focus:ring-amber-500/25 resize-none" />
                   </div>
                 </div>
               </div>
@@ -772,7 +772,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                 </label>
                 <div className="relative">
                   <input type="number" {...register('supplier_price')}
-                    className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-2xl font-black text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                    className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-2xl font-black text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/25 transition-all" />
                   <span className="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-black text-slate-300">FCFA</span>
                 </div>
 
@@ -955,11 +955,11 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix promo</label>
-                        <input type="number" {...register('price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                        <input type="number" {...register('price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix normal</label>
-                        <input type="number" {...register('old_price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                        <input type="number" {...register('old_price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                       </div>
                     </div>
 
@@ -975,7 +975,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
-                      <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/5 transition-all" />
+                      <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                     </div>
                   </motion.div>
                 )}
@@ -1002,7 +1002,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter des articles complémentaires</label>
                       <div className="relative">
                         <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all" />
+                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
                       </div>
                     </div>
 
