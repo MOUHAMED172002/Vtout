@@ -488,9 +488,17 @@ export default function OrderDetail() {
                         <span>Qté : {item.quantity}</span>
                         <span className="w-1 h-1 bg-slate-200 rounded-full" />
                         <span>{item.variant?.name ? `${item.variant.name} · ` : ""}{Number(item.price).toLocaleString()} FCFA / unité</span>
+                        {item.original_price && Number(item.original_price) > Number(item.price) && (
+                          <span className="line-through text-slate-300">{Number(item.original_price).toLocaleString()} FCFA</span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 space-y-1">
+                      {item.original_price && Number(item.original_price) > Number(item.price) && (
+                        <p className="text-xs font-black text-emerald-500">
+                          -{Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)}%
+                        </p>
+                      )}
                       <p className="text-xl font-black text-slate-900 tracking-tighter">
                         {(item.quantity * item.price).toLocaleString()} F
                       </p>

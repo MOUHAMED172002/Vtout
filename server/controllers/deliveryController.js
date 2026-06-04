@@ -250,6 +250,15 @@ export const updateDeliveryStatus = async (req, res) => {
             sendLogisticsWhatsAppNotifications(order.id, 'delivered').catch(err => console.error("Notification error:", err));
         }
 
+        // Real-time socket notification to client so tracking page updates immediately
+        if (req.io && order.user_id) {
+            req.io.to(order.user_id).emit('order_status_updated', {
+                orderId: order.id,
+                status: mappedStatus,
+                message: `Votre commande #${order.id.slice(0, 8).toUpperCase()} est maintenant ${mappedStatus}.`
+            });
+        }
+
         res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });

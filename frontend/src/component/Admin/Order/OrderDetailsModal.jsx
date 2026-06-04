@@ -210,7 +210,10 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                         </div>
                         <div className="text-right">
                           <p className="font-black text-slate-900 leading-none mb-1">{(it.price * it.quantity).toLocaleString()} F</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{it.price.toLocaleString()} F / u</p>
+                          {it.original_price && Number(it.original_price) > Number(it.price) ? (
+                            <p className="text-[10px] font-bold text-slate-400 line-through">{Number(it.original_price).toLocaleString()} F / u</p>
+                          ) : null}
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{Number(it.price).toLocaleString()} F / u</p>
                         </div>
                       </div>
                     ))}
