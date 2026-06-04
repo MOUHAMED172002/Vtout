@@ -93,7 +93,7 @@ export default function ReductionsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-16 relative z-10">
           
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className={`p-4 rounded-[2rem] border ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
                   <ProductSkeleton />
@@ -122,7 +122,7 @@ export default function ReductionsPage() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
             >
               {products.map((p, idx) => {
                 const oldPrice = Number(p.old_price || 0);
