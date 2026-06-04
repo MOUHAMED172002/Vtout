@@ -283,9 +283,10 @@ export default function CheckoutPage() {
         setTimeout(() => navigate(nextPath), 2500);
       }
     } catch (err) {
-      console.error(err);
+      console.error("[Checkout Error]", err?.response?.data || err?.message || err);
       const errorMsg = err.response?.data?.error || "Erreur lors de la validation";
-      toast.error(errorMsg);
+      const details = err.response?.data?.details;
+      toast.error(details ? `${errorMsg}: ${details}` : errorMsg, { duration: 8000 });
     } finally {
       setLoading(false);
     }
