@@ -16,14 +16,16 @@ const sharedOptions = {
     logging: isProd ? false : console.log, // On réactive les logs en dev pour voir où ça bloque
     define: {
         underscored: true,
-        timestamps: true
+        timestamps: true,
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci',
     },
     pool: poolConfig,
     dialectOptions: {
-        connectTimeout: 30000, // 30s de timeout de connexion
-        // MySQL 8.4 uses caching_sha2_password by default — allow RSA key exchange without SSL
+        connectTimeout: 30000,
         allowPublicKeyRetrieval: true,
         ssl: false,
+        charset: 'utf8mb4',
     },
     retry: {
         max: 3,
