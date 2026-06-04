@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/user/:userId', requireAuth, addressController.getUserAddresses);
 router.get('/me', requireAuth, addressController.getMyAddresses);
-router.post('/', requireAuth, addressController.createAddress);
+router.post('/', addressController.createAddress); // guests allowed — controller handles null userId
 router.patch('/:id', requireAuth, addressController.updateAddress);
 router.delete('/:id', requireAuth, addressController.deleteAddress);
 
