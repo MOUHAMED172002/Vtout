@@ -3,11 +3,10 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Percent, ShieldAlert, Sparkles, Plus, Minus, ShoppingBag, Info } from "lucide-react";
+import { Percent, ShieldAlert, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { useCart } from "../../component/context/CartContext";
 import { useTheme } from "../../component/context/ThemeContext";
-import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 // Helper to parse volume discounts set in DB
 const getProductVolumePricing = (product) => {
@@ -24,9 +23,8 @@ const getProductVolumePricing = (product) => {
 export default function QuantityDiscountPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quantities, setQuantities] = useState({});
-  const { addToCart } = useCart() || {};
   const { theme } = useTheme();
+  const navigate = useNavigate();
 
   const darkThemes = ["dark", "synthwave", "cyberpunk", "luxury", "dracula"];
   const isDark = darkThemes.includes(theme);
@@ -35,14 +33,8 @@ export default function QuantityDiscountPage() {
     const fetchVolumePricingProducts = async () => {
       try {
         setLoading(true);
-        let data = await getProducts({ hasVolumePricing: 'true', limit: 30 });
-        let list = data.products || data || [];
-        setProducts(list);
-        
-        // Initial quantity = 1 for all products
-        const initQty = {};
-        list.forEach(p => { initQty[p.id] = 1; });
-        setQuantities(initQty);
+        const data = await getProducts({ hasVolumePricing: 'true', limit: 30 });
+        setProducts(data.products || data || []);
       } catch (err) {
         console.error("Erreur chargement Prix Quantité:", err);
       } finally {
@@ -51,38 +43,6 @@ export default function QuantityDiscountPage() {
     };
     fetchVolumePricingProducts();
   }, []);
-
-  const handleQtyChange = (productId, type, maxStock) => {
-    setQuantities(prev => {
-      const current = prev[productId] || 1;
-      let next = current;
-      if (type === 'inc') next = Math.min(maxStock || 99, current + 1);
-      if (type === 'dec') next = Math.max(1, current - 1);
-      return { ...prev, [productId]: next };
-    });
-  };
-
-  const handleAddToCart = (product) => {
-    if (addToCart) {
-      const qty = quantities[product.id] || 1;
-      const tiers = getProductVolumePricing(product);
-      // Determine applicable price based on quantity
-      let applicablePrice = parseFloat(product.price);
-      const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
-      const matchedTier = sortedTiers.find(t => qty >= t.qty);
-      if (matchedTier) {
-        applicablePrice = matchedTier.price || (parseFloat(product.price) * (1 - matchedTier.discount / 100));
-      }
-      
-      addToCart({
-        ...product,
-        price: applicablePrice,
-        original_base_price: product.price,
-      }, qty);
-      
-      toast.success(`Ajouté au panier : ${qty}x ${product.name} au prix de ${Math.round(applicablePrice)} F CFA l'unité !`);
-    }
-  };
 
   return (
     <>
@@ -131,210 +91,71 @@ export default function QuantityDiscountPage() {
           </div>
         </div>
 
-        {/* Product Simulator Grid */}
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-16">
-          
+        {/* Product Grid */}
+        <div className="max-w-[1400px] mx-auto px-4 md:px-12 py-12">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={`p-6 rounded-[2.5rem] border space-y-4 ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <div className={`h-64 rounded-2xl animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
-                  <div className={`h-6 rounded w-2/3 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
-                  <div className={`h-4 rounded w-1/2 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <div className={`aspect-square animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                  <div className="p-3 space-y-2">
+                    <div className={`h-4 rounded w-3/4 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                    <div className={`h-4 rounded w-1/2 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                  </div>
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
             <div className="py-24 flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
-              <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${
-                isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'
-              }`}>
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'}`}>
                 <ShieldAlert size={40} />
               </div>
               <div className="space-y-2">
                 <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>Aucune remise de quantité active</h3>
-                <p className={`font-medium text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Revenez bientôt ! Nos vendeurs travaillent sur de nouveaux tarifs dégressifs.
-                </p>
+                <p className={`font-medium text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Revenez bientôt !</p>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((p) => {
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+              {products.map((p, idx) => {
                 const tiers = getProductVolumePricing(p);
                 if (tiers.length === 0) return null;
-                const selectedQty = quantities[p.id] || 1;
-                
-                // Determine active price and next tier goal
-                const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
-                const matchedTier = sortedTiers.find(t => selectedQty >= t.qty);
+                const bestTier = [...tiers].sort((a, b) => b.discount - a.discount)[0];
                 const basePrice = parseFloat(p.price);
-                const activePrice = matchedTier 
-                  ? (matchedTier.price || (basePrice * (1 - matchedTier.discount / 100))) 
-                  : basePrice;
-                
-                const nextTier = [...tiers].sort((a, b) => a.qty - b.qty).find(t => t.qty > selectedQty);
-
                 return (
                   <motion.div
                     key={p.id}
-                    layout
-                    className={`rounded-[2.5rem] p-6 border transition-all duration-300 flex flex-col justify-between relative group ${
-                      isDark 
-                        ? 'bg-slate-900/40 border-slate-850 hover:border-blue-500/40 shadow-xl shadow-black/20 hover:shadow-blue-950/10' 
-                        : 'bg-white border-slate-200 hover:border-blue-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl'
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.04 }}
+                    onClick={() => navigate(`/products/${p.id}`)}
+                    className={`group rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col ${
+                      isDark
+                        ? 'bg-slate-900/40 border-slate-800 hover:border-blue-500/40'
+                        : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm'
                     }`}
                   >
-                    
-                    {/* Visual Card Top */}
-                    <div>
-                      {/* Product Image & Main Info */}
-                      <div className={`relative h-64 rounded-2xl overflow-hidden mb-6 flex items-center justify-center border transition-colors ${
-                        isDark ? 'bg-slate-950/60 border-slate-850' : 'bg-slate-50 border-slate-100'
-                      }`}>
-                        {p.images && p.images[0] ? (
-                          <img 
-                            src={p.images[0].image_url} 
-                            alt={p.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <span className="text-slate-400 text-xs font-bold">Image non disponible</span>
-                        )}
-                        
-                        {/* Dynamic Active Discount Sticker */}
-                        {matchedTier && matchedTier.discount > 0 && (
-                          <span className="absolute top-4 left-4 bg-blue-600 text-white font-black text-[10px] uppercase px-3.5 py-1.5 rounded-full shadow-lg animate-bounce">
-                            -{matchedTier.discount}% de remise débloquée !
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest block mb-1">
-                        {p.boutique?.name || "Boutique Partenaire"}
-                      </span>
-                      <h3 className={`text-base md:text-lg font-black tracking-tight leading-tight group-hover:text-blue-500 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        {p.name}
-                      </h3>
-
-                      {/* Tiers display */}
-                      <div className={`my-6 space-y-2 border-y py-4 transition-colors ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                        <span className={`text-[10px] font-black uppercase tracking-wider block mb-2 ${isDark ? 'text-slate-500' : 'text-slate-450'}`}>
-                          Paliers de réduction configurés :
-                        </span>
-                        <div className="grid grid-cols-3 gap-2">
-                          {tiers.map((t) => {
-                            const isActive = selectedQty >= t.qty && (!nextTier || t.qty < nextTier.qty);
-                            return (
-                              <div 
-                                key={t.qty}
-                                className={`rounded-xl p-2.5 text-center transition-all duration-300 ${
-                                  isActive 
-                                    ? 'bg-blue-650 text-white shadow-md shadow-blue-500/20' 
-                                    : isDark 
-                                      ? 'bg-slate-950 text-slate-400 border border-slate-850'
-                                      : 'bg-slate-50 text-slate-600 border border-slate-100'
-                                }`}
-                              >
-                                <span className="block font-black text-xs">{t.qty}x+</span>
-                                <span className={`block text-[9px] font-bold uppercase tracking-wider mt-0.5 ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
-                                  {t.discount > 0 ? `-${t.discount}%` : 'Normal'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Interactive Quantity Simulator Bottom */}
-                    <div className="space-y-4">
-                      
-                      {/* Price simulator display */}
-                      <div className={`flex justify-between items-end p-4 rounded-2xl border transition-colors ${
-                        isDark ? 'bg-slate-950/60 border-slate-850' : 'bg-slate-50 border-slate-100'
-                      }`}>
-                        <div>
-                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Prix Unitaire</span>
-                          <div className="flex items-baseline gap-1.5 mt-0.5">
-                            <span className={`font-mono text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                              {Math.round(activePrice).toLocaleString()} F
-                            </span>
-                            {matchedTier && matchedTier.discount > 0 && (
-                              <span className="font-mono text-[10px] font-bold text-slate-400 line-through">
-                                {Math.round(basePrice).toLocaleString()} F
-                              </span>
-                            )}
-                          </div>
-                          {matchedTier && (Math.round(basePrice - activePrice) > 0) && (
-                            <div className="text-[10px] text-slate-500 mt-2">
-                              <span className="font-black">Économie unitaire :</span> {(Math.round(basePrice - activePrice)).toLocaleString()} F
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="text-right">
-                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Total Estimé</span>
-                          <span className="font-mono text-xl md:text-2xl font-black text-blue-600 block mt-0.5">
-                            {Math.round(activePrice * selectedQty).toLocaleString()} F
-                          </span>
-                          {matchedTier && (Math.round((basePrice - activePrice) * selectedQty) > 0) && (
-                            <div className="text-[10px] text-slate-500 mt-1">
-                              <span className="font-black">Économie totale :</span> {(Math.round((basePrice - activePrice) * selectedQty)).toLocaleString()} F
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Goal indicator */}
-                      {nextTier ? (
-                        <div className={`flex items-center gap-1.5 justify-center py-1.5 px-3 rounded-xl border text-[10px] font-bold uppercase tracking-wider ${
-                          isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'
-                        }`}>
-                          <Info size={12} />
-                          <span>
-                            Ajoutez <span className="font-black text-blue-500">{nextTier.qty - selectedQty}</span> pour obtenir <span className="font-black text-blue-500">-{nextTier.discount}%</span> !
-                          </span>
-                        </div>
+                    {/* Image */}
+                    <div className={`relative aspect-square overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+                      {p.images?.[0] ? (
+                        <img src={p.images[0].image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className={`flex items-center gap-1.5 justify-center py-1.5 px-3 rounded-xl border text-[10px] font-bold uppercase tracking-wider ${
-                          isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                        }`}>
-                          <span>🎉 Réduction maximale débloquée !</span>
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold">Pas d'image</div>
                       )}
-
-                      {/* Action tools */}
-                      <div className="flex gap-3">
-                        <div className={`flex items-center rounded-xl px-2 ${isDark ? 'bg-slate-950 border border-slate-850' : 'bg-slate-100'}`}>
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleQtyChange(p.id, 'dec'); }}
-                            className={`w-9 h-9 flex items-center justify-center transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className={`w-8 text-center font-mono font-black text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{selectedQty}</span>
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleQtyChange(p.id, 'inc', p.stock); }}
-                            className={`w-9 h-9 flex items-center justify-center transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(p); }}
-                          className="flex-1 bg-slate-900 hover:bg-blue-600 text-white rounded-xl py-3 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all duration-300 active:scale-95"
-                        >
-                          <ShoppingBag size={14} /> Ajouter
-                        </button>
-                      </div>
-
+                      {bestTier?.discount > 0 && (
+                        <span className="absolute top-2 left-2 bg-blue-600 text-white font-black text-[10px] uppercase px-2 py-1 rounded-full shadow">
+                          Jusqu'à -{bestTier.discount}%
+                        </span>
+                      )}
                     </div>
-
+                    {/* Info */}
+                    <div className="p-3 flex flex-col gap-1 flex-1">
+                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest truncate">{p.boutique?.name || "Boutique"}</span>
+                      <h3 className={`text-xs sm:text-sm font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{p.name}</h3>
+                      <p className={`text-xs sm:text-sm font-black mt-auto pt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {basePrice.toLocaleString()} F
+                      </p>
+                    </div>
                   </motion.div>
                 );
               })}
