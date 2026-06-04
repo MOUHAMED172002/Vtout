@@ -1,5 +1,5 @@
 import { Profile, Cart, Product } from '../models/index.js';
-import { sendWhatsAppMessage } from './whatsappService.js';
+import { sendWhatsAppMessage, getWhatsAppConfigs } from './whatsappService.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
@@ -8,7 +8,13 @@ import sequelize from '../config/database.js';
  */
 export const processAbandonedCarts = async () => {
     console.log('[AbandonedCart] Démarrage de la vérification...');
-    
+
+    const { idInstance, apiToken } = await getWhatsAppConfigs();
+    if (!idInstance || !apiToken || idInstance.includes('XXXX')) {
+        console.warn('[AbandonedCart] WhatsApp non configuré — relances ignorées.');
+        return;
+    }
+
     try {
         const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

@@ -81,14 +81,14 @@ export const getDashboardStats = async (req, res) => {
                     [sequelize.fn('SUM', sequelize.col('total_amount')), 'total'],
                     [sequelize.fn('COUNT', sequelize.col('id')), 'count']
                 ],
-                where: { 
+                where: {
                     createdAt: { [Op.gte]: since },
                     status: ['livree', 'livrée']
                 },
                 group: [sequelize.fn('DATE', sequelize.col('created_at'))],
                 order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
             });
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] Graphique des ventes:', e.message); }
 
         // 3. Produits les plus vendus
         try {
@@ -120,7 +120,7 @@ export const getDashboardStats = async (req, res) => {
                     };
                 });
             }
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] Produits les plus vendus:', e.message); }
 
         // 4. Stock faible
         try {
@@ -130,7 +130,7 @@ export const getDashboardStats = async (req, res) => {
                 limit: 6,
                 order: [['stock', 'ASC']]
             });
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] Stock faible:', e.message); }
 
         // 5. Performance fournisseurs (Chiffre d'Affaires produits uniquement)
         try {
@@ -182,7 +182,7 @@ export const getDashboardStats = async (req, res) => {
                 order: [[sequelize.fn('SUM', sequelize.col('total_amount')), 'DESC']],
                 limit: 5
             });
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] Meilleurs clients:', e.message); }
 
         // 7. Distribution par catégories
         try {
@@ -206,7 +206,7 @@ export const getDashboardStats = async (req, res) => {
                 name: c.product?.category?.name || "Sans catégorie",
                 sold: parseInt(c.sold || 0)
             }));
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] Distribution par catégories:', e.message); }
 
         // 8. File d'attente de traitement
         try {
@@ -216,7 +216,7 @@ export const getDashboardStats = async (req, res) => {
                 order: [['createdAt', 'ASC']],
                 include: [{ model: Profile, as: 'user', attributes: ['fullname'] }]
             });
-        } catch (e) {}
+        } catch (e) { console.error('[Stats] File d\'attente de traitement:', e.message); }
 
         // 9. Timeline Analytics by Profile Role (Task 5)
         let adminTimeline = [];
