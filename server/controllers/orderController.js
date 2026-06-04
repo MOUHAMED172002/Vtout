@@ -794,7 +794,7 @@ export const updateOrderStatus = async (req, res) => {
         // WhatsApp Notif to Customer
         try {
             const userProfile = await Profile.findByPk(order.user_id);
-            const customerPhone = order.guest_phone || userProfile?.phone;
+            const customerPhone = order.whatsapp_notif_phone || order.guest_phone || userProfile?.phone;
             if (customerPhone && status) {
                 notifyCustomerOfStatusUpdate(customerPhone, order.id, mappedStatus).catch(() => {});
             }
