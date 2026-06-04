@@ -710,6 +710,40 @@ sequelize.authenticate()
                 console.warn('  ⚠️ [MIGRATION] Could not ensure order_items.original_price:', opErr.message);
             }
 
+            // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
+            // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
+            // Tables created without explicit charset default to server charset which may be latin1/utf8.
+            try {
+                const tablesToConvert = [
+                    'notifications', 'orders', 'order_items', 'products', 'product_images',
+                    'product_variants', 'product_variant_prices', 'categories',
+                    'financial_transactions', 'support_messages', 'blogs',
+                    'boutiques', 'suppliers', 'profiles', 'configs',
+                    'cart_items', 'delivery_persons',
+                ];
+                for (const tbl of tablesToConvert) {
+                    try {
+                        const [charsetRows] = await sequelize.query(`
+                            SELECT CCSA.character_set_name
+                            FROM information_schema.TABLES T
+                            JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY CCSA
+                              ON CCSA.collation_name = T.table_collation
+                            WHERE T.table_schema = DATABASE() AND T.table_name = '${tbl}'
+                        `);
+                        const currentCharset = charsetRows?.[0]?.character_set_name;
+                        if (currentCharset && currentCharset !== 'utf8mb4') {
+                            await sequelize.query(`ALTER TABLE \`${tbl}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+                            console.log(`  ✅ [CHARSET] Converted ${tbl} from ${currentCharset} → utf8mb4`);
+                        }
+                    } catch (tblErr) {
+                        console.warn(`  ⚠️ [CHARSET] Could not convert ${tbl}: ${tblErr.message}`);
+                    }
+                }
+                console.log('✅ [CHARSET] Table charset check complete.');
+            } catch (charsetErr) {
+                console.warn('  ⚠️ [CHARSET] Table charset migration failed:', charsetErr.message);
+            }
+
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
