@@ -698,16 +698,12 @@ sequelize.authenticate()
 
             // Ensure `order_items.original_price` exists (used by orderController for discount tracking).
             try {
-                const [opRows] = await sequelize.query(`
-                    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'original_price'
-                `);
-                if (!opRows || opRows.length === 0) {
-                    await sequelize.query(`ALTER TABLE order_items ADD COLUMN original_price DECIMAL(15,2) NULL`);
-                    console.log('  ✅ [MIGRATION] Added missing order_items.original_price via raw SQL');
-                }
+                await sequelize.query(`ALTER TABLE order_items ADD COLUMN original_price DECIMAL(15,2) NULL`);
+                console.log('  ✅ [MIGRATION] Added order_items.original_price');
             } catch (opErr) {
-                console.warn('  ⚠️ [MIGRATION] Could not ensure order_items.original_price:', opErr.message);
+                if (!opErr.message.includes('Duplicate column')) {
+                    console.warn('  ⚠️ [MIGRATION] order_items.original_price:', opErr.message);
+                }
             }
 
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
