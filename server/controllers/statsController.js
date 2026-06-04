@@ -14,14 +14,15 @@ export const getDashboardStats = async (req, res) => {
         else if (period === "12M") since.setFullYear(since.getFullYear() - 1);
         else since.setDate(since.getDate() - 29);
 
-        let stats = { 
-            revenue: 0, 
-            admin_profit: 0, 
-            delivery_profits: 0, 
-            supplier_profits: 0, 
-            orders: 0, 
-            customers: 0, 
-            avg_order_value: 0 
+        let stats = {
+            revenue: 0,
+            admin_profit: 0,
+            delivery_profits: 0,
+            supplier_profits: 0,
+            marketing_profits: 0,
+            orders: 0,
+            customers: 0,
+            avg_order_value: 0
         };
         
         let salesChart = [], topProducts = [], recentOrders = [], lowStock = [];
@@ -40,26 +41,29 @@ export const getDashboardStats = async (req, res) => {
             stats.customers = new Set(orders30.map(o => o.user_id)).size;
             stats.avg_order_value = stats.orders > 0 ? stats.revenue / stats.orders : 0;
             
-            // Calcul des gains par rôle via les FinancialTransactions (basé sur la description)
+            // Calcul des gains par rôle via les FinancialTransactions (basé sur la source et la description)
             const allGains = await FinancialTransaction.findAll({
                 where: {
                     type: 'earning',
                     status: 'completed',
                     createdAt: { [Op.gte]: since }
                 },
-                attributes: ['amount', 'description'],
+                attributes: ['amount', 'source', 'description'],
                 raw: true
             });
 
             allGains.forEach(g => {
                 const amount = parseFloat(g.amount || 0);
+                const source = g.source || '';
                 const desc = (g.description || '').toLowerCase();
-                
-                if (desc.startsWith('com. vente') || desc.startsWith('com.vente')) {
+
+                if (source === 'marketing') {
+                    stats.marketing_profits += amount;
+                } else if (source === 'admin_commission' || desc.startsWith('com. vente') || desc.startsWith('com.vente')) {
                     stats.admin_profit += amount;
-                } else if (desc.startsWith('course')) {
+                } else if (source === 'deliverer' || desc.startsWith('course')) {
                     stats.delivery_profits += amount;
-                } else if (desc.startsWith('vente')) {
+                } else if (source === 'supplier' || desc.startsWith('vente')) {
                     stats.supplier_profits += amount;
                 }
             });

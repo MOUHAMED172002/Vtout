@@ -65,6 +65,7 @@ import FlashSalePage from './pages/Promotions/FlashSalePage';
 import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
 import KitsPage from './pages/Promotions/KitsPage';
 import ReductionsPage from './pages/Promotions/ReductionsPage';
+import PromoDetailPage from './pages/Promotions/PromoDetailPage';
 
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
@@ -176,6 +177,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/promotions/flash" element={<PublicRoute><FlashSalePage /></PublicRoute>} />
           <Route path="/promotions/quantite" element={<PublicRoute><QuantityDiscountPage /></PublicRoute>} />
           <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />
+          <Route path="/promotions/produit/:id" element={<PublicRoute><PromoDetailPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />

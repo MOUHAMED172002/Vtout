@@ -106,3 +106,37 @@ export function decomposePublicPrice(publicPrice, commissionRate = 0.10, tiers =
         supplierEarnings: Math.round(sp * (1 - commissionRate)),
     };
 }
+
+// ─────────────────────────────────────────────────────────────
+// Multiplier tiers (coefficient livreur selon quantité totale)
+// ─────────────────────────────────────────────────────────────
+
+const DEFAULT_MULTIPLIER_TIERS = [
+    { min: 0,  max: 5,    multiplier: 1   },
+    { min: 5,  max: 10,   multiplier: 1.5 },
+    { min: 10, max: null, multiplier: 2   },
+];
+
+export async function getDeliveryMultiplierTiers() {
+    try {
+        const config = await Config.findOne({ where: { key: 'delivery_fee_multiplier_tiers' } });
+        if (config?.value) {
+            const parsed = JSON.parse(config.value);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                parsed[parsed.length - 1].max = Infinity;
+                return parsed;
+            }
+        }
+    } catch (err) {
+        console.warn('[DeliveryFeeService] multiplier tiers fallback:', err.message);
+    }
+    return DEFAULT_MULTIPLIER_TIERS.map((t, i, arr) => ({ ...t, max: i === arr.length - 1 ? Infinity : t.max }));
+}
+
+export function computeDeliveryMultiplier(quantity, tiers) {
+    const qty = Number(quantity) || 1;
+    for (const tier of tiers) {
+        if (qty >= tier.min && qty < tier.max) return tier.multiplier;
+    }
+    return tiers[tiers.length - 1]?.multiplier ?? 1;
+}

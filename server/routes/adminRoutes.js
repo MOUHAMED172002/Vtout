@@ -3,7 +3,7 @@ import { requireAuth, requireAdmin } from '../middleware/authMiddleware.js';
 import * as disputeController from '../controllers/disputeController.js';
 import * as financialController from '../controllers/financialController.js';
 import { fixVariantPrices } from '../controllers/productController.js';
-import { getDeliveryFeeTiersConfig, updateDeliveryFeeTiersConfig, simulateDeliveryFee } from '../controllers/deliveryFeeController.js';
+import { getDeliveryFeeTiersConfig, updateDeliveryFeeTiersConfig, simulateDeliveryFee, getDeliveryMultiplierTiersConfig, updateDeliveryMultiplierTiersConfig } from '../controllers/deliveryFeeController.js';
 
 const router = express.Router();
 
@@ -23,5 +23,9 @@ router.get('/delivery-fee-tiers', requireAuth, requireAdmin, getDeliveryFeeTiers
 router.put('/delivery-fee-tiers', requireAuth, requireAdmin, updateDeliveryFeeTiersConfig);
 // Public simulation endpoint (no auth needed — used by supplier portal preview)
 router.post('/delivery-fee-simulate', simulateDeliveryFee);
+
+// ── Delivery Multiplier Tiers (admin management) ──
+router.get('/delivery-multiplier-tiers', requireAuth, requireAdmin, getDeliveryMultiplierTiersConfig);
+router.put('/delivery-multiplier-tiers', requireAuth, requireAdmin, updateDeliveryMultiplierTiersConfig);
 
 export default router;

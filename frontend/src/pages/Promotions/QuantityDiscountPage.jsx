@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Percent, ShieldAlert, Sparkles } from "lucide-react";
+import { Percent, ShieldAlert, Sparkles, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -128,7 +128,7 @@ export default function QuantityDiscountPage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04 }}
-                    onClick={() => navigate(`/products/${p.id}`)}
+                    onClick={() => navigate(`/promotions/produit/${p.id}`)}
                     className={`group rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col ${
                       isDark
                         ? 'bg-slate-900/40 border-slate-800 hover:border-blue-500/40'
@@ -150,7 +150,14 @@ export default function QuantityDiscountPage() {
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col gap-1 flex-1">
-                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest truncate">{p.boutique?.name || "Boutique"}</span>
+                      {p.free_delivery_communes && p.free_delivery_communes.length > 0 && (
+                        <div className="flex items-center gap-1 min-w-0">
+                          <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
+                          <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate">
+                            Livraison gratuite · {p.free_delivery_communes.join(' · ')}
+                          </span>
+                        </div>
+                      )}
                       <h3 className={`text-xs sm:text-sm font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{p.name}</h3>
                       <p className={`text-xs sm:text-sm font-black mt-auto pt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {basePrice.toLocaleString()} F
