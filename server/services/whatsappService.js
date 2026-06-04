@@ -49,7 +49,7 @@ const formatPhoneNumber = (phone) => {
 /**
  * Récupérer les configs WhatsApp de la DB
  */
-const getWhatsAppConfigs = async () => {
+export const getWhatsAppConfigs = async () => {
     try {
         const configs = await Config.findAll({
             where: { group: 'whatsapp' }
