@@ -696,6 +696,20 @@ sequelize.authenticate()
                 console.warn('  ⚠️ [MIGRATION] Could not ensure financial_transactions.source:', sourceCheckErr.message);
             }
 
+            // Ensure `order_items.original_price` exists (used by orderController for discount tracking).
+            try {
+                const [opRows] = await sequelize.query(`
+                    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'original_price'
+                `);
+                if (!opRows || opRows.length === 0) {
+                    await sequelize.query(`ALTER TABLE order_items ADD COLUMN original_price DECIMAL(15,2) NULL`);
+                    console.log('  ✅ [MIGRATION] Added missing order_items.original_price via raw SQL');
+                }
+            } catch (opErr) {
+                console.warn('  ⚠️ [MIGRATION] Could not ensure order_items.original_price:', opErr.message);
+            }
+
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
