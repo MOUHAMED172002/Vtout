@@ -127,22 +127,38 @@ export async function generateInvoicePDF(order) {
         // ── 3. TABLE ──
         currentY = 105;
         const rawItems = order.items || order.OrderItems || [];
-        const itemsData = rawItems.map((it, idx) => [
-            String(idx + 1).padStart(1, '0'),
-            it.product?.name || it.name || "Produit",
-            formatAmount(it.price),
-            it.quantity || 1,
-            formatAmount(Number(it.price || 0) * Number(it.quantity || 1))
-        ]);
+        const hasDiscounts = rawItems.some(it => it.original_price && Number(it.original_price) > Number(it.price));
+        const itemsData = rawItems.map((it, idx) => {
+            const row = [
+                String(idx + 1).padStart(1, '0'),
+                it.product?.name || it.name || "Produit",
+                formatAmount(it.price),
+                it.quantity || 1,
+                formatAmount(Number(it.price || 0) * Number(it.quantity || 1))
+            ];
+            if (hasDiscounts) row.splice(2, 0, it.original_price && Number(it.original_price) > Number(it.price) ? formatAmount(it.original_price) : '-');
+            return row;
+        });
+
+        const head = hasDiscounts
+            ? [["N°", "DESCRIPTION", "PRIX ORIG.", "PRIX REMISÉ", "QTÉ", "TOTAL"]]
+            : [["N°", "DESCRIPTION", "PRIX", "QUANTITÉ", "TOTAL"]];
 
         autoTable(doc, {
             startY: currentY,
-            head: [["N°", "DESCRIPTION", "PRIX", "QUANTITÉ", "TOTAL"]],
+            head,
             body: itemsData,
             theme: "striped",
             headStyles: { fillColor: ColorDark, textColor: ColorWhite, fontSize: 9, fontStyle: "bold", halign: "center", cellPadding: 4 },
             bodyStyles: { fontSize: 8, cellPadding: 5, textColor: ColorDark },
-            columnStyles: {
+            columnStyles: hasDiscounts ? {
+                0: { halign: "center", cellWidth: 10 },
+                1: { halign: "left" },
+                2: { halign: "center", cellWidth: 28 },
+                3: { halign: "center", cellWidth: 28 },
+                4: { halign: "center", cellWidth: 20 },
+                5: { halign: "right", cellWidth: 30 }
+            } : {
                 0: { halign: "center", cellWidth: 12 },
                 1: { halign: "left" },
                 2: { halign: "center", cellWidth: 30 },

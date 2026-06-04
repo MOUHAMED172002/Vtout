@@ -378,7 +378,7 @@ export const createOrder = async (req, res) => {
             }
 
             subtotal += unitPrice * item.quantity;
-            enrichedItems.push({ product, item, unitPrice, variantData });
+            enrichedItems.push({ product, item, unitPrice, basePrice, variantData });
         }
 
         // Load configurations and address early for optimal boutique selection
@@ -417,7 +417,7 @@ export const createOrder = async (req, res) => {
 
         // 2. Group items by optimal boutique (checking primary & secondary boutiques)
         const itemsByBoutique = {};
-        for (const { product, item, unitPrice, variantData } of enrichedItems) {
+        for (const { product, item, unitPrice, basePrice, variantData } of enrichedItems) {
             let bestBoutiqueId = product.boutique_id || 'no_boutique';
             let minSupplement = Infinity;
             
@@ -446,7 +446,7 @@ export const createOrder = async (req, res) => {
             }
             
             if (!itemsByBoutique[bestBoutiqueId]) itemsByBoutique[bestBoutiqueId] = [];
-            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, variantData });
+            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, basePrice, variantData });
         }
 
         const boutiqueIds = Object.keys(itemsByBoutique);
@@ -549,15 +549,15 @@ export const createOrder = async (req, res) => {
                 items_count: boutiqueItems.length
             }, { transaction });
 
-            for (const { product, item, unitPrice, variantData } of boutiqueItems) {
-                // Price should represent the final unit price facturé au client.
+            for (const { product, item, unitPrice, basePrice, variantData } of boutiqueItems) {
                 await OrderItem.create({
                     order_id: order.id,
                     product_id: product.id,
                     variant_id: variantData?.variant_id || null,
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
-                    price: unitPrice
+                    price: unitPrice,
+                    original_price: basePrice !== unitPrice ? basePrice : null
                 }, { transaction });
 
                 if (variantData) {

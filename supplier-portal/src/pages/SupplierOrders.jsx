@@ -325,8 +325,13 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                        {((item.product?.supplier_price ? parseFloat(item.product.supplier_price) : parseFloat(item.price)) * item.quantity).toLocaleString()} F
+                                    <div className="text-right">
+                                        {item.original_price && Number(item.original_price) > Number(item.price) && (
+                                            <p className="text-[10px] text-slate-400 line-through">{Number(item.original_price).toLocaleString()} F / u</p>
+                                        )}
+                                        <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                            {(parseFloat(item.price) * item.quantity).toLocaleString()} F
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -30,6 +30,10 @@ const OrderItem = sequelize.define('OrderItem', {
     price: {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false
+    },
+    original_price: {
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: true
     }
 }, {
     tableName: 'order_items',
