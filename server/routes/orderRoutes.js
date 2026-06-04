@@ -9,7 +9,7 @@ router.get('/me/supplier', requireAuth, orderController.getMySupplierOrders);
 router.get('/', requireAuth, requireAdmin, orderController.getAllOrders);
 router.get('/:id', requireAuth, orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
-router.post('/', requireAuth, orderController.createOrder);
+router.post('/', orderController.createOrder); // guests allowed — controller handles null userId
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
 
