@@ -677,8 +677,6 @@ console.log("💾 [BOOT] Connecting to Database...");
 sequelize.authenticate()
     .then(async () => {
         console.log("✅ [DB] Database connected");
-        // Force UTF-8 on the connection so French accents are stored/retrieved correctly
-        await sequelize.query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
         console.log(">>> [BOOT] Syncing database...");
         
         try {
