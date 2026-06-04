@@ -767,6 +767,8 @@ sequelize.authenticate()
                     { table: 'support_messages',      col: 'order_id',                   def: { type: DataTypes.CHAR(36),       allowNull: true } },
                     { table: 'support_messages',      col: 'type',                       def: { type: DataTypes.STRING(20),     defaultValue: 'message' } },
                     { table: 'financial_transactions', col: 'source',                    def: { type: DataTypes.STRING(32),     allowNull: true } },
+                    // order_items
+                    { table: 'order_items',           col: 'original_price',             def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
                 ];
 
 
