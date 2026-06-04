@@ -150,13 +150,17 @@ export default function QuantityDiscountPage() {
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col gap-1 flex-1">
-                      {p.free_delivery_communes && p.free_delivery_communes.length > 0 && (
+                      {p.free_delivery_communes && p.free_delivery_communes.length > 0 ? (
                         <div className="flex items-center gap-1 min-w-0">
                           <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
                           <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate">
                             Livraison gratuite · {p.free_delivery_communes.join(' · ')}
                           </span>
                         </div>
+                      ) : (
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                          {p.boutique?.name || "Boutique"}
+                        </span>
                       )}
                       <h3 className={`text-xs sm:text-sm font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{p.name}</h3>
                       <p className={`text-xs sm:text-sm font-black mt-auto pt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
