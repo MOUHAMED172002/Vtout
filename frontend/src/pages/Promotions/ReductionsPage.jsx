@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Tag, ShieldAlert, ShoppingCart, Eye, Star } from "lucide-react";
+import { Tag, ShieldAlert, ShoppingCart, Eye, Star, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -169,8 +169,8 @@ export default function ReductionsPage() {
 
                         {/* Action Overlays on hover */}
                         <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 duration-300">
-                          <button 
-                            onClick={() => navigate(`/products/${p.id}`)}
+                          <button
+                            onClick={() => navigate(`/promotions/produit/${p.id}`)}
                             className="w-10 h-10 rounded-full bg-white text-slate-800 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform"
                           >
                             <Eye size={16} />
@@ -180,9 +180,18 @@ export default function ReductionsPage() {
 
                       {/* Product Info */}
                       <div className="space-y-2 px-1">
-                        <span className="text-[9px] font-black text-violet-500 uppercase tracking-widest block">
-                          {p.boutique?.name || "Boutique Officielle"}
-                        </span>
+                        {p.free_delivery_communes && p.free_delivery_communes.length > 0 ? (
+                          <div className="flex items-center gap-1 min-w-0">
+                            <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
+                            <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate">
+                              Livraison gratuite · {p.free_delivery_communes.join(' · ')}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                            {p.boutique?.name || "Boutique"}
+                          </span>
+                        )}
                         <h3 className={`font-black text-sm md:text-base line-clamp-1 group-hover:text-violet-500 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
                           {p.name}
                         </h3>
