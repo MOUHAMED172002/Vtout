@@ -17,14 +17,15 @@ const sharedOptions = {
     define: {
         underscored: true,
         timestamps: true,
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci',
     },
     pool: poolConfig,
     dialectOptions: {
         connectTimeout: 30000,
         allowPublicKeyRetrieval: true,
         ssl: false,
-        // Run on every new connection in the pool — fixes French accents stored/read as ?
-        init_command: "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+        charset: 'utf8mb4',
     },
     retry: {
         max: 3,
