@@ -54,15 +54,18 @@ const SupplierDashboard = ({ globalSearchQuery }) => {
                 return;
             }
 
-            const [productsData, ordersData, financialData] = await Promise.all([
-                getMySupplierProducts(token),
-                getMySupplierOrders(token),
-                import('../services/api').then(m => m.default.get('/financials/my-status', { headers: { Authorization: `Bearer ${token}` } }))
-            ]);
-
-            setProducts(productsData || []);
-            setOrders(ordersData || []);
-            setBalance(financialData?.data?.balance || 0);
+            try {
+                const [productsData, ordersData, financialData] = await Promise.all([
+                    getMySupplierProducts(token),
+                    getMySupplierOrders(token),
+                    import('../services/api').then(m => m.default.get('/financials/my-status', { headers: { Authorization: `Bearer ${token}` } }))
+                ]);
+                setProducts(productsData || []);
+                setOrders(ordersData || []);
+                setBalance(financialData?.data?.balance || 0);
+            } catch (dataErr) {
+                console.warn('[Dashboard] Could not load all data:', dataErr?.message);
+            }
         } catch (profileError) {
             setIsNotSupplier(true);
         } finally {
