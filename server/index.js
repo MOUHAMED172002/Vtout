@@ -105,10 +105,12 @@ const startJobs = () => {
         processReengagement().catch(err => console.error("[JOB ERROR] Reengagement:", err));
     }, 7 * 24 * 60 * 60 * 1000);
 
-    // Messages clients VIP (tous les 30 jours)
+    // Messages clients VIP (tous les 20 jours)
+    // 30j = 2 592 000 000 ms > limite JS 32 bits (2 147 483 647 ms) → overflow vers 1ms
+    // On utilise 20j = 1 728 000 000 ms qui reste dans la limite
     setInterval(() => {
         processVipMessages().catch(err => console.error("[JOB ERROR] VIP Messages:", err));
-    }, 30 * 24 * 60 * 60 * 1000);
+    }, 20 * 24 * 60 * 60 * 1000);
 
     // Nettoyage des ventes flash expirées (toutes les heures)
     setInterval(async () => {
