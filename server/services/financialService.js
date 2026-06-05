@@ -3,7 +3,6 @@ import { Op } from 'sequelize';
 import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from './deliveryFeeService.js';
-import { getTextConfig } from './textTemplateService.js';
 
 export const processOrderFinancials = async (orderIdOrObject) => {
     const t = await sequelize.transaction();
@@ -178,24 +177,19 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         totalQuantity += item.quantity;
                     }
 
-                    // Marketing prend un % fixe sur les frais embarqués (configurable, défaut 20%)
-                    const marketingRateStr = await getTextConfig('marketing_fee_rate', '0.20', 'marketplace');
-                    const marketingRate = Math.min(0.9, Math.max(0, parseFloat(marketingRateStr) || 0.20));
-                    const marketingFee = Math.round(totalEmbeddedFees * marketingRate);
-
-                    // Livreur reçoit sa part sur le pool restant après marketing
-                    const poolForDeliverer = totalEmbeddedFees - marketingFee;
+                    // Livreur reçoit sa part, plafonnée à 80% des frais embarqués
                     const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
-                    const delivererActualFee = totalQuantity > 0
-                        ? Math.round((poolForDeliverer / totalQuantity) * multiplier)
+                    const rawDelivererFee = totalQuantity > 0
+                        ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
                         : 0;
+                    const delivererActualFee = Math.min(rawDelivererFee, Math.round(totalEmbeddedFees * 0.80));
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = delivererActualFee + geographicalFee;
 
-                    // Marketing = part fixe + éventuel surplus livreur non utilisé
-                    const marketingSurplus = marketingFee + Math.max(0, poolForDeliverer - delivererActualFee);
+                    // Marketing = reste exact après la part livreur
+                    const marketingSurplus = Math.max(0, totalEmbeddedFees - delivererActualFee);
 
-                    console.log(`[Finance] Fee calc: embedded=${totalEmbeddedFees}, marketingRate=${marketingRate}, marketingFee=${marketingFee}, pool=${poolForDeliverer}, qty=${totalQuantity}, multiplier=${multiplier}, delivererFee=${delivererActualFee}, geo=${geographicalFee}, totalDeliverer=${totalDelivererFee}, marketing=${marketingSurplus}`);
+                    console.log(`[Finance] Fee calc: embedded=${totalEmbeddedFees}, qty=${totalQuantity}, multiplier=${multiplier}, rawDelivererFee=${rawDelivererFee}, delivererFee=${delivererActualFee}, geo=${geographicalFee}, totalDeliverer=${totalDelivererFee}, marketing=${marketingSurplus}`);
                     if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),
