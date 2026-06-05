@@ -711,7 +711,7 @@ sequelize.authenticate()
         try {
             // En production, on désactive alter:true par défaut pour éviter de corrompre les index
             // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
-            const syncOptions = isProd ? { alter: false } : { alter: true };
+            const syncOptions = { alter: false };
             await sequelize.sync(syncOptions);
 
             // Ensure `financial_transactions.source` exists, even if the migration was skipped previously.
