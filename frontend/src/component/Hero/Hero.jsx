@@ -160,7 +160,7 @@ const Hero = () => {
                                                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                             </button>
                                             <button
-                                                onClick={() => navigate(slide.button2Link || '/comment-ca-marche')}
+                                                onClick={() => navigate(slide.button2Link || '/comment-ca-marche/acheteur')}
                                                 className={`inline-flex items-center justify-center border font-bold text-sm md:text-base px-6 py-4 rounded-xl transition-all duration-300 active:scale-95 cursor-pointer ${buttonOutlineClass}`}
                                             >
                                                 {slide.button2Text || "Comment ça marche ?"}
