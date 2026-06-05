@@ -361,6 +361,31 @@ const ConfigManager = () => {
                 });
             }
 
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_active')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_active',
+                    value: '🎉 *Félicitations !* Votre compte fournisseur Vtout a été approuvé. Vous pouvez maintenant commencer à vendre.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est activé'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_suspendu')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_suspendu',
+                    value: '⚠️ *Alerte :* Votre compte fournisseur Vtout a été temporairement suspendu. Veuillez contacter l\'administration.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est suspendu'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_rejete')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_rejete',
+                    value: '❌ *Désolé :* Votre demande d\'inscription comme fournisseur Vtout a été rejetée.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est rejeté'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'supplier_dashboard_welcome_title')) {
                 uniqueData.push({
                     key: 'supplier_dashboard_welcome_title',
