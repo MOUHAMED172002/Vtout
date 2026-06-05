@@ -46,7 +46,7 @@ export default function ProductGrid({ products = [], showButton = true, title = 
   };
 
   return (
-    <section className="py-12 px-4 md:px-8 max-w-[1400px] mx-auto overflow-hidden">
+    <section className="pt-4 pb-12 px-4 md:px-8 max-w-[1400px] mx-auto overflow-hidden">
       {/* Header Section */}
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
