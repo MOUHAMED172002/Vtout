@@ -17,9 +17,12 @@ export default function CartPage() {
   const [selectAll, setSelectAll] = useState(false);
 
   const getDiscountInfo = (item) => {
-    // Use the product's base price from DB to avoid double-discounting when
-    // price_snapshot was already stored as a discounted value (e.g. from QuantityDiscountPage).
-    let originalPrice = parseFloat(item.product?.price || item.price_snapshot || item.price || 0);
+    // For variant products use price_snapshot (set to variant price at add time).
+    // For non-variant products use item.product.price (current DB price).
+    const baseFromVariant = item.variant_id ? parseFloat(item.price_snapshot || 0) : 0;
+    let originalPrice = baseFromVariant > 0
+      ? baseFromVariant
+      : parseFloat(item.product?.price || item.price_snapshot || item.price || 0);
     let discountedPrice = originalPrice;
     let discountPercent = 0;
     let isVolumeDiscount = false;
