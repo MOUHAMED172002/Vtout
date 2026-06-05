@@ -168,18 +168,20 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                     // Total embedded delivery fees (all items × their individual fee)
                     let totalEmbeddedFees = 0;
                     let totalQuantity = 0;
-                    let baseFeePerItem = 0; // fee for a single representative item
                     for (const item of items) {
                         const itemSupplierPrice = item.product?.supplier_price || 0;
                         const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
                         totalEmbeddedFees += itemFee * item.quantity;
                         totalQuantity += item.quantity;
-                        if (baseFeePerItem === 0) baseFeePerItem = itemFee; // use first item as base
                     }
 
-                    // Apply multiplier: deliverer gets base_fee × multiplier(total_qty)
+                    // Deliverer gets: total embedded fees × multiplier (capped at total embedded).
+                    // The multiplier rewards the deliverer for higher quantity complexity.
                     const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
-                    const delivererActualFee = Math.round(baseFeePerItem * multiplier);
+                    const delivererActualFee = Math.min(
+                        Math.round(totalEmbeddedFees * multiplier),
+                        totalEmbeddedFees  // never pay more than what was collected
+                    );
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = delivererActualFee + geographicalFee;
 

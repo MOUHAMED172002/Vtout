@@ -524,6 +524,8 @@ export default function PromoDetailPage() {
                             price_snapshot: product.price,
                             quantity: 1,
                             image_url: product.images?.[0]?.image_url,
+                            boutique_id: product.boutique_id,
+                            boutique: product.boutique,
                           },
                         ],
                         total: Number(product.price),
