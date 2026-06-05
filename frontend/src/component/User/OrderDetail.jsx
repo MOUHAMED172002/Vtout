@@ -209,6 +209,7 @@ export default function OrderDetail() {
   };
 
   return (
+    <>
     <div className="space-y-10 pb-20">
 
       {/* ── Top Bar ── */}
@@ -767,5 +768,6 @@ export default function OrderDetail() {
         onClose={() => setShowDisputeModal(false)}
       />
     )}
+    </>
   );
 }
