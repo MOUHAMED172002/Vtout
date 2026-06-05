@@ -557,7 +557,21 @@ export const createOrder = async (req, res) => {
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
                     price: unitPrice,
-                }, { transaction });
+                    original_price: basePrice !== unitPrice ? basePrice : null,
+                }, { transaction }).catch(async (createErr) => {
+                    // If original_price column doesn't exist yet, retry without it
+                    if (createErr.message?.includes('original_price')) {
+                        return OrderItem.create({
+                            order_id: order.id,
+                            product_id: product.id,
+                            variant_id: variantData?.variant_id || null,
+                            boutique_id: actualBoutiqueId,
+                            quantity: item.quantity,
+                            price: unitPrice,
+                        }, { transaction });
+                    }
+                    throw createErr;
+                });
 
                 if (variantData) {
                     await variantData.decrement('stock', { by: item.quantity, transaction });
@@ -1164,6 +1178,45 @@ export const assignSupplier = async (req, res) => {
         res.json({ message: 'Fournisseur assigné avec succès', order });
     } catch (error) {
         console.error("ASSIGN SUPPLIER ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+export const respondToDisputeResolution = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { response } = req.body; // 'confirm' | 'contest'
+        const userId = req.auth?.userId;
+
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+        if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const dispute = await Dispute.findOne({ where: { order_id: id, user_id: userId } });
+        if (!dispute) return res.status(404).json({ error: 'Aucun litige trouvé' });
+
+        if (response === 'confirm') {
+            await dispute.update({ status: 'resolved' });
+            await order.update({ dispute_status: 'resolu' });
+            notifyAdmin(`✅ Litige #${dispute.id.slice(0, 8)} confirmé résolu par le client.`).catch(() => {});
+        } else if (response === 'contest') {
+            await dispute.update({ status: 'open' });
+            await order.update({ dispute_status: 'ouvert' });
+            notifyAdmin(`⚠️ Litige #${dispute.id.slice(0, 8)} contesté par le client — réouverture du dossier.`).catch(() => {});
+            await Notification.create({
+                id: crypto.randomUUID(),
+                user_id: userId,
+                title: '🔄 Litige réouvert',
+                message: `Votre contestation pour la commande #${id.slice(0, 8)} a été enregistrée. Notre équipe va réexaminer le dossier.`,
+                type: 'info',
+                is_read: false,
+            }).catch(() => {});
+        } else {
+            return res.status(400).json({ error: 'Réponse invalide' });
+        }
+
+        res.json({ message: response === 'confirm' ? 'Résolution confirmée' : 'Contestation enregistrée' });
+    } catch (error) {
+        console.error("DISPUTE RESPONSE ERROR:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };

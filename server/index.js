@@ -662,12 +662,15 @@ const startServer = () => {
     });
 };
 
+import { startDisputeCron } from './services/disputeCronService.js';
+
 // --- STARTUP LOGIC ---
 console.log("🚀 [BOOT] Starting Vtout API...");
 console.log(">>> [BOOT] Configured ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGINS);
 
 // Start HTTP server immediately so port 3000 is open
 startServer();
+startDisputeCron();
 
 // Initialize Database in background
 console.log("💾 [BOOT] Connecting to Database...");

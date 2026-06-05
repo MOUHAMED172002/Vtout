@@ -12,6 +12,7 @@ router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCo
 router.post('/', orderController.createOrder); // guests allowed — controller handles null userId
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
+router.patch('/:id/dispute/response', requireAuth, orderController.respondToDisputeResolution);
 
 router.get('/:id/suggested-livreurs', requireAuth, requireAdmin, orderController.getSuggestedLivreurs);
 router.get('/:id/suggested-suppliers', requireAuth, requireAdmin, orderController.getSuggestedSuppliers);

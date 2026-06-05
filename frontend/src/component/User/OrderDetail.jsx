@@ -24,7 +24,10 @@ import {
   XCircle,
   Store,
   Lock,
-  User as UserIcon
+  User as UserIcon,
+  ThumbsUp,
+  ThumbsDown,
+  RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -99,6 +102,7 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -673,6 +677,68 @@ export default function OrderDetail() {
  
             {/* Actions */}
             <div className="pt-12 border-t border-slate-100 flex flex-col gap-4">
+
+              {/* Dispute status card */}
+              {order.dispute_status && order.dispute_status !== 'annule' && (
+                <div className={`rounded-[1.5rem] p-5 border-2 space-y-3 ${
+                  order.dispute_status === 'resolu' ? 'bg-emerald-50 border-emerald-200' :
+                  order.dispute_status === 'en_cours' ? 'bg-blue-50 border-blue-200' :
+                  'bg-amber-50 border-amber-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {order.dispute_status === 'resolu' ? <CheckCircle2 size={18} className="text-emerald-500" /> :
+                     order.dispute_status === 'en_cours' ? <RefreshCw size={18} className="text-blue-500" /> :
+                     <Clock size={18} className="text-amber-500" />}
+                    <span className={`font-black text-sm uppercase tracking-wider ${
+                      order.dispute_status === 'resolu' ? 'text-emerald-700' :
+                      order.dispute_status === 'en_cours' ? 'text-blue-700' : 'text-amber-700'
+                    }`}>
+                      {order.dispute_status === 'resolu' ? 'Litige résolu — Confirmation requise' :
+                       order.dispute_status === 'en_cours' ? 'Litige en cours d\'examen' :
+                       'Litige ouvert — En attente de traitement'}
+                    </span>
+                  </div>
+                  {order.dispute_status === 'resolu' && (
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        disabled={disputeResponseLoading}
+                        onClick={async () => {
+                          setDisputeResponseLoading(true);
+                          try {
+                            const token = await getToken();
+                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'confirm' }, { headers: { Authorization: `Bearer ${token}` } });
+                            setOrder(prev => ({ ...prev, dispute_status: 'resolu' }));
+                            toast?.success?.('Résolution confirmée. Merci !');
+                          } catch { toast?.error?.('Erreur'); }
+                          finally { setDisputeResponseLoading(false); }
+                        }}
+                        className="py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        <ThumbsUp size={14} /> Confirmer
+                      </button>
+                      <button
+                        disabled={disputeResponseLoading}
+                        onClick={async () => {
+                          setDisputeResponseLoading(true);
+                          try {
+                            const token = await getToken();
+                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
+                            setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
+                            toast?.success?.('Contestation enregistrée.');
+                          } catch { toast?.error?.('Erreur'); }
+                          finally { setDisputeResponseLoading(false); }
+                        }}
+                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        <ThumbsDown size={14} /> Contester
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Show dispute button only if no active dispute */}
+              {(!order.dispute_status || order.dispute_status === 'annule') && (
               <button
                 className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
                 onClick={() => setShowDisputeModal(true)}
@@ -680,6 +746,7 @@ export default function OrderDetail() {
                 <AlertCircle size={18} />
                 Signaler un problème
               </button>
+              )}
               <Link 
                 to="/"
                 className="w-full py-4 bg-slate-50 text-slate-400 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 transition-all"
