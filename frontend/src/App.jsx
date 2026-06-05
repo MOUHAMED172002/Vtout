@@ -59,6 +59,9 @@ import BlogDetail from './component/Blogs/BlogDetail';
 import MagPage from './component/Blogs/MagPage';
 import Privacy from './component/Popup/Privacy';
 
+// --- How It Works ---
+import HowItWorksPage from './pages/HowItWorks/HowItWorksPage';
+
 // --- Promotion Pages ---
 import PromotionsHub from './pages/Promotions/PromotionsHub';
 import FlashSalePage from './pages/Promotions/FlashSalePage';
@@ -179,6 +182,8 @@ const AppContent = ({ products, loading }) => {
           <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />
           <Route path="/promotions/produit/:id" element={<PublicRoute><PromoDetailPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
+          <Route path="/comment-ca-marche" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />
+          <Route path="/comment-ca-marche/:tab" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
           <Route path="/temoignages" element={<><Navbar /><PlatformReviews /><Footer /></>} />

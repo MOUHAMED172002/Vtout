@@ -9,6 +9,10 @@ const initialConfigs = [
     { key: 'FACEBOOK', value: 'https://facebook.com/vtout', group: 'social', description: 'Lien Facebook' },
     { key: 'WHATSAPP', value: '+229 61 00 00 00', group: 'social', description: 'Numéro WhatsApp' },
     { key: 'INSTAGRAM', value: 'https://instagram.com/vtout', group: 'social', description: 'Lien Instagram' },
+    { key: 'TIKTOK', value: '', group: 'social', description: 'Lien TikTok (laisser vide pour masquer le bouton)' },
+
+    // Feature flags
+    { key: 'show_how_it_works', value: 'true', group: 'features', description: 'Afficher la page "Comment ça marche" (true/false)' },
 
     // Contact Info
     { key: 'CONTACT_EMAIL', value: 'contact@vtout.com', group: 'contact', description: 'Email de support' },
