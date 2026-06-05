@@ -76,14 +76,16 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             }
                         }
 
-                        const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                        const effectiveSupplierPrice = decomposed.supplierPrice;
-                        const itemMarketingFee = decomposed.deliveryFee;
-                        const commissionDeducted = Math.round(effectiveSupplierPrice * itemRate);
+                        const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
+                        const embeddedFee = itemSupplierPrice > 0
+                            ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                            : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                        const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                        const commissionDeducted = Math.round(supplierNet * itemRate);
 
-                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                        totalBaseMarketingFee += embeddedFee * item.quantity;
                         adminTotal += commissionDeducted * item.quantity;
-                        supplierTotal += Math.round((effectiveSupplierPrice - commissionDeducted) * item.quantity);
+                        supplierTotal += Math.round((supplierNet - commissionDeducted) * item.quantity);
                     }
 
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
@@ -175,10 +177,12 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         totalQuantity += item.quantity;
                     }
 
-                    // Deliverer gets: total embedded fees × multiplier.
-                    // When multiplier > 1, the extra comes from admin commission (not from client).
+                    // Livreur reçoit : fee_par_article × multiplicateur (extrait du pool embarqué)
+                    // Le reste (pool − part_livreur) revient au marketing admin
                     const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
-                    const delivererActualFee = Math.round(totalEmbeddedFees * multiplier);
+                    const delivererActualFee = totalQuantity > 0
+                        ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                        : 0;
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = delivererActualFee + geographicalFee;
 

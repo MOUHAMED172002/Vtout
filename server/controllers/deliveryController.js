@@ -123,7 +123,10 @@ export const getAvailableOrders = async (req, res) => {
             }
             const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = Math.round(totalEmbeddedFees * multiplier) + geographicalFee;
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
+            orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
             return orderJson;
         });
 
@@ -314,7 +317,10 @@ export const getMyDeliveries = async (req, res) => {
             }
             const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = Math.round(totalEmbeddedFees * multiplier) + geographicalFee;
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
+            orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
             return orderJson;
         });
 

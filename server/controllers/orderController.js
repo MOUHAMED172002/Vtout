@@ -66,25 +66,32 @@ export const getMySupplierOrders = async (req, res) => {
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemClientPrice = parseFloat(item.price) || 0;
+                    const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                     let itemRate = globalCommissionRate;
                     if (item.product?.category?.commission_rate) {
                         itemRate = parseFloat(item.product.category.commission_rate) / 100;
                     }
-                    const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                    const commissionAmount = Math.round(decomposed.supplierPrice * itemRate);
-                    totalEmbeddedFees += decomposed.deliveryFee * item.quantity;
+                    const embeddedFee = itemSupplierPrice > 0
+                        ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                        : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                    const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                    const commissionAmount = Math.round(supplierNet * itemRate);
+                    totalEmbeddedFees += embeddedFee * item.quantity;
                     totalQuantity += item.quantity;
                     adminTotal += commissionAmount * item.quantity;
-                    supplierTotal += Math.round((decomposed.supplierPrice - commissionAmount) * item.quantity);
+                    supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 }
             }
 
             const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
             return {
                 ...orderJson,
                 supplier_earnings: supplierTotal,
                 admin_commission: adminTotal,
-                deliverer_fee: Math.round(totalEmbeddedFees * multiplier) + parseFloat(orderJson.delivery_fee || 0)
+                deliverer_fee: delivererFlatFee + parseFloat(orderJson.delivery_fee || 0)
             };
         });
 
@@ -188,27 +195,30 @@ export const getOrderById = async (req, res) => {
         if (orderJson.items) {
             for (const item of orderJson.items) {
                 const itemClientPrice = parseFloat(item.price) || 0;
+                const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                 let itemRate = globalCommissionRate;
                 if (item.product?.category?.commission_rate) {
                     itemRate = parseFloat(item.product.category.commission_rate) / 100;
                 }
-
-                const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                const itemSupplierPrice = decomposed.supplierPrice;
-                const itemMarketingFee = decomposed.deliveryFee;
-                const commissionAmount = Math.round(itemSupplierPrice * itemRate);
-
-                totalEmbeddedFees += itemMarketingFee * item.quantity;
+                const embeddedFee = itemSupplierPrice > 0
+                    ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                    : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                const commissionAmount = Math.round(supplierNet * itemRate);
+                totalEmbeddedFees += embeddedFee * item.quantity;
                 totalQuantity += item.quantity;
                 adminTotal += commissionAmount * item.quantity;
-                supplierTotal += Math.round((itemSupplierPrice - commissionAmount) * item.quantity);
+                supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 subtotal += itemClientPrice * item.quantity;
             }
         }
 
         const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
         const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-        orderJson.deliverer_fee = Math.round(totalEmbeddedFees * multiplier) + geographicalFee;
+        const delivererFlatFee = totalQuantity > 0
+            ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+            : 0;
+        orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
         orderJson.admin_commission = adminTotal;
         orderJson.supplier_earnings = supplierTotal;
 
