@@ -80,6 +80,14 @@ const Profile = sequelize.define('Profile', {
     last_abandoned_reminder_at: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    last_reengagement_at: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    last_vip_message_at: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'profiles',
