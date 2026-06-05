@@ -6,25 +6,25 @@ import { FaCarSide, FaWallet, FaShieldHalved } from 'react-icons/fa6'
 const ServiceData = [
     {
         id: 1,
-        icon: <FaShieldHalved className="text-4xl md:text-5xl" style={{ color: '#f37021' }} />,
+        icon: <FaShieldHalved className="text-4xl md:text-5xl text-orange-400" />,
         title: 'Paiement à la réception',
         description: 'Payez quand vous recevez',
     },
     {
         id: 2,
-        icon: <FaWallet className='text-4xl md:text-5xl' style={{ color: '#0054a6' }} />,
+        icon: <FaWallet className='text-4xl md:text-5xl text-orange-400' />,
         title: 'Transactions sécurisées',
         description: 'Données protégées',
     },
     {
         id: 3,
-        icon: <FaCarSide className='text-4xl md:text-5xl' style={{ color: '#f37021' }} />,
+        icon: <FaCarSide className='text-4xl md:text-5xl text-orange-400' />,
         title: 'Livraison simplifiée',
         description: 'Suivi & coordination',
     },
     {
         id: 4,
-        icon: <FaHeadphonesAlt className='text-4xl md:text-5xl' style={{ color: '#0054a6' }} />,
+        icon: <FaHeadphonesAlt className='text-4xl md:text-5xl text-orange-400' />,
         title: 'Support 7j/7',
         description: 'À votre écoute',
     },
