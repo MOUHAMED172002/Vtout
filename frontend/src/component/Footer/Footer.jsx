@@ -88,10 +88,14 @@ const Footer = () => {
                                     <Facebook size={20} />
                                 </a>
                             )}
-                            {socials.tiktok && (
+                            {socials.tiktok ? (
                                 <a href={socials.tiktok} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="TikTok">
                                     <FaTiktok size={20} />
                                 </a>
+                            ) : (
+                                <span className="p-3 bg-base-200 text-base-content/30 rounded-2xl cursor-default" title="TikTok (lien non configuré)">
+                                    <FaTiktok size={20} />
+                                </span>
                             )}
                             {socials.whatsapp && (
                                 <a href={socials.whatsapp.startsWith('http') ? socials.whatsapp : `https://wa.me/${socials.whatsapp}`} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="WhatsApp">
