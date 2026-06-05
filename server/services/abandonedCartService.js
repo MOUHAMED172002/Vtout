@@ -1,5 +1,6 @@
 import { Profile, Cart, Product } from '../models/index.js';
 import { sendWhatsAppMessage, getWhatsAppConfigs } from './whatsappService.js';
+import { getTextTemplate } from './textTemplateService.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
@@ -59,14 +60,16 @@ const sendReminder = async (profile) => {
         const itemCount = profile.cartItems.length;
         const firstItemName = profile.cartItems[0]?.product?.name || 'articles';
         const totalAmount = profile.cartItems.reduce((sum, item) => sum + (parseFloat(item.price_snapshot || 0) * item.quantity), 0);
-        
-        let message = `🛒 *VTOUT : Votre panier vous attend !*\n\nBonjour ${profile.fullname || profile.first_name || 'cher client'},\n\nVous avez laissé ${itemCount} article(s) dans votre panier, dont *${firstItemName}*.\n`;
-        
-        if (totalAmount > 0) {
-            message += `Montant total : *${totalAmount.toLocaleString()} F*\n`;
-        }
+        const clientName = profile.fullname || profile.first_name || 'cher client';
 
-        message += `\nNe laissez pas vos articles s'envoler ! Complétez votre commande dès maintenant sur Vtout.\n\n🔗 https://vtout.com/user/dashboard/cart`;
+        const defaultMessage = `🛒 *VTOUT : Votre panier vous attend !*\n\nBonjour {{clientName}},\n\nVous avez laissé {{itemCount}} article(s) dans votre panier, dont *{{firstItemName}}*.\nMontant total : *{{totalAmount}} F*\n\nNe laissez pas vos articles s'envoler ! Complétez votre commande dès maintenant sur Vtout.\n\n🔗 https://vtout.com/user/dashboard/cart`;
+
+        const message = await getTextTemplate('whatsapp_abandoned_cart', defaultMessage, {
+            clientName,
+            itemCount: String(itemCount),
+            firstItemName,
+            totalAmount: totalAmount > 0 ? totalAmount.toLocaleString() : '0',
+        });
 
         console.log(`[AbandonedCart] Envoi de relance à ${profile.phone} (${profile.fullname})`);
         const result = await sendWhatsAppMessage(profile.phone, message);

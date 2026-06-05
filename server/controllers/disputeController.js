@@ -74,16 +74,25 @@ export const updateDisputeStatus = async (req, res) => {
         if (action === 'refund' && dispute.order) {
             const refundAmount = parseFloat(dispute.order.total_amount || 0);
             if (refundAmount > 0 && dispute.user_id) {
+                // 1. Annuler tous les gains (fournisseur, livreur, admin) liés à cette commande
+                await FinancialTransaction.update(
+                    { status: 'cancelled' },
+                    { where: { order_id: dispute.order_id, type: 'earning', status: 'completed' } }
+                );
+
+                // 2. Créer la transaction de remboursement client
+                //    type='adjustment' car 'refund' n'est pas dans l'ENUM
                 await FinancialTransaction.create({
                     id: crypto.randomUUID(),
                     user_id: dispute.user_id,
                     order_id: dispute.order_id,
                     amount: refundAmount,
-                    type: 'refund',
-                    source: 'dispute',
+                    type: 'adjustment',
+                    source: 'dispute_refund',
                     description: `Remboursement litige #${id.slice(0, 8)} — ${resolution || 'Décision admin'}`,
                     status: 'completed',
                 });
+
                 await Notification.create({
                     id: crypto.randomUUID(),
                     user_id: dispute.user_id,

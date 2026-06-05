@@ -455,12 +455,26 @@ export default function PromoDetailPage() {
               {/* CTA row */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => navigate("/checkout", {
-                    state: {
-                      items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url }],
-                      total: Number(product.price),
-                    },
-                  })}
+                  onClick={() =>
+                    navigate("/checkout", {
+                      state: {
+                        items: [
+                          {
+                            id: product.id,
+                            product_id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            price_snapshot: product.price,
+                            quantity: 1,
+                            image_url: product.images?.[0]?.image_url,
+                            boutique_id: product.boutique_id,
+                            boutique: product.boutique,
+                          },
+                        ],
+                        total: Number(product.price),
+                      },
+                    })
+                  }
                   className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm text-white shadow-xl active:scale-95 transition-all ${
                     promoType === "flash" ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/20"
                     : promoType === "volume" ? "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20"

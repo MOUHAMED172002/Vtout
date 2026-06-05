@@ -260,6 +260,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
                             price_snapshot: currentPrice,
                             quantity: 1,
                             image_url: imgs[0],
+                            boutique_id: product.boutique_id,
+                            boutique: product.boutique,
                           }],
                           total: Number(currentPrice),
                         }
@@ -353,6 +355,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
                       price_snapshot: currentPrice,
                       quantity: 1,
                       image_url: imgs[0],
+                      boutique_id: product.boutique_id,
+                      boutique: product.boutique,
                     }],
                     total: Number(currentPrice),
                   }

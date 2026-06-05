@@ -24,10 +24,10 @@ import EmptyState from "../Shared/EmptyState";
 const STATUS_FILTERS = [
   { value: "", label: "Toutes", count: null },
   { value: "en_attente", label: "En attente" },
-  { value: "confirmee", label: "Confirmée" },
+  { value: "confirmee", label: "ConfirmÃ©e" },
   { value: "expediee", label: "En transit" },
-  { value: "livree", label: "Livrée" },
-  { value: "annulee", label: "Annulée" },
+  { value: "livree", label: "LivrÃ©e" },
+  { value: "annulee", label: "AnnulÃ©e" },
 ];
 
 const normalizeStatus = (s) => {
@@ -48,11 +48,11 @@ const normalizeStatus = (s) => {
 const getStatusConfig = (status) => {
   const normalized = normalizeStatus(status);
   switch (normalized) {
-    case "confirmee": return { label: "Confirmée", icon: <CheckCircle2 size={13} />, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+    case "confirmee": return { label: "ConfirmÃ©e", icon: <CheckCircle2 size={13} />, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
     case "en_attente": return { label: "En attente", icon: <Clock size={13} />, color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" };
-    case "annulee": return { label: "Annulée", icon: <XCircle size={13} />, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
+    case "annulee": return { label: "AnnulÃ©e", icon: <XCircle size={13} />, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
     case "expediee": return { label: "En transit", icon: <Truck size={13} />, color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
-    case "livree": return { label: "Livrée", icon: <PackageCheck size={13} />, color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+    case "livree": return { label: "LivrÃ©e", icon: <PackageCheck size={13} />, color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
     default: return { label: status, icon: <Box size={13} />, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" };
   }
 };

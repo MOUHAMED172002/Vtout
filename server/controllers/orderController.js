@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -54,33 +54,44 @@ export const getMySupplierOrders = async (req, res) => {
         const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
         const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
 
         const enrichedOrders = orders.map(order => {
             const orderJson = order.toJSON();
             let supplierTotal = 0;
             let adminTotal = 0;
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
 
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemClientPrice = parseFloat(item.price) || 0;
+                    const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                     let itemRate = globalCommissionRate;
                     if (item.product?.category?.commission_rate) {
                         itemRate = parseFloat(item.product.category.commission_rate) / 100;
                     }
-                    const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                    const commissionAmount = Math.round(decomposed.supplierPrice * itemRate);
-                    totalBaseMarketingFee += decomposed.deliveryFee * item.quantity;
+                    const embeddedFee = itemSupplierPrice > 0
+                        ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                        : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                    const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                    const commissionAmount = Math.round(supplierNet * itemRate);
+                    totalEmbeddedFees += embeddedFee * item.quantity;
+                    totalQuantity += item.quantity;
                     adminTotal += commissionAmount * item.quantity;
-                    supplierTotal += Math.round((decomposed.supplierPrice - commissionAmount) * item.quantity);
+                    supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 }
             }
 
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
             return {
                 ...orderJson,
                 supplier_earnings: supplierTotal,
                 admin_commission: adminTotal,
-                deliverer_fee: totalBaseMarketingFee + parseFloat(orderJson.delivery_fee || 0)
+                deliverer_fee: delivererFlatFee + parseFloat(orderJson.delivery_fee || 0)
             };
         });
 
@@ -172,9 +183,11 @@ export const getOrderById = async (req, res) => {
         const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
         const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
 
         const orderJson = order.toJSON();
-        let totalBaseMarketingFee = 0;
+        let totalEmbeddedFees = 0;
+        let totalQuantity = 0;
         let adminTotal = 0;
         let supplierTotal = 0;
         let subtotal = 0;
@@ -182,25 +195,30 @@ export const getOrderById = async (req, res) => {
         if (orderJson.items) {
             for (const item of orderJson.items) {
                 const itemClientPrice = parseFloat(item.price) || 0;
+                const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                 let itemRate = globalCommissionRate;
                 if (item.product?.category?.commission_rate) {
                     itemRate = parseFloat(item.product.category.commission_rate) / 100;
                 }
-
-                const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                const itemSupplierPrice = decomposed.supplierPrice;
-                const itemMarketingFee = decomposed.deliveryFee;
-                const commissionAmount = Math.round(itemSupplierPrice * itemRate);
-
-                totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                const embeddedFee = itemSupplierPrice > 0
+                    ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                    : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                const commissionAmount = Math.round(supplierNet * itemRate);
+                totalEmbeddedFees += embeddedFee * item.quantity;
+                totalQuantity += item.quantity;
                 adminTotal += commissionAmount * item.quantity;
-                supplierTotal += Math.round((itemSupplierPrice - commissionAmount) * item.quantity);
+                supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 subtotal += itemClientPrice * item.quantity;
             }
         }
 
+        const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
         const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-        orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+        const delivererFlatFee = totalQuantity > 0
+            ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+            : 0;
+        orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
         orderJson.admin_commission = adminTotal;
         orderJson.supplier_earnings = supplierTotal;
 
@@ -676,11 +694,21 @@ export const createOrder = async (req, res) => {
         const orderListStr = allOrderIds.map(id => `#${id.slice(0, 8)}`).join(', ');
         notifyAdmin(`🛍️ Nouvelle commande Multi-Boutiques (${createdOrders.length}) !\nIDs: ${orderListStr}\nClient: ${guest_name || 'Inconnu'}\nTotal: ${totalCartAmount} F`).catch(() => {});
 
+        // Fetch user email once for invoice (logged-in users don't have guest_email on the order)
+        let invoiceEmail = guest_email || null;
+        if (!invoiceEmail && userId) {
+            try {
+                const up = await Profile.findByPk(userId, { attributes: ['email'] });
+                invoiceEmail = up?.email || null;
+            } catch (_) {}
+        }
+
         // Send individual notifications for each split
         for (const order of createdOrders) {
             const orderItems = enrichedItems.filter(ei => (ei.product.boutique_id || 'no_boutique') === (order.boutique_id || 'no_boutique'));
-            sendOrderNotificationToAdmin(order, orderItems.map(e => e.product)).catch(() => {});
-            sendInvoiceEmail(order, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+            sendOrderNotificationToAdmin(order).catch(() => {});
+            const orderForInvoice = invoiceEmail ? { ...order.toJSON(), user_email: invoiceEmail } : order;
+            sendInvoiceEmail(orderForInvoice, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
         }
         
         // WhatsApp Notif to Customer
@@ -988,8 +1016,10 @@ export const updateOrderStatus = async (req, res) => {
         // 4. Email notification
         try {
             const userProfile = await Profile.findByPk(order.user_id);
-            if (userProfile?.email) {
-                await sendOrderUpdateToCustomer(order, userProfile.email, status);
+            const notifEmail = userProfile?.email || order.guest_email;
+            if (notifEmail) {
+                const orderWithEmail = { ...order.toJSON(), user_email: notifEmail };
+                await sendOrderUpdateToCustomer(orderWithEmail, mappedStatus);
             }
         } catch (_) {}
 

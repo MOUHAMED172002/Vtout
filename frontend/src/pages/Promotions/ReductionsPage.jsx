@@ -228,6 +228,8 @@ export default function ReductionsPage() {
                                 price_snapshot: p.price,
                                 quantity: 1,
                                 image_url: p.images?.[0]?.image_url || p.image_url,
+                                boutique_id: p.boutique_id,
+                                boutique: p.boutique,
                               }],
                               total: Number(p.price),
                             }
