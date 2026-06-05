@@ -2,7 +2,7 @@ import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductIma
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 
 const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) => {
     try {
@@ -108,18 +108,22 @@ export const getAvailableOrders = async (req, res) => {
         });
 
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
         const ordersJson = orders.map(order => {
             const orderJson = order.toJSON();
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemSupplierPrice = item.product?.supplier_price || 0;
-                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                    const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalEmbeddedFees += itemFee * item.quantity;
+                    totalQuantity += item.quantity;
                 }
             }
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            orderJson.deliverer_fee = Math.round(totalEmbeddedFees * multiplier) + geographicalFee;
             return orderJson;
         });
 
@@ -295,18 +299,22 @@ export const getMyDeliveries = async (req, res) => {
         });
 
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
         const ordersJson = orders.map(order => {
             const orderJson = order.toJSON();
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemSupplierPrice = item.product?.supplier_price || 0;
-                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                    const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalEmbeddedFees += itemFee * item.quantity;
+                    totalQuantity += item.quantity;
                 }
             }
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            orderJson.deliverer_fee = Math.round(totalEmbeddedFees * multiplier) + geographicalFee;
             return orderJson;
         });
 
