@@ -13,11 +13,15 @@ const Dispute = sequelize.define('Dispute', {
     },
     user_id: {
         type: DataTypes.CHAR(36),
-        allowNull: false // Requester
+        allowNull: false
     },
     supplier_id: {
         type: DataTypes.CHAR(36),
         allowNull: false
+    },
+    motif: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     },
     reason: {
         type: DataTypes.STRING(255),
@@ -25,7 +29,11 @@ const Dispute = sequelize.define('Dispute', {
     },
     description: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: true
+    },
+    photo_url: {
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     status: {
         type: DataTypes.ENUM('open', 'under_review', 'resolved', 'cancelled'),

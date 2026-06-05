@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category, Notification, Dispute } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
@@ -1067,28 +1067,40 @@ export const triggerStuckOrdersCheck = async (req, res) => {
 export const reportOrderDispute = async (req, res) => {
     try {
         const { id } = req.params;
-        const { reason, description } = req.body;
+        const { motif, description, photo_url } = req.body;
         const userId = req.auth?.userId;
 
         const order = await Order.findByPk(id);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-
         if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const reason = motif || 'Problème signalé par le client';
 
         const dispute = await Dispute.create({
             id: crypto.randomUUID(),
             order_id: id,
             user_id: userId,
             supplier_id: order.supplier_id,
-            reason: reason || 'Problème signalé par le client',
-            description: description || 'Le client a signalé un problème via le bouton support.',
+            motif: motif || null,
+            reason,
+            description: description || null,
+            photo_url: photo_url || null,
             status: 'open'
         });
 
         await order.update({ dispute_status: 'ouvert' });
 
-        // Notifier l'admin
-        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} - Raison: ${reason}`).catch(() => {});
+        // Notification in-app au client
+        await Notification.create({
+            id: crypto.randomUUID(),
+            user_id: userId,
+            title: '⚠️ Litige enregistré',
+            message: `Votre signalement pour la commande #${id.slice(0, 8)} a bien été reçu. Notre équipe vous contactera sous 48h.`,
+            type: 'info',
+            is_read: false,
+        }).catch(() => {});
+
+        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} — Motif: ${reason}${description ? ` — "${description}"` : ''}`).catch(() => {});
 
         res.status(201).json({ message: 'Litige enregistré avec succès', dispute });
     } catch (error) {

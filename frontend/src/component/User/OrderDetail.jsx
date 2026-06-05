@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
+import DisputeModal from "./DisputeModal";
 import {
   ArrowLeft,
   Package,
@@ -97,6 +98,7 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -671,18 +673,9 @@ export default function OrderDetail() {
  
             {/* Actions */}
             <div className="pt-12 border-t border-slate-100 flex flex-col gap-4">
-              <button 
-                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
-                onClick={async () => {
-                  try {
-                    const token = await getToken();
-                    await api.post(`/orders/${order.id}/dispute`, { reason: "Problème signalé via le bouton support" }, { headers: { Authorization: `Bearer ${token}` } });
-                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
-                  } catch (e) {
-                    // Even if API fails, redirect to WhatsApp as a fallback
-                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
-                  }
-                }}
+              <button
+                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
+                onClick={() => setShowDisputeModal(true)}
               >
                 <AlertCircle size={18} />
                 Signaler un problème
@@ -699,5 +692,13 @@ export default function OrderDetail() {
         </div>
       </div>
     </div>
+
+    {showDisputeModal && order && (
+      <DisputeModal
+        order={order}
+        getToken={getToken}
+        onClose={() => setShowDisputeModal(false)}
+      />
+    )}
   );
 }

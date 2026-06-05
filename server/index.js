@@ -706,6 +706,24 @@ sequelize.authenticate()
                 }
             }
 
+            // Dispute protocol v2 — motif + photo_url columns
+            for (const [tbl, col, def] of [
+                ['disputes', 'motif',     'VARCHAR(100) NULL'],
+                ['disputes', 'photo_url', 'TEXT NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`${tbl}\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added ${tbl}.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ${tbl}.${col}:`, e.message);
+                }
+            }
+
+            // Make disputes.description nullable (previously NOT NULL)
+            try {
+                await sequelize.query(`ALTER TABLE disputes MODIFY COLUMN description TEXT NULL`);
+            } catch (e) { /* ignore */ }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
