@@ -157,7 +157,7 @@ export const getAllProducts = async (req, res) => {
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push({
                 [Op.or]: [
-                    { is_flash_sale: true },
+                    { is_flash_sale: true, flash_sale_end: { [Op.gt]: new Date() } },
                     { is_kit: true },
                     { volume_pricing: { [Op.not]: null } },
                     {

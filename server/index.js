@@ -83,19 +83,48 @@ import { syncDatabase } from "./controllers/migrationController.js";
 import { Config, SupportMessage } from "./models/index.js";
 import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
+import { processReviewReminders } from "./services/reviewReminderService.js";
+import { processReengagement, processVipMessages } from "./services/reengagementService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
     console.log("⏰ [JOBS] Démarrage des tâches de fond...");
-    
+
     // Relance des paniers abandonnés (toutes les heures)
     setInterval(() => {
         processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts:", err));
     }, 60 * 60 * 1000);
 
-    // Premier passage 1 minute après le démarrage
+    // Relances avis post-livraison (toutes les 24h)
+    setInterval(() => {
+        processReviewReminders().catch(err => console.error("[JOB ERROR] Review Reminders:", err));
+    }, 24 * 60 * 60 * 1000);
+
+    // Réengagement clients inactifs (tous les 7 jours)
+    setInterval(() => {
+        processReengagement().catch(err => console.error("[JOB ERROR] Reengagement:", err));
+    }, 7 * 24 * 60 * 60 * 1000);
+
+    // Messages clients VIP (tous les 30 jours)
+    setInterval(() => {
+        processVipMessages().catch(err => console.error("[JOB ERROR] VIP Messages:", err));
+    }, 30 * 24 * 60 * 60 * 1000);
+
+    // Nettoyage des ventes flash expirées (toutes les heures)
+    setInterval(async () => {
+        try {
+            await sequelize.query(
+                `UPDATE products SET is_flash_sale = false, flash_sale_end = NULL WHERE is_flash_sale = true AND flash_sale_end IS NOT NULL AND flash_sale_end < NOW()`
+            );
+        } catch (e) {
+            console.error('[JOB ERROR] Flash sale cleanup:', e.message);
+        }
+    }, 60 * 60 * 1000);
+
+    // Premiers passages 1 minute après le démarrage
     setTimeout(() => {
         processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts (Initial):", err));
+        processReviewReminders().catch(err => console.error("[JOB ERROR] Review Reminders (Initial):", err));
     }, 60 * 1000);
 };
 
@@ -782,6 +811,10 @@ sequelize.authenticate()
                 const colMigrations = [
                     // profiles
                     { table: 'profiles',              col: 'last_abandoned_reminder_at', def: { type: DataTypes.DATE,           allowNull: true } },
+                    { table: 'profiles',              col: 'last_reengagement_at',        def: { type: DataTypes.DATE,           allowNull: true } },
+                    { table: 'profiles',              col: 'last_vip_message_at',         def: { type: DataTypes.DATE,           allowNull: true } },
+                    // orders
+                    { table: 'orders',                col: 'review_reminder_sent_at',     def: { type: DataTypes.DATE,           allowNull: true } },
                     // products
                     { table: 'products',              col: 'boutique_id',                def: { type: DataTypes.CHAR(36),        allowNull: true } },
                     { table: 'products',              col: 'secondary_boutique_ids',     def: { type: DataTypes.TEXT,            allowNull: true } },

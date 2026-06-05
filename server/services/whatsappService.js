@@ -181,28 +181,6 @@ export const notifyDelivererOfAssignment = async (delivererPhone, orderId) => {
     return sendWhatsAppMessage(delivererPhone, message);
 };
 
-/**
- * Alerter le client d'un changement de statut
- */
-export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, status) => {
-    const { notifCustomer } = await getWhatsAppConfigs();
-    if (!notifCustomer || !customerPhone) return;
-    const statusMessages = {
-        'confirmée': 'est maintenant *confirmée* et en préparation.',
-        'expédiée': 'est maintenant *expédiée* ! Le livreur est en route.',
-        'livrée': 'a été *livrée*. Merci d\'avoir choisi Vtout !',
-        'annulée': 'a été *annulée*.',
-    };
-    const defaultStatus = statusMessages[status] || `est maintenant : *${status}*`;
-    const defaultBody = `📦 *VTOUT : Mise à jour de commande*\nVotre commande #${orderId.slice(0, 8)} ${defaultStatus}`;
-    const message = await getTextTemplate(
-        'whatsapp_order_status_customer',
-        defaultBody,
-        { orderId: orderId.slice(0, 8), status }
-    );
-    return sendWhatsAppMessage(customerPhone, message);
-};
-
 const normalizeStatusKey = (status) => {
     const mapping = {
         'confirmée': 'confirmee',
@@ -212,6 +190,30 @@ const normalizeStatusKey = (status) => {
         'retournée': 'retournee'
     };
     return mapping[status] || String(status).toLowerCase().replace(/[^a-z0-9]+/g, '_');
+};
+
+/**
+ * Alerter le client d'un changement de statut
+ */
+export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, status) => {
+    const { notifCustomer } = await getWhatsAppConfigs();
+    if (!notifCustomer || !customerPhone) return;
+    const statusKey = normalizeStatusKey(status);
+    const statusMessages = {
+        'confirmée': 'est maintenant *confirmée* et en préparation.',
+        'expédiée': 'est maintenant *expédiée* ! Le livreur est en route.',
+        'livrée': 'a été *livrée*. Merci d\'avoir choisi Vtout !',
+        'annulée': 'a été *annulée*.',
+        'retournée': 'a été *retournée*.',
+    };
+    const defaultStatus = statusMessages[status] || `est maintenant : *${status}*`;
+    const defaultBody = `📦 *VTOUT : Mise à jour de commande*\nVotre commande #${orderId.slice(0, 8)} ${defaultStatus}`;
+    const message = await getTextTemplate(
+        `whatsapp_order_status_customer_${statusKey}`,
+        defaultBody,
+        { orderId: orderId.slice(0, 8), status }
+    );
+    return sendWhatsAppMessage(customerPhone, message);
 };
 
 /**

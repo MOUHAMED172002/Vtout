@@ -485,11 +485,6 @@ export default function ProductPages() {
 
             <div className="divider opacity-50"></div>
 
-            {/* Description Short */}
-            <p className="text-gray-500 leading-relaxed text-base md:text-lg whitespace-pre-wrap">
-              {product.description?.slice(0, 200)}...
-            </p>
-
             {/* Variants */}
             {variants.length > 0 && (
               <div className="space-y-4">

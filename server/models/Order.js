@@ -96,6 +96,10 @@ const Order = sequelize.define('Order', {
         type: DataTypes.DATE,
         allowNull: true
     },
+    review_reminder_sent_at: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     status_history: {
         type: DataTypes.JSON, // Stores array of {status, date}
         allowNull: true

@@ -215,11 +215,7 @@ export default function ReductionsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 px-1">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                        Stock: {p.stock} restants
-                      </span>
-                      
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2 px-1">
                       <button
                         onClick={() => {
                           navigate('/checkout', {

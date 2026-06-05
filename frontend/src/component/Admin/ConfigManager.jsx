@@ -95,6 +95,14 @@ const ConfigManager = () => {
                     description: 'Grille des frais de livraison dynamiques (JSON: min, max, fee)'
                 });
             }
+            if (!uniqueData.find(c => c.key === 'vip_customer_threshold')) {
+                uniqueData.push({
+                    key: 'vip_customer_threshold',
+                    value: '5',
+                    group: 'marketplace',
+                    description: 'Nombre minimum de commandes livrées pour être considéré client VIP'
+                });
+            }
 
             if (!uniqueData.find(c => c.key === 'hero_carousel')) {
                 uniqueData.push({
@@ -238,7 +246,71 @@ const ConfigManager = () => {
                     key: 'whatsapp_order_status_customer',
                     value: '📦 *VTOUT : Mise à jour de commande*\nVotre commande #{{orderId}} est maintenant *{{status}}*.',
                     group: 'messages',
-                    description: 'Message WhatsApp client pour mise à jour de statut'
+                    description: 'Message WhatsApp client (générique) — variables : {{orderId}}, {{status}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_confirmee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_confirmee',
+                    value: '✅ *VTOUT : Commande confirmée !*\n\nBonjour,\n\nVotre commande #{{orderId}} est maintenant *confirmée* et en préparation.\n\nNous vous tiendrons informé de la livraison.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande confirmée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_expediee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_expediee',
+                    value: '🚚 *VTOUT : Commande en chemin !*\n\nBonjour,\n\nVotre commande #{{orderId}} est maintenant *expédiée* ! Le livreur est en route vers chez vous.\n\nMerci de rester disponible.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande expédiée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_livree')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_livree',
+                    value: '🎉 *VTOUT : Commande livrée !*\n\nBonjour,\n\nVotre commande #{{orderId}} a été *livrée* avec succès.\n\nMerci d\'avoir choisi Vtout ! N\'hésitez pas à laisser un avis.\n\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande livrée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_annulee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_annulee',
+                    value: '❌ *VTOUT : Commande annulée*\n\nBonjour,\n\nVotre commande #{{orderId}} a été *annulée*.\n\nPour toute question, contactez notre support sur vtout.com.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande annulée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_retournee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_retournee',
+                    value: '↩️ *VTOUT : Commande retournée*\n\nBonjour,\n\nVotre commande #{{orderId}} a été marquée comme *retournée*.\n\nNotre équipe traite votre dossier. Contactez le support si besoin.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande retournée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_review_request')) {
+                uniqueData.push({
+                    key: 'whatsapp_review_request',
+                    value: '⭐ *VTOUT : Donnez votre avis !*\n\nBonjour {{clientName}},\n\nVotre commande #{{orderId}} a bien été livrée. Nous espérons que vous êtes satisfait(e) !\n\nVotre avis nous aide à améliorer notre service.\n\n🔗 https://vtout.com/user/dashboard/orders',
+                    group: 'messages',
+                    description: 'Message WhatsApp relance avis (J+2 après livraison) — variables : {{clientName}}, {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_reengagement')) {
+                uniqueData.push({
+                    key: 'whatsapp_reengagement',
+                    value: '🛍️ *VTOUT : On pense à vous !*\n\nBonjour {{clientName}},\n\nCela fait un moment qu\'on ne vous a pas vu sur Vtout !\n\nDécouvrez les nouveautés et profitez d\'une livraison rapide dans tout le Bénin.\n\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp relance client inactif (30+ jours) — variables : {{clientName}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_vip_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_vip_customer',
+                    value: '⭐ *VTOUT : Merci, client VIP !*\n\nBonjour {{clientName}},\n\nVous faites partie de nos meilleurs clients avec *{{orderCount}} commandes* passées !\n\nVotre fidélité nous touche énormément.\n\n🎁 Des offres exclusives vous attendent sur :\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp meilleurs clients VIP — variables : {{clientName}}, {{orderCount}}'
                 });
             }
             if (!uniqueData.find(c => c.key === 'email_subject_new_order_admin')) {
