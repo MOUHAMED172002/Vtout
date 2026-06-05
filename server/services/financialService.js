@@ -175,13 +175,10 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         totalQuantity += item.quantity;
                     }
 
-                    // Deliverer gets: total embedded fees × multiplier (capped at total embedded).
-                    // The multiplier rewards the deliverer for higher quantity complexity.
+                    // Deliverer gets: total embedded fees × multiplier.
+                    // When multiplier > 1, the extra comes from admin commission (not from client).
                     const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
-                    const delivererActualFee = Math.min(
-                        Math.round(totalEmbeddedFees * multiplier),
-                        totalEmbeddedFees  // never pay more than what was collected
-                    );
+                    const delivererActualFee = Math.round(totalEmbeddedFees * multiplier);
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = delivererActualFee + geographicalFee;
 
