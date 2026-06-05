@@ -103,6 +103,14 @@ const ConfigManager = () => {
                     description: 'Nombre minimum de commandes livrées pour être considéré client VIP'
                 });
             }
+            if (!uniqueData.find(c => c.key === 'marketing_fee_rate')) {
+                uniqueData.push({
+                    key: 'marketing_fee_rate',
+                    value: '0.20',
+                    group: 'marketplace',
+                    description: 'Part des frais embarqués reversée au marketing (ex: 0.20 = 20%). S\'applique sur chaque commande livrée.'
+                });
+            }
 
             if (!uniqueData.find(c => c.key === 'hero_carousel')) {
                 uniqueData.push({
