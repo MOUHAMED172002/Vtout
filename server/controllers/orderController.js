@@ -557,7 +557,6 @@ export const createOrder = async (req, res) => {
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
                     price: unitPrice,
-                    original_price: basePrice !== unitPrice ? basePrice : null
                 }, { transaction });
 
                 if (variantData) {
