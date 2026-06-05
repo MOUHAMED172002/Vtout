@@ -177,19 +177,19 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                         totalQuantity += item.quantity;
                     }
 
-                    // Livreur reçoit : fee_par_article × multiplicateur (extrait du pool embarqué)
-                    // Le reste (pool − part_livreur) revient au marketing admin
+                    // Livreur reçoit sa part, plafonnée à 80% des frais embarqués
                     const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
-                    const delivererActualFee = totalQuantity > 0
+                    const rawDelivererFee = totalQuantity > 0
                         ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
                         : 0;
+                    const delivererActualFee = Math.min(rawDelivererFee, Math.round(totalEmbeddedFees * 0.80));
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
                     const totalDelivererFee = delivererActualFee + geographicalFee;
 
-                    // Surplus goes to marketing
+                    // Marketing = reste exact après la part livreur
                     const marketingSurplus = Math.max(0, totalEmbeddedFees - delivererActualFee);
 
-                    console.log(`[Finance] Livreur fee calc: embedded=${totalEmbeddedFees}, qty=${totalQuantity}, multiplier=${multiplier}, delivererFee=${delivererActualFee}, geo=${geographicalFee}, total=${totalDelivererFee}, surplus=${marketingSurplus}`);
+                    console.log(`[Finance] Fee calc: embedded=${totalEmbeddedFees}, qty=${totalQuantity}, multiplier=${multiplier}, rawDelivererFee=${rawDelivererFee}, delivererFee=${delivererActualFee}, geo=${geographicalFee}, totalDeliverer=${totalDelivererFee}, marketing=${marketingSurplus}`);
                     if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),

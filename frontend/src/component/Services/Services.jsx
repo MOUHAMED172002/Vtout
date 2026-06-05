@@ -6,25 +6,25 @@ import { FaCarSide, FaWallet, FaShieldHalved } from 'react-icons/fa6'
 const ServiceData = [
     {
         id: 1,
-        icon: <FaShieldHalved className="text-4xl md:text-5xl text-orange-400" />,
+        icon: <FaShieldHalved className="text-4xl md:text-5xl" style={{ color: '#f37021' }} />,
         title: 'Paiement à la réception',
         description: 'Payez quand vous recevez',
     },
     {
         id: 2,
-        icon: <FaWallet className='text-4xl md:text-5xl text-orange-400' />,
+        icon: <FaWallet className='text-4xl md:text-5xl' style={{ color: '#0054a6' }} />,
         title: 'Transactions sécurisées',
         description: 'Données protégées',
     },
     {
         id: 3,
-        icon: <FaCarSide className='text-4xl md:text-5xl text-orange-400' />,
+        icon: <FaCarSide className='text-4xl md:text-5xl' style={{ color: '#f37021' }} />,
         title: 'Livraison simplifiée',
         description: 'Suivi & coordination',
     },
     {
         id: 4,
-        icon: <FaHeadphonesAlt className='text-4xl md:text-5xl text-orange-400' />,
+        icon: <FaHeadphonesAlt className='text-4xl md:text-5xl' style={{ color: '#0054a6' }} />,
         title: 'Support 7j/7',
         description: 'À votre écoute',
     },
@@ -33,8 +33,8 @@ const ServiceData = [
 const Services = () => {
     return (
         <div>
-            <div className='container mt-14 md:mt-20 px-6'>
-                <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 gap-y-8'>
+            <div className='container mt-6 md:mt-10 px-6'>
+                <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 gap-y-6'>
                     {
                         ServiceData.map((data) => (
                             <div
