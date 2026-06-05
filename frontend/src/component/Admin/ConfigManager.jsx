@@ -168,6 +168,23 @@ const ConfigManager = () => {
                 });
             }
 
+            if (!uniqueData.find(c => c.key === 'whatsapp_abandoned_cart')) {
+                uniqueData.push({
+                    key: 'whatsapp_abandoned_cart',
+                    value: '🛒 *VTOUT : Votre panier vous attend !*\n\nBonjour {{clientName}},\n\nVous avez laissé {{itemCount}} article(s) dans votre panier, dont *{{firstItemName}}*.\nMontant total : *{{totalAmount}} F*\n\nNe laissez pas vos articles s\'envoler ! Complétez votre commande dès maintenant sur Vtout.\n\n🔗 https://vtout.com/user/dashboard/cart',
+                    group: 'messages',
+                    description: 'Message WhatsApp de relance panier abandonné — variables : {{clientName}}, {{itemCount}}, {{firstItemName}}, {{totalAmount}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_welcome_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_welcome_customer',
+                    value: '🎉 *Bienvenue sur VTOUT, {{clientName}} !*\n\nVotre compte a été créé avec succès.\n\nDécouvrez des milliers de produits de qualité livrés chez vous au Bénin.\n\n🛍️ Commencez vos achats : https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp de bienvenue pour un nouveau client — variables : {{clientName}}'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'whatsapp_admin_prefix')) {
                 uniqueData.push({
                     key: 'whatsapp_admin_prefix',
