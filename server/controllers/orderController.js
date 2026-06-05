@@ -694,11 +694,21 @@ export const createOrder = async (req, res) => {
         const orderListStr = allOrderIds.map(id => `#${id.slice(0, 8)}`).join(', ');
         notifyAdmin(`🛍️ Nouvelle commande Multi-Boutiques (${createdOrders.length}) !\nIDs: ${orderListStr}\nClient: ${guest_name || 'Inconnu'}\nTotal: ${totalCartAmount} F`).catch(() => {});
 
+        // Fetch user email once for invoice (logged-in users don't have guest_email on the order)
+        let invoiceEmail = guest_email || null;
+        if (!invoiceEmail && userId) {
+            try {
+                const up = await Profile.findByPk(userId, { attributes: ['email'] });
+                invoiceEmail = up?.email || null;
+            } catch (_) {}
+        }
+
         // Send individual notifications for each split
         for (const order of createdOrders) {
             const orderItems = enrichedItems.filter(ei => (ei.product.boutique_id || 'no_boutique') === (order.boutique_id || 'no_boutique'));
-            sendOrderNotificationToAdmin(order, orderItems.map(e => e.product)).catch(() => {});
-            sendInvoiceEmail(order, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+            sendOrderNotificationToAdmin(order).catch(() => {});
+            const orderForInvoice = invoiceEmail ? { ...order.toJSON(), user_email: invoiceEmail } : order;
+            sendInvoiceEmail(orderForInvoice, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
         }
         
         // WhatsApp Notif to Customer
@@ -1006,8 +1016,10 @@ export const updateOrderStatus = async (req, res) => {
         // 4. Email notification
         try {
             const userProfile = await Profile.findByPk(order.user_id);
-            if (userProfile?.email) {
-                await sendOrderUpdateToCustomer(order, userProfile.email, status);
+            const notifEmail = userProfile?.email || order.guest_email;
+            if (notifEmail) {
+                const orderWithEmail = { ...order.toJSON(), user_email: notifEmail };
+                await sendOrderUpdateToCustomer(orderWithEmail, mappedStatus);
             }
         } catch (_) {}
 
