@@ -307,9 +307,8 @@ export const createOrder = async (req, res) => {
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
             }
 
-            let basePrice = (item.price !== undefined && item.price !== null && Number(item.price) > 0)
-                ? parseFloat(item.price)
-                : parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
+            // Always derive price from DB — never trust client-sent price for computation.
+            let basePrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
             // Support both variant_price_id (direct) and variant_id (lookup)
@@ -355,9 +354,9 @@ export const createOrder = async (req, res) => {
                 }
             }
 
-            // Apply Volume Pricing (Quantity/Bulk Discount) dynamically only when no explicit item price is provided
+            // Always apply volume pricing server-side so promo prices are always authoritative.
             let unitPrice = basePrice;
-            if ((item.price === undefined || item.price === null || Number(item.price) <= 0) && product.volume_pricing) {
+            if (product.volume_pricing) {
                 try {
                     const tiers = typeof product.volume_pricing === 'string'
                         ? JSON.parse(product.volume_pricing)
@@ -550,6 +549,14 @@ export const createOrder = async (req, res) => {
             }, { transaction });
 
             for (const { product, item, unitPrice, basePrice, variantData } of boutiqueItems) {
+                // Determine the best original_price for display: volume-discount base or product/variant old_price
+                const variantOldPrice = variantData ? parseFloat(variantData.old_price || 0) : 0;
+                const productOldPrice = parseFloat(product.old_price || 0);
+                const displayOldPrice = variantOldPrice > unitPrice ? variantOldPrice
+                    : productOldPrice > unitPrice ? productOldPrice
+                    : null;
+                const storeOriginalPrice = basePrice !== unitPrice ? basePrice : displayOldPrice;
+
                 await OrderItem.create({
                     order_id: order.id,
                     product_id: product.id,
@@ -557,7 +564,7 @@ export const createOrder = async (req, res) => {
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
                     price: unitPrice,
-                    original_price: basePrice !== unitPrice ? basePrice : null,
+                    original_price: storeOriginalPrice,
                 }, { transaction }).catch(async (createErr) => {
                     // If original_price column doesn't exist yet, retry without it
                     if (createErr.message?.includes('original_price')) {
