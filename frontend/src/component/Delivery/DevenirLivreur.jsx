@@ -125,6 +125,15 @@ export default function DevenirLivreur() {
                     </motion.div>
                     <h1 className="text-5xl md:text-6xl font-black text-base-content tracking-tighter leading-tight">Devenir <span className="text-primary underline decoration-primary/20">Livreur.</span></h1>
                     <p className="text-base-content/60 font-bold max-w-md mx-auto text-lg">Rejoignez la plus grande flotte de livraison au Bénin et boostez vos revenus.</p>
+                    <button
+                        onClick={() => navigate('/comment-ca-marche/livreur')}
+                        className="inline-flex items-center gap-2 border-2 font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 active:scale-95 mx-auto"
+                        style={{ borderColor: 'rgba(243,112,33,0.35)', color: '#f37021' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(243,112,33,0.06)'; e.currentTarget.style.borderColor = 'rgba(243,112,33,0.6)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(243,112,33,0.35)'; }}
+                    >
+                        Comment ça marche ?
+                    </button>
                 </div>
 
                 <div className="relative">

@@ -3,7 +3,7 @@ import { useAuth, useUser } from "../../lib/AuthHooks";
 import { SignUp, SignIn } from "../../lib/AuthComponents";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Check, MapPin, Phone, MessageCircle, CreditCard, ShieldCheck, Store, Loader2, UserCheck } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, MapPin, Phone, MessageCircle, CreditCard, ShieldCheck, Store, Loader2, UserCheck, HelpCircle } from 'lucide-react';
 import AddressSelector from '../context/AddressSelector';
 import SupplierBlockModal from '../Shared/SupplierBlockModal';
 import CountryPhoneSelector from '../Shared/CountryPhoneSelector';
@@ -115,6 +115,27 @@ const SupplierRegister = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 md:p-12">
+            {/* Intro header */}
+            <div className="text-center mb-10 space-y-3">
+                <div className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 shadow-lg"
+                    style={{ background: 'rgba(0,84,166,0.1)', color: '#0054a6' }}>
+                    <Store size={32} />
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+                    Devenir <span style={{ color: '#f37021' }}>Vendeur.</span>
+                </h1>
+                <p className="text-slate-500 font-bold max-w-sm mx-auto">Ouvrez votre boutique et vendez à des milliers de clients partout au Bénin.</p>
+                <button
+                    onClick={() => navigate('/comment-ca-marche/vendeur')}
+                    className="inline-flex items-center gap-2 border-2 font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 active:scale-95 mx-auto"
+                    style={{ borderColor: 'rgba(0,84,166,0.3)', color: '#0054a6' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,84,166,0.05)'; e.currentTarget.style.borderColor = 'rgba(0,84,166,0.5)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(0,84,166,0.3)'; }}
+                >
+                    <HelpCircle size={16} />
+                    Comment ça marche ?
+                </button>
+            </div>
             {(!isLoggingIn && (authMode === 'signUp' || isSignedIn)) && (
                 <div className="w-full max-w-4xl mb-12">
                     <div className="flex justify-between items-center relative">

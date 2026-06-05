@@ -34,8 +34,7 @@ const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
   { id: 2, name: "Boutique", link: "/products-liste", icon: <ShoppingBag size={20} /> },
   { id: 3, name: "Promotions", link: "/promotions", icon: <Flame size={20} />, promoStyle: true },
-  { id: 4, name: "Comment ça marche", link: "/comment-ca-marche", icon: <HelpCircle size={20} /> },
-  { id: 5, name: "À propos", link: "/about", icon: <Info size={20} /> },
+  { id: 4, name: "À propos", link: "/about", icon: <Info size={20} /> },
 ];
 
 export default function Navbar() {
