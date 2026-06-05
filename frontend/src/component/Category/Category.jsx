@@ -52,7 +52,7 @@ export default function Category() {
   }
 
   return (
-    <div className="container mt-16 mb-24 px-4 max-w-7xl mx-auto overflow-hidden">
+    <div className="container mt-16 mb-8 px-4 max-w-7xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-2">

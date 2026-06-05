@@ -110,6 +110,17 @@ const startJobs = () => {
         processVipMessages().catch(err => console.error("[JOB ERROR] VIP Messages:", err));
     }, 30 * 24 * 60 * 60 * 1000);
 
+    // Nettoyage des ventes flash expirées (toutes les heures)
+    setInterval(async () => {
+        try {
+            await sequelize.query(
+                `UPDATE products SET is_flash_sale = false, flash_sale_end = NULL WHERE is_flash_sale = true AND flash_sale_end IS NOT NULL AND flash_sale_end < NOW()`
+            );
+        } catch (e) {
+            console.error('[JOB ERROR] Flash sale cleanup:', e.message);
+        }
+    }, 60 * 60 * 1000);
+
     // Premiers passages 1 minute après le démarrage
     setTimeout(() => {
         processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts (Initial):", err));

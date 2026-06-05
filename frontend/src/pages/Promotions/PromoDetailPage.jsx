@@ -18,6 +18,11 @@ import {
   Info,
   Store,
   ArrowRight,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  Zap,
+  Gift,
 } from "lucide-react";
 
 const darkThemes = ["dark", "synthwave", "cyberpunk", "luxury", "dracula"];
@@ -277,296 +282,220 @@ export default function PromoDetailPage() {
             </div>
 
             {/* ---- Right: Product info + promo conditions ---- */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
 
-              {/* Promo badge chip */}
-              <div className="flex items-center gap-2">
+              {/* Promo type badge + rating row */}
+              <div className="flex flex-wrap items-center gap-2">
                 {promoType === "flash" && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      isDark
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                        : "bg-rose-50 text-rose-600 border border-rose-200"
-                    }`}
-                  >
-                    <Flame size={11} className="fill-current" /> VENTE FLASH
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${isDark ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : "bg-rose-50 text-rose-600 border border-rose-200"}`}>
+                    <Flame size={11} className="fill-current animate-pulse" /> VENTE FLASH
                   </span>
                 )}
                 {promoType === "volume" && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      isDark
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                        : "bg-blue-50 text-blue-600 border border-blue-200"
-                    }`}
-                  >
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${isDark ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" : "bg-blue-50 text-blue-600 border border-blue-200"}`}>
                     <Percent size={11} /> REMISE QUANTITÉ
                   </span>
                 )}
                 {promoType === "reduction" && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      isDark
-                        ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
-                        : "bg-violet-50 text-violet-600 border border-violet-200"
-                    }`}
-                  >
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${isDark ? "bg-violet-500/20 text-violet-400 border border-violet-500/30" : "bg-violet-50 text-violet-600 border border-violet-200"}`}>
                     <Tag size={11} /> RÉDUCTION DIRECTE
                   </span>
+                )}
+                {product.average_rating && (
+                  <div className="flex items-center gap-1 text-amber-500 font-bold text-xs uppercase tracking-widest">
+                    <Star size={11} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
+                    <span className={`ml-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>• {product.review_count ?? "?"} avis</span>
+                  </div>
                 )}
               </div>
 
               {/* Product name */}
-              <h1 className={`text-2xl md:text-3xl font-black leading-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+              <h1 className={`text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tighter ${isDark ? "text-white" : "text-slate-900"}`}>
                 {product.name}
               </h1>
 
-              {/* Rating */}
-              {product.average_rating && (
-                <div className="flex items-center gap-1.5 text-amber-500 font-bold text-sm">
-                  <Star size={14} fill="currentColor" />
-                  <span>{Number(product.average_rating).toFixed(1)}</span>
-                  <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                    ({product.review_count ?? "?"} avis)
-                  </span>
-                </div>
-              )}
-
-              {/* Free delivery zones */}
+              {/* Free delivery badge — styled card like ProductPages */}
               {product.free_delivery_communes?.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin size={13} className="text-emerald-500 shrink-0" />
-                  <span className="text-[10px] font-black uppercase tracking-tight text-emerald-500">
-                    LIVRAISON GRATUITE &middot;{" "}
-                    {product.free_delivery_communes.join(" · ")}
-                  </span>
+                <div className={`flex items-center gap-4 p-4 rounded-3xl border ${isDark ? "bg-emerald-900/20 border-emerald-800/40" : "bg-emerald-50 border-emerald-100"}`}>
+                  <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200 shrink-0">
+                    <Truck size={18} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
+                    <p className="text-xs font-black text-slate-900">
+                      Livraison gratuite dans : {product.free_delivery_communes.join(", ")}
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* ---- PROMO CONDITIONS CARD ---- */}
-              <div
-                className={`rounded-2xl border p-5 space-y-4 ${borderColorClass} ${
-                  isDark ? "bg-slate-900/50" : "bg-white"
-                }`}
-              >
-                {/* Card title */}
-                <div className="flex items-center gap-2">
-                  <Info size={15} className={priceColorClass} />
-                  <span className={`font-black text-sm uppercase tracking-wider ${priceColorClass}`}>
-                    Conditions de la Promotion
+              {/* Price section */}
+              <div className="flex items-baseline gap-3">
+                <span className={`text-4xl md:text-5xl font-black tracking-tighter ${priceColorClass}`}>
+                  {price.toLocaleString()}
+                  <span className="text-xl ml-1 font-black">FCFA</span>
+                </span>
+                {hasDiscount && (
+                  <span className={`text-base font-bold line-through ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                    {oldPrice.toLocaleString()} FCFA
                   </span>
+                )}
+                {hasDiscount && (
+                  <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full">
+                    -{Math.round(((oldPrice - price) / oldPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+
+              {/* Availability badge */}
+              <div>
+                {(product.stock ?? 0) > 0 ? (
+                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${isDark ? "bg-emerald-900/30 text-emerald-400 border-emerald-800/40" : "bg-emerald-50 text-emerald-700 border-emerald-100"}`}>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    En stock · {product.stock} unités
+                  </div>
+                ) : (
+                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${isDark ? "bg-rose-900/30 text-rose-400 border-rose-800/40" : "bg-rose-50 text-rose-700 border-rose-100"}`}>
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    Rupture de stock
+                  </div>
+                )}
+              </div>
+
+              {/* ---- PROMO TYPE + CONDITIONS CARD ---- */}
+              <div className={`rounded-2xl border p-5 space-y-5 ${borderColorClass} ${isDark ? "bg-slate-900/50" : "bg-white"}`}>
+
+                {/* Type de promotion */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Info size={14} className={priceColorClass} />
+                    <span className={`font-black text-xs uppercase tracking-wider ${priceColorClass}`}>Type de promotion</span>
+                  </div>
+                  <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                    {promoType === "flash" && "Vente flash à durée limitée — profitez du prix réduit avant la fin du compte à rebours. Stock limité, premier arrivé premier servi."}
+                    {promoType === "volume" && "Remise par quantité — plus vous achetez, plus vous économisez. La réduction s'applique automatiquement selon le palier atteint."}
+                    {promoType === "reduction" && "Réduction directe — le prix est déjà réduit. Aucune condition supplémentaire, profitez-en dès maintenant."}
+                  </p>
                 </div>
 
-                {/* --- Flash Sale --- */}
+                {/* Countdown (flash only) */}
                 {promoType === "flash" && (
-                  <div className="space-y-3">
-                    {/* Countdown */}
+                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Clock size={16} className="text-rose-500 shrink-0" />
-                      <span className="font-mono text-xl font-black text-rose-500 tracking-widest">
+                      <span className="font-mono text-2xl font-black text-rose-500 tracking-widest">
                         {formatTime(timeLeft)}
                       </span>
                     </div>
-                    {/* Progress bar */}
-                    <div>
-                      <div
-                        className={`w-full h-2.5 rounded-full overflow-hidden ${
-                          isDark ? "bg-slate-800" : "bg-slate-100"
-                        }`}
-                      >
-                        <div
-                          className="h-full bg-gradient-to-r from-rose-500 to-orange-400 rounded-full transition-all"
-                          style={{ width: `${progressVal}%` }}
-                        />
-                      </div>
+                    <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? "bg-slate-800" : "bg-slate-100"}`}>
+                      <div className="h-full bg-gradient-to-r from-rose-500 to-orange-400 rounded-full transition-all" style={{ width: `${progressVal}%` }} />
                     </div>
                     <p className="text-rose-500 font-black text-xs uppercase tracking-wider">
                       Plus que {itemsLeft} articles restants !
                     </p>
-                    <ul className="space-y-2">
-                      {[
-                        "Offre valable jusqu'à la fin du compte à rebours",
-                        "Livraison prioritaire sous 24h",
-                        "Stock limité, premier arrivé premier servi",
-                      ].map((cond) => (
-                        <li key={cond} className="flex items-start gap-2 text-xs font-medium">
-                          <CheckCircle2 size={14} className="text-rose-500 shrink-0 mt-0.5" />
-                          <span className={isDark ? "text-slate-300" : "text-slate-700"}>{cond}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 )}
 
-                {/* --- Volume / Quantity Discount --- */}
-                {promoType === "volume" && (
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      {sortedTiers.map((tier, i) => (
-                        <div
-                          key={i}
-                          className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-black ${
-                            isDark ? "bg-slate-800" : "bg-blue-50"
-                          }`}
-                        >
-                          {tier.min_qty !== undefined && tier.discount !== undefined ? (
-                            <>
-                              <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                                Dès {tier.min_qty} articles
-                              </span>
-                              <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
-                                -{tier.discount}%
-                              </span>
-                            </>
-                          ) : tier.min !== undefined ? (
-                            <>
-                              <span className={isDark ? "text-slate-300" : "text-slate-700"}>
-                                De {tier.min} à {tier.max ?? "∞"} articles
-                              </span>
-                              <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
-                                ×{tier.multiplier}
-                              </span>
-                            </>
-                          ) : (
-                            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                              Palier {i + 1}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <ul className="space-y-2">
-                      {[
-                        "Réduction appliquée automatiquement lors du passage en caisse",
-                        "Paliers cumulatifs selon la quantité ajoutée au panier",
-                        "Valable sur toute la durée de disponibilité du stock",
-                      ].map((cond) => (
-                        <li key={cond} className="flex items-start gap-2 text-xs font-medium">
-                          <CheckCircle2 size={14} className="text-blue-500 shrink-0 mt-0.5" />
-                          <span className={isDark ? "text-slate-300" : "text-slate-700"}>{cond}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* --- Direct Reduction --- */}
-                {promoType === "reduction" && (
-                  <div className="space-y-3">
-                    {hasDiscount && (
-                      <div
-                        className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${
-                          isDark ? "bg-slate-800" : "bg-violet-50"
-                        }`}
-                      >
-                        <span className={`text-base font-black line-through ${isDark ? "text-slate-400" : "text-slate-400"}`}>
-                          {oldPrice.toLocaleString()} F
-                        </span>
-                        <ArrowRight size={14} className={isDark ? "text-slate-500" : "text-slate-400"} />
-                        <span className="text-xl font-black text-violet-500">
-                          {price.toLocaleString()} F
-                        </span>
-                        <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full">
-                          Vous économisez {(oldPrice - price).toLocaleString()} F !
-                        </span>
+                {/* Volume tiers */}
+                {promoType === "volume" && sortedTiers.length > 0 && (
+                  <div className="space-y-2">
+                    {sortedTiers.map((tier, i) => (
+                      <div key={i} className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-black ${isDark ? "bg-slate-800" : "bg-blue-50"}`}>
+                        {tier.min_qty !== undefined && tier.discount !== undefined ? (
+                          <>
+                            <span className={isDark ? "text-slate-300" : "text-slate-700"}>Dès {tier.min_qty} articles</span>
+                            <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">-{tier.discount}%</span>
+                          </>
+                        ) : tier.min !== undefined ? (
+                          <>
+                            <span className={isDark ? "text-slate-300" : "text-slate-700"}>De {tier.min} à {tier.max ?? "∞"} articles</span>
+                            <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">×{tier.multiplier}</span>
+                          </>
+                        ) : <span className={isDark ? "text-slate-400" : "text-slate-500"}>Palier {i + 1}</span>}
                       </div>
-                    )}
-                    <ul className="space-y-2">
-                      {[
-                        "Réduction appliquée directement sur le prix affiché",
-                        "Valable jusqu'à épuisement du stock",
-                        "Prix TTC — livraison calculée à la commande",
-                      ].map((cond) => (
-                        <li key={cond} className="flex items-start gap-2 text-xs font-medium">
-                          <CheckCircle2 size={14} className="text-violet-500 shrink-0 mt-0.5" />
-                          <span className={isDark ? "text-slate-300" : "text-slate-700"}>{cond}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    ))}
                   </div>
                 )}
-              </div>
 
-              {/* Price row */}
-              <div className="flex items-baseline gap-3">
-                <span className={`text-3xl font-black ${priceColorClass}`}>
-                  {price.toLocaleString()} F
-                </span>
-                {hasDiscount && promoType !== "reduction" && (
-                  <span className={`text-sm font-bold line-through ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-                    {oldPrice.toLocaleString()} F
-                  </span>
+                {/* Savings display (reduction) */}
+                {promoType === "reduction" && hasDiscount && (
+                  <div className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${isDark ? "bg-slate-800" : "bg-violet-50"}`}>
+                    <span className={`text-sm font-black line-through ${isDark ? "text-slate-500" : "text-slate-400"}`}>{oldPrice.toLocaleString()} F</span>
+                    <ArrowRight size={14} className={isDark ? "text-slate-500" : "text-slate-400"} />
+                    <span className="text-lg font-black text-violet-500">{price.toLocaleString()} F</span>
+                    <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full">
+                      Économie : {(oldPrice - price).toLocaleString()} F
+                    </span>
+                  </div>
                 )}
-                {hasDiscount && promoType === "reduction" && (
-                  <span className={`text-sm font-bold line-through ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-                    {oldPrice.toLocaleString()} F
-                  </span>
-                )}
-              </div>
 
-              {/* Stock */}
-              <p className={`text-xs font-bold ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-                Stock : {product.stock} restants
-              </p>
+                {/* Comment en bénéficier */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Gift size={14} className={priceColorClass} />
+                    <span className={`font-black text-xs uppercase tracking-wider ${priceColorClass}`}>Comment en bénéficier</span>
+                  </div>
+                  <ol className="space-y-2">
+                    {(promoType === "flash"
+                      ? ["Ajoutez le produit à votre panier", "Procédez au paiement avant la fin du décompte", "Votre commande est confirmée au prix flash !"]
+                      : promoType === "volume"
+                      ? ["Ajoutez la quantité souhaitée au panier", "La remise s'applique automatiquement selon le palier", "Plus vous achetez, plus le prix unitaire baisse !"]
+                      : ["Le prix affiché est déjà le prix réduit", "Ajoutez simplement au panier", "Validez votre commande pour économiser !"]).map((step, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs font-medium">
+                        <span className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white ${promoType === "flash" ? "bg-rose-500" : promoType === "volume" ? "bg-blue-600" : "bg-violet-600"}`}>
+                          {i + 1}
+                        </span>
+                        <span className={isDark ? "text-slate-300" : "text-slate-700"}>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
 
               {/* CTA row */}
-              <div className="flex flex-col md:flex-row gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() =>
-                    navigate("/checkout", {
-                      state: {
-                        items: [
-                          {
-                            id: product.id,
-                            product_id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            price_snapshot: product.price,
-                            quantity: 1,
-                            image_url: product.images?.[0]?.image_url,
-                          },
-                        ],
-                        total: Number(product.price),
-                      },
-                    })
-                  }
-                  className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black text-sm text-white shadow-lg active:scale-95 transition-all ${
-                    promoType === "flash"
-                      ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/20"
-                      : promoType === "volume"
-                      ? "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20"
-                      : "bg-violet-600 hover:bg-violet-500 shadow-violet-600/20"
+                  onClick={() => navigate("/checkout", {
+                    state: {
+                      items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url }],
+                      total: Number(product.price),
+                    },
+                  })}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm text-white shadow-xl active:scale-95 transition-all ${
+                    promoType === "flash" ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/20"
+                    : promoType === "volume" ? "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20"
+                    : "bg-violet-600 hover:bg-violet-500 shadow-violet-600/20"
                   }`}
                 >
-                  <ShoppingCart size={16} /> Commander maintenant
+                  <Zap size={16} fill="currentColor" /> Commander maintenant
                 </button>
                 <button
                   onClick={() => navigate(`/products/${product.id}`)}
-                  className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black text-sm border transition-all active:scale-95 hover:scale-[1.02] ${
-                    isDark
-                      ? "border-slate-600 text-slate-300 hover:border-slate-400"
-                      : "border-slate-300 text-slate-700 hover:border-slate-500"
-                  }`}
+                  className={`flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-black text-sm border transition-all active:scale-95 ${isDark ? "border-slate-600 text-slate-300 hover:border-slate-400" : "border-slate-200 text-slate-700 hover:border-slate-400 hover:bg-slate-50"}`}
                 >
-                  <ExternalLink size={15} /> Voir la fiche produit complète
+                  <ExternalLink size={14} /> Fiche complète
                 </button>
+              </div>
+
+              {/* Trust badges */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { icon: <Truck size={16} />, label: "Livraison 48h" },
+                  { icon: <ShieldCheck size={16} />, label: "Garantie 1 an" },
+                  { icon: <RotateCcw size={16} />, label: "Retour gratuit" },
+                ].map(({ icon, label }) => (
+                  <div key={label} className={`flex flex-col items-center text-center p-3 rounded-2xl space-y-1 ${isDark ? "bg-slate-800/50" : "bg-slate-50"}`}>
+                    <span className={`mb-0.5 ${priceColorClass}`}>{icon}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 leading-tight">{label}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Boutique info */}
               {(product.boutique?.name || product.boutique?.commune_label) && (
-                <div className={`flex items-center gap-4 text-xs font-bold pt-2 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-                  {product.boutique?.name && (
-                    <span className="flex items-center gap-1">
-                      <Store size={12} />
-                      {product.boutique.name}
-                    </span>
-                  )}
-                  {product.boutique?.commune_label && (
-                    <span className="flex items-center gap-1">
-                      <MapPin size={12} />
-                      {product.boutique.commune_label}
-                    </span>
-                  )}
+                <div className={`flex items-center gap-4 text-xs font-bold ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                  {product.boutique?.name && <span className="flex items-center gap-1"><Store size={12} />{product.boutique.name}</span>}
+                  {product.boutique?.commune_label && <span className="flex items-center gap-1"><MapPin size={12} />{product.boutique.commune_label}</span>}
                 </div>
               )}
             </div>
