@@ -3,7 +3,7 @@ import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";
-import { ShoppingBag, Search, Filter, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { ShoppingBag, Search, Filter, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../services/api";
@@ -52,6 +52,35 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
   };
 
   useEffect(() => { fetchOrders(); }, []);
+
+  const exportCSV = () => {
+    if (filteredOrders.length === 0) { toast.error("Aucune commande à exporter"); return; }
+
+    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const STATUS_LABELS = { en_attente: "En attente", confirmee: "Confirmée", expediee: "Expédiée", livree: "Livrée", annulee: "Annulée" };
+
+    const rows = [
+      ["Référence", "Client", "Email", "Montant (FCFA)", "Statut", "Paiement", "Date"].map(escape).join(","),
+      ...filteredOrders.map(o => [
+        o.id.slice(0, 8).toUpperCase(),
+        o.customer_name || o.guest_name || o.user?.fullname || "—",
+        o.user?.email || o.guest_email || "—",
+        Number(o.total_amount).toFixed(0),
+        STATUS_LABELS[normalizeStatus(o.status)] || o.status,
+        o.payment_method || "—",
+        new Date(o.created_at || o.createdAt).toLocaleDateString('fr-FR'),
+      ].map(escape).join(","))
+    ].join("\n");
+
+    const blob = new Blob(["﻿" + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `commandes-vtout-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filteredOrders.length} commande(s) exportée(s)`);
+  };
 
   const normalizeStatus = (s) => {
     if (!s) return "";
@@ -129,6 +158,14 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
           >
             <RefreshCcw size={16} />
             Relancer les bloqués
+          </button>
+
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 hover:bg-emerald-100 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+            title="Exporter en CSV"
+          >
+            <Download size={16} /> Export CSV
           </button>
 
           <button onClick={fetchOrders} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
