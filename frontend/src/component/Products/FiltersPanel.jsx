@@ -1,7 +1,7 @@
 import { getCategories, getAttributesByCategory, getAttributes } from "../../services/productService";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search, MapPin } from "lucide-react";
+import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategorySearchModal from "../Shared/CategorySearchModal";
 
@@ -15,7 +15,6 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
     attributes: true,
     sort: true,
     promo: true,
-    commune: false,
   });
 
   const [filters, setFilters] = useState({
@@ -29,7 +28,6 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
     isKit: "",
     hasVolumePricing: "",
     isAnyPromo: "",
-    commune: "",
   });
 
   const [selectedAttrId, setSelectedAttrId] = useState("");
@@ -114,7 +112,6 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       isKit: "",
       hasVolumePricing: "",
       isAnyPromo: "",
-      commune: "",
     });
     setSelectedAttrId("");
   };
@@ -326,30 +323,6 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                     className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
                   />
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Commune / Ville */}
-      <div className="border-b border-slate-50">
-        <SectionHeader title="Ville du vendeur" sectionKey="commune" icon={MapPin} />
-        <AnimatePresence>
-          {openSections.commune && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
-              <div className="relative">
-                <MapPin size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                <input
-                  type="text"
-                  placeholder="Ex: Cotonou, Abomey..."
-                  value={filters.commune}
-                  onChange={e => updateFilters({ commune: e.target.value })}
-                  className="w-full bg-slate-50 border-2 border-transparent rounded-2xl pl-10 pr-4 py-3 text-xs font-bold text-slate-900 placeholder:text-slate-300 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
-                />
-                {filters.commune && (
-                  <button onClick={() => updateFilters({ commune: "" })} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-400 transition-colors text-lg leading-none">×</button>
-                )}
               </div>
             </motion.div>
           )}
