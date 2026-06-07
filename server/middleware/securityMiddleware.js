@@ -21,6 +21,15 @@ const strictLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+// Order creation limiter: max 20 orders per hour per IP (anti-stock-lock abuse)
+const orderCreationLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 20,
+    message: { error: "Trop de commandes créées depuis cette adresse. Réessayez dans une heure." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // Paths used by bots to scan for vulnerabilities (WordPress, Laravel, etc.)
 const blockedPaths = [
     '/xmlrpc.php',
@@ -71,7 +80,7 @@ export const applySecurity = (app) => {
     app.use("/api/auth", strictLimiter);
     app.use("/api/create-fedapay", strictLimiter);
     app.use("/api/orders", (req, res, next) => {
-        if (req.method === 'POST') return strictLimiter(req, res, next);
+        if (req.method === 'POST') return orderCreationLimiter(req, res, next);
         next();
     });
 

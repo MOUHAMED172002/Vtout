@@ -3,7 +3,7 @@ import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";
-import { ShoppingBag, Search, Filter, RefreshCcw, X } from "lucide-react";
+import { ShoppingBag, Search, Filter, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../services/api";
@@ -18,6 +18,25 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
   // Filtering states
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+
+  const [pendingExpanded, setPendingExpanded] = useState(true);
+  const [confirming, setConfirming] = useState({});
+
+  const handleConfirm = async (orderId) => {
+    setConfirming(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const token = await getToken();
+      await api.patch(`/orders/${orderId}/status`, { status: 'confirmee' }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Commande confirmée !");
+      fetchOrders();
+    } catch {
+      toast.error("Erreur lors de la confirmation");
+    } finally {
+      setConfirming(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -117,6 +136,74 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
           </button>
         </div>
       </div>
+
+      {/* Pending orders alert section */}
+      {(() => {
+        const pendingOrders = orders.filter(o => normalizeStatus(o.status) === "en_attente");
+        if (pendingOrders.length === 0) return null;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-50 border border-amber-200 rounded-[2rem] overflow-hidden shadow-sm"
+          >
+            <button
+              onClick={() => setPendingExpanded(p => !p)}
+              className="w-full flex items-center justify-between px-8 py-5 hover:bg-amber-100/50 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+                  <AlertTriangle size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-amber-800 text-sm uppercase tracking-widest">
+                    {pendingOrders.length} commande{pendingOrders.length > 1 ? 's' : ''} en attente de confirmation
+                  </p>
+                  <p className="text-amber-600 text-xs font-bold">Confirmez-les pour les rendre visibles aux vendeurs</p>
+                </div>
+              </div>
+              {pendingExpanded ? <ChevronUp size={18} className="text-amber-500" /> : <ChevronDown size={18} className="text-amber-500" />}
+            </button>
+
+            <AnimatePresence>
+              {pendingExpanded && (
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-8 pb-6 space-y-3">
+                    {pendingOrders.map(order => (
+                      <div key={order.id} className="flex items-center justify-between bg-white rounded-2xl px-6 py-4 border border-amber-100 shadow-sm">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">#{order.id.slice(0, 8).toUpperCase()}</span>
+                          <span className="text-sm font-bold text-slate-700">{order.customer_name || order.guest_name || "Client"}</span>
+                          <span className="text-xs font-bold text-slate-400">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="font-black text-slate-900 text-sm">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
+                          <button
+                            onClick={() => handleConfirm(order.id)}
+                            disabled={confirming[order.id]}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-60"
+                          >
+                            {confirming[order.id] ? <span className="loading loading-spinner loading-xs" /> : <CheckCircle2 size={14} />}
+                            Confirmer
+                          </button>
+                          <button onClick={() => setOpenOrder(order)} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all">
+                            Détails
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })()}
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">

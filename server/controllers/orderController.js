@@ -845,6 +845,18 @@ export const updateOrderStatus = async (req, res) => {
 
         await order.update(updatePayload);
 
+        // Restore stock when cancelling an unconfirmed order
+        if (mappedStatus === 'annulée' && (oldStatus === 'en_attente' || oldStatus === 'en attente')) {
+            const items = await OrderItem.findAll({ where: { order_id: order.id } });
+            for (const item of items) {
+                if (item.variant_id) {
+                    await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                } else if (item.product_id) {
+                    await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                }
+            }
+        }
+
         // WhatsApp Notif to Customer
         try {
             const userProfile = await Profile.findByPk(order.user_id);

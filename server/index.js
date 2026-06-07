@@ -85,6 +85,7 @@ import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
 import { processReviewReminders } from "./services/reviewReminderService.js";
 import { processReengagement, processVipMessages } from "./services/reengagementService.js";
+import { expireStaleOrders } from "./services/orderExpiryService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
@@ -111,6 +112,11 @@ const startJobs = () => {
     setInterval(() => {
         processVipMessages().catch(err => console.error("[JOB ERROR] VIP Messages:", err));
     }, 20 * 24 * 60 * 60 * 1000);
+
+    // Expiration des commandes non confirmées après 48h (toutes les heures)
+    setInterval(() => {
+        expireStaleOrders().catch(err => console.error("[JOB ERROR] Order Expiry:", err));
+    }, 60 * 60 * 1000);
 
     // Nettoyage des ventes flash expirées (toutes les heures)
     setInterval(async () => {

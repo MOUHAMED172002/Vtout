@@ -52,7 +52,7 @@ export const processProductsForCommunes = async (products) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, commune } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -220,7 +220,9 @@ export const getAllProducts = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
-                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
+                commune
+                    ? { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'], where: { commune_label: { [Op.like]: `%${commune}%` } }, required: true }
+                    : { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         };
 
