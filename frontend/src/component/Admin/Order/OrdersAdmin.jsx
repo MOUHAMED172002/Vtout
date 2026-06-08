@@ -3,7 +3,7 @@ import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";
-import { ShoppingBag, Search, Filter, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { ShoppingBag, Search, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Download, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../services/api";
@@ -212,25 +212,29 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
                 >
                   <div className="px-8 pb-6 space-y-3">
                     {pendingOrders.map(order => (
-                      <div key={order.id} className="flex items-center justify-between bg-white rounded-2xl px-6 py-4 border border-amber-100 shadow-sm">
-                        <div className="flex items-center gap-4">
-                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">#{order.id.slice(0, 8).toUpperCase()}</span>
-                          <span className="text-sm font-bold text-slate-700">{order.customer_name || order.guest_name || "Client"}</span>
-                          <span className="text-xs font-bold text-slate-400">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      <div key={order.id} className="bg-white rounded-2xl px-4 py-3 border border-amber-100 shadow-sm grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
+                        {/* Row 1: ref + client | confirm button */}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">#{order.id.slice(0, 8).toUpperCase()}</span>
+                          <span className="text-sm font-bold text-slate-700 truncate">{order.customer_name || order.guest_name || "Client"}</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="font-black text-slate-900 text-sm">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
+                        <div className="flex items-center gap-2 row-span-2">
                           <button
                             onClick={() => handleConfirm(order.id)}
                             disabled={confirming[order.id]}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-60"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-60 whitespace-nowrap"
                           >
-                            {confirming[order.id] ? <span className="loading loading-spinner loading-xs" /> : <CheckCircle2 size={14} />}
+                            {confirming[order.id] ? <span className="loading loading-spinner loading-xs" /> : <CheckCircle2 size={13} />}
                             Confirmer
                           </button>
-                          <button onClick={() => setOpenOrder(order)} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all">
-                            Détails
+                          <button onClick={() => setOpenOrder(order)} className="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all shrink-0" title="Détails">
+                            <Eye size={14} />
                           </button>
+                        </div>
+                        {/* Row 2: date + amount */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-slate-400">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-[11px] font-black text-slate-700">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
                         </div>
                       </div>
                     ))}
