@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProductById } from "../../services/productService";
 import { useTheme } from "../../component/context/ThemeContext";
+import { useCart } from "../../component/context/CartContext";
+import toast from "react-hot-toast";
 import {
   ArrowLeft, Flame, Percent, Tag, Star, MapPin, Clock,
   Store, ArrowRight, Truck, ShieldCheck, RotateCcw, Zap,
@@ -40,8 +42,15 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
   const stockLeft = Math.max(1, (product.stock || 1) % 8 + 1);
   const stockPct = Math.min(95, Math.max(15, 100 - stockLeft * 11));
 
+  const handleBuy = () => navigate("/checkout", {
+    state: {
+      items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }],
+      total: Number(product.price)
+    }
+  });
+
   return (
-    <div className="min-h-screen pb-20" style={{ background: isDark ? '#0a0a0a' : '#fff5f5' }}>
+    <div className="min-h-screen pb-24 md:pb-20" style={{ background: isDark ? '#0a0a0a' : '#fff5f5' }}>
       {/* Urgency top banner */}
       <div className="w-full pt-20" style={{ background: 'linear-gradient(135deg, #7f1d1d, #dc2626, #ea580c)' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10 py-6">
@@ -159,9 +168,9 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               {(product.stock ?? 0) > 0 ? `En stock · ${product.stock} unités disponibles` : 'Rupture de stock'}
             </div>
 
-            {/* CTA */}
-            <button onClick={() => navigate("/checkout", { state: { items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }], total: Number(product.price) } })}
-              className="w-full py-5 rounded-2xl font-black text-lg text-white flex items-center justify-center gap-3 shadow-2xl shadow-rose-500/30 active:scale-95 transition-all"
+            {/* CTA — hidden on mobile (sticky bar handles it) */}
+            <button onClick={handleBuy}
+              className="hidden md:flex w-full py-5 rounded-2xl font-black text-lg text-white items-center justify-center gap-3 shadow-2xl shadow-rose-500/30 active:scale-95 transition-all"
               style={{ background: 'linear-gradient(135deg, #dc2626, #ea580c)' }}>
               <Zap size={20} fill="currentColor" /> Acheter maintenant — Offre limitée
             </button>
@@ -170,13 +179,28 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               <ExternalLink size={14} /> Voir la fiche complète
             </button>
 
-            {/* Trust + boutique */}
             <TrustBadges priceColor="text-rose-500" isDark={isDark} />
             <BoutiqueInfo product={product} isDark={isDark} />
           </div>
         </div>
 
         <DescriptionBlock product={product} isDark={isDark} />
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden px-4 pb-5 pt-3 border-t"
+        style={{ background: isDark ? 'rgba(10,10,10,0.96)' : 'rgba(255,245,245,0.97)', borderColor: isDark ? '#2d1b1b' : '#fecaca', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className="font-mono font-black text-base text-rose-600">{price.toLocaleString()} F</p>
+          </div>
+          <button onClick={handleBuy}
+            className="shrink-0 flex items-center gap-1.5 px-5 py-3 rounded-2xl font-black text-sm text-white shadow-lg active:scale-95 transition-all"
+            style={{ background: 'linear-gradient(135deg, #dc2626, #ea580c)' }}>
+            <Zap size={14} fill="currentColor" /> Acheter
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -194,8 +218,15 @@ function ReductionLayout({ product, isDark, navigate }) {
   const savings = oldPrice - price;
   const pct = oldPrice > 0 ? Math.round((savings / oldPrice) * 100) : 0;
 
+  const handleBuy = () => navigate("/checkout", {
+    state: {
+      items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }],
+      total: Number(product.price)
+    }
+  });
+
   return (
-    <div className={`min-h-screen pb-20 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
       {/* Clean top bar */}
       <div className="pt-20 pb-6 border-b" style={{ borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10">
@@ -316,8 +347,8 @@ function ReductionLayout({ product, isDark, navigate }) {
               {(product.stock ?? 0) > 0 ? `En stock · ${product.stock} unités` : 'Rupture de stock'}
             </div>
 
-            <button onClick={() => navigate("/checkout", { state: { items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: 1, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }], total: Number(product.price) } })}
-              className="w-full py-5 rounded-2xl font-black text-lg text-white flex items-center justify-center gap-3 shadow-xl shadow-violet-500/20 active:scale-95 transition-all"
+            <button onClick={handleBuy}
+              className="hidden md:flex w-full py-5 rounded-2xl font-black text-lg text-white items-center justify-center gap-3 shadow-xl shadow-violet-500/20 active:scale-95 transition-all"
               style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
               Profiter de la réduction
             </button>
@@ -331,6 +362,22 @@ function ReductionLayout({ product, isDark, navigate }) {
           </div>
         </div>
         <DescriptionBlock product={product} isDark={isDark} />
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden px-4 pb-5 pt-3 border-t"
+        style={{ background: isDark ? 'rgba(15,10,30,0.96)' : 'rgba(250,250,255,0.97)', borderColor: isDark ? '#312e81' : '#ede9fe', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className="font-mono font-black text-base text-violet-600">{price.toLocaleString()} F</p>
+          </div>
+          <button onClick={handleBuy}
+            className="shrink-0 flex items-center gap-1.5 px-5 py-3 rounded-2xl font-black text-sm text-white shadow-lg active:scale-95 transition-all"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+            Profiter
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -364,8 +411,15 @@ function VolumeLayout({ product, isDark, navigate }) {
   const nextTier = tiers.find(t => (t.min_qty ?? t.min ?? 0) > qty);
   const bestDiscount = tiers.reduce((max, t) => Math.max(max, t.discount ?? 0), 0);
 
+  const handleBuy = () => navigate("/checkout", {
+    state: {
+      items: [{ id: product.id, product_id: product.id, name: product.name, price: unitPrice, price_snapshot: unitPrice, quantity: qty, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }],
+      total: totalPrice
+    }
+  });
+
   return (
-    <div className={`min-h-screen pb-20 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
       {/* Header */}
       <div className="pt-20 pb-6" style={{ background: isDark ? '#0f172a' : 'linear-gradient(135deg, #eff6ff, #f0f9ff)' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10">
@@ -505,8 +559,8 @@ function VolumeLayout({ product, isDark, navigate }) {
               {(product.stock ?? 0) > 0 ? `En stock · ${product.stock} unités disponibles` : 'Rupture de stock'}
             </div>
 
-            <button onClick={() => navigate("/checkout", { state: { items: [{ id: product.id, product_id: product.id, name: product.name, price: product.price, price_snapshot: product.price, quantity: qty, image_url: product.images?.[0]?.image_url, boutique_id: product.boutique_id, boutique: product.boutique }], total: totalPrice } })}
-              className="w-full py-5 rounded-2xl font-black text-lg text-white flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
+            <button onClick={handleBuy}
+              className="hidden md:flex w-full py-5 rounded-2xl font-black text-lg text-white items-center justify-center gap-3 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
               style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}>
               <Package size={20} /> Commander {qty} article{qty > 1 ? 's' : ''}
             </button>
@@ -520,6 +574,164 @@ function VolumeLayout({ product, isDark, navigate }) {
           </div>
         </div>
         <DescriptionBlock product={product} isDark={isDark} />
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden px-4 pb-5 pt-3 border-t"
+        style={{ background: isDark ? 'rgba(10,15,30,0.96)' : 'rgba(245,249,255,0.97)', borderColor: isDark ? '#1e3a5f' : '#bfdbfe', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{qty} × {product.name}</p>
+            <p className="font-mono font-black text-base text-blue-600">{totalPrice.toLocaleString()} F</p>
+          </div>
+          <button onClick={handleBuy}
+            className="shrink-0 flex items-center gap-1.5 px-5 py-3 rounded-2xl font-black text-sm text-white shadow-lg active:scale-95 transition-all"
+            style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}>
+            <Package size={14} /> Commander
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PACK & KIT — ensemble de produits complémentaires, vert
+───────────────────────────────────────────────────────────── */
+function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
+  const price = Number(product.price || 0);
+  const oldPrice = Number(product.old_price || 0);
+  const items = Array.isArray(kitItems) && kitItems.length > 0 ? kitItems : [];
+  const totalOriginal = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const ratio = totalOriginal > 0 ? price / totalOriginal : 1;
+
+  const handleBuy = () => {
+    if (!addToCart) return;
+    if (items.length === 0) {
+      addToCart({ ...product, price, price_snapshot: price }, 1);
+    } else {
+      items.forEach(item => {
+        const itemPrice = Math.round(Number(item.price || 0) * ratio);
+        addToCart({ ...item, price: itemPrice, price_snapshot: itemPrice }, 1);
+      });
+    }
+    toast.success(`Pack "${product.name}" ajouté au panier !`);
+  };
+
+  return (
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+      {/* Header */}
+      <div className="pt-20 pb-6 border-b" style={{ borderColor: isDark ? '#1e293b' : '#d1fae5' }}>
+        <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-4 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-700'}`}>
+            <ArrowLeft size={13} /> Retour aux packs
+          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0">
+              <Package size={18} className="text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.3em]">Pack & Kit</p>
+              <p className={`font-black text-lg truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</p>
+            </div>
+            {oldPrice > price && oldPrice > 0 && (
+              <span className="shrink-0 bg-rose-500 text-white font-black text-sm px-4 py-2 rounded-2xl shadow">
+                Économie {Math.round(oldPrice - price).toLocaleString()} F
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1100px] mx-auto px-4 md:px-10 pt-8 space-y-8">
+        {/* Price panel */}
+        <div className={`rounded-3xl p-6 border ${isDark ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-white border-emerald-100'} shadow-lg`}>
+          <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Prix du pack complet</p>
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <span className="text-5xl font-black text-emerald-600">
+              {price.toLocaleString()}<span className="text-2xl ml-1">F</span>
+            </span>
+            {oldPrice > price && oldPrice > 0 && (
+              <span className={`text-lg font-bold line-through ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{oldPrice.toLocaleString()} F</span>
+            )}
+          </div>
+          {oldPrice > price && oldPrice > 0 && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-black">
+              <TrendingDown size={12} /> Économisez {Math.round(oldPrice - price).toLocaleString()} F sur ce pack
+            </div>
+          )}
+        </div>
+
+        {/* Items included */}
+        {items.length > 0 && (
+          <div>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {items.length} article{items.length > 1 ? 's' : ''} inclus dans ce pack
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {items.map((item, i) => {
+                const itemPrice = Math.round(Number(item.price || 0) * ratio);
+                return (
+                  <div key={item.id ?? i} className={`rounded-2xl border p-3 flex flex-col gap-2.5 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
+                    <div className="aspect-square rounded-xl overflow-hidden">
+                      {item.images?.[0]?.image_url
+                        ? <img src={item.images[0].image_url} alt={item.name} className="w-full h-full object-cover" />
+                        : <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}><Package size={18} className="text-slate-400" /></div>
+                      }
+                    </div>
+                    <p className={`text-xs font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{item.name}</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className="text-emerald-600 font-mono font-black text-sm">{itemPrice.toLocaleString()} F</p>
+                      {Number(item.price || 0) !== itemPrice && (
+                        <p className={`font-mono font-bold text-[10px] line-through ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{Number(item.price || 0).toLocaleString()} F</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* How it works */}
+        <div className={`rounded-2xl p-5 border ${isDark ? 'bg-slate-900 border-emerald-500/10' : 'bg-emerald-50 border-emerald-100'}`}>
+          <p className="text-emerald-700 text-[10px] font-black uppercase tracking-widest mb-4">Comment ça marche</p>
+          <div className="space-y-3">
+            {[
+              { icon: <CheckCircle2 size={15} className="text-emerald-500" />, text: "Tous les articles sont ajoutés à votre panier en un clic" },
+              { icon: <CheckCircle2 size={15} className="text-emerald-500" />, text: "Le prix pack est réparti proportionnellement sur chaque article" },
+              { icon: <CheckCircle2 size={15} className="text-emerald-500" />, text: "Économisez par rapport aux achats séparés" },
+            ].map(({ icon, text }, i) => (
+              <div key={i} className="flex items-center gap-3">
+                {icon}
+                <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA — desktop only */}
+        <button onClick={handleBuy}
+          className="hidden md:flex w-full py-5 rounded-2xl font-black text-lg text-white items-center justify-center gap-3 shadow-xl shadow-emerald-500/20 active:scale-95 transition-all bg-emerald-600 hover:bg-emerald-500">
+          <Package size={20} /> Ajouter le Pack au panier
+        </button>
+
+        <DescriptionBlock product={product} isDark={isDark} />
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden px-4 pb-5 pt-3 border-t"
+        style={{ background: isDark ? 'rgba(5,20,15,0.96)' : 'rgba(240,255,245,0.97)', borderColor: isDark ? '#064e3b' : '#a7f3d0', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className="font-mono font-black text-base text-emerald-600">{price.toLocaleString()} F</p>
+          </div>
+          <button onClick={handleBuy}
+            className="shrink-0 flex items-center gap-1.5 px-5 py-3 rounded-2xl font-black text-sm text-white shadow-lg active:scale-95 transition-all bg-emerald-600">
+            <Package size={14} /> Ajouter au panier
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -561,10 +773,14 @@ function DescriptionBlock({ product, isDark }) {
 export default function PromoDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const typeParam = searchParams.get("type");
   const { theme } = useTheme();
+  const { addToCart } = useCart() || {};
   const isDark = darkThemes.includes(theme);
+
+  const kitItems = location.state?.kitItems ?? null;
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -626,6 +842,7 @@ export default function PromoDetailPage() {
   const hasTiers = parseVolumePricing(product.volume_pricing).length > 0;
 
   const promoType = (() => {
+    if (typeParam === "kit") return "kit";
     if (typeParam === "flash" && isFlash) return "flash";
     if (typeParam === "volume" && hasTiers) return "volume";
     if (typeParam === "reduction") return "reduction";
@@ -638,6 +855,7 @@ export default function PromoDetailPage() {
       {promoType === "flash" && <FlashLayout product={product} timeLeft={timeLeft} isDark={isDark} navigate={navigate} />}
       {promoType === "volume" && <VolumeLayout product={product} isDark={isDark} navigate={navigate} />}
       {promoType === "reduction" && <ReductionLayout product={product} isDark={isDark} navigate={navigate} />}
+      {promoType === "kit" && <KitLayout product={product} kitItems={kitItems} isDark={isDark} navigate={navigate} addToCart={addToCart} />}
       <Footer />
     </>
   );
