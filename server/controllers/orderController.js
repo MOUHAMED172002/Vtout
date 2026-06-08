@@ -36,7 +36,7 @@ export const getMySupplierOrders = async (req, res) => {
         if (!supplier) return res.json([]); // Return empty array instead of 404
 
         const orders = await Order.findAll({
-            where: { supplier_id: supplier.id },
+            where: { supplier_id: supplier.id, status: { [Op.ne]: 'en_attente' } },
             order: [['created_at', 'DESC']],
             include: [
                 { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label', 'whatsapp', 'phone'] },
@@ -608,10 +608,7 @@ export const createOrder = async (req, res) => {
             }
             createdOrders.push(order);
 
-            // WhatsApp Notif to Boutique/Supplier
-            if (targetPhone) {
-                notifySupplierOfNewOrder(targetPhone, order.id, order.total_amount).catch(e => console.error("WA NOTIF ERR:", e));
-            }
+            // WhatsApp notif to supplier is sent only after admin confirms (see updateOrderStatus)
 
             // WhatsApp Notif to Customer (Priority to dedicated phone)
             const customerWhatsApp = whatsapp_notif_phone || guest_phone;
@@ -822,7 +819,16 @@ export const updateOrderStatus = async (req, res) => {
             updatePayload.status_history = history;
 
             // Manage specific timestamps
-            if (mappedStatus === 'confirmée') updatePayload.confirmed_at = now;
+            if (mappedStatus === 'confirmée') {
+                updatePayload.confirmed_at = now;
+                // Notify supplier now that admin has confirmed — order is visible and ready to prepare
+                if (order.supplier_id) {
+                    Supplier.findByPk(order.supplier_id, { include: [{ model: Boutique }] }).then(s => {
+                        const phone = s?.whatsapp || s?.phone;
+                        if (phone) notifySupplierOfNewOrder(phone, order.id, order.total_amount).catch(() => {});
+                    }).catch(() => {});
+                }
+            }
             if (mappedStatus === 'expédiée') updatePayload.shipped_at = now;
             if ((mappedStatus === 'livrée') && oldStatus !== 'livrée' && oldStatus !== 'livree') {
                 updatePayload.delivered_at = now;
@@ -838,6 +844,18 @@ export const updateOrderStatus = async (req, res) => {
         }
 
         await order.update(updatePayload);
+
+        // Restore stock when cancelling an unconfirmed order
+        if (mappedStatus === 'annulée' && (oldStatus === 'en_attente' || oldStatus === 'en attente')) {
+            const items = await OrderItem.findAll({ where: { order_id: order.id } });
+            for (const item of items) {
+                if (item.variant_id) {
+                    await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                } else if (item.product_id) {
+                    await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                }
+            }
+        }
 
         // WhatsApp Notif to Customer
         try {

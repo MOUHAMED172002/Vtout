@@ -198,6 +198,14 @@ export default function OrderDetail() {
   };
   const stepIndex = isCancelled ? -1 : (stepIndexMapping[normalizedStatus] ?? 0);
 
+  const getStepDate = (step) => {
+    const history = order.status_history;
+    if (!history || !Array.isArray(history)) return null;
+    const entry = history.find(h => step.statuses.some(s => normalizeStatus(h.status) === s));
+    if (!entry?.date) return null;
+    return new Date(entry.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+
   // Get current step color
   const activeStepColor = STEPS[stepIndex]?.color || "primary";
   const colorMap = {
@@ -377,7 +385,12 @@ export default function OrderDetail() {
                           {step.label}
                         </p>
                         {current && <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>}
-                        {done && !current && <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>}
+                        {done && !current && (() => {
+                          const d = getStepDate(step);
+                          return d
+                            ? <p className="text-[9px] font-bold text-slate-400 mt-0.5">{d}</p>
+                            : <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>;
+                        })()}
                         {!done && <p className="text-[9px] font-bold text-slate-300 mt-0.5">En attente</p>}
                       </div>
                     </div>
