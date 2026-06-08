@@ -4,7 +4,7 @@
  */
 
 import { Config } from '../models/index.js';
-import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 
 /**
  * GET /api/admin/delivery-fee-tiers
@@ -51,7 +51,13 @@ export const updateDeliveryFeeTiersConfig = async (req, res) => {
         sorted[sorted.length - 1].max = null; // = Infinity en service
 
         const value = JSON.stringify(sorted);
-        await Config.upsert({ key: 'delivery_fee_tiers', value, label: 'Tranches frais livraison (JSON)' });
+        const [config, created] = await Config.findOrCreate({
+            where: { key: 'delivery_fee_tiers' },
+            defaults: { value, group: 'marketplace', description: 'Grille des frais de livraison dynamiques (JSON)' }
+        });
+        if (!created) {
+            await config.update({ value });
+        }
 
         res.json({ success: true, tiers: sorted, message: 'Tranches mises à jour avec succès.' });
     } catch (err) {
@@ -98,6 +104,54 @@ export const simulateDeliveryFee = async (req, res) => {
         });
     } catch (err) {
         console.error('[deliveryFeeController] simulateDeliveryFee:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+/**
+ * GET /api/admin/delivery-multiplier-tiers
+ * Retourne la grille de coefficients livreur selon quantité.
+ */
+export const getDeliveryMultiplierTiersConfig = async (req, res) => {
+    try {
+        const tiers = await getDeliveryMultiplierTiers();
+        const serializable = tiers.map((t, i) => ({
+            ...t,
+            max: t.max === Infinity ? null : t.max,
+            isLast: i === tiers.length - 1,
+        }));
+        res.json({ tiers: serializable });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+/**
+ * PUT /api/admin/delivery-multiplier-tiers
+ * Body: { tiers: [{ min, max, multiplier }] }
+ * Sauvegarde la nouvelle grille de coefficients en DB.
+ */
+export const updateDeliveryMultiplierTiersConfig = async (req, res) => {
+    try {
+        const { tiers } = req.body;
+        if (!Array.isArray(tiers) || tiers.length === 0) {
+            return res.status(400).json({ error: 'Tableau requis.' });
+        }
+        for (const t of tiers) {
+            if (t.min === undefined || t.multiplier === undefined || t.multiplier <= 0) {
+                return res.status(400).json({ error: 'Chaque tranche doit avoir min et multiplier (> 0).' });
+            }
+        }
+        const sorted = [...tiers].sort((a, b) => a.min - b.min);
+        sorted[sorted.length - 1].max = null;
+        const value = JSON.stringify(sorted);
+        const [config, created] = await Config.findOrCreate({
+            where: { key: 'delivery_fee_multiplier_tiers' },
+            defaults: { value, group: 'marketplace', description: 'Grille de coefficients livreur selon quantité (JSON)' }
+        });
+        if (!created) await config.update({ value });
+        res.json({ success: true, tiers: sorted });
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };

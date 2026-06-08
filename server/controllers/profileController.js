@@ -1,5 +1,7 @@
 import { Profile, Supplier, DeliveryPerson, sequelize } from '../models/index.js';
 import crypto from 'crypto';
+import { sendWhatsAppMessage, getWhatsAppConfigs } from '../services/whatsappService.js';
+import { getTextTemplate } from '../services/textTemplateService.js';
 
 
 export const syncProfile = async (req, res) => {
@@ -88,6 +90,8 @@ export const updateMe = async (req, res) => {
         let profile = await Profile.findByPk(userId);
         if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
 
+        const isFirstPhone = !profile.phone && phone;
+
         if (fullname) {
             profile.fullname = fullname;
             const names = fullname.split(' ');
@@ -98,6 +102,15 @@ export const updateMe = async (req, res) => {
         if (avatar_url !== undefined) profile.avatar_url = avatar_url;
 
         await profile.save();
+
+        // Envoyer le message de bienvenue WhatsApp quand le client ajoute son numéro pour la 1ère fois
+        if (isFirstPhone) {
+            const clientName = profile.fullname || profile.first_name || 'cher client';
+            const defaultMsg = `🎉 *Bienvenue sur VTOUT, {{clientName}} !*\n\nVotre compte a été créé avec succès.\n\nDécouvrez des milliers de produits de qualité livrés chez vous au Bénin.\n\n🛍️ Commencez vos achats : https://vtout.com`;
+            getTextTemplate('whatsapp_welcome_customer', defaultMsg, { clientName })
+                .then(msg => sendWhatsAppMessage(phone, msg))
+                .catch(() => {});
+        }
 
         // Propagate updates to Supplier and DeliveryPerson if they exist
         const updates = {};

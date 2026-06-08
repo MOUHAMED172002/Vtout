@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { Op } from 'sequelize';
 import { FinancialTransaction, Config, OrderItem, Product, Supplier, DeliveryPerson, Profile, Notification, Order, Category } from '../models/index.js';
 import sequelize from '../config/database.js';
-import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from './deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from './deliveryFeeService.js';
 
 export const processOrderFinancials = async (orderIdOrObject) => {
     const t = await sequelize.transaction();
@@ -76,14 +76,16 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             }
                         }
 
-                        const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                        const effectiveSupplierPrice = decomposed.supplierPrice;
-                        const itemMarketingFee = decomposed.deliveryFee;
-                        const commissionDeducted = Math.round(effectiveSupplierPrice * itemRate);
+                        const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
+                        const embeddedFee = itemSupplierPrice > 0
+                            ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                            : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                        const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                        const commissionDeducted = Math.round(supplierNet * itemRate);
 
-                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                        totalBaseMarketingFee += embeddedFee * item.quantity;
                         adminTotal += commissionDeducted * item.quantity;
-                        supplierTotal += Math.round((effectiveSupplierPrice - commissionDeducted) * item.quantity);
+                        supplierTotal += Math.round((supplierNet - commissionDeducted) * item.quantity);
                     }
 
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
@@ -158,23 +160,36 @@ export const processOrderFinancials = async (orderIdOrObject) => {
 
                 if (!existingLpTx) {
                     const deliveryTiers = await getDeliveryFeeTiers();
-                    const items = await OrderItem.findAll({ 
+                    const multiplierTiers = await getDeliveryMultiplierTiers();
+                    const items = await OrderItem.findAll({
                         where: { order_id: order.id },
                         include: [{ model: Product, as: 'product' }],
                         transaction: t
                     });
 
-                    let totalBaseMarketingFee = 0;
+                    // Total embedded delivery fees (all items × their individual fee)
+                    let totalEmbeddedFees = 0;
+                    let totalQuantity = 0;
                     for (const item of items) {
                         const itemSupplierPrice = item.product?.supplier_price || 0;
-                        const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                        totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                        const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                        totalEmbeddedFees += itemFee * item.quantity;
+                        totalQuantity += item.quantity;
                     }
 
+                    // Livreur reçoit sa part, plafonnée à 80% des frais embarqués
+                    const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
+                    const rawDelivererFee = totalQuantity > 0
+                        ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                        : 0;
+                    const delivererActualFee = Math.min(rawDelivererFee, Math.round(totalEmbeddedFees * 0.80));
                     const geographicalFee = parseFloat(order.delivery_fee || 0);
-                    const totalDelivererFee = totalBaseMarketingFee + geographicalFee;
+                    const totalDelivererFee = delivererActualFee + geographicalFee;
 
-                    console.log(`[Finance] Livreur fee calc: baseMarketing=${totalBaseMarketingFee}, geo=${geographicalFee}, total=${totalDelivererFee}`);
+                    // Marketing = reste exact après la part livreur
+                    const marketingSurplus = Math.max(0, totalEmbeddedFees - delivererActualFee);
+
+                    console.log(`[Finance] Fee calc: embedded=${totalEmbeddedFees}, qty=${totalQuantity}, multiplier=${multiplier}, rawDelivererFee=${rawDelivererFee}, delivererFee=${delivererActualFee}, geo=${geographicalFee}, totalDeliverer=${totalDelivererFee}, marketing=${marketingSurplus}`);
                     if (totalDelivererFee > 0) {
                         await FinancialTransaction.create({
                             id: crypto.randomUUID(),
@@ -194,6 +209,33 @@ export const processOrderFinancials = async (orderIdOrObject) => {
                             message: `Votre compte a été crédité de ${totalDelivererFee.toFixed(0)} F CFA pour la livraison #${order.id.slice(0, 8)}.`,
                             type: 'wallet'
                         }, { transaction: t });
+                    }
+
+                    // Marketing surplus transaction
+                    if (marketingSurplus > 0) {
+                        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+                        let admin = await Profile.findOne({ where: { role: 'admin' }, transaction: t });
+                        if (!admin && adminEmails.length > 0) {
+                            admin = await Profile.findOne({ where: { email: { [Op.in]: adminEmails } }, transaction: t });
+                        }
+                        if (admin) {
+                            const existingMktTx = await FinancialTransaction.findOne({
+                                where: { order_id: order.id, source: 'marketing' },
+                                transaction: t
+                            });
+                            if (!existingMktTx) {
+                                await FinancialTransaction.create({
+                                    id: crypto.randomUUID(),
+                                    user_id: admin.id,
+                                    order_id: order.id,
+                                    type: 'earning',
+                                    source: 'marketing',
+                                    amount: marketingSurplus,
+                                    description: `Frais Marketing #${order.id.slice(0, 8)} (${totalQuantity} articles × coef. ${multiplier})`,
+                                    status: 'completed'
+                                }, { transaction: t });
+                            }
+                        }
                     }
                 }
             }

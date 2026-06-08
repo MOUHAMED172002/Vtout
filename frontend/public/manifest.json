@@ -1,0 +1,27 @@
+{
+  "name": "Vtout — Marketplace Bénin",
+  "short_name": "Vtout",
+  "description": "Sur Vtout, des vendeurs de tout le pays proposent une grande variété de produits sur une plateforme simple et sécurisée.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f37021",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-vtout.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-vtout.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "business"],
+  "lang": "fr",
+  "dir": "ltr"
+}

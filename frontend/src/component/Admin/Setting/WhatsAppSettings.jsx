@@ -69,7 +69,7 @@ export default function WhatsAppSettings() {
           value={whatsapp[name]}
           onChange={(e) => setWhatsapp({ ...whatsapp, [name]: e.target.value })}
           placeholder={placeholder}
-          className={`w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 focus:outline-none transition-all`}
+          className={`w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none transition-all`}
         />
         {secret && (
           <button

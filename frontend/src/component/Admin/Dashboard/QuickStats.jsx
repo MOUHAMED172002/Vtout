@@ -7,7 +7,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Store,
-  Truck
+  Truck,
+  Megaphone
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -37,13 +38,14 @@ const StatCard = ({ title, value, icon, color, trend, index }) => (
 );
 
 const QuickStats = ({ stats = {} }) => {
-  const { 
-    revenue = 0, 
-    admin_profit = 0, 
-    delivery_profits = 0, 
-    supplier_profits = 0, 
-    orders = 0, 
-    customers = 0 
+  const {
+    revenue = 0,
+    admin_profit = 0,
+    delivery_profits = 0,
+    supplier_profits = 0,
+    marketing_profits = 0,
+    orders = 0,
+    customers = 0
   } = stats;
 
   const config = [
@@ -51,12 +53,13 @@ const QuickStats = ({ stats = {} }) => {
     { title: "Commission Admin", value: `${Number(admin_profit).toLocaleString()} F`, icon: <DollarSign size={20} />, color: "bg-purple-600 shadow-purple-100" },
     { title: "Gains Livreurs", value: `${Number(delivery_profits).toLocaleString()} F`, icon: <Truck size={20} />, color: "bg-blue-600 shadow-blue-100" },
     { title: "Gains Fournisseurs", value: `${Number(supplier_profits).toLocaleString()} F`, icon: <Store size={20} />, color: "bg-emerald-600 shadow-emerald-100" },
+    { title: "Frais Marketing", value: `${Number(marketing_profits).toLocaleString()} F`, icon: <Megaphone size={20} />, color: "bg-rose-500 shadow-rose-100" },
     { title: "Commandes", value: orders.toLocaleString(), icon: <ShoppingBag size={20} />, color: "bg-primary shadow-orange-100" },
     { title: "Clients", value: customers.toLocaleString(), icon: <Users size={20} />, color: "bg-amber-500 shadow-amber-100" },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-6">
       {config.map((stat, idx) => (
         <StatCard
           key={idx}

@@ -12,7 +12,8 @@ import {
   LogOut,
   Truck,
   FileText,
-  Flame
+  Flame,
+  HelpCircle
 } from "lucide-react";
 import { useUser } from "../../lib/AuthHooks";
 import { SignedIn, SignedOut } from "../../lib/AuthGuards";
@@ -32,7 +33,7 @@ import PortalSwitcher from "../Shared/PortalSwitcher";
 const MenuLinks = [
   { id: 1, name: "Accueil", link: "/", icon: <Home size={20} /> },
   { id: 2, name: "Boutique", link: "/products-liste", icon: <ShoppingBag size={20} /> },
-  { id: 3, name: "Promotions", link: "/promotions", icon: <Flame size={20} /> },
+  { id: 3, name: "Promotions", link: "/promotions", icon: <Flame size={20} />, promoStyle: true },
   { id: 4, name: "À propos", link: "/about", icon: <Info size={20} /> },
 ];
 
@@ -100,8 +101,13 @@ export default function Navbar() {
                   >
                     <Link
                       to={item.link}
-                      className={`text-sm font-bold uppercase tracking-widest transition-colors ${location.pathname === item.link ? "text-primary" : "text-base-content/70 hover:text-base-content"
-                        }`}
+                      className={`text-sm font-bold uppercase tracking-widest transition-colors ${
+                        location.pathname === item.link
+                          ? item.promoStyle ? "text-red-500" : "text-primary"
+                          : item.promoStyle
+                            ? "text-red-500/80 hover:text-red-500"
+                            : "text-base-content/70 hover:text-base-content"
+                      }`}
                     >
                       {item.name}
                     </Link>
@@ -196,10 +202,13 @@ export default function Navbar() {
                     <li key={item.id}>
                       <Link
                         to={item.link}
-                        className={`flex items-center gap-4 text-xl font-black group ${location.pathname === item.link ? "text-primary" : "text-base-content"
-                          }`}
+                        className={`flex items-center gap-4 text-xl font-black group ${
+                          location.pathname === item.link
+                            ? item.promoStyle ? "text-red-500" : "text-primary"
+                            : item.promoStyle ? "text-red-500/80" : "text-base-content"
+                        }`}
                       >
-                        <span className="p-3 bg-base-200 rounded-2xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <span className={`p-3 bg-base-200 rounded-2xl transition-colors ${item.promoStyle ? "group-hover:bg-red-50 group-hover:text-red-500" : "group-hover:bg-primary/10 group-hover:text-primary"}`}>
                           {item.icon}
                         </span>
                         {item.name}

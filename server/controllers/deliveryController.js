@@ -2,7 +2,7 @@ import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductIma
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 
 const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) => {
     try {
@@ -108,18 +108,25 @@ export const getAvailableOrders = async (req, res) => {
         });
 
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
         const ordersJson = orders.map(order => {
             const orderJson = order.toJSON();
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemSupplierPrice = item.product?.supplier_price || 0;
-                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                    const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalEmbeddedFees += itemFee * item.quantity;
+                    totalQuantity += item.quantity;
                 }
             }
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
+            orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
             return orderJson;
         });
 
@@ -250,6 +257,15 @@ export const updateDeliveryStatus = async (req, res) => {
             sendLogisticsWhatsAppNotifications(order.id, 'delivered').catch(err => console.error("Notification error:", err));
         }
 
+        // Real-time socket notification to client so tracking page updates immediately
+        if (req.io && order.user_id) {
+            req.io.to(order.user_id).emit('order_status_updated', {
+                orderId: order.id,
+                status: mappedStatus,
+                message: `Votre commande #${order.id.slice(0, 8).toUpperCase()} est maintenant ${mappedStatus}.`
+            });
+        }
+
         res.json({ message: 'Statut mis à jour', order });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });
@@ -286,18 +302,25 @@ export const getMyDeliveries = async (req, res) => {
         });
 
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
         const ordersJson = orders.map(order => {
             const orderJson = order.toJSON();
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemSupplierPrice = item.product?.supplier_price || 0;
-                    const itemMarketingFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
-                    totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                    const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+                    totalEmbeddedFees += itemFee * item.quantity;
+                    totalQuantity += item.quantity;
                 }
             }
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
             const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-            orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
+            orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
             return orderJson;
         });
 

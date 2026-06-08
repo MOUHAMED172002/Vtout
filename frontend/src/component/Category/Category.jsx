@@ -52,7 +52,7 @@ export default function Category() {
   }
 
   return (
-    <div className="container mt-16 mb-24 px-4 max-w-7xl mx-auto overflow-hidden">
+    <div className="container mt-16 mb-0 px-4 max-w-7xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-2">
@@ -71,7 +71,7 @@ export default function Category() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/promotions")}
-            className="group flex items-center gap-2 px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-amber-600 hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+            className="group flex items-center gap-2 px-6 py-3 bg-red-50 border border-red-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"
           >
             <LucideIcons.Flame className="group-hover:animate-bounce" size={14} /> Promotions
           </button>
@@ -93,7 +93,7 @@ export default function Category() {
             whileHover={{ y: -4 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/promotions')}
-            className="flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400 shadow-xl shadow-amber-500/20 text-white"
+            className="flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group bg-gradient-to-br from-red-500 to-red-600 border-red-400 shadow-xl shadow-red-500/20 text-white"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none" />
             <div className="text-2xl md:text-3xl transition-transform duration-500 relative z-10 group-hover:scale-110">

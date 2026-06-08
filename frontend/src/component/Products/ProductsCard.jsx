@@ -260,6 +260,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
                             price_snapshot: currentPrice,
                             quantity: 1,
                             image_url: imgs[0],
+                            boutique_id: product.boutique_id,
+                            boutique: product.boutique,
                           }],
                           total: Number(currentPrice),
                         }
@@ -323,7 +325,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
           <div className="flex-1 min-w-0">
             <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
               <span className="flex items-center gap-0.5 text-orange-500">
-                <Zap size={8} fill="currentColor" /> {salesCount}
+                <Zap size={8} fill="currentColor" /> {salesCount} vendus
               </span>
               <span className="text-primary">Populaire</span>
             </div>
@@ -353,6 +355,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
                       price_snapshot: currentPrice,
                       quantity: 1,
                       image_url: imgs[0],
+                      boutique_id: product.boutique_id,
+                      boutique: product.boutique,
                     }],
                     total: Number(currentPrice),
                   }

@@ -2,6 +2,7 @@ import { FinancialTransaction, PayoutRequest, Profile, Order } from '../models/i
 import sequelize from '../config/database.js';
 import { Op } from 'sequelize';
 import crypto from 'crypto';
+import { getDeliveryFeeTiers, computeDeliveryFee } from '../services/deliveryFeeService.js';
 
 
 export const getMyFinancials = async (req, res) => {
@@ -313,9 +314,12 @@ export const adminSyncFinancials = async (req, res) => {
         let processedCount = 0;
         let skippedCount = 0;
 
+        const tiers = await getDeliveryFeeTiers();
+
         for (const order of orders) {
             if (!order.delivery_fee || parseFloat(order.delivery_fee) === 0) {
-                await order.update({ delivery_fee: 1000 });
+                const computedFee = computeDeliveryFee(parseFloat(order.total_amount || 0), tiers);
+                await order.update({ delivery_fee: computedFee });
                 feesFixed++;
             }
 
@@ -328,7 +332,7 @@ export const adminSyncFinancials = async (req, res) => {
             message: 'Synchronisation terminée', 
             stats: {
                 totalDeliveredOrdersFound: orders.length,
-                deliveryFeesFixedTo1000: feesFixed,
+                deliveryFeesRecalculated: feesFixed,
                 ordersProcessed: processedCount,
                 duplicatesRemoved: duplicatesRemoved || 0,
                 transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0)

@@ -157,7 +157,7 @@ export const getAllProducts = async (req, res) => {
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push({
                 [Op.or]: [
-                    { is_flash_sale: true },
+                    { is_flash_sale: true, flash_sale_end: { [Op.gt]: new Date() } },
                     { is_kit: true },
                     { volume_pricing: { [Op.not]: null } },
                     {
@@ -220,7 +220,7 @@ export const getAllProducts = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
-                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         };
 
@@ -365,7 +365,7 @@ export const searchProducts = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
-                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ],
             limit: 20
         });
@@ -407,7 +407,7 @@ export const searchProducts = async (req, res) => {
                         include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                     },
                     { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
-                    { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
+                    { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
                 ],
                 limit: 10
             });
@@ -1125,7 +1125,7 @@ export const getRelatedProducts = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
-                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ],
             limit: 12,
             order: sequelize.literal('RAND()')
@@ -1201,7 +1201,7 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
             include: [
                 { model: Category, as: 'category' },
                 { model: ProductImage, as: 'images' },
-                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label'] }
+                { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         });
 

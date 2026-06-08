@@ -59,12 +59,16 @@ import BlogDetail from './component/Blogs/BlogDetail';
 import MagPage from './component/Blogs/MagPage';
 import Privacy from './component/Popup/Privacy';
 
+// --- How It Works ---
+import HowItWorksPage from './pages/HowItWorks/HowItWorksPage';
+
 // --- Promotion Pages ---
 import PromotionsHub from './pages/Promotions/PromotionsHub';
 import FlashSalePage from './pages/Promotions/FlashSalePage';
 import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
 import KitsPage from './pages/Promotions/KitsPage';
 import ReductionsPage from './pages/Promotions/ReductionsPage';
+import PromoDetailPage from './pages/Promotions/PromoDetailPage';
 
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
@@ -176,14 +180,17 @@ const AppContent = ({ products, loading }) => {
           <Route path="/promotions/flash" element={<PublicRoute><FlashSalePage /></PublicRoute>} />
           <Route path="/promotions/quantite" element={<PublicRoute><QuantityDiscountPage /></PublicRoute>} />
           <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />
+          <Route path="/promotions/produit/:id" element={<PublicRoute><PromoDetailPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
+          <Route path="/comment-ca-marche" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />
+          <Route path="/comment-ca-marche/:tab" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
           <Route path="/temoignages" element={<><Navbar /><PlatformReviews /><Footer /></>} />
 
-          {/* Auth Routes */}
-          <Route path="/auth/inscription/*" element={<><Navbar /><Register /><Footer /></>} />
-          <Route path="/auth/connexion/*" element={<><Navbar /><Login /><Footer /></>} />
+          {/* Auth Routes — full-screen, no Navbar/Footer */}
+          <Route path="/auth/inscription/*" element={<Register />} />
+          <Route path="/auth/connexion/*" element={<Login />} />
           <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
           <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
           <Route path="/blog/:slug" element={<BlogDetail />} />

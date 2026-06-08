@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category, Notification, Dispute } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
-import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice } from '../services/deliveryFeeService.js';
+import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -36,7 +36,7 @@ export const getMySupplierOrders = async (req, res) => {
         if (!supplier) return res.json([]); // Return empty array instead of 404
 
         const orders = await Order.findAll({
-            where: { supplier_id: supplier.id },
+            where: { supplier_id: supplier.id, status: { [Op.ne]: 'en_attente' } },
             order: [['created_at', 'DESC']],
             include: [
                 { model: Boutique, as: 'boutique', attributes: ['name', 'commune_label', 'whatsapp', 'phone'] },
@@ -54,33 +54,44 @@ export const getMySupplierOrders = async (req, res) => {
         const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
         const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
 
         const enrichedOrders = orders.map(order => {
             const orderJson = order.toJSON();
             let supplierTotal = 0;
             let adminTotal = 0;
-            let totalBaseMarketingFee = 0;
+            let totalEmbeddedFees = 0;
+            let totalQuantity = 0;
 
             if (orderJson.items) {
                 for (const item of orderJson.items) {
                     const itemClientPrice = parseFloat(item.price) || 0;
+                    const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                     let itemRate = globalCommissionRate;
                     if (item.product?.category?.commission_rate) {
                         itemRate = parseFloat(item.product.category.commission_rate) / 100;
                     }
-                    const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                    const commissionAmount = Math.round(decomposed.supplierPrice * itemRate);
-                    totalBaseMarketingFee += decomposed.deliveryFee * item.quantity;
+                    const embeddedFee = itemSupplierPrice > 0
+                        ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                        : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                    const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                    const commissionAmount = Math.round(supplierNet * itemRate);
+                    totalEmbeddedFees += embeddedFee * item.quantity;
+                    totalQuantity += item.quantity;
                     adminTotal += commissionAmount * item.quantity;
-                    supplierTotal += Math.round((decomposed.supplierPrice - commissionAmount) * item.quantity);
+                    supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 }
             }
 
+            const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
+            const delivererFlatFee = totalQuantity > 0
+                ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+                : 0;
             return {
                 ...orderJson,
                 supplier_earnings: supplierTotal,
                 admin_commission: adminTotal,
-                deliverer_fee: totalBaseMarketingFee + parseFloat(orderJson.delivery_fee || 0)
+                deliverer_fee: delivererFlatFee + parseFloat(orderJson.delivery_fee || 0)
             };
         });
 
@@ -172,9 +183,11 @@ export const getOrderById = async (req, res) => {
         const globalRateConfig = await Config.findOne({ where: { key: 'commission_rate' } });
         const globalCommissionRate = globalRateConfig?.value ? parseFloat(globalRateConfig.value) / 100 : 0.10;
         const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
 
         const orderJson = order.toJSON();
-        let totalBaseMarketingFee = 0;
+        let totalEmbeddedFees = 0;
+        let totalQuantity = 0;
         let adminTotal = 0;
         let supplierTotal = 0;
         let subtotal = 0;
@@ -182,25 +195,30 @@ export const getOrderById = async (req, res) => {
         if (orderJson.items) {
             for (const item of orderJson.items) {
                 const itemClientPrice = parseFloat(item.price) || 0;
+                const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
                 let itemRate = globalCommissionRate;
                 if (item.product?.category?.commission_rate) {
                     itemRate = parseFloat(item.product.category.commission_rate) / 100;
                 }
-
-                const decomposed = decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers);
-                const itemSupplierPrice = decomposed.supplierPrice;
-                const itemMarketingFee = decomposed.deliveryFee;
-                const commissionAmount = Math.round(itemSupplierPrice * itemRate);
-
-                totalBaseMarketingFee += itemMarketingFee * item.quantity;
+                const embeddedFee = itemSupplierPrice > 0
+                    ? computeDeliveryFee(itemSupplierPrice, deliveryTiers)
+                    : decomposePublicPrice(itemClientPrice, itemRate, deliveryTiers).deliveryFee;
+                const supplierNet = Math.max(0, itemClientPrice - embeddedFee);
+                const commissionAmount = Math.round(supplierNet * itemRate);
+                totalEmbeddedFees += embeddedFee * item.quantity;
+                totalQuantity += item.quantity;
                 adminTotal += commissionAmount * item.quantity;
-                supplierTotal += Math.round((itemSupplierPrice - commissionAmount) * item.quantity);
+                supplierTotal += Math.round((supplierNet - commissionAmount) * item.quantity);
                 subtotal += itemClientPrice * item.quantity;
             }
         }
 
+        const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
         const geographicalFee = parseFloat(orderJson.delivery_fee || 0);
-        orderJson.deliverer_fee = totalBaseMarketingFee + geographicalFee;
+        const delivererFlatFee = totalQuantity > 0
+            ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+            : 0;
+        orderJson.deliverer_fee = delivererFlatFee + geographicalFee;
         orderJson.admin_commission = adminTotal;
         orderJson.supplier_earnings = supplierTotal;
 
@@ -307,9 +325,8 @@ export const createOrder = async (req, res) => {
                 return res.status(404).json({ error: `Produit ${item.product_id} non trouvé` });
             }
 
-            let basePrice = (item.price !== undefined && item.price !== null && Number(item.price) > 0)
-                ? parseFloat(item.price)
-                : parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
+            // Always derive price from DB — never trust client-sent price for computation.
+            let basePrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
             let variantData = null;
 
             // Support both variant_price_id (direct) and variant_id (lookup)
@@ -355,9 +372,9 @@ export const createOrder = async (req, res) => {
                 }
             }
 
-            // Apply Volume Pricing (Quantity/Bulk Discount) dynamically only when no explicit item price is provided
+            // Always apply volume pricing server-side so promo prices are always authoritative.
             let unitPrice = basePrice;
-            if ((item.price === undefined || item.price === null || Number(item.price) <= 0) && product.volume_pricing) {
+            if (product.volume_pricing) {
                 try {
                     const tiers = typeof product.volume_pricing === 'string'
                         ? JSON.parse(product.volume_pricing)
@@ -378,7 +395,7 @@ export const createOrder = async (req, res) => {
             }
 
             subtotal += unitPrice * item.quantity;
-            enrichedItems.push({ product, item, unitPrice, variantData });
+            enrichedItems.push({ product, item, unitPrice, basePrice, variantData });
         }
 
         // Load configurations and address early for optimal boutique selection
@@ -417,7 +434,7 @@ export const createOrder = async (req, res) => {
 
         // 2. Group items by optimal boutique (checking primary & secondary boutiques)
         const itemsByBoutique = {};
-        for (const { product, item, unitPrice, variantData } of enrichedItems) {
+        for (const { product, item, unitPrice, basePrice, variantData } of enrichedItems) {
             let bestBoutiqueId = product.boutique_id || 'no_boutique';
             let minSupplement = Infinity;
             
@@ -446,7 +463,7 @@ export const createOrder = async (req, res) => {
             }
             
             if (!itemsByBoutique[bestBoutiqueId]) itemsByBoutique[bestBoutiqueId] = [];
-            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, variantData });
+            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, basePrice, variantData });
         }
 
         const boutiqueIds = Object.keys(itemsByBoutique);
@@ -549,16 +566,37 @@ export const createOrder = async (req, res) => {
                 items_count: boutiqueItems.length
             }, { transaction });
 
-            for (const { product, item, unitPrice, variantData } of boutiqueItems) {
-                // Price should represent the final unit price facturé au client.
+            for (const { product, item, unitPrice, basePrice, variantData } of boutiqueItems) {
+                // Determine the best original_price for display: volume-discount base or product/variant old_price
+                const variantOldPrice = variantData ? parseFloat(variantData.old_price || 0) : 0;
+                const productOldPrice = parseFloat(product.old_price || 0);
+                const displayOldPrice = variantOldPrice > unitPrice ? variantOldPrice
+                    : productOldPrice > unitPrice ? productOldPrice
+                    : null;
+                const storeOriginalPrice = basePrice !== unitPrice ? basePrice : displayOldPrice;
+
                 await OrderItem.create({
                     order_id: order.id,
                     product_id: product.id,
                     variant_id: variantData?.variant_id || null,
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
-                    price: unitPrice
-                }, { transaction });
+                    price: unitPrice,
+                    original_price: storeOriginalPrice,
+                }, { transaction }).catch(async (createErr) => {
+                    // If original_price column doesn't exist yet, retry without it
+                    if (createErr.message?.includes('original_price')) {
+                        return OrderItem.create({
+                            order_id: order.id,
+                            product_id: product.id,
+                            variant_id: variantData?.variant_id || null,
+                            boutique_id: actualBoutiqueId,
+                            quantity: item.quantity,
+                            price: unitPrice,
+                        }, { transaction });
+                    }
+                    throw createErr;
+                });
 
                 if (variantData) {
                     await variantData.decrement('stock', { by: item.quantity, transaction });
@@ -570,10 +608,7 @@ export const createOrder = async (req, res) => {
             }
             createdOrders.push(order);
 
-            // WhatsApp Notif to Boutique/Supplier
-            if (targetPhone) {
-                notifySupplierOfNewOrder(targetPhone, order.id, order.total_amount).catch(e => console.error("WA NOTIF ERR:", e));
-            }
+            // WhatsApp notif to supplier is sent only after admin confirms (see updateOrderStatus)
 
             // WhatsApp Notif to Customer (Priority to dedicated phone)
             const customerWhatsApp = whatsapp_notif_phone || guest_phone;
@@ -656,11 +691,21 @@ export const createOrder = async (req, res) => {
         const orderListStr = allOrderIds.map(id => `#${id.slice(0, 8)}`).join(', ');
         notifyAdmin(`🛍️ Nouvelle commande Multi-Boutiques (${createdOrders.length}) !\nIDs: ${orderListStr}\nClient: ${guest_name || 'Inconnu'}\nTotal: ${totalCartAmount} F`).catch(() => {});
 
+        // Fetch user email once for invoice (logged-in users don't have guest_email on the order)
+        let invoiceEmail = guest_email || null;
+        if (!invoiceEmail && userId) {
+            try {
+                const up = await Profile.findByPk(userId, { attributes: ['email'] });
+                invoiceEmail = up?.email || null;
+            } catch (_) {}
+        }
+
         // Send individual notifications for each split
         for (const order of createdOrders) {
             const orderItems = enrichedItems.filter(ei => (ei.product.boutique_id || 'no_boutique') === (order.boutique_id || 'no_boutique'));
-            sendOrderNotificationToAdmin(order, orderItems.map(e => e.product)).catch(() => {});
-            sendInvoiceEmail(order, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
+            sendOrderNotificationToAdmin(order).catch(() => {});
+            const orderForInvoice = invoiceEmail ? { ...order.toJSON(), user_email: invoiceEmail } : order;
+            sendInvoiceEmail(orderForInvoice, orderItems.map(e => ({ ...e.item, product: e.product, unit_price: e.unitPrice }))).catch(() => {});
         }
         
         // WhatsApp Notif to Customer
@@ -774,7 +819,16 @@ export const updateOrderStatus = async (req, res) => {
             updatePayload.status_history = history;
 
             // Manage specific timestamps
-            if (mappedStatus === 'confirmée') updatePayload.confirmed_at = now;
+            if (mappedStatus === 'confirmée') {
+                updatePayload.confirmed_at = now;
+                // Notify supplier now that admin has confirmed — order is visible and ready to prepare
+                if (order.supplier_id) {
+                    Supplier.findByPk(order.supplier_id, { include: [{ model: Boutique }] }).then(s => {
+                        const phone = s?.whatsapp || s?.phone;
+                        if (phone) notifySupplierOfNewOrder(phone, order.id, order.total_amount).catch(() => {});
+                    }).catch(() => {});
+                }
+            }
             if (mappedStatus === 'expédiée') updatePayload.shipped_at = now;
             if ((mappedStatus === 'livrée') && oldStatus !== 'livrée' && oldStatus !== 'livree') {
                 updatePayload.delivered_at = now;
@@ -791,10 +845,22 @@ export const updateOrderStatus = async (req, res) => {
 
         await order.update(updatePayload);
 
+        // Restore stock when cancelling an unconfirmed order
+        if (mappedStatus === 'annulée' && (oldStatus === 'en_attente' || oldStatus === 'en attente')) {
+            const items = await OrderItem.findAll({ where: { order_id: order.id } });
+            for (const item of items) {
+                if (item.variant_id) {
+                    await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                } else if (item.product_id) {
+                    await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                }
+            }
+        }
+
         // WhatsApp Notif to Customer
         try {
             const userProfile = await Profile.findByPk(order.user_id);
-            const customerPhone = order.guest_phone || userProfile?.phone;
+            const customerPhone = order.whatsapp_notif_phone || order.guest_phone || userProfile?.phone;
             if (customerPhone && status) {
                 notifyCustomerOfStatusUpdate(customerPhone, order.id, mappedStatus).catch(() => {});
             }
@@ -968,8 +1034,10 @@ export const updateOrderStatus = async (req, res) => {
         // 4. Email notification
         try {
             const userProfile = await Profile.findByPk(order.user_id);
-            if (userProfile?.email) {
-                await sendOrderUpdateToCustomer(order, userProfile.email, status);
+            const notifEmail = userProfile?.email || order.guest_email;
+            if (notifEmail) {
+                const orderWithEmail = { ...order.toJSON(), user_email: notifEmail };
+                await sendOrderUpdateToCustomer(orderWithEmail, mappedStatus);
             }
         } catch (_) {}
 
@@ -1068,28 +1136,40 @@ export const triggerStuckOrdersCheck = async (req, res) => {
 export const reportOrderDispute = async (req, res) => {
     try {
         const { id } = req.params;
-        const { reason, description } = req.body;
+        const { motif, description, photo_url } = req.body;
         const userId = req.auth?.userId;
 
         const order = await Order.findByPk(id);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
-
         if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const reason = motif || 'Problème signalé par le client';
 
         const dispute = await Dispute.create({
             id: crypto.randomUUID(),
             order_id: id,
             user_id: userId,
             supplier_id: order.supplier_id,
-            reason: reason || 'Problème signalé par le client',
-            description: description || 'Le client a signalé un problème via le bouton support.',
+            motif: motif || null,
+            reason,
+            description: description || null,
+            photo_url: photo_url || null,
             status: 'open'
         });
 
         await order.update({ dispute_status: 'ouvert' });
 
-        // Notifier l'admin
-        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} - Raison: ${reason}`).catch(() => {});
+        // Notification in-app au client
+        await Notification.create({
+            id: crypto.randomUUID(),
+            user_id: userId,
+            title: '⚠️ Litige enregistré',
+            message: `Votre signalement pour la commande #${id.slice(0, 8)} a bien été reçu. Notre équipe vous contactera sous 48h.`,
+            type: 'info',
+            is_read: false,
+        }).catch(() => {});
+
+        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} — Motif: ${reason}${description ? ` — "${description}"` : ''}`).catch(() => {});
 
         res.status(201).json({ message: 'Litige enregistré avec succès', dispute });
     } catch (error) {
@@ -1153,6 +1233,45 @@ export const assignSupplier = async (req, res) => {
         res.json({ message: 'Fournisseur assigné avec succès', order });
     } catch (error) {
         console.error("ASSIGN SUPPLIER ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+export const respondToDisputeResolution = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { response } = req.body; // 'confirm' | 'contest'
+        const userId = req.auth?.userId;
+
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+        if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const dispute = await Dispute.findOne({ where: { order_id: id, user_id: userId } });
+        if (!dispute) return res.status(404).json({ error: 'Aucun litige trouvé' });
+
+        if (response === 'confirm') {
+            await dispute.update({ status: 'resolved' });
+            await order.update({ dispute_status: 'resolu' });
+            notifyAdmin(`✅ Litige #${dispute.id.slice(0, 8)} confirmé résolu par le client.`).catch(() => {});
+        } else if (response === 'contest') {
+            await dispute.update({ status: 'open' });
+            await order.update({ dispute_status: 'ouvert' });
+            notifyAdmin(`⚠️ Litige #${dispute.id.slice(0, 8)} contesté par le client — réouverture du dossier.`).catch(() => {});
+            await Notification.create({
+                id: crypto.randomUUID(),
+                user_id: userId,
+                title: '🔄 Litige réouvert',
+                message: `Votre contestation pour la commande #${id.slice(0, 8)} a été enregistrée. Notre équipe va réexaminer le dossier.`,
+                type: 'info',
+                is_read: false,
+            }).catch(() => {});
+        } else {
+            return res.status(400).json({ error: 'Réponse invalide' });
+        }
+
+        res.json({ message: response === 'confirm' ? 'Résolution confirmée' : 'Contestation enregistrée' });
+    } catch (error) {
+        console.error("DISPUTE RESPONSE ERROR:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };

@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Tag, ShieldAlert, ShoppingCart, Eye, Star } from "lucide-react";
+import { Tag, ShieldAlert, Eye, Star, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -93,7 +93,7 @@ export default function ReductionsPage() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-16 relative z-10">
           
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className={`p-4 rounded-[2rem] border ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
                   <ProductSkeleton />
@@ -122,7 +122,7 @@ export default function ReductionsPage() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
             >
               {products.map((p, idx) => {
                 const oldPrice = Number(p.old_price || 0);
@@ -169,8 +169,8 @@ export default function ReductionsPage() {
 
                         {/* Action Overlays on hover */}
                         <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 duration-300">
-                          <button 
-                            onClick={() => navigate(`/products/${p.id}`)}
+                          <button
+                            onClick={() => navigate(`/promotions/produit/${p.id}?type=reduction`)}
                             className="w-10 h-10 rounded-full bg-white text-slate-800 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform"
                           >
                             <Eye size={16} />
@@ -180,9 +180,14 @@ export default function ReductionsPage() {
 
                       {/* Product Info */}
                       <div className="space-y-2 px-1">
-                        <span className="text-[9px] font-black text-violet-500 uppercase tracking-widest block">
-                          {p.boutique?.name || "Boutique Officielle"}
-                        </span>
+                        {p.free_delivery_communes && p.free_delivery_communes.length > 0 && (
+                          <div className="flex items-center gap-1 min-w-0">
+                            <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
+                            <span className="text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate">
+                              Livraison gratuite · {p.free_delivery_communes.join(' · ')}
+                            </span>
+                          </div>
+                        )}
                         <h3 className={`font-black text-sm md:text-base line-clamp-1 group-hover:text-violet-500 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
                           {p.name}
                         </h3>
@@ -197,45 +202,17 @@ export default function ReductionsPage() {
                         )}
 
                         {/* Pricing */}
-                        <div className="flex items-baseline gap-2 pt-1">
-                          <span className="font-mono text-lg md:text-2xl font-black text-violet-500">
+                        <div className="flex items-baseline gap-2 pt-1 flex-wrap">
+                          <span className="font-mono text-base font-black text-violet-500 whitespace-nowrap">
                             {Number(p.price).toLocaleString()} F
                           </span>
                           {(Number(p.old_price || 0) > Number(p.price || 0)) && (
-                            <span className="font-mono text-xs text-slate-400 line-through font-bold">
+                            <span className="font-mono text-xs text-slate-400 line-through font-bold whitespace-nowrap">
                               {Number(p.old_price || 0).toLocaleString()} F
                             </span>
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 px-1">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                        Stock: {p.stock} restants
-                      </span>
-                      
-                      <button
-                        onClick={() => {
-                          navigate('/checkout', {
-                            state: {
-                              items: [{
-                                id: p.id,
-                                product_id: p.id,
-                                name: p.name,
-                                price: p.price,
-                                price_snapshot: p.price,
-                                quantity: 1,
-                                image_url: p.images?.[0]?.image_url || p.image_url,
-                              }],
-                              total: Number(p.price),
-                            }
-                          });
-                        }}
-                        className="bg-violet-600 hover:bg-violet-500 text-white font-black text-[10px] uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-lg shadow-violet-600/20 active:scale-95 transition-all flex items-center gap-1.5"
-                      >
-                        <ShoppingCart size={11} /> Commander
-                      </button>
                     </div>
                   </motion.div>
                 );

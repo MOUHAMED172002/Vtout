@@ -49,16 +49,16 @@ export default function About() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section - Redesigned for Long Content */}
-      <section className="relative pt-32 pb-24 overflow-hidden">
+      <section className="relative pt-16 pb-10 overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4 opacity-60"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-100 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 opacity-40"></div>
 
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
-          <div className="flex flex-col gap-16 md:gap-24">
+          <div className="flex flex-col gap-8 md:gap-12">
             
             {/* 1. Brand Header */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 border-b border-slate-100 pb-16">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 border-b border-slate-100 pb-8">
               <div className="space-y-6 lg:max-w-3xl">
                 <div className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
@@ -77,7 +77,7 @@ export default function About() {
             </div>
 
             {/* 2. Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
               
               {/* Long Story Column */}
               <div className="lg:col-span-8 space-y-12">
@@ -139,15 +139,15 @@ export default function About() {
       </section>
 
       {/* Values Section */}
-      <section className="py-32 bg-slate-900 text-white relative overflow-hidden">
+      <section className="py-16 bg-slate-900 text-white relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -translate-x-1/2 translate-y-1/2"></div>
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
-          <div className="text-center space-y-4 mb-24">
+          <div className="text-center space-y-4 mb-10">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Nos Valeurs Fondamentales</h2>
             <p className="text-slate-400 font-bold max-w-2xl mx-auto">Ce qui nous anime au quotidien pour vous offrir la meilleure expérience possible.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { icon: <Target className="text-primary" size={32} />, title: "Sélection Rigoureuse", desc: "Chaque article passe par un processus de contrôle qualité strict avant d'être proposé." },
               { icon: <Rocket className="text-primary" size={32} />, title: "Innovation Continue", desc: "Nous cherchons sans cesse à améliorer nos services et processus de livraison." },
@@ -166,16 +166,16 @@ export default function About() {
       </section>
 
       {/* Team Section */}
-      <section className="py-32">
+      <section className="py-14">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900">L'Équipe <span className="text-slate-300">derrière tout ça</span></h2>
               <p className="text-slate-500 font-bold max-w-xl">Des passionnés qui travaillent d'arrache-pied pour rendre votre expérience inoubliable.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {team.map((member, i) => (
               <div key={i} className="group cursor-default">
                 <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-slate-100 mb-8 border-4 border-white shadow-2xl shadow-slate-200">
@@ -191,10 +191,10 @@ export default function About() {
       </section>
 
       {/* CTA Final */}
-      <section className="max-w-[1400px] mx-auto px-6 md:px-12 pb-32">
-        <div className="bg-primary rounded-[4rem] p-12 md:p-24 relative overflow-hidden shadow-2xl shadow-primary/30">
+      <section className="max-w-[1400px] mx-auto px-6 md:px-12 pb-14">
+        <div className="bg-primary rounded-[3rem] p-8 md:p-14 relative overflow-hidden shadow-2xl shadow-primary/30">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10 flex flex-col items-center text-center space-y-10">
+          <div className="relative z-10 flex flex-col items-center text-center space-y-6">
             <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter max-w-3xl leading-[1.1]">
               Rejoignez la révolution du commerce premium
             </h2>

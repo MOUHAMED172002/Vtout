@@ -83,7 +83,7 @@ export default function NotificationsSettings() {
           value={email[name]}
           onChange={(e) => setEmail({ ...email, [name]: e.target.value })}
           placeholder={placeholder}
-          className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 pr-12 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 focus:outline-none transition-all"
+          className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 pr-12 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all"
         />
         {secret && (
           <button

@@ -1,28 +1,22 @@
 import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 import { useAuth } from "../../../lib/AuthHooks";
-import { Plus, Trash2, Save, RefreshCw, Zap, ChevronRight, AlertCircle, CheckCircle } from "lucide-react";
+import { getMultiplierTiers, updateMultiplierTiers } from "../../../services/deliveryMultiplierService";
+import { Plus, Trash2, Save, RefreshCw, Package, ChevronRight, AlertCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://api.vtout.com/api";
-
-const DEFAULT_TIERS = [
-    { min: 0,     max: 500,   fee: 300  },
-    { min: 500,   max: 2000,  fee: 500  },
-    { min: 2000,  max: 5000,  fee: 700  },
-    { min: 5000,  max: 15000, fee: 1000 },
-    { min: 15000, max: null,  fee: 1500 },
+const DEFAULT_MULTIPLIER_TIERS = [
+    { min: 0,  max: 5,    multiplier: 1   },
+    { min: 5,  max: 10,   multiplier: 1.5 },
+    { min: 10, max: null, multiplier: 2   },
 ];
 
-export default function DeliveryFeeTiersManager() {
+export default function DeliveryMultiplierManager() {
     const { getToken } = useAuth();
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [localToast, setLocalToast] = useState(null);
-    const [simulation, setSimulation] = useState(null);
-    const [simPrice, setSimPrice] = useState("");
-    const [simLoading, setSimLoading] = useState(false);
+    const [simQty, setSimQty] = useState("");
 
     const showToast = (msg, type = "success") => {
         setLocalToast({ msg, type });
@@ -33,13 +27,11 @@ export default function DeliveryFeeTiersManager() {
         setLoading(true);
         try {
             const token = await getToken();
-            const { data } = await axios.get(`${API}/admin/delivery-fee-tiers`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setTiers(data.tiers || DEFAULT_TIERS);
+            const data = await getMultiplierTiers(token);
+            setTiers(data || DEFAULT_MULTIPLIER_TIERS);
         } catch {
-            setTiers(DEFAULT_TIERS);
-            showToast("Impossible de charger les tranches. Valeurs par défaut affichées.", "error");
+            setTiers(DEFAULT_MULTIPLIER_TIERS);
+            showToast("Impossible de charger les coefficients. Valeurs par défaut affichées.", "error");
         } finally {
             setLoading(false);
         }
@@ -58,8 +50,8 @@ export default function DeliveryFeeTiersManager() {
     const addTier = () => {
         setTiers(prev => {
             const last = prev[prev.length - 1];
-            const newMin = last ? (last.max ?? last.min + 5000) : 0;
-            return [...prev, { min: newMin, max: null, fee: 500 }];
+            const newMin = last ? (last.max ?? last.min + 5) : 0;
+            return [...prev, { min: newMin, max: null, multiplier: 1 }];
         });
     };
 
@@ -75,12 +67,10 @@ export default function DeliveryFeeTiersManager() {
             const payload = tiers.map((t, i) => ({
                 min: Number(t.min) || 0,
                 max: i === tiers.length - 1 ? null : (Number(t.max) || null),
-                fee: Number(t.fee) || 0,
+                multiplier: Number(t.multiplier) || 1,
             }));
-            await axios.put(`${API}/admin/delivery-fee-tiers`, { tiers: payload }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            showToast("✅ Tranches sauvegardées avec succès !");
+            await updateMultiplierTiers(payload, token);
+            showToast("✅ Coefficients sauvegardés avec succès !");
             fetchTiers();
         } catch (err) {
             showToast("❌ Erreur lors de la sauvegarde : " + (err.response?.data?.error || err.message), "error");
@@ -89,27 +79,31 @@ export default function DeliveryFeeTiersManager() {
         }
     };
 
-    const handleSimulate = async () => {
-        if (!simPrice || Number(simPrice) <= 0) return;
-        setSimLoading(true);
-        try {
-            const { data } = await axios.post(`${API}/admin/delivery-fee-simulate`, { supplier_price: Number(simPrice) });
-            setSimulation(data);
-        } catch (err) {
-            showToast("Erreur simulation : " + (err.response?.data?.error || err.message), "error");
-        } finally {
-            setSimLoading(false);
+    // Live simulation: find the matching tier for the entered quantity
+    const getSimResult = () => {
+        const qty = Number(simQty);
+        if (!simQty || qty <= 0 || tiers.length === 0) return null;
+        for (let i = 0; i < tiers.length; i++) {
+            const t = tiers[i];
+            const isLast = i === tiers.length - 1;
+            const max = isLast ? Infinity : (t.max ?? Infinity);
+            if (qty >= t.min && qty < max) {
+                return { qty, multiplier: t.multiplier };
+            }
         }
+        return { qty, multiplier: tiers[tiers.length - 1]?.multiplier ?? 1 };
     };
+
+    const simResult = getSimResult();
 
     return (
         <div className="max-w-3xl mx-auto space-y-6 p-4 md:p-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-black text-gray-900">Frais de Livraison par Tranches</h2>
+                    <h2 className="text-2xl font-black text-gray-900">Coefficient Livreur par Quantité</h2>
                     <p className="text-sm text-gray-500 mt-1">
-                        Définissez les frais automatiquement ajoutés au prix vendeur selon le montant du produit.
+                        Définissez le coefficient appliqué au frais de base selon la quantité totale d'articles livrés.
                     </p>
                 </div>
                 <button
@@ -140,12 +134,22 @@ export default function DeliveryFeeTiersManager() {
                 )}
             </AnimatePresence>
 
+            {/* Info box */}
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-xs text-amber-800 font-semibold space-y-1">
+                <p className="font-black text-amber-900 text-sm mb-1 flex items-center gap-2">
+                    <Package size={15} /> Comment fonctionne ce coefficient ?
+                </p>
+                <p>Chaque produit embarque un frais de livraison dans son prix. Pour N articles, au lieu de payer N × frais, le livreur reçoit :</p>
+                <p className="font-black mt-1">Frais unitaire (1 article) × Coefficient(N articles total)</p>
+                <p className="text-amber-700 mt-1">Le surplus restant est enregistré comme gain <strong>Marketing</strong> pour l'admin.</p>
+            </div>
+
             {/* Tiers Table */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-0 text-[11px] font-black text-gray-400 uppercase tracking-widest px-5 py-3 bg-gray-50 border-b border-gray-100">
-                    <span>Prix vendeur min (F)</span>
-                    <span>Prix vendeur max (F)</span>
-                    <span>Frais livraison (F)</span>
+                    <span>Qté min (articles)</span>
+                    <span>Qté max (articles)</span>
+                    <span>Coefficient ×</span>
                     <span></span>
                 </div>
 
@@ -170,7 +174,6 @@ export default function DeliveryFeeTiersManager() {
                                         className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                         min={0}
                                     />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
                                 </div>
 
                                 {/* Max */}
@@ -180,29 +183,27 @@ export default function DeliveryFeeTiersManager() {
                                             ∞ (illimité)
                                         </div>
                                     ) : (
-                                        <>
-                                            <input
-                                                type="number"
-                                                value={tier.max ?? ""}
-                                                onChange={e => handleChange(i, "max", e.target.value)}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                                min={tier.min + 1}
-                                            />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
-                                        </>
+                                        <input
+                                            type="number"
+                                            value={tier.max ?? ""}
+                                            onChange={e => handleChange(i, "max", e.target.value)}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                            min={tier.min + 1}
+                                        />
                                     )}
                                 </div>
 
-                                {/* Fee */}
+                                {/* Multiplier */}
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        value={tier.fee}
-                                        onChange={e => handleChange(i, "fee", e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 bg-emerald-50/50 border-emerald-200"
-                                        min={0}
+                                        value={tier.multiplier}
+                                        onChange={e => handleChange(i, "multiplier", e.target.value)}
+                                        className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-blue-50/50"
+                                        min={0.1}
+                                        step={0.1}
                                     />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-500 font-bold pointer-events-none">F</span>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-blue-400 font-bold pointer-events-none">×</span>
                                 </div>
 
                                 {/* Delete */}
@@ -229,67 +230,54 @@ export default function DeliveryFeeTiersManager() {
                 </div>
             </div>
 
-            {/* Example preview */}
+            {/* Preview grid */}
             {!loading && tiers.length > 0 && (
                 <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4 text-xs text-blue-700 font-semibold space-y-1">
-                    <p className="font-black text-sm text-blue-900 mb-2">Aperçu de la grille tarifaire</p>
-                    {tiers.map((t, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                            <ChevronRight size={12} className="text-blue-400 shrink-0" />
-                            <span>
-                                Prix vendeur {t.min.toLocaleString("fr-FR")} F – {t.max != null ? t.max.toLocaleString("fr-FR") : "∞"} F
-                                {" "}<strong>→ +{t.fee.toLocaleString("fr-FR")} F</strong> livraison
-                                {" "}→ Prix public{" "}
-                                <strong>{(t.min + t.fee).toLocaleString("fr-FR")} F à {t.max != null ? (t.max + t.fee).toLocaleString("fr-FR") : "∞"} F</strong>
-                            </span>
-                        </div>
-                    ))}
+                    <p className="font-black text-sm text-blue-900 mb-2">Aperçu de la grille de coefficients</p>
+                    {tiers.map((t, i) => {
+                        const isLast = i === tiers.length - 1;
+                        return (
+                            <div key={i} className="flex items-center gap-2">
+                                <ChevronRight size={12} className="text-blue-400 shrink-0" />
+                                <span>
+                                    {t.min} – {isLast ? "∞" : t.max} articles
+                                    {" "}<strong>→ coefficient × {t.multiplier}</strong>
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
             {/* Simulator */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4">
                 <h3 className="font-black text-gray-900 flex items-center gap-2">
-                    <Zap size={16} className="text-amber-500" fill="currentColor" /> Simulateur de prix
+                    <Package size={16} className="text-blue-500" /> Simulateur de coefficient
                 </h3>
-                <p className="text-xs text-gray-400">Entrez un prix vendeur pour voir le prix public calculé.</p>
+                <p className="text-xs text-gray-400">Entrez un nombre d'articles pour voir le coefficient appliqué.</p>
                 <div className="flex gap-3">
                     <input
                         type="number"
-                        value={simPrice}
-                        onChange={e => setSimPrice(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handleSimulate()}
-                        placeholder="Ex : 250"
+                        value={simQty}
+                        onChange={e => setSimQty(e.target.value)}
+                        placeholder="Ex : 7"
                         className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                         min={1}
                     />
-                    <button
-                        onClick={handleSimulate}
-                        disabled={simLoading || !simPrice}
-                        className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                    >
-                        {simLoading ? "…" : "Simuler"}
-                    </button>
                 </div>
 
                 <AnimatePresence>
-                    {simulation && (
+                    {simResult && (
                         <motion.div
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                            className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100"
                         >
-                            {[
-                                { label: "Prix vendeur", value: `${simulation.supplier_price.toLocaleString("fr-FR")} F`, color: "text-gray-900" },
-                                { label: "Frais livraison", value: `+${simulation.delivery_fee.toLocaleString("fr-FR")} F`, color: "text-orange-600" },
-                                { label: "Prix public", value: `${simulation.public_price.toLocaleString("fr-FR")} F`, color: "text-primary font-black text-lg" },
-                                { label: `Gain vendeur (${simulation.commission_rate_pct}% comm.)`, value: `${simulation.supplier_earnings.toLocaleString("fr-FR")} F`, color: "text-emerald-600" },
-                            ].map((item) => (
-                                <div key={item.label} className="bg-gray-50 rounded-2xl p-3 text-center">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
-                                    <p className={`text-base font-black ${item.color}`}>{item.value}</p>
-                                </div>
-                            ))}
+                            <Package size={20} className="text-blue-500 shrink-0" />
+                            <p className="text-sm font-bold text-blue-800">
+                                Pour <strong>{simResult.qty} articles</strong> → coefficient{" "}
+                                <strong className="text-blue-900 text-base">× {simResult.multiplier}</strong>
+                            </p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -303,7 +291,7 @@ export default function DeliveryFeeTiersManager() {
                 className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-2xl font-black text-base shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-60 transition-all"
             >
                 <Save size={18} />
-                {saving ? "Enregistrement…" : "Sauvegarder les tranches"}
+                {saving ? "Enregistrement…" : "Sauvegarder les coefficients"}
             </motion.button>
         </div>
     );

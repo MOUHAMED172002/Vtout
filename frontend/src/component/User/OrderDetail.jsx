@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
+import DisputeModal from "./DisputeModal";
 import {
   ArrowLeft,
   Package,
@@ -23,7 +24,10 @@ import {
   XCircle,
   Store,
   Lock,
-  User as UserIcon
+  User as UserIcon,
+  ThumbsUp,
+  ThumbsDown,
+  RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -97,6 +101,8 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -192,6 +198,14 @@ export default function OrderDetail() {
   };
   const stepIndex = isCancelled ? -1 : (stepIndexMapping[normalizedStatus] ?? 0);
 
+  const getStepDate = (step) => {
+    const history = order.status_history;
+    if (!history || !Array.isArray(history)) return null;
+    const entry = history.find(h => step.statuses.some(s => normalizeStatus(h.status) === s));
+    if (!entry?.date) return null;
+    return new Date(entry.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+
   // Get current step color
   const activeStepColor = STEPS[stepIndex]?.color || "primary";
   const colorMap = {
@@ -203,6 +217,7 @@ export default function OrderDetail() {
   };
 
   return (
+    <>
     <div className="space-y-10 pb-20">
 
       {/* ── Top Bar ── */}
@@ -370,7 +385,12 @@ export default function OrderDetail() {
                           {step.label}
                         </p>
                         {current && <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>}
-                        {done && !current && <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>}
+                        {done && !current && (() => {
+                          const d = getStepDate(step);
+                          return d
+                            ? <p className="text-[9px] font-bold text-slate-400 mt-0.5">{d}</p>
+                            : <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>;
+                        })()}
                         {!done && <p className="text-[9px] font-bold text-slate-300 mt-0.5">En attente</p>}
                       </div>
                     </div>
@@ -488,9 +508,17 @@ export default function OrderDetail() {
                         <span>Qté : {item.quantity}</span>
                         <span className="w-1 h-1 bg-slate-200 rounded-full" />
                         <span>{item.variant?.name ? `${item.variant.name} · ` : ""}{Number(item.price).toLocaleString()} FCFA / unité</span>
+                        {item.original_price && Number(item.original_price) > Number(item.price) && (
+                          <span className="line-through text-slate-300">{Number(item.original_price).toLocaleString()} FCFA</span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 space-y-1">
+                      {item.original_price && Number(item.original_price) > Number(item.price) && (
+                        <p className="text-xs font-black text-emerald-500">
+                          -{Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)}%
+                        </p>
+                      )}
                       <p className="text-xl font-black text-slate-900 tracking-tighter">
                         {(item.quantity * item.price).toLocaleString()} F
                       </p>
@@ -663,22 +691,76 @@ export default function OrderDetail() {
  
             {/* Actions */}
             <div className="pt-12 border-t border-slate-100 flex flex-col gap-4">
-              <button 
-                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
-                onClick={async () => {
-                  try {
-                    const token = await getToken();
-                    await api.post(`/orders/${order.id}/dispute`, { reason: "Problème signalé via le bouton support" }, { headers: { Authorization: `Bearer ${token}` } });
-                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
-                  } catch (e) {
-                    // Even if API fails, redirect to WhatsApp as a fallback
-                    window.location.href = `https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || '22900000000'}?text=Problème sur la commande #${order.id.slice(0, 8)}`;
-                  }
-                }}
+
+              {/* Dispute status card */}
+              {order.dispute_status && order.dispute_status !== 'annule' && (
+                <div className={`rounded-[1.5rem] p-5 border-2 space-y-3 ${
+                  order.dispute_status === 'resolu' ? 'bg-emerald-50 border-emerald-200' :
+                  order.dispute_status === 'en_cours' ? 'bg-blue-50 border-blue-200' :
+                  'bg-amber-50 border-amber-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {order.dispute_status === 'resolu' ? <CheckCircle2 size={18} className="text-emerald-500" /> :
+                     order.dispute_status === 'en_cours' ? <RefreshCw size={18} className="text-blue-500" /> :
+                     <Clock size={18} className="text-amber-500" />}
+                    <span className={`font-black text-sm uppercase tracking-wider ${
+                      order.dispute_status === 'resolu' ? 'text-emerald-700' :
+                      order.dispute_status === 'en_cours' ? 'text-blue-700' : 'text-amber-700'
+                    }`}>
+                      {order.dispute_status === 'resolu' ? 'Litige résolu — Confirmation requise' :
+                       order.dispute_status === 'en_cours' ? 'Litige en cours d\'examen' :
+                       'Litige ouvert — En attente de traitement'}
+                    </span>
+                  </div>
+                  {order.dispute_status === 'resolu' && (
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        disabled={disputeResponseLoading}
+                        onClick={async () => {
+                          setDisputeResponseLoading(true);
+                          try {
+                            const token = await getToken();
+                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'confirm' }, { headers: { Authorization: `Bearer ${token}` } });
+                            setOrder(prev => ({ ...prev, dispute_status: 'resolu' }));
+                            toast?.success?.('Résolution confirmée. Merci !');
+                          } catch { toast?.error?.('Erreur'); }
+                          finally { setDisputeResponseLoading(false); }
+                        }}
+                        className="py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        <ThumbsUp size={14} /> Confirmer
+                      </button>
+                      <button
+                        disabled={disputeResponseLoading}
+                        onClick={async () => {
+                          setDisputeResponseLoading(true);
+                          try {
+                            const token = await getToken();
+                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
+                            setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
+                            toast?.success?.('Contestation enregistrée.');
+                          } catch { toast?.error?.('Erreur'); }
+                          finally { setDisputeResponseLoading(false); }
+                        }}
+                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        <ThumbsDown size={14} /> Contester
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Show dispute button only if no active dispute */}
+              {(!order.dispute_status || order.dispute_status === 'annule') && (
+              <button
+                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
+                onClick={() => setShowDisputeModal(true)}
               >
                 <AlertCircle size={18} />
                 Signaler un problème
               </button>
+              )}
               <Link 
                 to="/"
                 className="w-full py-4 bg-slate-50 text-slate-400 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 transition-all"
@@ -691,5 +773,14 @@ export default function OrderDetail() {
         </div>
       </div>
     </div>
+
+    {showDisputeModal && order && (
+      <DisputeModal
+        order={order}
+        getToken={getToken}
+        onClose={() => setShowDisputeModal(false)}
+      />
+    )}
+    </>
   );
 }

@@ -95,6 +95,22 @@ const ConfigManager = () => {
                     description: 'Grille des frais de livraison dynamiques (JSON: min, max, fee)'
                 });
             }
+            if (!uniqueData.find(c => c.key === 'vip_customer_threshold')) {
+                uniqueData.push({
+                    key: 'vip_customer_threshold',
+                    value: '5',
+                    group: 'marketplace',
+                    description: 'Nombre minimum de commandes livrées pour être considéré client VIP'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'marketing_fee_rate')) {
+                uniqueData.push({
+                    key: 'marketing_fee_rate',
+                    value: '0.20',
+                    group: 'marketplace',
+                    description: 'Part des frais embarqués reversée au marketing (ex: 0.20 = 20%). S\'applique sur chaque commande livrée.'
+                });
+            }
 
             if (!uniqueData.find(c => c.key === 'hero_carousel')) {
                 uniqueData.push({
@@ -168,6 +184,23 @@ const ConfigManager = () => {
                 });
             }
 
+            if (!uniqueData.find(c => c.key === 'whatsapp_abandoned_cart')) {
+                uniqueData.push({
+                    key: 'whatsapp_abandoned_cart',
+                    value: '🛒 *VTOUT : Votre panier vous attend !*\n\nBonjour {{clientName}},\n\nVous avez laissé {{itemCount}} article(s) dans votre panier, dont *{{firstItemName}}*.\nMontant total : *{{totalAmount}} F*\n\nNe laissez pas vos articles s\'envoler ! Complétez votre commande dès maintenant sur Vtout.\n\n🔗 https://vtout.com/user/dashboard/cart',
+                    group: 'messages',
+                    description: 'Message WhatsApp de relance panier abandonné — variables : {{clientName}}, {{itemCount}}, {{firstItemName}}, {{totalAmount}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_welcome_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_welcome_customer',
+                    value: '🎉 *Bienvenue sur VTOUT, {{clientName}} !*\n\nVotre compte a été créé avec succès.\n\nDécouvrez des milliers de produits de qualité livrés chez vous au Bénin.\n\n🛍️ Commencez vos achats : https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp de bienvenue pour un nouveau client — variables : {{clientName}}'
+                });
+            }
+
             if (!uniqueData.find(c => c.key === 'whatsapp_admin_prefix')) {
                 uniqueData.push({
                     key: 'whatsapp_admin_prefix',
@@ -221,7 +254,71 @@ const ConfigManager = () => {
                     key: 'whatsapp_order_status_customer',
                     value: '📦 *VTOUT : Mise à jour de commande*\nVotre commande #{{orderId}} est maintenant *{{status}}*.',
                     group: 'messages',
-                    description: 'Message WhatsApp client pour mise à jour de statut'
+                    description: 'Message WhatsApp client (générique) — variables : {{orderId}}, {{status}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_confirmee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_confirmee',
+                    value: '✅ *VTOUT : Commande confirmée !*\n\nBonjour,\n\nVotre commande #{{orderId}} est maintenant *confirmée* et en préparation.\n\nNous vous tiendrons informé de la livraison.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande confirmée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_expediee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_expediee',
+                    value: '🚚 *VTOUT : Commande en chemin !*\n\nBonjour,\n\nVotre commande #{{orderId}} est maintenant *expédiée* ! Le livreur est en route vers chez vous.\n\nMerci de rester disponible.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande expédiée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_livree')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_livree',
+                    value: '🎉 *VTOUT : Commande livrée !*\n\nBonjour,\n\nVotre commande #{{orderId}} a été *livrée* avec succès.\n\nMerci d\'avoir choisi Vtout ! N\'hésitez pas à laisser un avis.\n\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande livrée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_annulee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_annulee',
+                    value: '❌ *VTOUT : Commande annulée*\n\nBonjour,\n\nVotre commande #{{orderId}} a été *annulée*.\n\nPour toute question, contactez notre support sur vtout.com.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande annulée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_order_status_customer_retournee')) {
+                uniqueData.push({
+                    key: 'whatsapp_order_status_customer_retournee',
+                    value: '↩️ *VTOUT : Commande retournée*\n\nBonjour,\n\nVotre commande #{{orderId}} a été marquée comme *retournée*.\n\nNotre équipe traite votre dossier. Contactez le support si besoin.',
+                    group: 'messages',
+                    description: 'Message WhatsApp client — commande retournée — variables : {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_review_request')) {
+                uniqueData.push({
+                    key: 'whatsapp_review_request',
+                    value: '⭐ *VTOUT : Donnez votre avis !*\n\nBonjour {{clientName}},\n\nVotre commande #{{orderId}} a bien été livrée. Nous espérons que vous êtes satisfait(e) !\n\nVotre avis nous aide à améliorer notre service.\n\n🔗 https://vtout.com/user/dashboard/orders',
+                    group: 'messages',
+                    description: 'Message WhatsApp relance avis (J+2 après livraison) — variables : {{clientName}}, {{orderId}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_reengagement')) {
+                uniqueData.push({
+                    key: 'whatsapp_reengagement',
+                    value: '🛍️ *VTOUT : On pense à vous !*\n\nBonjour {{clientName}},\n\nCela fait un moment qu\'on ne vous a pas vu sur Vtout !\n\nDécouvrez les nouveautés et profitez d\'une livraison rapide dans tout le Bénin.\n\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp relance client inactif (30+ jours) — variables : {{clientName}}'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_vip_customer')) {
+                uniqueData.push({
+                    key: 'whatsapp_vip_customer',
+                    value: '⭐ *VTOUT : Merci, client VIP !*\n\nBonjour {{clientName}},\n\nVous faites partie de nos meilleurs clients avec *{{orderCount}} commandes* passées !\n\nVotre fidélité nous touche énormément.\n\n🎁 Des offres exclusives vous attendent sur :\n🔗 https://vtout.com',
+                    group: 'messages',
+                    description: 'Message WhatsApp meilleurs clients VIP — variables : {{clientName}}, {{orderCount}}'
                 });
             }
             if (!uniqueData.find(c => c.key === 'email_subject_new_order_admin')) {
@@ -358,6 +455,31 @@ const ConfigManager = () => {
                     value: '🛵 *VTOUT : Annulation de course*\nLa course #{{orderId}} a été marquée comme *retournée*.',
                     group: 'messages',
                     description: 'Message WhatsApp livreur lorsque la course est retournée'
+                });
+            }
+
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_active')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_active',
+                    value: '🎉 *Félicitations !* Votre compte fournisseur Vtout a été approuvé. Vous pouvez maintenant commencer à vendre.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est activé'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_suspendu')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_suspendu',
+                    value: '⚠️ *Alerte :* Votre compte fournisseur Vtout a été temporairement suspendu. Veuillez contacter l\'administration.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est suspendu'
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'whatsapp_supplier_status_rejete')) {
+                uniqueData.push({
+                    key: 'whatsapp_supplier_status_rejete',
+                    value: '❌ *Désolé :* Votre demande d\'inscription comme fournisseur Vtout a été rejetée.',
+                    group: 'messages',
+                    description: 'Message WhatsApp fournisseur lorsque son compte est rejeté'
                 });
             }
 
@@ -1413,7 +1535,7 @@ const ConfigManager = () => {
                                     <select 
                                         value={newConfig.group}
                                         onChange={e => setNewConfig({...newConfig, group: e.target.value})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-black outline-none"
+                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-black outline-none focus:ring-2 focus:ring-primary/20"
                                     >
                                         {Object.keys(groupLabels).map(k => <option key={k} value={k}>{groupLabels[k]}</option>)}
                                     </select>
@@ -1504,19 +1626,19 @@ const TeamManager = ({ value, onChange, onSave, uploadImage }) => {
                             value={member.name} 
                             onChange={e => updateItem(i, 'name', e.target.value)}
                             placeholder="Nom"
-                            className="w-full bg-transparent text-xs font-black text-center focus:outline-none"
+                            className="w-full bg-transparent text-xs font-black text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                         />
-                        <input 
-                            value={member.role} 
+                        <input
+                            value={member.role}
                             onChange={e => updateItem(i, 'role', e.target.value)}
                             placeholder="Rôle"
-                            className="w-full bg-transparent text-[10px] text-slate-400 font-bold text-center focus:outline-none"
+                            className="w-full bg-transparent text-[10px] text-slate-400 font-bold text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                         />
-                        <input 
-                            value={member.avatar} 
+                        <input
+                            value={member.avatar}
                             onChange={e => updateItem(i, 'avatar', e.target.value)}
                             placeholder="URL Avatar manuelle"
-                            className="w-full bg-white/50 p-1 rounded text-[8px] font-mono focus:outline-none"
+                            className="w-full bg-white/50 p-1 rounded text-[8px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                         />
                     </div>
                 ))}
@@ -1570,13 +1692,13 @@ const StatsManager = ({ value, onChange, onSave }) => {
                                 value={stat.value} 
                                 onChange={e => updateItem(i, 'value', e.target.value)}
                                 placeholder="Valeur (ex: 12k+)"
-                                className="w-full bg-transparent font-black text-slate-900 focus:outline-none"
+                                className="w-full bg-transparent font-black text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
-                            <input 
-                                value={stat.label} 
+                            <input
+                                value={stat.label}
                                 onChange={e => updateItem(i, 'label', e.target.value)}
                                 placeholder="Libellé"
-                                className="w-full bg-transparent text-[10px] font-black uppercase text-slate-400 tracking-widest focus:outline-none"
+                                className="w-full bg-transparent text-[10px] font-black uppercase text-slate-400 tracking-widest focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
                         </div>
                     </div>
@@ -1693,13 +1815,13 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                                 value={slide.color} 
                                 onChange={e => updateItem(i, 'color', e.target.value)}
                                 placeholder="Couleur BG (from-X to-Y)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                             <input 
                                 value={slide.textColor} 
                                 onChange={e => updateItem(i, 'textColor', e.target.value)}
                                 placeholder="Couleur Texte (text-X)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                         </div>
                     </div>
@@ -1825,13 +1947,13 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                     value={slide.circleBadgeText} 
                                     onChange={e => updateItem(i, 'circleBadgeText', e.target.value)}
                                     placeholder="Texte Rond (Jusqu'à)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.circleBadgeVal} 
                                     onChange={e => updateItem(i, 'circleBadgeVal', e.target.value)}
                                     placeholder="Valeur Rond (-50%)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none"
+                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -1839,13 +1961,13 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                     value={slide.buttonText} 
                                     onChange={e => updateItem(i, 'buttonText', e.target.value)}
                                     placeholder="Texte Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.link} 
                                     onChange={e => updateItem(i, 'link', e.target.value)}
                                     placeholder="Lien Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none"
+                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                         </div>

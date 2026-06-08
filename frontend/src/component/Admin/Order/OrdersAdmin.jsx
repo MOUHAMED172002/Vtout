@@ -3,7 +3,7 @@ import { useAuth } from "../../../lib/AuthHooks";
 import { getAllOrders } from "../../../services/orderService";
 import OrderTable from "./OrderTable";
 import OrderDetailsModal from "./OrderDetailsModal";
-import { ShoppingBag, Search, Filter, RefreshCcw, X } from "lucide-react";
+import { ShoppingBag, Search, RefreshCcw, X, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Download, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../services/api";
@@ -19,6 +19,25 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
+  const [pendingExpanded, setPendingExpanded] = useState(true);
+  const [confirming, setConfirming] = useState({});
+
+  const handleConfirm = async (orderId) => {
+    setConfirming(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const token = await getToken();
+      await api.patch(`/orders/${orderId}/status`, { status: 'confirmee' }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Commande confirmée !");
+      fetchOrders();
+    } catch {
+      toast.error("Erreur lors de la confirmation");
+    } finally {
+      setConfirming(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -33,6 +52,35 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
   };
 
   useEffect(() => { fetchOrders(); }, []);
+
+  const exportCSV = () => {
+    if (filteredOrders.length === 0) { toast.error("Aucune commande à exporter"); return; }
+
+    const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const STATUS_LABELS = { en_attente: "En attente", confirmee: "Confirmée", expediee: "Expédiée", livree: "Livrée", annulee: "Annulée" };
+
+    const rows = [
+      ["Référence", "Client", "Email", "Montant (FCFA)", "Statut", "Paiement", "Date"].map(escape).join(","),
+      ...filteredOrders.map(o => [
+        o.id.slice(0, 8).toUpperCase(),
+        o.customer_name || o.guest_name || o.user?.fullname || "—",
+        o.user?.email || o.guest_email || "—",
+        Number(o.total_amount).toFixed(0),
+        STATUS_LABELS[normalizeStatus(o.status)] || o.status,
+        o.payment_method || "—",
+        new Date(o.created_at || o.createdAt).toLocaleDateString('fr-FR'),
+      ].map(escape).join(","))
+    ].join("\n");
+
+    const blob = new Blob(["﻿" + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `commandes-vtout-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${filteredOrders.length} commande(s) exportée(s)`);
+  };
 
   const normalizeStatus = (s) => {
     if (!s) return "";
@@ -112,11 +160,91 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
             Relancer les bloqués
           </button>
 
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 hover:bg-emerald-100 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+            title="Exporter en CSV"
+          >
+            <Download size={16} /> Export CSV
+          </button>
+
           <button onClick={fetchOrders} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
             <RefreshCcw size={18} />
           </button>
         </div>
       </div>
+
+      {/* Pending orders alert section */}
+      {(() => {
+        const pendingOrders = orders.filter(o => normalizeStatus(o.status) === "en_attente");
+        if (pendingOrders.length === 0) return null;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-50 border border-amber-200 rounded-[2rem] overflow-hidden shadow-sm"
+          >
+            <button
+              onClick={() => setPendingExpanded(p => !p)}
+              className="w-full flex items-center justify-between px-8 py-5 hover:bg-amber-100/50 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+                  <AlertTriangle size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-amber-800 text-sm uppercase tracking-widest">
+                    {pendingOrders.length} commande{pendingOrders.length > 1 ? 's' : ''} en attente de confirmation
+                  </p>
+                  <p className="text-amber-600 text-xs font-bold">Confirmez-les pour les rendre visibles aux vendeurs</p>
+                </div>
+              </div>
+              {pendingExpanded ? <ChevronUp size={18} className="text-amber-500" /> : <ChevronDown size={18} className="text-amber-500" />}
+            </button>
+
+            <AnimatePresence>
+              {pendingExpanded && (
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-8 pb-6 space-y-3">
+                    {pendingOrders.map(order => (
+                      <div key={order.id} className="bg-white rounded-2xl px-4 py-3 border border-amber-100 shadow-sm grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
+                        {/* Row 1: ref + client | confirm button */}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">#{order.id.slice(0, 8).toUpperCase()}</span>
+                          <span className="text-sm font-bold text-slate-700 truncate">{order.customer_name || order.guest_name || "Client"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 row-span-2">
+                          <button
+                            onClick={() => handleConfirm(order.id)}
+                            disabled={confirming[order.id]}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-emerald-500/20 disabled:opacity-60 whitespace-nowrap"
+                          >
+                            {confirming[order.id] ? <span className="loading loading-spinner loading-xs" /> : <CheckCircle2 size={13} />}
+                            Confirmer
+                          </button>
+                          <button onClick={() => setOpenOrder(order)} className="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all shrink-0" title="Détails">
+                            <Eye size={14} />
+                          </button>
+                        </div>
+                        {/* Row 2: date + amount */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-slate-400">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-[11px] font-black text-slate-700">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })()}
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">

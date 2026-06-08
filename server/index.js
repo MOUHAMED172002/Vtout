@@ -83,19 +83,56 @@ import { syncDatabase } from "./controllers/migrationController.js";
 import { Config, SupportMessage } from "./models/index.js";
 import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
+import { processReviewReminders } from "./services/reviewReminderService.js";
+import { processReengagement, processVipMessages } from "./services/reengagementService.js";
+import { expireStaleOrders } from "./services/orderExpiryService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
     console.log("⏰ [JOBS] Démarrage des tâches de fond...");
-    
+
     // Relance des paniers abandonnés (toutes les heures)
     setInterval(() => {
         processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts:", err));
     }, 60 * 60 * 1000);
 
-    // Premier passage 1 minute après le démarrage
+    // Relances avis post-livraison (toutes les 24h)
+    setInterval(() => {
+        processReviewReminders().catch(err => console.error("[JOB ERROR] Review Reminders:", err));
+    }, 24 * 60 * 60 * 1000);
+
+    // Réengagement clients inactifs (tous les 7 jours)
+    setInterval(() => {
+        processReengagement().catch(err => console.error("[JOB ERROR] Reengagement:", err));
+    }, 7 * 24 * 60 * 60 * 1000);
+
+    // Messages clients VIP (tous les 20 jours)
+    // 30j = 2 592 000 000 ms > limite JS 32 bits (2 147 483 647 ms) → overflow vers 1ms
+    // On utilise 20j = 1 728 000 000 ms qui reste dans la limite
+    setInterval(() => {
+        processVipMessages().catch(err => console.error("[JOB ERROR] VIP Messages:", err));
+    }, 20 * 24 * 60 * 60 * 1000);
+
+    // Expiration des commandes non confirmées après 48h (toutes les heures)
+    setInterval(() => {
+        expireStaleOrders().catch(err => console.error("[JOB ERROR] Order Expiry:", err));
+    }, 60 * 60 * 1000);
+
+    // Nettoyage des ventes flash expirées (toutes les heures)
+    setInterval(async () => {
+        try {
+            await sequelize.query(
+                `UPDATE products SET is_flash_sale = false, flash_sale_end = NULL WHERE is_flash_sale = true AND flash_sale_end IS NOT NULL AND flash_sale_end < NOW()`
+            );
+        } catch (e) {
+            console.error('[JOB ERROR] Flash sale cleanup:', e.message);
+        }
+    }, 60 * 60 * 1000);
+
+    // Premiers passages 1 minute après le démarrage
     setTimeout(() => {
         processAbandonedCarts().catch(err => console.error("[JOB ERROR] Abandoned Carts (Initial):", err));
+        processReviewReminders().catch(err => console.error("[JOB ERROR] Review Reminders (Initial):", err));
     }, 60 * 1000);
 };
 
@@ -662,12 +699,15 @@ const startServer = () => {
     });
 };
 
+import { startDisputeCron } from './services/disputeCronService.js';
+
 // --- STARTUP LOGIC ---
 console.log("🚀 [BOOT] Starting Vtout API...");
 console.log(">>> [BOOT] Configured ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGINS);
 
 // Start HTTP server immediately so port 3000 is open
 startServer();
+startDisputeCron();
 
 // Initialize Database in background
 console.log("💾 [BOOT] Connecting to Database...");
@@ -679,7 +719,7 @@ sequelize.authenticate()
         try {
             // En production, on désactive alter:true par défaut pour éviter de corrompre les index
             // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
-            const syncOptions = isProd ? { alter: false } : { alter: true };
+            const syncOptions = { alter: false };
             await sequelize.sync(syncOptions);
 
             // Ensure `financial_transactions.source` exists, even if the migration was skipped previously.
@@ -694,6 +734,68 @@ sequelize.authenticate()
                 }
             } catch (sourceCheckErr) {
                 console.warn('  ⚠️ [MIGRATION] Could not ensure financial_transactions.source:', sourceCheckErr.message);
+            }
+
+            // Ensure `order_items.original_price` exists (used by orderController for discount tracking).
+            try {
+                await sequelize.query(`ALTER TABLE order_items ADD COLUMN original_price DECIMAL(15,2) NULL`);
+                console.log('  ✅ [MIGRATION] Added order_items.original_price');
+            } catch (opErr) {
+                if (!opErr.message.includes('Duplicate column')) {
+                    console.warn('  ⚠️ [MIGRATION] order_items.original_price:', opErr.message);
+                }
+            }
+
+            // Dispute protocol v2 — motif + photo_url columns
+            for (const [tbl, col, def] of [
+                ['disputes', 'motif',     'VARCHAR(100) NULL'],
+                ['disputes', 'photo_url', 'TEXT NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`${tbl}\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added ${tbl}.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ${tbl}.${col}:`, e.message);
+                }
+            }
+
+            // Make disputes.description nullable (previously NOT NULL)
+            try {
+                await sequelize.query(`ALTER TABLE disputes MODIFY COLUMN description TEXT NULL`);
+            } catch (e) { /* ignore */ }
+
+            // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
+            // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
+            // Tables created without explicit charset default to server charset which may be latin1/utf8.
+            try {
+                const tablesToConvert = [
+                    'notifications', 'orders', 'order_items', 'products', 'product_images',
+                    'product_variants', 'product_variant_prices', 'categories',
+                    'financial_transactions', 'support_messages', 'blogs',
+                    'boutiques', 'suppliers', 'profiles', 'configs',
+                    'cart_items', 'delivery_persons',
+                ];
+                for (const tbl of tablesToConvert) {
+                    try {
+                        const [charsetRows] = await sequelize.query(`
+                            SELECT CCSA.character_set_name
+                            FROM information_schema.TABLES T
+                            JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY CCSA
+                              ON CCSA.collation_name = T.table_collation
+                            WHERE T.table_schema = DATABASE() AND T.table_name = '${tbl}'
+                        `);
+                        const currentCharset = charsetRows?.[0]?.character_set_name;
+                        if (currentCharset && currentCharset !== 'utf8mb4') {
+                            await sequelize.query(`ALTER TABLE \`${tbl}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+                            console.log(`  ✅ [CHARSET] Converted ${tbl} from ${currentCharset} → utf8mb4`);
+                        }
+                    } catch (tblErr) {
+                        console.warn(`  ⚠️ [CHARSET] Could not convert ${tbl}: ${tblErr.message}`);
+                    }
+                }
+                console.log('✅ [CHARSET] Table charset check complete.');
+            } catch (charsetErr) {
+                console.warn('  ⚠️ [CHARSET] Table charset migration failed:', charsetErr.message);
             }
 
             // ── Migration automatique des colonnes manquantes ──
@@ -717,6 +819,10 @@ sequelize.authenticate()
                 const colMigrations = [
                     // profiles
                     { table: 'profiles',              col: 'last_abandoned_reminder_at', def: { type: DataTypes.DATE,           allowNull: true } },
+                    { table: 'profiles',              col: 'last_reengagement_at',        def: { type: DataTypes.DATE,           allowNull: true } },
+                    { table: 'profiles',              col: 'last_vip_message_at',         def: { type: DataTypes.DATE,           allowNull: true } },
+                    // orders
+                    { table: 'orders',                col: 'review_reminder_sent_at',     def: { type: DataTypes.DATE,           allowNull: true } },
                     // products
                     { table: 'products',              col: 'boutique_id',                def: { type: DataTypes.CHAR(36),        allowNull: true } },
                     { table: 'products',              col: 'secondary_boutique_ids',     def: { type: DataTypes.TEXT,            allowNull: true } },
@@ -767,6 +873,8 @@ sequelize.authenticate()
                     { table: 'support_messages',      col: 'order_id',                   def: { type: DataTypes.CHAR(36),       allowNull: true } },
                     { table: 'support_messages',      col: 'type',                       def: { type: DataTypes.STRING(20),     defaultValue: 'message' } },
                     { table: 'financial_transactions', col: 'source',                    def: { type: DataTypes.STRING(32),     allowNull: true } },
+                    // order_items
+                    { table: 'order_items',           col: 'original_price',             def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
                 ];
 
 

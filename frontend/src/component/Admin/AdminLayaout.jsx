@@ -64,6 +64,7 @@ import SupportAdmin from "./Support/SupportAdmin";
 import ConfigManager from "./ConfigManager";
 import BlogManager from "./Blog/BlogManager";
 import DeliveryFeeTiersManager from "./Setting/DeliveryFeeTiersManager";
+import DeliveryMultiplierManager from "./Setting/DeliveryMultiplierManager";
 import CategorySelect from "./Product/CategorySelect";
 import VariantManager from "./Product/VariantManager";
 import DisputeManager from "./DisputeManager";
@@ -186,6 +187,7 @@ const AdminLayout = () => {
         { key: 'geography', name: 'Géographie', icon: <MapPin size={16} /> },
         { key: 'supportMessages', name: 'Messages Support', icon: <MessageCircle size={16} /> },
         { key: 'deliveryFeeTiers', name: '🚚 Frais de Livraison', icon: <Truck size={16} /> },
+        { key: 'deliveryMultiplier', name: '📦 Coefficient Livreur', icon: <Package size={16} /> },
       ],
     },
   ];
@@ -266,6 +268,7 @@ const AdminLayout = () => {
           case "supportMessages": return <SupportAdmin />;
           case "config": return <ConfigManager />;
           case "deliveryFeeTiers": return <DeliveryFeeTiersManager />;
+          case "deliveryMultiplier": return <DeliveryMultiplierManager />;
           default: return <ConfigManager />;
         }
       default: return <DashboardPage />;

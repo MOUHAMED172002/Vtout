@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-    /* Primary: Deep sophisticated orange/coral */
-    --primary: #f97316;
-    --primary-focus: #ea580c;
+    /* Primary: Brand orange (logo TOUT) */
+    --primary: #f37021;
+    --primary-focus: #d95f0a;
     --primary-soft: #fff7ed;
     
     /* Neutrals: Rich slates with slight blue tint for harmony */
@@ -35,6 +35,22 @@
 .brand-vtout {
     @apply font-black tracking-tighter flex items-center gap-0;
     font-family: 'Inter', sans-serif;
+}
+
+.btn-blue {
+    background-color: var(--brand-blue);
+    color: #fff;
+    @apply font-black rounded-2xl transition-all duration-300 active:scale-95;
+}
+.btn-blue:hover {
+    background-color: #003d80;
+}
+
+.btn-promo {
+    @apply bg-red-500 text-white font-black rounded-2xl transition-all duration-300 active:scale-95;
+}
+.btn-promo:hover {
+    @apply bg-red-600;
 }
 
 .brand-vtout .brand-v {

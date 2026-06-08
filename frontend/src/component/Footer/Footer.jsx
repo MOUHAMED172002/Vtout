@@ -10,8 +10,9 @@ import { getPolicies } from '../../services/contentService';
 const FooterLinks = [
     { title: "Accueil", link: "/" },
     { title: "Boutique", link: "/products-liste" },
-    { title: "À propos", link: "/about" },
     { title: "Promotions", link: "/promotions" },
+    { title: "Comment ça marche", link: "/comment-ca-marche/acheteur" },
+    { title: "À propos", link: "/about" },
     { title: "Devenir vendeur", link: import.meta.env.VITE_SUPPLIER_PORTAL_URL || "https://vendeur.vtout.com", external: true },
     { title: "Devenir livreur", link: "/devenir-livreur" },
 ];
@@ -60,15 +61,15 @@ const Footer = () => {
     };
 
     return (
-        <footer className="bg-base-100 border-t border-base-200 pt-20 pb-10 overflow-hidden relative">
+        <footer className="bg-base-100 border-t border-base-200 pt-12 pb-6 overflow-hidden relative">
             {/* Background Accent */}
             <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-50 rounded-full blur-3xl opacity-70"></div>
 
             <div className="container px-6 md:px-12 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 pb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 pb-8">
 
                     {/* Brand Section */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <Link to="/" onClick={handleLinkClick} className="group flex items-center">
                             <LogoText className="text-3xl" />
                         </Link>
@@ -87,10 +88,14 @@ const Footer = () => {
                                     <Facebook size={20} />
                                 </a>
                             )}
-                            {socials.tiktok && (
+                            {socials.tiktok ? (
                                 <a href={socials.tiktok} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="TikTok">
                                     <FaTiktok size={20} />
                                 </a>
+                            ) : (
+                                <span className="p-3 bg-base-200 text-base-content/30 rounded-2xl cursor-default" title="TikTok (lien non configuré)">
+                                    <FaTiktok size={20} />
+                                </span>
                             )}
                             {socials.whatsapp && (
                                 <a href={socials.whatsapp.startsWith('http') ? socials.whatsapp : `https://wa.me/${socials.whatsapp}`} target="_blank" rel="noreferrer" className="p-3 bg-base-200 text-base-content/50 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" title="WhatsApp">
@@ -101,9 +106,9 @@ const Footer = () => {
                     </div>
 
                     {/* Quick Links */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Navigation</h3>
-                        <ul className="space-y-4">
+                        <ul className="space-y-3">
                             {FooterLinks.map((data, index) => (
                                 <li key={index}>
                                     {data.external ? (
@@ -123,9 +128,9 @@ const Footer = () => {
                     </div>
 
                     {/* Service Links */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Assistance</h3>
-                        <ul className="space-y-4">
+                        <ul className="space-y-3">
                             {FooterNav.map((data, index) => (
                                 <li key={index}>
                                     {data.title === "Supports" ? (
@@ -148,9 +153,9 @@ const Footer = () => {
                     </div>
 
                     {/* Contact Info */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Contact</h3>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 bg-base-200 text-primary rounded-2xl">
                                     <MapPin size={20} />
@@ -187,7 +192,7 @@ const Footer = () => {
 
                 </div>
 
-                <div className="pt-10 border-t border-base-200 flex flex-col lg:flex-row justify-between items-center gap-12">
+                <div className="pt-6 border-t border-base-200 flex flex-col lg:flex-row justify-between items-center gap-6">
 
                     {/* Copyright & Trust Section */}
                     <div className="flex flex-col items-center lg:items-start gap-6">

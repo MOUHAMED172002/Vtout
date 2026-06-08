@@ -74,7 +74,7 @@ export async function generateInvoicePDF(order) {
         doc.setTextColor(...ColorWhite);
         doc.setFontSize(20);
         doc.setFont("helvetica", "bold");
-        doc.text("FACTURE CLIENT", W - MX - 5, 26, { align: "right" });
+        doc.text("REÇU CLIENT", W - MX - 5, 26, { align: "right" });
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.text(`NUMÉRO: #${(order.id || "").slice(0, 8).toUpperCase()}`, W - MX - 5, 33, { align: "right" });
@@ -84,11 +84,11 @@ export async function generateInvoicePDF(order) {
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(8);
         doc.setFont("helvetica", "bold");
-        doc.text("FACTURÉ À", MX, currentY);
+        doc.text("REMIS À", MX, currentY);
 
         doc.setTextColor(...ColorDark);
         doc.setFontSize(13);
-        const profile = order.profile || {};
+        const profile = order.user || order.profile || {};
         const pFullName = profile.fullname || (profile.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "");
         const fullName = order.guest_name || pFullName || "Client Vtout";
         doc.text(fullName, MX, currentY + 7);
@@ -109,7 +109,7 @@ export async function generateInvoicePDF(order) {
         dueDate.setDate(dueDate.getDate() + 7);
         const dueDateStr = dueDate.toLocaleDateString("fr-FR", { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        doc.text("Date de Reçus", W - 60, currentY + 7);
+        doc.text("Date du reçu", W - 60, currentY + 7);
         doc.setTextColor(...ColorDark);
         doc.setFont("helvetica", "bold");
         doc.text(dateStr, W - 60, currentY + 13);
@@ -119,7 +119,7 @@ export async function generateInvoicePDF(order) {
         doc.roundedRect(W - 70, currentY + 22, 50, 15, 2, 2, "F");
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(8);
-        doc.text("TOTAL À PAYER", W - 45, currentY + 28, { align: "center" });
+        doc.text("MONTANT PAYÉ", W - 45, currentY + 28, { align: "center" });
         doc.setTextColor(...ColorDark);
         doc.setFontSize(12);
         doc.text(formatAmount(order.total_amount), W - 45, currentY + 34, { align: "center" });
@@ -127,22 +127,38 @@ export async function generateInvoicePDF(order) {
         // ── 3. TABLE ──
         currentY = 105;
         const rawItems = order.items || order.OrderItems || [];
-        const itemsData = rawItems.map((it, idx) => [
-            String(idx + 1).padStart(1, '0'),
-            it.product?.name || it.name || "Produit",
-            formatAmount(it.price),
-            it.quantity || 1,
-            formatAmount(Number(it.price || 0) * Number(it.quantity || 1))
-        ]);
+        const hasDiscounts = rawItems.some(it => it.original_price && Number(it.original_price) > Number(it.price));
+        const itemsData = rawItems.map((it, idx) => {
+            const row = [
+                String(idx + 1).padStart(1, '0'),
+                it.product?.name || it.name || "Produit",
+                formatAmount(it.price),
+                it.quantity || 1,
+                formatAmount(Number(it.price || 0) * Number(it.quantity || 1))
+            ];
+            if (hasDiscounts) row.splice(2, 0, it.original_price && Number(it.original_price) > Number(it.price) ? formatAmount(it.original_price) : '-');
+            return row;
+        });
+
+        const head = hasDiscounts
+            ? [["N°", "DESCRIPTION", "PRIX ORIG.", "PRIX REMISÉ", "QTÉ", "TOTAL"]]
+            : [["N°", "DESCRIPTION", "PRIX", "QUANTITÉ", "TOTAL"]];
 
         autoTable(doc, {
             startY: currentY,
-            head: [["N°", "DESCRIPTION", "PRIX", "QUANTITÉ", "TOTAL"]],
+            head,
             body: itemsData,
             theme: "striped",
             headStyles: { fillColor: ColorDark, textColor: ColorWhite, fontSize: 9, fontStyle: "bold", halign: "center", cellPadding: 4 },
             bodyStyles: { fontSize: 8, cellPadding: 5, textColor: ColorDark },
-            columnStyles: {
+            columnStyles: hasDiscounts ? {
+                0: { halign: "center", cellWidth: 10 },
+                1: { halign: "left" },
+                2: { halign: "center", cellWidth: 28 },
+                3: { halign: "center", cellWidth: 28 },
+                4: { halign: "center", cellWidth: 20 },
+                5: { halign: "right", cellWidth: 30 }
+            } : {
                 0: { halign: "center", cellWidth: 12 },
                 1: { halign: "left" },
                 2: { halign: "center", cellWidth: 30 },
@@ -170,7 +186,7 @@ export async function generateInvoicePDF(order) {
             ? `${order.boutique.commune_label || order.boutique.commune}${order.boutique.departement_label ? ', ' + order.boutique.departement_label : ''}`
             : (order.supplier_id || 'VT-001');
         doc.text(`Origine: ${boutiqueLoc}`, MX, currentY + 12);
-        doc.text("Cette facture est générée numériquement par Vtout.", MX, currentY + 17);
+        doc.text("Ce reçu est généré numériquement par Vtout.", MX, currentY + 17);
 
         // Right Column (Calculations)
         const totalX = W - MX;
@@ -214,7 +230,7 @@ export async function generateInvoicePDF(order) {
         doc.setTextColor(...ColorTextGray);
         doc.text("+229 61 23 45 67  |  contact@vtout.bj  |  Cotonou, Bénin", W / 2 + 10, bottomY + 15, { align: "center" });
 
-        doc.save(`FACTURE_${(order.id || "").slice(0, 8).toUpperCase()}.pdf`);
+        doc.save(`RECU_${(order.id || "").slice(0, 8).toUpperCase()}.pdf`);
     } catch (err) {
         console.error("Invoice Error:", err);
         throw err;
