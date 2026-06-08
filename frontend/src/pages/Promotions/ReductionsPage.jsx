@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Tag, ShieldAlert, ShoppingCart, Eye, Star, MapPin } from "lucide-react";
+import { Tag, ShieldAlert, Eye, Star, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -202,43 +202,17 @@ export default function ReductionsPage() {
                         )}
 
                         {/* Pricing */}
-                        <div className="flex items-baseline gap-2 pt-1">
-                          <span className="font-mono text-lg md:text-2xl font-black text-violet-500">
+                        <div className="flex items-baseline gap-2 pt-1 flex-wrap">
+                          <span className="font-mono text-base font-black text-violet-500 whitespace-nowrap">
                             {Number(p.price).toLocaleString()} F
                           </span>
                           {(Number(p.old_price || 0) > Number(p.price || 0)) && (
-                            <span className="font-mono text-xs text-slate-400 line-through font-bold">
+                            <span className="font-mono text-xs text-slate-400 line-through font-bold whitespace-nowrap">
                               {Number(p.old_price || 0).toLocaleString()} F
                             </span>
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2 px-1">
-                      <button
-                        onClick={() => {
-                          navigate('/checkout', {
-                            state: {
-                              items: [{
-                                id: p.id,
-                                product_id: p.id,
-                                name: p.name,
-                                price: p.price,
-                                price_snapshot: p.price,
-                                quantity: 1,
-                                image_url: p.images?.[0]?.image_url || p.image_url,
-                                boutique_id: p.boutique_id,
-                                boutique: p.boutique,
-                              }],
-                              total: Number(p.price),
-                            }
-                          });
-                        }}
-                        className="bg-violet-600 hover:bg-violet-500 text-white font-black text-[10px] uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-lg shadow-violet-600/20 active:scale-95 transition-all flex items-center gap-1.5"
-                      >
-                        <ShoppingCart size={11} /> Commander
-                      </button>
                     </div>
                   </motion.div>
                 );
