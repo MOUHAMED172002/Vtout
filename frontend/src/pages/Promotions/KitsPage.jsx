@@ -3,12 +3,158 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Package, ShieldAlert, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { Package, ShieldAlert, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../../component/context/CartContext";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
+/* ── Carousel d'images par produit dans le kit ── */
+function KitImageCarousel({ items, isDark, discount, tag }) {
+  const [idx, setIdx] = useState(0);
+  const total = items.length;
+  const current = items[idx];
+
+  const prev = (e) => { e.stopPropagation(); setIdx(i => (i - 1 + total) % total); };
+  const next = (e) => { e.stopPropagation(); setIdx(i => (i + 1) % total); };
+
+  return (
+    <div className="relative h-36 mb-5 rounded-2xl overflow-hidden">
+      {/* Image avec transition */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.18 }}
+          className="absolute inset-0"
+        >
+          {current?.images?.[0]?.image_url ? (
+            <img
+              src={current.images[0].image_url}
+              alt={current.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
+              <Package size={20} className="text-slate-400" />
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Gradient bas + nom du produit courant */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4 z-10">
+        <p className="text-white text-[9px] font-black truncate">{current?.name}</p>
+      </div>
+
+      {/* Badge tag */}
+      <div className="absolute top-2 left-2 z-20">
+        <span className="bg-emerald-600 text-white font-black text-[9px] uppercase px-2 py-1 rounded-full shadow flex items-center gap-1">
+          <Sparkles size={8} /> {tag}
+        </span>
+      </div>
+
+      {/* Badge discount */}
+      {discount && (
+        <div className="absolute top-2 right-2 z-20">
+          <span className="bg-rose-500 text-white font-black text-[9px] px-2 py-1 rounded-full shadow">
+            -{discount}%
+          </span>
+        </div>
+      )}
+
+      {/* Flèches prev / next */}
+      {total > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors"
+          >
+            <ChevronLeft size={12} />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-6 h-6 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors"
+          >
+            <ChevronRight size={12} />
+          </button>
+        </>
+      )}
+
+      {/* Indicateurs de position */}
+      {total > 1 && (
+        <div className="absolute top-2 left-0 right-0 flex justify-center gap-1 z-20 pointer-events-none">
+          {items.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1 rounded-full transition-all duration-200 ${i === idx ? 'w-3 bg-white' : 'w-1.5 bg-white/40'}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Carte kit individuelle ── */
+function KitCard({ kit, idx, isDark, goToDetail, handleBuyKit }) {
+  const discount = kit.originalPrice > kit.kitPrice && kit.originalPrice > 0
+    ? Math.round(((kit.originalPrice - kit.kitPrice) / kit.originalPrice) * 100)
+    : null;
+
+  return (
+    <motion.div
+      key={kit.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.06 }}
+      onClick={() => goToDetail(kit)}
+      className={`group rounded-[2.5rem] p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer flex flex-col ${
+        isDark
+          ? 'bg-slate-900/40 border-slate-800 hover:border-emerald-500/40 shadow-xl shadow-black/20'
+          : 'bg-white border-slate-200 hover:border-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-emerald-100'
+      }`}
+    >
+      <KitImageCarousel
+        items={kit.items}
+        isDark={isDark}
+        discount={discount}
+        tag={kit.tag}
+      />
+
+      {/* Info */}
+      <div className="space-y-1.5 px-1 flex-1">
+        <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500">
+          {kit.items.length} article{kit.items.length > 1 ? 's' : ''} inclus
+        </p>
+        <h3 className={`font-black text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          {kit.name}
+        </h3>
+        <div className="flex items-baseline gap-2 pt-1">
+          <span className="font-mono text-base font-black text-emerald-600 whitespace-nowrap">
+            {Number(kit.kitPrice).toLocaleString()} F
+          </span>
+          {kit.originalPrice > kit.kitPrice && (
+            <span className="font-mono text-xs text-slate-400 line-through font-bold whitespace-nowrap">
+              {Number(kit.originalPrice).toLocaleString()} F
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={(e) => handleBuyKit(kit, e)}
+        className="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+      >
+        <Package size={11} /> Ajouter au panier
+      </button>
+    </motion.div>
+  );
+}
 
 export default function KitsPage() {
   const [kits, setKits] = useState([]);
@@ -79,7 +225,13 @@ export default function KitsPage() {
 
     items.forEach(item => {
       const itemPrice = Math.round(Number(item.price || 0) * ratio);
-      addToCart({ ...item, price: itemPrice, price_snapshot: itemPrice }, 1);
+      addToCart({
+        ...item,
+        price: itemPrice,
+        price_snapshot: itemPrice,
+        // image_url explicite pour que le panier affiche l'image correctement
+        image_url: item.image_url || item.images?.[0]?.image_url || null,
+      }, 1);
     });
     toast.success(`Pack "${kit.name}" ajouté au panier !`);
   };
@@ -161,99 +313,16 @@ export default function KitsPage() {
               animate={{ opacity: 1 }}
               className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
             >
-              {kits.map((kit, idx) => {
-                const discount = kit.originalPrice > kit.kitPrice && kit.originalPrice > 0
-                  ? Math.round(((kit.originalPrice - kit.kitPrice) / kit.originalPrice) * 100)
-                  : null;
-
-                return (
-                  <motion.div
-                    key={kit.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.06 }}
-                    onClick={() => goToDetail(kit)}
-                    className={`group rounded-[2.5rem] p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer flex flex-col ${
-                      isDark
-                        ? 'bg-slate-900/40 border-slate-800 hover:border-emerald-500/40 shadow-xl shadow-black/20'
-                        : 'bg-white border-slate-200 hover:border-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-emerald-100'
-                    }`}
-                  >
-                    {/* Stacked images */}
-                    <div className="relative h-36 mb-5 mx-1">
-                      {kit.items.slice(0, 3).map((item, i) => {
-                        const total = Math.min(kit.items.length, 3);
-                        const offset = (total - 1 - i) * 14;
-                        const rotate = i === 0 ? 0 : i === 1 ? -5 : 5;
-                        return (
-                          <div
-                            key={`${item.id}-${i}`}
-                            className="absolute inset-y-0 rounded-2xl overflow-hidden border-2 border-white shadow-md"
-                            style={{
-                              width: `calc(100% - ${offset * 2}px)`,
-                              left: offset,
-                              right: offset,
-                              zIndex: total - i,
-                              transform: `rotate(${rotate}deg)`,
-                              transformOrigin: 'bottom center',
-                            }}
-                          >
-                            {item.images?.[0] ? (
-                              <img src={item.images[0].image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            ) : (
-                              <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
-                                <Package size={20} className="text-slate-400" />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-
-                      {/* Badges */}
-                      <div className="absolute top-2 left-2 z-20">
-                        <span className="bg-emerald-600 text-white font-black text-[9px] uppercase px-2 py-1 rounded-full shadow flex items-center gap-1">
-                          <Sparkles size={8} /> {kit.tag}
-                        </span>
-                      </div>
-                      {discount && (
-                        <div className="absolute top-2 right-2 z-20">
-                          <span className="bg-rose-500 text-white font-black text-[9px] px-2 py-1 rounded-full shadow">
-                            -{discount}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="space-y-1.5 px-1 flex-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500">
-                        {kit.items.length} article{kit.items.length > 1 ? 's' : ''} inclus
-                      </p>
-                      <h3 className={`font-black text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        {kit.name}
-                      </h3>
-                      <div className="flex items-baseline gap-2 pt-1">
-                        <span className="font-mono text-base font-black text-emerald-600 whitespace-nowrap">
-                          {Number(kit.kitPrice).toLocaleString()} F
-                        </span>
-                        {kit.originalPrice > kit.kitPrice && (
-                          <span className="font-mono text-xs text-slate-400 line-through font-bold whitespace-nowrap">
-                            {Number(kit.originalPrice).toLocaleString()} F
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* CTA */}
-                    <button
-                      onClick={(e) => handleBuyKit(kit, e)}
-                      className="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider py-2.5 rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Package size={11} /> Ajouter au panier
-                    </button>
-                  </motion.div>
-                );
-              })}
+              {kits.map((kit, idx) => (
+                <KitCard
+                  key={kit.id}
+                  kit={kit}
+                  idx={idx}
+                  isDark={isDark}
+                  goToDetail={goToDetail}
+                  handleBuyKit={handleBuyKit}
+                />
+              ))}
             </motion.div>
           )}
         </div>
