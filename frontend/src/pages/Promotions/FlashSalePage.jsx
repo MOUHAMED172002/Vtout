@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Flame, Clock, ShieldAlert, Eye, Star, MapPin } from "lucide-react";
+import { Flame, Clock, ShieldAlert, Star, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
