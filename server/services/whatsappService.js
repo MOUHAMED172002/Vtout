@@ -8,41 +8,25 @@ import { getTextTemplate, getTextConfig } from './textTemplateService.js';
  */
 const formatPhoneNumber = (phone) => {
     if (!phone) return '';
-    
+
     // 1. Enlever tout ce qui n'est pas un chiffre
     let clean = phone.replace(/\D/g, '');
-    
-    // 2. Gérer le cas où l'utilisateur commence par 00 (ex: 00229...)
-    if (phone.startsWith('00')) {
+
+    // 2. Gérer le préfixe 00xxx (ex: 0022997000000 → 22997000000)
+    if (clean.startsWith('00')) {
         clean = clean.substring(2);
     }
 
-    // 3. Cas spécifiques au Bénin (S'il n'y a pas d'indicateur détecté au début)
-    // On considère que si le numéro fait 8 ou 10 chiffres et ne commence pas par un indicateur connu, c'est du local Bénin
-    
-    // Si c'est un numéro local Bénin à 10 chiffres commençant par 01 (nouveau format)
-    if (clean.length === 10 && clean.startsWith('01')) {
-        return '229' + clean.substring(2);
-    }
-    
-    // Si c'est un numéro local Bénin à 8 chiffres (ancien format)
+    // 3. Numéros courts sans indicatif : seul l'ancien format béninois à 8 chiffres
+    //    est conservé pour la rétrocompatibilité (ex: 97000000 → 22997000000)
     if (clean.length === 8) {
         return '229' + clean;
     }
 
-    // Cas spécifique : certains saisissent 229 + 01 + numéro (12 chiffres)
-    if (clean.startsWith('22901') && clean.length === 12) {
-        return '229' + clean.substring(5);
-    }
-
-    // 4. Si le numéro est déjà au format international (plus de 10 chiffres)
-    // On le laisse tel quel (Green API s'occupera du reste)
-    // Exemple: 228... (Togo), 225... (CI), 33... (France)
-    if (clean.length >= 11) {
-        return clean;
-    }
-    
-    // Par défaut, si on ne sait pas, on renvoie le nettoyé
+    // 4. Tous les autres numéros (9 chiffres et plus) sont déjà en format
+    //    international ou semi-international — on passe directement
+    //    Exemples corrects : 2290197000000 (nouveau Bénin), 22997000000 (ancien),
+    //    22890000000 (Togo), 33600000000 (France), etc.
     return clean;
 };
 
@@ -87,31 +71,39 @@ export const sendWhatsAppMessage = async (to, body) => {
     const { idInstance, apiToken } = await getWhatsAppConfigs();
 
     if (!idInstance || !apiToken || idInstance.includes('XXXX')) {
-        console.warn('[Green API] Service non configuré. Veuillez vérifier les paramètres Admin.');
+        console.warn('[Green API] ⚠️  Service non configuré — vérifiez WHATSAPP_INSTANCE_ID et WHATSAPP_TOKEN dans Admin > Paramètres.');
         return { success: false, error: 'Identifiants Green API manquants' };
     }
 
-    const cleanTo = formatPhoneNumber(to);
-    const chatId = `${cleanTo}@c.us`;
+    if (!to) {
+        console.warn('[Green API] ⚠️  Numéro destinataire manquant — le client n\'a peut-être pas de téléphone enregistré.');
+        return { success: false, error: 'Numéro destinataire manquant' };
+    }
 
+    const cleanTo = formatPhoneNumber(to);
+    if (!cleanTo || cleanTo.length < 8) {
+        console.warn(`[Green API] ⚠️  Numéro invalide après formatage : "${to}" → "${cleanTo}"`);
+        return { success: false, error: 'Numéro invalide' };
+    }
+
+    const chatId = `${cleanTo}@c.us`;
     const url = `https://api.green-api.com/waInstance${idInstance}/sendMessage/${apiToken}`;
 
     try {
         console.log(`[Green API] Envoi à ${chatId}...`);
-        const response = await axios.post(url, {
-            chatId: chatId,
-            message: body
-        });
-        
+        const response = await axios.post(url, { chatId, message: body });
+
         if (response.data && response.data.idMessage) {
-            console.log(`[Green API] Succès ! ID: ${response.data.idMessage}`);
+            console.log(`[Green API] ✅ Succès ! ID: ${response.data.idMessage}`);
             return { success: true, sid: response.data.idMessage };
         } else {
+            console.warn('[Green API] Réponse inattendue:', response.data);
             return { success: false, error: 'Réponse inattendue de l\'API' };
         }
     } catch (error) {
-        console.error('[Green API] Erreur:', error.response?.data || error.message);
-        return { success: false, error: error.message };
+        const detail = error.response?.data || error.message;
+        console.error('[Green API] ❌ Erreur envoi:', detail);
+        return { success: false, error: String(detail) };
     }
 };
 

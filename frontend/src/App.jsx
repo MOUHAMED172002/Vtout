@@ -188,9 +188,9 @@ const AppContent = ({ products, loading }) => {
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
           <Route path="/temoignages" element={<><Navbar /><PlatformReviews /><Footer /></>} />
 
-          {/* Auth Routes */}
-          <Route path="/auth/inscription/*" element={<><Navbar /><Register /><Footer /></>} />
-          <Route path="/auth/connexion/*" element={<><Navbar /><Login /><Footer /></>} />
+          {/* Auth Routes — full-screen, no Navbar/Footer */}
+          <Route path="/auth/inscription/*" element={<Register />} />
+          <Route path="/auth/connexion/*" element={<Login />} />
           <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
           <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
           <Route path="/blog/:slug" element={<BlogDetail />} />
