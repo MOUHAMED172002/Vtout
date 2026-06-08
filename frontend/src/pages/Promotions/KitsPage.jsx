@@ -229,7 +229,6 @@ export default function KitsPage() {
         ...item,
         price: itemPrice,
         price_snapshot: itemPrice,
-        // image_url explicite pour que le panier affiche l'image correctement
         image_url: item.image_url || item.images?.[0]?.image_url || null,
       }, 1);
     });

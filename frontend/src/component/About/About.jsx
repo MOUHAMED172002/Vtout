@@ -200,7 +200,7 @@ export default function About() {
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               <button
-                onClick={() => navigate('/products')}
+                onClick={() => navigate('/products-liste')}
                 className="btn bg-white text-primary border-none rounded-2xl px-12 h-16 font-black text-xl hover:bg-slate-50 shadow-xl"
               >
                 Commencer mon shopping
