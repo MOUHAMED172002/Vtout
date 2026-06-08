@@ -241,6 +241,63 @@ export const processOrderFinancials = async (orderIdOrObject) => {
             }
         }
 
+        // 3. Marketing Fees — commandes sans livreur assigné
+        //    (avec livreur, le surplus est créé dans la section livreur ci-dessus)
+        if (!order.delivery_person_id) {
+            const existingMktTx = await FinancialTransaction.findOne({
+                where: { order_id: order.id, source: 'marketing' },
+                transaction: t
+            });
+
+            if (!existingMktTx) {
+                const deliveryTiersMkt = await getDeliveryFeeTiers();
+                const mktItems = await OrderItem.findAll({
+                    where: { order_id: order.id },
+                    include: [{ model: Product, as: 'product' }],
+                    transaction: t
+                });
+
+                const globalRateCfg = await Config.findOne({ where: { key: 'commission_rate' }, transaction: t });
+                const globalRate = globalRateCfg?.value ? parseFloat(globalRateCfg.value) / 100 : 0.10;
+
+                let totalEmbeddedFeesMkt = 0;
+                let totalQuantityMkt = 0;
+                for (const item of mktItems) {
+                    const clientPrice = parseFloat(item.price) || 0;
+                    const supplierPrice = parseFloat(item.product?.supplier_price || 0);
+                    const embeddedFee = supplierPrice > 0
+                        ? computeDeliveryFee(supplierPrice, deliveryTiersMkt)
+                        : decomposePublicPrice(clientPrice, globalRate, deliveryTiersMkt).deliveryFee;
+                    totalEmbeddedFeesMkt += embeddedFee * item.quantity;
+                    totalQuantityMkt += item.quantity;
+                }
+
+                console.log(`[Finance] Marketing (no deliverer): embedded=${totalEmbeddedFeesMkt}, qty=${totalQuantityMkt}`);
+
+                if (totalEmbeddedFeesMkt > 0) {
+                    const adminEmailsMkt = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+                    let adminMkt = await Profile.findOne({ where: { role: 'admin' }, transaction: t });
+                    if (!adminMkt && adminEmailsMkt.length > 0) {
+                        adminMkt = await Profile.findOne({ where: { email: { [Op.in]: adminEmailsMkt } }, transaction: t });
+                    }
+                    if (adminMkt) {
+                        await FinancialTransaction.create({
+                            id: crypto.randomUUID(),
+                            user_id: adminMkt.id,
+                            order_id: order.id,
+                            type: 'earning',
+                            source: 'marketing',
+                            amount: totalEmbeddedFeesMkt,
+                            description: `Frais Marketing #${order.id.slice(0, 8)} (${totalQuantityMkt} article${totalQuantityMkt > 1 ? 's' : ''})`,
+                            status: 'completed'
+                        }, { transaction: t });
+                    } else {
+                        console.warn(`[Finance] Marketing fee (${totalEmbeddedFeesMkt} F) not recorded — admin profile introuvable. Vérifiez ADMIN_EMAILS ou le rôle admin dans la table profile.`);
+                    }
+                }
+            }
+        }
+
         await t.commit();
         console.log(`[Finance] Financials successfully committed for order ${order.id}`);
     } catch (error) {
