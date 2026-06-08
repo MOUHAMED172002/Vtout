@@ -3,7 +3,7 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Flame, Clock, ShieldAlert, Eye, Star, MapPin } from "lucide-react";
+import { Flame, Clock, ShieldAlert, Star, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -236,22 +236,12 @@ export default function FlashSalePage() {
                       </div>
                     </div>
 
-                    {/* Countdown + CTA */}
-                    <div className="mt-4 flex items-center justify-between gap-2 px-1">
+                    {/* Countdown */}
+                    <div className="mt-4 px-1">
                       <span className={`flex items-center gap-1.5 text-[10px] font-black text-rose-500 tracking-widest`}>
                         <Clock size={10} className="animate-spin shrink-0" style={{ animationDuration: '4s' }} />
                         {formatTime(timeLeft)}
                       </span>
-                      <button
-                        onClick={() => navigate(`/promotions/produit/${p.id}?type=flash`)}
-                        className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all active:scale-95 ${
-                          isDark
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'
-                            : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
-                        }`}
-                      >
-                        <Eye size={11} /> Voir l'offre
-                      </button>
                     </div>
                   </motion.div>
                 );
