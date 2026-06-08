@@ -143,7 +143,7 @@ const PlatformReviews = () => {
                     <div className="relative z-10">
                         <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6">Prêt à vivre l'expérience Vtout ?</h2>
                         <button 
-                            onClick={() => window.location.href = '/products'}
+                            onClick={() => window.location.href = '/products-liste'}
                             className="bg-white text-primary px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-900 hover:text-white transition-all shadow-xl"
                         >
                             Commencer mes achats
