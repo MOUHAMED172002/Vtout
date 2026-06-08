@@ -128,7 +128,7 @@ export default function QuantityDiscountPage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04 }}
-                    onClick={() => navigate(`/promotions/produit/${p.id}`)}
+                    onClick={() => navigate(`/promotions/produit/${p.id}?type=volume`)}
                     className={`group rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col ${
                       isDark
                         ? 'bg-slate-900/40 border-slate-800 hover:border-blue-500/40'

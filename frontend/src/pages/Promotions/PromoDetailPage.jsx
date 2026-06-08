@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProductById } from "../../services/productService";
@@ -49,6 +49,8 @@ const formatTime = (seconds) => {
 export default function PromoDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeParam = searchParams.get("type"); // "flash" | "volume" | "reduction" | null
   const { theme } = useTheme();
   const isDark = darkThemes.includes(theme);
 
@@ -87,14 +89,14 @@ export default function PromoDetailPage() {
     fetch();
   }, [id]);
 
-  // Countdown tick
+  // Countdown tick — only when showing the flash promo view
   useEffect(() => {
-    if (!product?.is_flash_sale) return;
+    if (!product?.is_flash_sale || (typeParam && typeParam !== "flash")) return;
     const interval = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
-  }, [product]);
+  }, [product, typeParam]);
 
   if (loading) {
     return (
@@ -154,7 +156,14 @@ export default function PromoDetailPage() {
   const price = Number(product.price || 0);
   const hasDiscount = oldPrice > price && oldPrice > 0;
 
-  const promoType = isFlash ? "flash" : hasTiers ? "volume" : "reduction";
+  // Use the type passed by the listing page; fall back to auto-detection only when navigating directly
+  const promoType = (() => {
+    if (typeParam === "flash" && isFlash) return "flash";
+    if (typeParam === "volume" && hasTiers) return "volume";
+    if (typeParam === "reduction") return "reduction";
+    // Fallback auto-detection (direct URL access or unknown type param)
+    return isFlash ? "flash" : hasTiers ? "volume" : "reduction";
+  })();
 
   const promoColor = {
     flash: "rose",
