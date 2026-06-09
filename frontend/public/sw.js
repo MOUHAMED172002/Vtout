@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
         return response;
-      });
+      }).catch(() => new Response('', { status: 408, statusText: 'Network Error' }));
     })
   );
 });
