@@ -26,7 +26,7 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
     setConfirming(prev => ({ ...prev, [orderId]: true }));
     try {
       const token = await getToken();
-      await api.patch(`/orders/${orderId}/status`, { status: 'confirmee' }, {
+      await api.put(`/orders/${orderId}/status`, { status: 'confirmee' }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success("Commande confirmée !");
