@@ -1,6 +1,9 @@
 import crypto from 'crypto';
-import { Dispute, Profile, Supplier, Order, Notification, FinancialTransaction } from '../models/index.js';
+import { Dispute, Profile, Supplier, Boutique, Order, Notification, FinancialTransaction } from '../models/index.js';
+import sequelize from '../config/database.js';
 import { notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
+
+const warnWA = (err) => console.error('[WhatsApp dispute]', err?.message || err);
 
 export const getAllDisputes = async (req, res) => {
     try {
@@ -20,6 +23,7 @@ export const getAllDisputes = async (req, res) => {
 };
 
 export const updateDisputeStatus = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { status, resolution, action } = req.body;
@@ -28,60 +32,52 @@ export const updateDisputeStatus = async (req, res) => {
             include: [
                 { model: Profile, as: 'user', attributes: ['fullname', 'phone'] },
                 { model: Order, as: 'order' }
-            ]
+            ],
+            transaction: t,
+            lock: true
         });
-        if (!dispute) return res.status(404).json({ error: 'Dispute not found' });
+        if (!dispute) {
+            await t.rollback();
+            return res.status(404).json({ error: 'Litige introuvable' });
+        }
 
+        // Update dispute
         dispute.status = status;
         if (resolution) dispute.resolution = resolution;
         if (status === 'resolved' || status === 'cancelled') {
             dispute.resolved_at = new Date();
         }
-        await dispute.save();
+        await dispute.save({ transaction: t });
 
-        // Update order dispute_status accordingly
+        // Sync Order.dispute_status
         if (dispute.order) {
-            const orderDisputeMap = { resolved: 'resolu', cancelled: 'annule', under_review: 'en_cours' };
+            const orderDisputeMap = {
+                resolved: 'resolu',
+                cancelled: 'annule',
+                under_review: 'en_cours'
+            };
             if (orderDisputeMap[status]) {
-                await dispute.order.update({ dispute_status: orderDisputeMap[status] });
+                await dispute.order.update(
+                    { dispute_status: orderDisputeMap[status] },
+                    { transaction: t }
+                );
             }
         }
 
-        // Notification in-app au client
-        const notifMessages = {
-            resolved: `✅ Votre litige #${id.slice(0, 8)} a été résolu. ${resolution || ''}`,
-            cancelled: `❌ Votre litige #${id.slice(0, 8)} a été annulé. ${resolution || ''}`,
-            under_review: `🔍 Votre litige #${id.slice(0, 8)} est en cours d'examen par notre équipe.`,
-        };
-        if (notifMessages[status] && dispute.user_id) {
-            await Notification.create({
-                id: crypto.randomUUID(),
-                user_id: dispute.user_id,
-                title: status === 'resolved' ? '✅ Litige résolu' : status === 'cancelled' ? '❌ Litige annulé' : '🔍 Litige en cours d\'examen',
-                message: notifMessages[status],
-                type: 'info',
-                is_read: false,
-            }).catch(() => {});
-
-            // WhatsApp au client si numéro disponible
-            const clientPhone = dispute.user?.phone;
-            if (clientPhone) {
-                sendWhatsAppMessage(clientPhone, notifMessages[status]).catch(() => {});
-            }
-        }
-
-        // Remboursement automatique si action = 'refund'
+        // Remboursement — traitement atomique
         if (action === 'refund' && dispute.order) {
             const refundAmount = parseFloat(dispute.order.total_amount || 0);
             if (refundAmount > 0 && dispute.user_id) {
-                // 1. Annuler tous les gains (fournisseur, livreur, admin) liés à cette commande
+                // 1. Annuler tous les gains liés à cette commande
                 await FinancialTransaction.update(
                     { status: 'cancelled' },
-                    { where: { order_id: dispute.order_id, type: 'earning', status: 'completed' } }
+                    {
+                        where: { order_id: dispute.order_id, type: 'earning', status: 'completed' },
+                        transaction: t
+                    }
                 );
 
-                // 2. Créer la transaction de remboursement client
-                //    type='adjustment' car 'refund' n'est pas dans l'ENUM
+                // 2. Créditer le client
                 await FinancialTransaction.create({
                     id: crypto.randomUUID(),
                     user_id: dispute.user_id,
@@ -91,25 +87,60 @@ export const updateDisputeStatus = async (req, res) => {
                     source: 'dispute_refund',
                     description: `Remboursement litige #${id.slice(0, 8)} — ${resolution || 'Décision admin'}`,
                     status: 'completed',
-                });
-
-                await Notification.create({
-                    id: crypto.randomUUID(),
-                    user_id: dispute.user_id,
-                    title: '💸 Remboursement effectué',
-                    message: `Un remboursement de ${refundAmount.toLocaleString()} F a été crédité sur votre compte pour le litige #${id.slice(0, 8)}.`,
-                    type: 'success',
-                    is_read: false,
-                }).catch(() => {});
+                }, { transaction: t });
             }
         }
 
-        notifyAdmin(`📋 Litige #${id.slice(0, 8)} → ${status}${action === 'refund' ? ' + REMBOURSEMENT' : ''}`).catch(() => {});
+        await t.commit();
+
+        // ── Notifications post-commit (non critiques) ──────────────────────
+        const notifMessages = {
+            resolved: `✅ Votre litige #${id.slice(0, 8)} a été résolu. ${resolution || ''}`.trim(),
+            cancelled: `❌ Votre litige #${id.slice(0, 8)} a été clôturé. ${resolution || ''}`.trim(),
+            under_review: `🔍 Votre litige #${id.slice(0, 8)} est en cours d'examen par notre équipe.`,
+        };
+
+        if (notifMessages[status] && dispute.user_id) {
+            const titleMap = {
+                resolved: '✅ Litige résolu',
+                cancelled: '❌ Litige clôturé',
+                under_review: '🔍 Litige en cours d\'examen',
+            };
+
+            Notification.create({
+                id: crypto.randomUUID(),
+                user_id: dispute.user_id,
+                title: titleMap[status],
+                message: notifMessages[status],
+                type: 'info',
+                is_read: false,
+            }).catch(err => console.error('[Notif dispute]', err.message));
+
+            const clientPhone = dispute.user?.phone;
+            if (clientPhone) {
+                sendWhatsAppMessage(clientPhone, notifMessages[status]).catch(warnWA);
+            }
+        }
+
+        if (action === 'refund' && dispute.user_id) {
+            const refundAmount = parseFloat(dispute.order?.total_amount || 0);
+            Notification.create({
+                id: crypto.randomUUID(),
+                user_id: dispute.user_id,
+                title: '💸 Remboursement effectué',
+                message: `Un remboursement de ${refundAmount.toLocaleString()} F a été crédité sur votre compte pour le litige #${id.slice(0, 8)}.`,
+                type: 'success',
+                is_read: false,
+            }).catch(err => console.error('[Notif refund]', err.message));
+        }
+
+        notifyAdmin(`📋 Litige #${id.slice(0, 8)} → ${status}${action === 'refund' ? ' + REMBOURSEMENT' : ''}`).catch(warnWA);
 
         res.json(dispute);
     } catch (error) {
+        await t.rollback();
         console.error('Error updating dispute:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Erreur serveur' });
     }
 };
 

@@ -1164,16 +1164,44 @@ export const reportOrderDispute = async (req, res) => {
         await order.update({ dispute_status: 'ouvert' });
 
         // Notification in-app au client
-        await Notification.create({
+        Notification.create({
             id: crypto.randomUUID(),
             user_id: userId,
             title: '⚠️ Litige enregistré',
             message: `Votre signalement pour la commande #${id.slice(0, 8)} a bien été reçu. Notre équipe vous contactera sous 48h.`,
             type: 'info',
             is_read: false,
-        }).catch(() => {});
+        }).catch(err => console.error('[Notif dispute client]', err.message));
 
-        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} — Motif: ${reason}${description ? ` — "${description}"` : ''}`).catch(() => {});
+        // Notification in-app + WhatsApp au fournisseur
+        if (order.supplier_id) {
+            Supplier.findByPk(order.supplier_id, {
+                include: [{ model: Boutique, as: 'boutique' }]
+            }).then(supplier => {
+                if (!supplier) return;
+                const supplierMsg = `⚠️ *LITIGE OUVERT* sur votre commande #${id.slice(0, 8)}\nMotif : ${reason}${description ? `\nDétail : "${description}"` : ''}\n\nConnectez-vous au portail Vtout pour consulter le dossier.`;
+                // In-app notification to supplier user
+                if (supplier.user_id) {
+                    Notification.create({
+                        id: crypto.randomUUID(),
+                        user_id: supplier.user_id,
+                        title: '⚠️ Litige signalé sur votre commande',
+                        message: `Un client a signalé un problème sur la commande #${id.slice(0, 8)} — Motif : ${reason}`,
+                        type: 'warning',
+                        is_read: false,
+                    }).catch(err => console.error('[Notif dispute supplier]', err.message));
+                }
+                // WhatsApp to supplier
+                const supplierPhone = supplier.whatsapp || supplier.phone || supplier.boutique?.whatsapp;
+                if (supplierPhone) {
+                    sendWhatsAppMessage(supplierPhone, supplierMsg)
+                        .catch(err => console.error('[WhatsApp dispute supplier]', err.message));
+                }
+            }).catch(err => console.error('[Supplier lookup dispute]', err.message));
+        }
+
+        notifyAdmin(`⚠️ LITIGE OUVERT : Commande #${id.slice(0, 8)} — Motif: ${reason}${description ? ` — "${description}"` : ''}`)
+            .catch(err => console.error('[WhatsApp dispute admin]', err.message));
 
         res.status(201).json({ message: 'Litige enregistré avec succès', dispute });
     } catch (error) {
@@ -1253,22 +1281,37 @@ export const respondToDisputeResolution = async (req, res) => {
         const dispute = await Dispute.findOne({ where: { order_id: id, user_id: userId } });
         if (!dispute) return res.status(404).json({ error: 'Aucun litige trouvé' });
 
+        // Vérifier que la résolution est bien en attente de réponse
+        if (dispute.status !== 'resolved') {
+            return res.status(400).json({ error: 'Ce litige n\'est pas en attente de confirmation.' });
+        }
+
+        // Délai de contestation : 7 jours après la résolution admin
+        if (response === 'contest' && dispute.resolved_at) {
+            const deadlineMs = 7 * 24 * 60 * 60 * 1000;
+            if (Date.now() - new Date(dispute.resolved_at).getTime() > deadlineMs) {
+                return res.status(403).json({ error: 'Le délai de contestation de 7 jours est dépassé. La résolution est définitive.' });
+            }
+        }
+
         if (response === 'confirm') {
             await dispute.update({ status: 'resolved' });
             await order.update({ dispute_status: 'resolu' });
-            notifyAdmin(`✅ Litige #${dispute.id.slice(0, 8)} confirmé résolu par le client.`).catch(() => {});
+            notifyAdmin(`✅ Litige #${dispute.id.slice(0, 8)} confirmé résolu par le client.`)
+                .catch(err => console.error('[WhatsApp confirm dispute]', err.message));
         } else if (response === 'contest') {
-            await dispute.update({ status: 'open' });
+            await dispute.update({ status: 'open', resolved_at: null });
             await order.update({ dispute_status: 'ouvert' });
-            notifyAdmin(`⚠️ Litige #${dispute.id.slice(0, 8)} contesté par le client — réouverture du dossier.`).catch(() => {});
-            await Notification.create({
+            notifyAdmin(`⚠️ Litige #${dispute.id.slice(0, 8)} contesté par le client — réouverture du dossier.`)
+                .catch(err => console.error('[WhatsApp contest dispute]', err.message));
+            Notification.create({
                 id: crypto.randomUUID(),
                 user_id: userId,
                 title: '🔄 Litige réouvert',
                 message: `Votre contestation pour la commande #${id.slice(0, 8)} a été enregistrée. Notre équipe va réexaminer le dossier.`,
                 type: 'info',
                 is_read: false,
-            }).catch(() => {});
+            }).catch(err => console.error('[Notif contest]', err.message));
         } else {
             return res.status(400).json({ error: 'Réponse invalide' });
         }

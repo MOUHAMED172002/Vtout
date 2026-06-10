@@ -718,8 +718,20 @@ export default function OrderDetail() {
                        'Litige ouvert — En attente de traitement'}
                     </span>
                   </div>
-                  {order.dispute_status === 'resolu' && (
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                  {order.dispute_status === 'resolu' && (() => {
+                    const resolvedAt = order.dispute?.resolved_at;
+                    const daysLeft = resolvedAt
+                      ? Math.max(0, 7 - Math.floor((Date.now() - new Date(resolvedAt).getTime()) / 86400000))
+                      : 7;
+                    const canContest = daysLeft > 0;
+                    return (
+                    <div className="space-y-2 pt-1">
+                      {canContest && (
+                        <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
+                          <Clock size={10} /> Vous pouvez contester pendant encore {daysLeft} jour{daysLeft > 1 ? 's' : ''}
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
                       <button
                         disabled={disputeResponseLoading}
                         onClick={async () => {
@@ -737,7 +749,7 @@ export default function OrderDetail() {
                         <ThumbsUp size={14} /> Confirmer
                       </button>
                       <button
-                        disabled={disputeResponseLoading}
+                        disabled={disputeResponseLoading || !canContest}
                         onClick={async () => {
                           setDisputeResponseLoading(true);
                           try {
@@ -745,17 +757,18 @@ export default function OrderDetail() {
                             await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
                             setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
                             toast?.success?.('Contestation enregistrée.');
-                          } catch { toast?.error?.('Erreur'); }
+                          } catch (e) { toast?.error?.(e?.response?.data?.error || 'Erreur'); }
                           finally { setDisputeResponseLoading(false); }
                         }}
-                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={!canContest ? 'Délai de contestation dépassé' : ''}
                       >
                         <ThumbsDown size={14} /> Contester
                       </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    );
+                  })()}
 
               {/* Platform review banner — shown only when delivered */}
               {isDelivered && (
