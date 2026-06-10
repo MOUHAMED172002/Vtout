@@ -764,6 +764,22 @@ sequelize.authenticate()
                 await sequelize.query(`ALTER TABLE disputes MODIFY COLUMN description TEXT NULL`);
             } catch (e) { /* ignore */ }
 
+            // Dispute system v3 — new columns for stats, supplier response, evidence, notes
+            for (const [col, def] of [
+                ['status_history',        'JSON NULL'],
+                ['admin_notes',           'TEXT NULL'],
+                ['supplier_response',     'TEXT NULL'],
+                ['supplier_evidence_url', 'TEXT NULL'],
+                ['refund_amount',         'DECIMAL(15,2) NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`disputes\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added disputes.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ disputes.${col}:`, e.message);
+                }
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
