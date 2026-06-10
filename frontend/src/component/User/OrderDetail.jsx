@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
@@ -28,7 +28,9 @@ import {
   User as UserIcon,
   ThumbsUp,
   ThumbsDown,
-  RefreshCw
+  RefreshCw,
+  Camera,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -94,6 +96,82 @@ const STATUS_CONFIG = {
   annulee: { label: "Annulée", color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", icon: <XCircle size={13} /> },
 };
 
+function EvidenceModal({ orderId, getToken, onClose, onAdded }) {
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = await getToken();
+      // Upload photo first
+      const { uploadSingleImage } = await import('../../services/uploadService');
+      const uploaded = await uploadSingleImage(file, token);
+      const photo_url = uploaded?.url || uploaded?.secure_url;
+      if (!photo_url) throw new Error('Upload failed');
+      // Send to API
+      await import('../../services/api').then(m => m.default.post(
+        `/orders/${orderId}/dispute/evidence`,
+        { photo_url },
+        { headers: { Authorization: `Bearer ${token}` } }
+      ));
+      onAdded();
+    } catch {
+      toast.error("Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-7 space-y-5"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-black text-slate-900 text-sm">Ajouter une preuve</h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><X size={16} className="text-slate-400"/></button>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        {preview ? (
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100">
+            <img src={preview} alt="preuve" className="w-full h-full object-cover" />
+            <button onClick={() => { setFile(null); setPreview(null); }} className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow">
+              <X size={12} className="text-slate-600"/>
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => fileRef.current?.click()} className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center gap-2 text-slate-400 hover:border-primary hover:text-primary transition-all">
+            <Camera size={24}/>
+            <span className="text-[10px] font-black uppercase tracking-widest">Choisir une photo</span>
+          </button>
+        )}
+        <button
+          onClick={handleSubmit}
+          disabled={!file || uploading}
+          className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-40 flex items-center justify-center gap-2 hover:brightness-110 transition-all"
+        >
+          {uploading ? <span className="loading loading-spinner loading-xs"/> : <Camera size={14}/>}
+          {uploading ? 'Envoi...' : 'Envoyer la preuve'}
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function OrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -105,6 +183,7 @@ export default function OrderDetail() {
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
   const [showPlatformReview, setShowPlatformReview] = useState(false);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -718,6 +797,14 @@ export default function OrderDetail() {
                        'Litige ouvert — En attente de traitement'}
                     </span>
                   </div>
+                  {(order.dispute_status === 'ouvert' || order.dispute_status === 'en_cours') && (
+                    <button
+                      onClick={() => setShowEvidenceModal(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-all"
+                    >
+                      <Camera size={13} /> Ajouter des preuves
+                    </button>
+                  )}
                   {order.dispute_status === 'resolu' && (() => {
                     const resolvedAt = order.dispute?.resolved_at;
                     const daysLeft = resolvedAt
@@ -828,6 +915,14 @@ export default function OrderDetail() {
       />
     )}
     <PlatformReviewModal isOpen={showPlatformReview} onClose={() => setShowPlatformReview(false)} />
+    {showEvidenceModal && (
+      <EvidenceModal
+        orderId={order.id}
+        getToken={getToken}
+        onClose={() => setShowEvidenceModal(false)}
+        onAdded={() => { setShowEvidenceModal(false); toast.success('Preuve ajoutée !'); }}
+      />
+    )}
     </>
   );
 }

@@ -6,7 +6,7 @@ import AddressSelector from '../context/AddressSelector';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell, Search } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell, Search, AlertCircle } from 'lucide-react';
 import PortalSwitcher from '../Shared/PortalSwitcher';
 import ThemeSelector from '../context/ThemeSelector';
 import NotificationCenter from '../Shared/NotificationCenter';
@@ -21,6 +21,7 @@ const SupplierDashboard = () => {
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [disputes, setDisputes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
     const [boutiqueData, setBoutiqueData] = useState({ name: '', whatsapp: '', momo_number: '' });
@@ -45,6 +46,10 @@ const SupplierDashboard = () => {
                 if (token) {
                     const ords = await getMySupplierOrders(token);
                     setOrders(ords || []);
+                    const activeDisputes = (ords || []).filter(o =>
+                        o.dispute_status && !['annule', 'resolu'].includes(o.dispute_status)
+                    );
+                    setDisputes(activeDisputes);
                 }
 
                 // Fetch commission rate
@@ -380,6 +385,58 @@ const SupplierDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ── Section Litiges ── */}
+            {disputes.length > 0 && (
+              <div className="bg-white rounded-[3rem] border border-rose-100 shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-rose-50 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center">
+                      <AlertCircle size={18} className="text-rose-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-900 text-sm tracking-tight">Litiges en cours</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                        {disputes.length} commande{disputes.length > 1 ? 's' : ''} concernée{disputes.length > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {disputes.map(order => {
+                    const statusMap = {
+                      ouvert: { label: 'Litige ouvert', color: 'text-amber-600 bg-amber-50' },
+                      en_cours: { label: 'En examen', color: 'text-blue-600 bg-blue-50' },
+                    };
+                    const cfg = statusMap[order.dispute_status] || { label: order.dispute_status, color: 'text-slate-500 bg-slate-50' };
+                    return (
+                      <div key={order.id} className="px-8 py-5 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
+                            <AlertCircle size={16} className="text-rose-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-black text-slate-900 text-sm truncate">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
+                            <p className="text-[10px] font-bold text-slate-400">
+                              {Number(order.total_amount).toLocaleString()} F · {new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${cfg.color}`}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="px-8 py-5 bg-rose-50/40 border-t border-rose-100">
+                  <p className="text-[10px] font-bold text-rose-500 leading-relaxed">
+                    ⚠️ Des litiges sont en cours sur vos commandes. L'équipe Vtout vous contactera si votre réponse est nécessaire.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <AnimatePresence>
                 {showAddressModal && (
                     <motion.div 
