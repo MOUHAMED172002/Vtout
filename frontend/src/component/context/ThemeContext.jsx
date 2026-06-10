@@ -7,12 +7,9 @@ const ThemeContext = createContext({
 });
 
 export const ThemeProvider = ({ children }) => {
-    const [theme, setThemeState] = useState(localStorage.getItem('theme') || 'vtout');
+    const [theme, setThemeState] = useState(localStorage.getItem('theme') || 'light');
 
-    const themes = [
-        "vtout", "light", "dark", "cupcake", "synthwave", "cyberpunk", 
-        "luxury", "dracula", "emerald", "corporate", "retro", "valentine"
-    ];
+    const themes = ["light", "dark", "retro", "valentine"];
 
     const setTheme = (newTheme) => {
         setThemeState(newTheme);
