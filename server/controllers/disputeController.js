@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Op } from 'sequelize';
-import { Dispute, Profile, Supplier, Boutique, Order, Notification, FinancialTransaction } from '../models/index.js';
+import { Dispute, Profile, Supplier, Boutique, Order, Notification, FinancialTransaction, DeliveryPerson } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
 
@@ -41,7 +41,14 @@ export const getAllDisputes = async (req, res) => {
             include: [
                 { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
                 { model: Supplier, as: 'supplier', attributes: ['name', 'email', 'whatsapp'] },
-                { model: Order, as: 'order' }
+                {
+                    model: Order, as: 'order',
+                    include: [{
+                        model: DeliveryPerson, as: 'deliveryPerson',
+                        attributes: ['whatsapp', 'vehicle_type', 'vehicle_model', 'license_plate', 'rating', 'total_deliveries'],
+                        include: [{ model: Profile, as: 'profile', attributes: ['fullname', 'phone'] }]
+                    }]
+                }
             ],
             order: [['created_at', 'DESC']]
         });

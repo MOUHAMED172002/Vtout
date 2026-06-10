@@ -5,7 +5,7 @@ import {
     AlertCircle, CheckCircle2, Clock, XCircle, User,
     Store, Package, ArrowRight, RefreshCw, Banknote, Eye,
     Search, TrendingUp, MessageSquare, Camera, ChevronDown,
-    ChevronUp, FileText, History
+    ChevronUp, FileText, History, Truck, Phone, Mail, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -45,6 +45,17 @@ function StatCard({ label, value, color, icon: Icon }) {
                 <p className="text-2xl font-black text-slate-900">{value}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
             </div>
+        </div>
+    );
+}
+
+function InfoRow({ label, value, icon: Icon }) {
+    return (
+        <div className="flex items-start justify-between gap-3 text-[10px]">
+            <span className="font-bold text-slate-400 shrink-0 flex items-center gap-1">
+                {Icon && <Icon size={9} className="opacity-60" />}{label}
+            </span>
+            <span className="font-black text-slate-700 text-right break-all">{value}</span>
         </div>
     );
 }
@@ -259,10 +270,11 @@ const DisputeManager = () => {
                         <motion.div initial={{ opacity: 0, scale: 0.93, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: 20 }}
                             className="relative w-full max-w-lg bg-white rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
                             <div className="p-8 md:p-10 space-y-6">
-                                <div className="flex justify-between items-center">
+                                {/* Header */}
+                                <div className="flex justify-between items-start gap-2">
                                     <div>
                                         <h2 className="text-2xl font-black text-slate-900">Dossier #{selectedDispute.id.slice(0, 8)}</h2>
-                                        <p className="text-xs text-slate-400 font-bold mt-1">Commande #{(selectedDispute.order_id || '').slice(0, 8)}</p>
+                                        <p className="text-xs text-slate-400 font-bold mt-1">Commande #{(selectedDispute.order_id || '').slice(0, 8)} · {Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F</p>
                                     </div>
                                     {statusBadge(selectedDispute.status)}
                                 </div>
@@ -281,29 +293,67 @@ const DisputeManager = () => {
                                     </div>
                                 )}
 
-                                {/* Photo */}
+                                {/* Photo preuve — full-width prominent */}
                                 {selectedDispute.photo_url && (
-                                    <a href={selectedDispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden">
-                                        <img src={selectedDispute.photo_url} alt="preuve" className="w-full object-cover max-h-56 rounded-2xl" />
-                                    </a>
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Camera size={11}/> Photo preuve du client</p>
+                                        <a href={selectedDispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden ring-2 ring-rose-100">
+                                            <img src={selectedDispute.photo_url} alt="preuve client" className="w-full object-cover max-h-64 hover:scale-[1.02] transition-transform duration-300" />
+                                        </a>
+                                    </div>
                                 )}
 
-                                {/* Client info */}
-                                <div className="p-4 bg-slate-50 rounded-2xl space-y-2">
-                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                                        <span className="text-slate-400">Client</span>
-                                        <span className="text-slate-700">{selectedDispute.user?.fullname || '—'}</span>
+                                {/* ── Parties impliquées ── */}
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Parties impliquées</p>
+
+                                    {/* Client */}
+                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-6 h-6 bg-blue-100 text-blue-500 rounded-lg flex items-center justify-center"><User size={11}/></div>
+                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Client</span>
+                                        </div>
+                                        <InfoRow label="Nom" value={selectedDispute.user?.fullname || '—'} />
+                                        {selectedDispute.user?.email && <InfoRow label="Email" value={selectedDispute.user.email} icon={Mail} />}
+                                        {selectedDispute.user?.phone && <InfoRow label="Téléphone" value={selectedDispute.user.phone} icon={Phone} />}
                                     </div>
-                                    {selectedDispute.user?.phone && (
-                                        <div className="flex justify-between text-[10px] font-bold">
-                                            <span className="text-slate-400">Téléphone</span>
-                                            <span className="text-slate-700">{selectedDispute.user.phone}</span>
+
+                                    {/* Vendeur */}
+                                    {selectedDispute.supplier && (
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-6 h-6 bg-amber-100 text-amber-500 rounded-lg flex items-center justify-center"><Store size={11}/></div>
+                                                <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Vendeur</span>
+                                            </div>
+                                            <InfoRow label="Boutique" value={selectedDispute.supplier.name || '—'} />
+                                            {selectedDispute.supplier.email && <InfoRow label="Email" value={selectedDispute.supplier.email} icon={Mail} />}
+                                            {selectedDispute.supplier.whatsapp && <InfoRow label="WhatsApp" value={selectedDispute.supplier.whatsapp} icon={Phone} />}
                                         </div>
                                     )}
-                                    <div className="flex justify-between text-[10px] font-bold">
-                                        <span className="text-slate-400">Montant commande</span>
-                                        <span className="text-slate-700 font-black">{Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F</span>
-                                    </div>
+
+                                    {/* Livreur */}
+                                    {selectedDispute.order?.deliveryPerson ? (
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-6 h-6 bg-emerald-100 text-emerald-500 rounded-lg flex items-center justify-center"><Truck size={11}/></div>
+                                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Livreur</span>
+                                            </div>
+                                            <InfoRow label="Nom" value={selectedDispute.order.deliveryPerson.profile?.fullname || '—'} />
+                                            {selectedDispute.order.deliveryPerson.profile?.phone && <InfoRow label="Téléphone" value={selectedDispute.order.deliveryPerson.profile.phone} icon={Phone} />}
+                                            {selectedDispute.order.deliveryPerson.whatsapp && <InfoRow label="WhatsApp" value={selectedDispute.order.deliveryPerson.whatsapp} icon={Phone} />}
+                                            {selectedDispute.order.deliveryPerson.vehicle_type && (
+                                                <InfoRow label="Véhicule" value={`${selectedDispute.order.deliveryPerson.vehicle_type}${selectedDispute.order.deliveryPerson.vehicle_model ? ` · ${selectedDispute.order.deliveryPerson.vehicle_model}` : ''}${selectedDispute.order.deliveryPerson.license_plate ? ` (${selectedDispute.order.deliveryPerson.license_plate})` : ''}`} icon={Truck} />
+                                            )}
+                                            {selectedDispute.order.deliveryPerson.rating && (
+                                                <InfoRow label="Note" value={`${Number(selectedDispute.order.deliveryPerson.rating).toFixed(1)} / 5 · ${selectedDispute.order.deliveryPerson.total_deliveries || 0} livraisons`} icon={Star} />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex items-center gap-3">
+                                            <div className="w-6 h-6 bg-slate-100 text-slate-300 rounded-lg flex items-center justify-center"><Truck size={11}/></div>
+                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Aucun livreur assigné</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Action zone */}
