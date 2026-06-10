@@ -20,7 +20,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  MessageCircle
+  MessageCircle,
+  Wallet
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -39,6 +40,7 @@ export default function HomeCards() {
   const [cart, setCart] = useState([]);
   const [address, setAddress] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const navigate = useNavigate();
 
@@ -50,12 +52,15 @@ export default function HomeCards() {
       // Simuler un léger délai pour voir les squelettes (optionnel, mais utile pour l'UX si l'API est trop rapide)
       // await new Promise(r => setTimeout(r, 800)); 
 
-      const [profileData, ordersData, favoritesData, cartData, addressesData] = await Promise.all([
+      const [profileData, ordersData, favoritesData, cartData, addressesData, walletData] = await Promise.all([
         getMyProfile(token).catch(() => null),
         getMyOrders(token).catch(() => []),
         getUserFavorites(token).catch(() => []),
         getMyCart(token).catch(() => []),
-        getMyAddresses(token).catch(() => [])
+        getMyAddresses(token).catch(() => []),
+        fetch(`${import.meta.env.VITE_API_URL}/financials/my-status`, { headers: { Authorization: `Bearer ${token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
       ]);
 
       setUserInfo(profileData || { fullname: user.fullName, email: user.primaryEmailAddress?.emailAddress, avatar_url: user.imageUrl });
@@ -63,6 +68,7 @@ export default function HomeCards() {
       setFavorites(Array.isArray(favoritesData) ? favoritesData : []);
       setCart(Array.isArray(cartData) ? cartData : []);
       setAddress(Array.isArray(addressesData) ? addressesData.find(a => a.is_default) || addressesData[0] : null);
+      setWalletBalance(walletData?.balance ?? 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -234,6 +240,31 @@ export default function HomeCards() {
           </motion.div>
         ))}
       </div>
+
+      {/* Wallet Banner — only shown when balance > 0 */}
+      {walletBalance > 0 && (
+        <motion.div
+          variants={item}
+          whileHover={{ y: -4 }}
+          className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg shadow-emerald-200/50 flex items-center justify-between gap-6"
+        >
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-white/20 rounded-[1.2rem] flex items-center justify-center shrink-0">
+              <Wallet size={28} className="text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-emerald-100 mb-1">Votre portefeuille</p>
+              <p className="text-4xl font-black tracking-tighter">{walletBalance.toLocaleString("fr-FR")} F</p>
+            </div>
+          </div>
+          <Link
+            to="/user/dashboard/wallet"
+            className="btn btn-sm bg-white text-emerald-700 hover:bg-emerald-50 border-none font-black rounded-2xl px-6 h-12 shrink-0 shadow-md"
+          >
+            Commander ou retirer →
+          </Link>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Recent Activity */}

@@ -16,6 +16,7 @@ import ProfileSettings from "../User/ProfileSettings";
 import SessionsManagers from "../User/SessionsManagers";
 import ReviewsManager from "../User/ReviewsManager";
 import CouponsPannel from "../User/CouponsPannel";
+import UserWallet from "../User/UserWallet";
 
 /**
  * DashboardRoutes: import into your main router.
@@ -42,6 +43,7 @@ export default function DashboardRoutes() {
         <Route path="payments" element={<PaymentsHistory />} />
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="sessions" element={<SessionsManagers />} />
+        <Route path="wallet" element={<UserWallet />} />
       </Route>
     </Routes>
   );
