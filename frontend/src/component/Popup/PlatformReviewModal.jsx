@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 export default function PlatformReviewModal({ isOpen, onClose }) {
-  const { getToken, user } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
@@ -109,7 +109,7 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                   </div>
 
                   <div className="px-10 py-8 space-y-6">
-                    {!user ? (
+                    {!isSignedIn ? (
                       <div className="text-center py-4 space-y-3">
                         <p className="text-slate-600 font-bold text-sm">Connectez-vous pour laisser un avis.</p>
                         <Link
