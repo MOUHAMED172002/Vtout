@@ -58,6 +58,13 @@ export const syncDatabase = async (req, res) => {
         order_items: {
             original_price: { type: DataTypes.DECIMAL(15, 2), allowNull: true }
         },
+        disputes: {
+            status_history:       { type: DataTypes.JSON,              allowNull: true },
+            admin_notes:          { type: DataTypes.TEXT,              allowNull: true },
+            supplier_response:    { type: DataTypes.TEXT,              allowNull: true },
+            supplier_evidence_url:{ type: DataTypes.STRING,            allowNull: true },
+            refund_amount:        { type: DataTypes.DECIMAL(15, 2),    allowNull: true },
+        },
         products_: { /* placeholder */ }
     };
 
