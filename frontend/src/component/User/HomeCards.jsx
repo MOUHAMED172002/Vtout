@@ -152,17 +152,17 @@ export default function HomeCards() {
       {/* Welcome Hero Section */}
       <motion.div
         variants={item}
-        className="relative bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-6 sm:p-10 md:p-20 text-white overflow-hidden shadow-[0_20px_100px_rgba(0,0,0,0.15)]"
+        className="relative bg-gradient-to-br from-blue-600 to-blue-900 rounded-[2rem] md:rounded-[3rem] p-6 sm:p-10 md:p-20 text-white overflow-hidden shadow-[0_20px_100px_rgba(37,99,235,0.25)]"
       >
         {/* Abstract Background Shapes */}
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px] animate-pulse"></div>
-        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-400/20 rounded-full blur-[100px]"></div>
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="space-y-5 md:space-y-8">
-            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+            <div className="inline-flex items-center gap-3 bg-white/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
               <Crown size={14} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège Vtout</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Membre Privilège Vtout</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
@@ -170,8 +170,8 @@ export default function HomeCards() {
               <span className="text-primary">revoir, {userInfo?.fullname?.split(" ")[0]} !</span>
             </h1>
 
-            <p className="text-slate-400 font-bold text-sm md:text-lg max-w-md leading-relaxed">
-              Votre dashboard est à jour. Vous avez <span className="text-slate-200">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
+            <p className="text-blue-200 font-bold text-sm md:text-lg max-w-md leading-relaxed">
+              Votre dashboard est à jour. Vous avez <span className="text-white">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
             </p>
 
             <div className="flex flex-wrap gap-3 md:gap-4 pt-2 md:pt-4">
@@ -180,11 +180,11 @@ export default function HomeCards() {
               </Link>
               <div className="flex -space-x-3 items-center">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-4 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black italic">
+                  <div key={i} className="w-10 h-10 rounded-full border-4 border-blue-700 bg-blue-800 flex items-center justify-center text-[10px] font-black italic">
                     {i === 3 ? "+12k" : "U" + i}
                   </div>
                 ))}
-                <p className="ml-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Clients Trust Us</p>
+                <p className="ml-4 text-[10px] font-black uppercase tracking-widest text-blue-300">Clients Trust Us</p>
               </div>
             </div>
           </div>
@@ -193,10 +193,10 @@ export default function HomeCards() {
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 space-y-6"
+              className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-8 space-y-6"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Dernier Achat</span>
+                <span className="text-xs font-black uppercase tracking-widest text-blue-300">Dernier Achat</span>
                 <Zap size={16} className="text-yellow-400" />
               </div>
               {orders[0] ? (
@@ -205,9 +205,9 @@ export default function HomeCards() {
                   <p className="text-primary font-black">{orders[0].total_amount.toLocaleString()} FCFA</p>
                 </div>
               ) : (
-                <p className="text-slate-500 font-bold italic">Aucun achat récent</p>
+                <p className="text-blue-300 font-bold italic">Aucun achat récent</p>
               )}
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: "70%" }} className="h-full bg-primary" />
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-400">
@@ -219,25 +219,23 @@ export default function HomeCards() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 md:gap-8">
+      <div className="grid grid-cols-3 gap-2 md:gap-8">
         {stats.map((stat, idx) => (
-          <motion.div
-            key={idx}
-            variants={item}
-            whileHover={{ y: -6 }}
-            className="bg-white p-4 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-slate-100 shadow-[0_10px_50px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center md:justify-between gap-3 group transition-all"
-          >
-            <div className="space-y-0.5 md:space-y-1">
-              <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.1rem] md:tracking-[0.2rem] leading-tight">{stat.label}</p>
-              <p className="text-2xl md:text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
-              <Link to={stat.to} className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Gérer <ChevronRight size={10} />
-              </Link>
-            </div>
-            <div className={`w-10 h-10 md:w-20 md:h-20 rounded-[1rem] md:rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500 shrink-0`}>
-              {stat.icon}
-            </div>
-          </motion.div>
+          <Link key={idx} to={stat.to}>
+            <motion.div
+              variants={item}
+              whileHover={{ y: -4 }}
+              className="bg-white p-3 md:p-10 rounded-[1.2rem] md:rounded-[3rem] border border-slate-100 shadow-sm flex flex-row items-center justify-between gap-2 group transition-all h-full"
+            >
+              <div className="min-w-0">
+                <p className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.05rem] md:tracking-[0.2rem] leading-tight truncate">{stat.label}</p>
+                <p className="text-xl md:text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+              </div>
+              <div className={`w-8 h-8 md:w-20 md:h-20 rounded-[0.7rem] md:rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500 shrink-0`}>
+                {stat.icon}
+              </div>
+            </motion.div>
+          </Link>
         ))}
       </div>
 
@@ -260,7 +258,7 @@ export default function HomeCards() {
           </div>
           <Link
             to="/user/dashboard/wallet"
-            className="btn btn-sm bg-white text-emerald-700 hover:bg-emerald-50 border-none font-black rounded-2xl px-5 h-11 shadow-md text-xs whitespace-nowrap w-full sm:w-auto flex items-center justify-center"
+            className="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none font-black rounded-2xl px-5 h-11 shadow-md shadow-blue-500/30 text-xs whitespace-nowrap w-full sm:w-auto flex items-center justify-center"
           >
             Gérer le portefeuille →
           </Link>
