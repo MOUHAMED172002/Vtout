@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote, User, CheckCircle } from 'lucide-react';
+import { Star, Quote, User, CheckCircle, Pencil } from 'lucide-react';
 import api from '../../services/api';
+import PlatformReviewModal from './PlatformReviewModal';
 
 const PlatformReviews = () => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     // Fictive reviews for start
     const dummyReviews = [
@@ -75,6 +77,17 @@ const PlatformReviews = () => {
                     </p>
                 </div>
 
+                {/* Write review CTA */}
+                <div className="flex justify-center mb-10">
+                    <button
+                        onClick={() => setShowReviewModal(true)}
+                        className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/25 hover:brightness-110 transition-all active:scale-95"
+                    >
+                        <Pencil size={15} />
+                        Écrire mon avis
+                    </button>
+                </div>
+
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20" data-aos="fade-up" data-aos-delay="100">
                     {[
@@ -140,16 +153,26 @@ const PlatformReviews = () => {
                 {/* Call to action */}
                 <div className="mt-20 text-center bg-primary rounded-[50px] p-12 md:p-20 text-white shadow-2xl shadow-primary/20 relative overflow-hidden" data-aos="zoom-in">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-                    <div className="relative z-10">
-                        <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6">Prêt à vivre l'expérience Vtout ?</h2>
-                        <button 
-                            onClick={() => window.location.href = '/products-liste'}
-                            className="bg-white text-primary px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-900 hover:text-white transition-all shadow-xl"
-                        >
-                            Commencer mes achats
-                        </button>
+                    <div className="relative z-10 space-y-6">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tighter">Prêt à vivre l'expérience Vtout ?</h2>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <button
+                                onClick={() => window.location.href = '/products-liste'}
+                                className="bg-white text-primary px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-900 hover:text-white transition-all shadow-xl"
+                            >
+                                Commencer mes achats
+                            </button>
+                            <button
+                                onClick={() => setShowReviewModal(true)}
+                                className="flex items-center gap-2 bg-white/15 border border-white/30 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-white/25 transition-all"
+                            >
+                                <Pencil size={13} /> Laisser un avis
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                <PlatformReviewModal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} />
             </div>
         </div>
     );

@@ -4,6 +4,7 @@ import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
 import DisputeModal from "./DisputeModal";
+import PlatformReviewModal from "../Popup/PlatformReviewModal";
 import {
   ArrowLeft,
   Package,
@@ -103,6 +104,7 @@ export default function OrderDetail() {
   const [downloading, setDownloading] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
+  const [showPlatformReview, setShowPlatformReview] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -751,6 +753,33 @@ export default function OrderDetail() {
                 </div>
               )}
 
+              {/* Platform review banner — shown only when delivered */}
+              {isDelivered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-[1.5rem] overflow-hidden border border-amber-100 shadow-sm"
+                >
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                        <Star size={16} className="fill-white text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-black text-slate-800 text-sm leading-tight">Satisfait de Vtout ?</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">Partagez votre expérience avec la communauté béninoise</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPlatformReview(true)}
+                      className="shrink-0 flex items-center gap-1.5 px-5 py-2.5 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap"
+                    >
+                      <Star size={11} fill="currentColor" /> Mon avis
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Show dispute button only if no active dispute */}
               {(!order.dispute_status || order.dispute_status === 'annule') && (
               <button
@@ -781,6 +810,7 @@ export default function OrderDetail() {
         onClose={() => setShowDisputeModal(false)}
       />
     )}
+    <PlatformReviewModal isOpen={showPlatformReview} onClose={() => setShowPlatformReview(false)} />
     </>
   );
 }
