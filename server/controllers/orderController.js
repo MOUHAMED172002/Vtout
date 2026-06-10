@@ -1143,6 +1143,17 @@ export const reportOrderDispute = async (req, res) => {
         const { motif, description, photo_url } = req.body;
         const userId = req.auth?.userId;
 
+        // Empêcher les doublons: un seul litige actif par commande
+        const existingDispute = await Dispute.findOne({
+            where: { order_id: id, status: { [Op.notIn]: ['cancelled'] } }
+        });
+        if (existingDispute) {
+            return res.status(409).json({
+                error: 'Un litige est déjà en cours pour cette commande.',
+                dispute_id: existingDispute.id
+            });
+        }
+
         const order = await Order.findByPk(id);
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
         if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
@@ -1319,6 +1330,35 @@ export const respondToDisputeResolution = async (req, res) => {
         res.json({ message: response === 'confirm' ? 'Résolution confirmée' : 'Contestation enregistrée' });
     } catch (error) {
         console.error("DISPUTE RESPONSE ERROR:", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const addDisputeEvidence = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { photo_url } = req.body;
+        const userId = req.auth?.userId;
+
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
+        if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
+
+        const dispute = await Dispute.findOne({
+            where: { order_id: id, status: { [Op.in]: ['open', 'under_review'] } }
+        });
+        if (!dispute) return res.status(404).json({ error: 'Aucun litige actif trouvé' });
+
+        const newHistory = [...(dispute.status_history || []), {
+            status: 'evidence_added', date: new Date(), actor: 'client'
+        }];
+        await dispute.update({ photo_url, status_history: newHistory });
+
+        notifyAdmin(`📎 Nouvelle preuve ajoutée pour litige #${dispute.id.slice(0, 8)} (Commande #${id.slice(0, 8)})`).catch(err => console.error('[WA evidence]', err.message));
+
+        res.json({ message: 'Preuve ajoutée avec succès', dispute });
+    } catch (error) {
+        console.error("ADD EVIDENCE ERROR:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };

@@ -46,6 +46,27 @@ const Dispute = sequelize.define('Dispute', {
     resolved_at: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    status_history: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: []
+    },
+    admin_notes: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    supplier_response: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    supplier_evidence_url: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    refund_amount: {
+        type: DataTypes.DECIMAL(12, 0),
+        allowNull: true
     }
 }, {
     tableName: 'disputes',
