@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from "../../lib/AuthHooks";
 import { getMySupplierProfile, updateMySupplierProfile, getMySupplierProducts } from '../../services/supplierService';
 import { getMySupplierOrders } from '../../services/orderService';
@@ -6,11 +6,189 @@ import AddressSelector from '../context/AddressSelector';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell, Search, AlertCircle } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Loader2, Package, Plus, Clock, BarChart3, ChevronRight, X, Edit2, LogOut, Bell, Search, AlertCircle, Camera, MessageSquare, ExternalLink, User, Phone, Mail, ShieldAlert } from 'lucide-react';
 import PortalSwitcher from '../Shared/PortalSwitcher';
 import ThemeSelector from '../context/ThemeSelector';
 import NotificationCenter from '../Shared/NotificationCenter';
 import { useAppConfig } from '../context/ConfigContext';
+import { uploadSingleImage } from '../../services/uploadService';
+import api from '../../services/api';
+
+// ── Dispute response modal ───────────────────────────────────────────────────
+function DisputeResponseModal({ dispute, getToken, onClose, onUpdated }) {
+    const [response, setResponse] = useState(dispute.supplier_response || '');
+    const [evidenceFile, setEvidenceFile] = useState(null);
+    const [evidencePreview, setEvidencePreview] = useState(dispute.supplier_evidence_url || null);
+    const [loading, setLoading] = useState(false);
+    const fileRef = useRef();
+
+    const handleFile = (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        setEvidenceFile(f);
+        setEvidencePreview(URL.createObjectURL(f));
+    };
+
+    const handleSubmit = async () => {
+        if (!response.trim()) return toast.error('Veuillez écrire une réponse');
+        setLoading(true);
+        try {
+            const token = await getToken();
+            let evidence_url = dispute.supplier_evidence_url;
+            if (evidenceFile) {
+                try {
+                    const uploaded = await uploadSingleImage(evidenceFile, token);
+                    evidence_url = typeof uploaded === 'string' ? uploaded : (uploaded?.url || uploaded?.secure_url || null);
+                } catch { /* non bloquant */ }
+            }
+            await api.patch(`/suppliers/me/disputes/${dispute.id}/respond`,
+                { supplier_response: response.trim(), supplier_evidence_url: evidence_url },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            toast.success('Réponse envoyée');
+            onUpdated();
+            onClose();
+        } catch {
+            toast.error('Erreur lors de l\'envoi');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const STATUS_LABEL = { open: 'Ouvert', under_review: 'En examen', resolved: 'Résolu', cancelled: 'Annulé' };
+    const STATUS_COLOR = { open: 'bg-amber-50 text-amber-600', under_review: 'bg-blue-50 text-blue-600', resolved: 'bg-emerald-50 text-emerald-600', cancelled: 'bg-slate-50 text-slate-500' };
+    const MOTIF_COLOR = { 'Colis non reçu': 'bg-amber-50 text-amber-700', 'Produit endommagé': 'bg-rose-50 text-rose-700', 'Produit différent de l\'annonce': 'bg-violet-50 text-violet-700', 'Autre': 'bg-slate-50 text-slate-600' };
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-2 sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+            <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
+                className="relative w-full max-w-lg bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-rose-50 rounded-xl flex items-center justify-center">
+                            <ShieldAlert size={18} className="text-rose-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-black text-slate-900 text-sm">Litige #{dispute.id.slice(0, 8).toUpperCase()}</h3>
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_COLOR[dispute.status] || 'bg-slate-50 text-slate-500'}`}>
+                                {STATUS_LABEL[dispute.status] || dispute.status}
+                            </span>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl">
+                        <X size={16} className="text-slate-400" />
+                    </button>
+                </div>
+
+                <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
+                    {/* Motif + description */}
+                    <div className="space-y-2">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Motif du litige</p>
+                        <span className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide ${MOTIF_COLOR[dispute.motif] || 'bg-slate-50 text-slate-600'}`}>
+                            {dispute.motif || dispute.reason}
+                        </span>
+                        {dispute.description && (
+                            <p className="text-sm text-slate-600 font-medium bg-slate-50 rounded-xl p-3 mt-2">{dispute.description}</p>
+                        )}
+                    </div>
+
+                    {/* Client info */}
+                    {dispute.user && (
+                        <div className="bg-blue-50 rounded-2xl p-4 space-y-2">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-400">Client</p>
+                            <div className="space-y-1">
+                                {dispute.user.fullname && (
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                        <User size={11} className="text-blue-400" />{dispute.user.fullname}
+                                    </div>
+                                )}
+                                {dispute.user.phone && (
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                        <Phone size={11} className="text-blue-400" />{dispute.user.phone}
+                                    </div>
+                                )}
+                                {dispute.user.email && (
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                                        <Mail size={11} className="text-blue-400" />{dispute.user.email}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Client photo */}
+                    {dispute.photo_url && (
+                        <div className="space-y-2">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Photo envoyée par le client</p>
+                            <a href={dispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden border-2 border-rose-100 relative group">
+                                <img src={dispute.photo_url} alt="preuve client" className="w-full object-cover max-h-48" />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <ExternalLink size={20} className="text-white" />
+                                </div>
+                            </a>
+                        </div>
+                    )}
+
+                    {/* Existing supplier response */}
+                    {dispute.supplier_response && (
+                        <div className="bg-amber-50 rounded-2xl p-4 space-y-1 border border-amber-100">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500">Votre réponse précédente</p>
+                            <p className="text-xs text-amber-800 font-medium">{dispute.supplier_response}</p>
+                        </div>
+                    )}
+
+                    {/* Response input */}
+                    {dispute.status !== 'resolved' && dispute.status !== 'cancelled' && (
+                        <>
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    {dispute.supplier_response ? 'Modifier votre réponse' : 'Votre réponse'}
+                                </p>
+                                <textarea
+                                    value={response}
+                                    onChange={(e) => setResponse(e.target.value)}
+                                    placeholder="Expliquez votre position sur ce litige..."
+                                    rows={3}
+                                    className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none border-none"
+                                />
+                            </div>
+
+                            {/* Evidence photo */}
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Photo de preuve <span className="text-slate-300">(optionnel)</span></p>
+                                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                                {evidencePreview ? (
+                                    <div className="relative rounded-xl overflow-hidden aspect-video bg-slate-100">
+                                        <img src={evidencePreview} alt="preuve" className="w-full h-full object-cover" />
+                                        <button onClick={() => { setEvidenceFile(null); setEvidencePreview(null); }}
+                                            className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md">
+                                            <X size={12} className="text-slate-600" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => fileRef.current?.click()}
+                                        className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:border-amber-300 hover:text-amber-400 transition-all">
+                                        <Camera size={16} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Ajouter une photo</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <button onClick={handleSubmit} disabled={!response.trim() || loading}
+                                className="w-full py-3.5 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-lg hover:bg-amber-600 transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2">
+                                {loading ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                                {loading ? 'Envoi...' : 'Envoyer ma réponse'}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+}
 
 const SupplierDashboard = () => {
     const { user, getToken, signOut } = useAuth();
@@ -22,18 +200,26 @@ const SupplierDashboard = () => {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [disputes, setDisputes] = useState([]);
+    const [selectedDispute, setSelectedDispute] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showBoutiqueModal, setShowBoutiqueModal] = useState(false);
     const [boutiqueData, setBoutiqueData] = useState({ name: '', whatsapp: '', momo_number: '' });
     const [localSearch, setLocalSearch] = useState('');
     const [commissionRate, setCommissionRate] = useState(0.10);
 
+    const fetchDisputes = async () => {
+        try {
+            const token = await getToken();
+            const res = await api.get('/suppliers/me/disputes', { headers: { Authorization: `Bearer ${token}` } });
+            setDisputes(Array.isArray(res.data) ? res.data : []);
+        } catch { /* silently ignore */ }
+    };
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 const token = await getToken();
-                
-                // Fetch profile
+
                 const prof = await getMySupplierProfile(token);
                 setProfile(prof);
                 if (prof) {
@@ -46,11 +232,10 @@ const SupplierDashboard = () => {
                 if (token) {
                     const ords = await getMySupplierOrders(token);
                     setOrders(ords || []);
-                    const activeDisputes = (ords || []).filter(o =>
-                        o.dispute_status && !['annule', 'resolu'].includes(o.dispute_status)
-                    );
-                    setDisputes(activeDisputes);
                 }
+
+                // Fetch real disputes
+                await fetchDisputes();
 
                 // Fetch commission rate
                 try {
@@ -118,40 +303,42 @@ const SupplierDashboard = () => {
         }
     };
 
+    const activeDisputes = disputes.filter(d => !['resolved', 'cancelled'].includes(d.status));
+
     const stats = [
         { label: 'Produits en ligne', value: products.filter(p => p.approval_status === 'approved').length, icon: <CheckCircle className="text-emerald-500" />, color: 'bg-emerald-50' },
         { label: 'En attente', value: products.filter(p => p.approval_status === 'En attente').length, icon: <Clock className="text-amber-500" />, color: 'bg-amber-50' },
         { label: 'Total Commandes', value: orders.length, icon: <BarChart3 className="text-indigo-500" />, color: 'bg-indigo-50' },
-        { 
-            label: 'Gains en attente', 
-            value: `${Math.round(orders.filter(o => o.status !== 'livrée' && o.status !== 'livree').reduce((sum, o) => sum + Number(o.supplier_earnings || 0), 0)).toLocaleString()} F`,
-            icon: <Navigation className="text-emerald-500" />, 
-            color: 'bg-emerald-50' 
+        {
+            label: 'Litiges actifs',
+            value: activeDisputes.length,
+            icon: <AlertCircle className={activeDisputes.length > 0 ? "text-rose-500" : "text-slate-400"} />,
+            color: activeDisputes.length > 0 ? 'bg-rose-50' : 'bg-slate-50'
         },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-12 space-y-12">
+        <div className="min-h-screen bg-slate-50 p-4 md:p-12 space-y-8 md:space-y-12">
             {/* Top Bar */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full justify-between lg:justify-start">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 md:gap-6">
+                <div className="flex flex-row items-center gap-3 w-full justify-between">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 mb-2">{getConfig('supplier_dashboard_welcome_title', 'Bienvenue')}, {user?.fullName || user?.firstName}</h1>
+                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-slate-900 mb-1">{getConfig('supplier_dashboard_welcome_title', 'Bienvenue')}, {user?.fullName || user?.firstName}</h1>
                         <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">{getConfig('supplier_dashboard_subtitle', 'Espace Gestion Fournisseur')}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 md:gap-2">
                         <ThemeSelector />
                         <PortalSwitcher />
                         <NotificationCenter />
                     </div>
                 </div>
-                
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+
+                <div className="flex items-center gap-2 md:gap-3 w-full lg:w-auto">
                     <button
                         onClick={() => navigate('/fournisseur/ajouter-produit')}
-                        className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
+                        className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 md:px-8 py-3 md:py-4 bg-primary text-white rounded-2xl md:rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
                     >
-                        <Plus size={18} /> {getConfig('supplier_dashboard_new_product_button', 'Produit')}
+                        <Plus size={16} /> {getConfig('supplier_dashboard_new_product_button', 'Produit')}
                     </button>
                     <button
                         onClick={async () => {
@@ -160,39 +347,39 @@ const SupplierDashboard = () => {
                                 window.location.href = "/";
                             }
                         }}
-                        className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100"
+                        className="p-3 md:p-4 bg-rose-50 text-rose-600 rounded-xl md:rounded-2xl hover:bg-rose-100 transition-all border border-rose-100"
                         title="Se déconnecter"
                     >
-                        <LogOut size={18} />
+                        <LogOut size={16} />
                     </button>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                 {stats.map((stat, idx) => (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         key={idx}
-                        className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-6"
+                        className="bg-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row md:items-center gap-3 md:gap-6"
                     >
-                        <div className={`w-16 h-16 ${stat.color} rounded-2xl flex items-center justify-center text-2xl`}>
+                        <div className={`w-10 h-10 md:w-16 md:h-16 ${stat.color} rounded-xl md:rounded-2xl flex items-center justify-center`}>
                             {stat.icon}
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
-                            <p className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5 md:mb-1 leading-tight">{stat.label}</p>
+                            <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
                         </div>
                     </motion.div>
                 ))}
             </div>
 
             {/* Main Content */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12">
                 {/* Product Status */}
-                <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
+                <div className="bg-white rounded-[2rem] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-5 md:p-10 space-y-6 md:space-y-8">
                     <div className="flex justify-between items-center border-b border-slate-50 pb-8">
                         <div>
                             <h3 className="text-xl font-black tracking-tighter">{getConfig('supplier_dashboard_products_title', 'Mes Produits')}</h3>
@@ -241,9 +428,9 @@ const SupplierDashboard = () => {
                 </div>
 
                 {/* Orders / Notifications */}
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                     {/* Boutique Info Section */}
-                    <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
+                    <div className="bg-white rounded-[2rem] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-5 md:p-10 space-y-6 md:space-y-8">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
@@ -281,7 +468,7 @@ const SupplierDashboard = () => {
                     </div>
 
                     {/* Location Management Section */}
-                    <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-10 space-y-8">
+                    <div className="bg-white rounded-[2rem] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-5 md:p-10 space-y-6 md:space-y-8">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
@@ -352,7 +539,7 @@ const SupplierDashboard = () => {
                         )}
                     </div>
 
-                    <div className="bg-slate-900 rounded-[40px] shadow-2xl shadow-indigo-200 p-10 text-white space-y-10 relative overflow-hidden">
+                    <div className="bg-slate-900 rounded-[2rem] md:rounded-[40px] shadow-2xl shadow-indigo-200 p-5 md:p-10 text-white space-y-6 md:space-y-10 relative overflow-hidden">
                         <div className="relative z-10">
                             <h3 className="text-xl font-black tracking-tighter mb-8">{getConfig('supplier_dashboard_order_prep_title', 'Commandes à Préparer')}</h3>
                             <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
@@ -387,57 +574,89 @@ const SupplierDashboard = () => {
             </div>
 
             {/* ── Section Litiges ── */}
-            {disputes.length > 0 && (
-              <div className="bg-white rounded-[3rem] border border-rose-100 shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-rose-50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center">
-                      <AlertCircle size={18} className="text-rose-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-900 text-sm tracking-tight">Litiges en cours</h3>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        {disputes.length} commande{disputes.length > 1 ? 's' : ''} concernée{disputes.length > 1 ? 's' : ''}
-                      </p>
-                    </div>
+            <div className="bg-white rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-5 md:px-8 py-5 md:py-6 border-b border-slate-50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${activeDisputes.length > 0 ? 'bg-rose-50' : 'bg-slate-50'}`}>
+                    <AlertCircle size={18} className={activeDisputes.length > 0 ? 'text-rose-500' : 'text-slate-400'} />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900 text-sm tracking-tight">Mes Litiges</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      {disputes.length} litige{disputes.length !== 1 ? 's' : ''} · {activeDisputes.length} actif{activeDisputes.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
+              </div>
+
+              {disputes.length === 0 ? (
+                <div className="px-5 md:px-8 py-10 text-center space-y-2">
+                  <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                    <AlertCircle size={22} className="text-slate-300" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-400">Aucun litige sur vos commandes</p>
+                </div>
+              ) : (
                 <div className="divide-y divide-slate-50">
-                  {disputes.map(order => {
-                    const statusMap = {
-                      ouvert: { label: 'Litige ouvert', color: 'text-amber-600 bg-amber-50' },
-                      en_cours: { label: 'En examen', color: 'text-blue-600 bg-blue-50' },
-                    };
-                    const cfg = statusMap[order.dispute_status] || { label: order.dispute_status, color: 'text-slate-500 bg-slate-50' };
+                  {disputes.map(dispute => {
+                    const STATUS_LABEL = { open: 'Ouvert', under_review: 'En examen', resolved: 'Résolu', cancelled: 'Annulé' };
+                    const STATUS_COLOR = { open: 'text-amber-600 bg-amber-50', under_review: 'text-blue-600 bg-blue-50', resolved: 'text-emerald-600 bg-emerald-50', cancelled: 'text-slate-500 bg-slate-50' };
+                    const needsReply = !dispute.supplier_response && ['open', 'under_review'].includes(dispute.status);
                     return (
-                      <div key={order.id} className="px-8 py-5 flex items-center justify-between gap-4">
+                      <button
+                        key={dispute.id}
+                        onClick={() => setSelectedDispute(dispute)}
+                        className="w-full px-5 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors text-left group"
+                      >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
-                            <AlertCircle size={16} className="text-rose-400" />
+                          <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 ${needsReply ? 'bg-rose-50' : 'bg-slate-50'}`}>
+                            <AlertCircle size={15} className={needsReply ? 'text-rose-400' : 'text-slate-400'} />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-black text-slate-900 text-sm truncate">Commande #{order.id.slice(0, 8).toUpperCase()}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-black text-slate-900 text-sm truncate">#{dispute.id.slice(0, 8).toUpperCase()}</p>
+                              {needsReply && (
+                                <span className="shrink-0 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">
+                                  Réponse requise
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] font-bold text-slate-400">
-                              {Number(order.total_amount).toLocaleString()} F · {new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR')}
+                              {dispute.motif || dispute.reason} · {new Date(dispute.created_at).toLocaleDateString('fr-FR')}
                             </p>
                           </div>
                         </div>
-                        <span className={`shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${cfg.color}`}>
-                          {cfg.label}
-                        </span>
-                      </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${STATUS_COLOR[dispute.status] || 'text-slate-500 bg-slate-50'}`}>
+                            {STATUS_LABEL[dispute.status] || dispute.status}
+                          </span>
+                          <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                        </div>
+                      </button>
                     );
                   })}
                 </div>
-                <div className="px-8 py-5 bg-rose-50/40 border-t border-rose-100">
+              )}
+
+              {activeDisputes.length > 0 && (
+                <div className="px-5 md:px-8 py-4 bg-rose-50/40 border-t border-rose-100">
                   <p className="text-[10px] font-bold text-rose-500 leading-relaxed">
-                    ⚠️ Des litiges sont en cours sur vos commandes. L'équipe Vtout vous contactera si votre réponse est nécessaire.
+                    ⚠️ Répondez aux litiges ouverts pour accélérer leur résolution.
                   </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <AnimatePresence>
+                {selectedDispute && (
+                    <DisputeResponseModal
+                        dispute={selectedDispute}
+                        getToken={getToken}
+                        onClose={() => setSelectedDispute(null)}
+                        onUpdated={fetchDisputes}
+                    />
+                )}
+
                 {showAddressModal && (
                     <motion.div 
                         initial={{ opacity: 0 }}

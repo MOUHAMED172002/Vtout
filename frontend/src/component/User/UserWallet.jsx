@@ -131,15 +131,15 @@ export default function UserWallet() {
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Balance Card */}
-      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
-            <Wallet size={20} className="text-primary" />
+      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-5 md:p-8">
+        <div className="flex items-center gap-3 mb-3 md:mb-4">
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-primary/10 rounded-xl md:rounded-2xl flex items-center justify-center">
+            <Wallet size={18} className="text-primary" />
           </div>
           <p className="text-xs font-black uppercase tracking-widest text-slate-400">Solde disponible</p>
         </div>
-        <p className={`text-5xl font-black tracking-tighter ${balance > 0 ? "text-emerald-600" : "text-slate-400"}`}>
-          {balance.toLocaleString("fr-FR")} <span className="text-2xl font-bold">F</span>
+        <p className={`text-4xl md:text-5xl font-black tracking-tighter ${balance > 0 ? "text-emerald-600" : "text-slate-400"}`}>
+          {balance.toLocaleString("fr-FR")} <span className="text-xl md:text-2xl font-bold">F</span>
         </p>
         {balance > 0 && (
           <p className="mt-2 text-sm font-bold text-emerald-500">Disponible pour retrait ou commande</p>

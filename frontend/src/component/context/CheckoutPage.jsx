@@ -297,23 +297,23 @@ export default function CheckoutPage() {
       <div className="max-w-[1200px] mx-auto px-6">
 
         {/* Header Area */}
-        <div className="text-center mb-20 space-y-6">
-          <h1 className="text-6xl font-black text-slate-900 tracking-tightest">
+        <div className="text-center mb-8 md:mb-20 space-y-4 md:space-y-6">
+          <h1 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tightest">
             Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
           </h1>
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-2 md:gap-6">
             {[1, 2, 3, 4, 5, 6].map((s) => (
               <React.Fragment key={s}>
                 <div className="flex flex-col items-center gap-2">
-                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-500 ${
-                        step >= s || (s === 1 && !isGuest) 
-                        ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' 
+                    <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-base transition-all duration-500 ${
+                        step >= s || (s === 1 && !isGuest)
+                        ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110'
                         : 'bg-white border-2 border-slate-100 text-slate-300'
                     }`}>
-                        {(step > s || (s === 1 && !isGuest)) ? <Check size={20} strokeWidth={3} /> : s}
+                        {(step > s || (s === 1 && !isGuest)) ? <Check size={16} strokeWidth={3} /> : s}
                     </div>
                 </div>
-                {s < 6 && <div className={`h-1 w-8 md:w-12 rounded-full transition-all duration-700 ${
+                {s < 6 && <div className={`h-1 w-4 md:w-12 rounded-full transition-all duration-700 ${
                     (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-slate-100'
                 }`}></div>}
               </React.Fragment>
@@ -738,7 +738,7 @@ export default function CheckoutPage() {
                         <div className="text-right">
                            {discount > 0 && <span className="block text-sm font-bold text-slate-300 line-through mb-[-4px]">{totalFromCart.toLocaleString()} F</span>}
                            {address?.is_valid ? (
-                               <span className="text-5xl font-black text-slate-900 tracking-tightest">{finalTotal.toLocaleString()} <span className="text-lg text-primary relative -top-4 ml-1">F</span></span>
+                               <span className="text-3xl md:text-5xl font-black text-slate-900 tracking-tightest">{finalTotal.toLocaleString()} <span className="text-base md:text-lg text-primary relative -top-2 md:-top-4 ml-1">F</span></span>
                            ) : (
                                <div className="flex flex-col items-end">
                                    <span className="text-3xl font-black text-slate-200 tracking-tighter">-- --- F</span>
