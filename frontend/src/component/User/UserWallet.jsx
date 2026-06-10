@@ -138,11 +138,11 @@ export default function UserWallet() {
           </div>
           <p className="text-xs font-black uppercase tracking-widest text-slate-400">Solde disponible</p>
         </div>
-        <p className={`text-4xl md:text-5xl font-black tracking-tighter ${balance > 0 ? "text-emerald-600" : "text-slate-400"}`}>
+        <p className={`text-4xl md:text-5xl font-black tracking-tighter ${balance > 0 ? "text-primary" : "text-slate-400"}`}>
           {balance.toLocaleString("fr-FR")} <span className="text-xl md:text-2xl font-bold">F</span>
         </p>
         {balance > 0 && (
-          <p className="mt-2 text-sm font-bold text-emerald-500">Disponible pour retrait ou commande</p>
+          <p className="mt-2 text-sm font-bold text-primary">Disponible pour retrait ou commande</p>
         )}
         {balance === 0 && (
           <p className="mt-2 text-sm font-bold text-slate-400">Aucun solde pour le moment</p>

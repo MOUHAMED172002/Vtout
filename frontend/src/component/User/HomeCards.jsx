@@ -244,7 +244,7 @@ export default function HomeCards() {
         <motion.div
           variants={item}
           whileHover={{ y: -4 }}
-          className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white shadow-lg shadow-emerald-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+          className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white shadow-lg shadow-orange-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div className="flex items-center gap-4">
             <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/20 rounded-[1rem] sm:rounded-[1.2rem] flex items-center justify-center shrink-0">
@@ -252,7 +252,7 @@ export default function HomeCards() {
               <Wallet size={28} className="text-white hidden sm:block" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 mb-0.5">Votre portefeuille</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-orange-100 mb-0.5">Votre portefeuille</p>
               <p className="text-2xl sm:text-4xl font-black tracking-tighter">{walletBalance.toLocaleString("fr-FR")} F</p>
             </div>
           </div>
