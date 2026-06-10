@@ -47,7 +47,7 @@ export default function HomeCards() {
     setLoading(true);
     try {
       const token = await getToken();
-      // Simuler un l�ger d�lai pour voir les squelettes (optionnel, mais utile pour l'UX si l'API est trop rapide)
+      // Simuler un léger délai pour voir les squelettes (optionnel, mais utile pour l'UX si l'API est trop rapide)
       // await new Promise(r => setTimeout(r, 800)); 
 
       const [profileData, ordersData, favoritesData, cartData, addressesData] = await Promise.all([
@@ -156,7 +156,7 @@ export default function HomeCards() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2 rounded-full backdrop-blur-md">
               <Crown size={16} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privil�ge Vtout</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège Vtout</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
@@ -165,7 +165,7 @@ export default function HomeCards() {
             </h1>
 
             <p className="text-slate-400 font-bold text-lg max-w-md leading-relaxed">
-              Votre dashboard est � jour. Vous avez <span className="text-slate-900">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
+              Votre dashboard est à jour. Vous avez <span className="text-slate-900">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
@@ -199,13 +199,13 @@ export default function HomeCards() {
                   <p className="text-primary font-black">{orders[0].total_amount.toLocaleString()} FCFA</p>
                 </div>
               ) : (
-                <p className="text-slate-500 font-bold italic">Aucun achat r�cent</p>
+                <p className="text-slate-500 font-bold italic">Aucun achat récent</p>
               )}
               <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: "70%" }} className="h-full bg-primary" />
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-400">
-                <ShieldCheck size={14} /> Paiement S�curis�
+                <ShieldCheck size={14} /> Paiement Sécurisé
               </div>
             </motion.div>
           </div>
@@ -225,7 +225,7 @@ export default function HomeCards() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem]">{stat.label}</p>
               <p className="text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
               <Link to={stat.to} className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                G�rer <ChevronRight size={12} />
+                Gérer <ChevronRight size={12} />
               </Link>
             </div>
             <div className={`w-20 h-20 rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500`}>
@@ -244,7 +244,7 @@ export default function HomeCards() {
                 <TrendingUp size={22} />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Commandes R�centes</h2>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Commandes Récentes</h2>
                 <p className="text-xs font-bold text-slate-400">Suivi de vos derniers achats</p>
               </div>
             </div>
@@ -270,17 +270,22 @@ export default function HomeCards() {
                       <div className="space-y-1">
                         <p className="font-black text-slate-900 text-xl tracking-tight">Commande #{order.id.slice(0, 8)}</p>
                         <div className="flex items-center gap-3">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{(() => { const d = new Date(order.created_at || order.createdAt); return isNaN(d.getTime()) ? '' : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); })()}</p>
                           <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                          <p className="text-xs font-bold text-slate-400">{order.status}</p>
+                          <p className="text-xs font-bold text-slate-400">{{ en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' }[order.status] || order.status}</p>
                         </div>
                       </div>
                     </div>
                     <div className="text-right space-y-3">
                       <p className="font-black text-slate-900 text-2xl tracking-tighter">{order.total_amount.toLocaleString()} F</p>
-                      <span className={`inline-flex px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'confirmee' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'
-                        }`}>
-                        {order.status}
+                      <span className={`inline-flex px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${{
+                          en_attente: 'bg-amber-50 text-amber-600',
+                          confirmee: 'bg-emerald-50 text-emerald-600', confirmée: 'bg-emerald-50 text-emerald-600',
+                          expediee: 'bg-blue-50 text-blue-600', expédiée: 'bg-blue-50 text-blue-600',
+                          livree: 'bg-emerald-50 text-emerald-600', livrée: 'bg-emerald-50 text-emerald-600',
+                          annulee: 'bg-rose-50 text-rose-600', annulée: 'bg-rose-50 text-rose-600',
+                        }[order.status] || 'bg-orange-50 text-orange-600'}`}>
+                        {{ en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' }[order.status] || order.status}
                       </span>
                     </div>
                   </motion.div>
@@ -293,7 +298,7 @@ export default function HomeCards() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-black text-slate-900">Aucune commande</h3>
-                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">C'est le moment id�al pour d�couvrir nos nouvelles p�pites technologiques.</p>
+                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">C'est le moment idéal pour découvrir nos nouvelles pépites technologiques.</p>
                 </div>
                 <Link to="/products-liste" className="btn btn-primary rounded-2xl px-10 h-14 font-black shadow-lg shadow-primary/20 border-none">Explorer la Boutique</Link>
               </div>
@@ -308,7 +313,7 @@ export default function HomeCards() {
               <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
                 <MapPinned size={22} />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Exp�dition</h2>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Expédition</h2>
             </div>
 
             {address ? (
@@ -320,7 +325,7 @@ export default function HomeCards() {
                   </div>
                   <div className="relative z-10">
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">
-                      {address.is_default ? "Adresse par d�faut" : address.label || "Adresse de livraison"}
+                      {address.is_default ? "Adresse par défaut" : address.label || "Adresse de livraison"}
                     </p>
                     <p className="text-2xl font-black text-slate-900 leading-tight tracking-tight">
                       {address.quartier_label}
@@ -348,13 +353,13 @@ export default function HomeCards() {
                     <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-primary">
                       <PackageCheck size={14} />
                     </div>
-                    Livraison estim�e : 24�48h
+                    Livraison estimée : 2448h
                   </div>
                   <Link
                     to="/user/dashboard/addresses"
                     className="flex items-center justify-center gap-2 w-full h-12 mt-2 bg-slate-50 hover:bg-slate-100 rounded-2xl font-black text-slate-700 text-xs uppercase tracking-widest transition-all border border-transparent hover:border-slate-200"
                   >
-                    G�rer mes adresses <ArrowRight size={14} />
+                    Gérer mes adresses <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -389,7 +394,7 @@ export default function HomeCards() {
               <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
               <p className="text-slate-400 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
-                Nos experts vous r�pondent en moins de 5 minutes.
+                Nos experts vous répondent en moins de 5 minutes.
               </p>
             </div>
 
@@ -397,7 +402,7 @@ export default function HomeCards() {
               onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
               className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-2xl shadow-primary/30 border-none relative z-10"
             >
-              Parler � un agent
+              Parler à un agent
             </button>
           </div>
         </div>

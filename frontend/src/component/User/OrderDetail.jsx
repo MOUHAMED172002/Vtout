@@ -386,7 +386,11 @@ export default function OrderDetail() {
                         <p className={`text-[10px] font-black uppercase tracking-widest leading-tight ${done ? (current ? colorMap[stepColor].split(' ')[2] : "text-slate-900") : "text-slate-400"}`}>
                           {step.label}
                         </p>
-                        {current && <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>}
+                        {current && (
+                          isDelivered
+                            ? <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>
+                            : <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>
+                        )}
                         {done && !current && (() => {
                           const d = getStepDate(step);
                           return d
