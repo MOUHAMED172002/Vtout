@@ -117,7 +117,7 @@ function EvidenceModal({ orderId, getToken, onClose, onAdded }) {
       // Upload photo first
       const { uploadSingleImage } = await import('../../services/uploadService');
       const uploaded = await uploadSingleImage(file, token);
-      const photo_url = uploaded?.url || uploaded?.secure_url;
+      const photo_url = typeof uploaded === 'string' ? uploaded : (uploaded?.url || uploaded?.secure_url);
       if (!photo_url) throw new Error('Upload failed');
       // Send to API
       await import('../../services/api').then(m => m.default.post(

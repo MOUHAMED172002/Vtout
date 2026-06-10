@@ -37,7 +37,7 @@ export default function DisputeModal({ order, getToken, onClose }) {
       if (photoFile) {
         try {
           const uploaded = await uploadSingleImage(photoFile, token);
-          photo_url = uploaded?.url || uploaded?.secure_url || null;
+          photo_url = typeof uploaded === 'string' ? uploaded : (uploaded?.url || uploaded?.secure_url || null);
         } catch { /* photo non bloquante */ }
       }
 
