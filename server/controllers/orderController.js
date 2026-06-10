@@ -1158,6 +1158,11 @@ export const reportOrderDispute = async (req, res) => {
         if (!order) return res.status(404).json({ error: 'Commande non trouvée' });
         if (order.user_id !== userId) return res.status(403).json({ error: 'Accès non autorisé' });
 
+        const normalizedStatus = (order.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        if (!normalizedStatus.startsWith('livr')) {
+            return res.status(400).json({ error: 'Vous ne pouvez signaler un problème que sur une commande déjà livrée.' });
+        }
+
         const reason = motif || 'Problème signalé par le client';
 
         const dispute = await Dispute.create({

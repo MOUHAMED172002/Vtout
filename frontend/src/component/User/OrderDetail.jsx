@@ -886,15 +886,21 @@ export default function OrderDetail() {
                 </motion.div>
               )}
 
-              {/* Show dispute button only if no active dispute */}
-              {(!order.dispute_status || order.dispute_status === 'annule') && (
-              <button
-                className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
-                onClick={() => setShowDisputeModal(true)}
-              >
-                <AlertCircle size={18} />
-                Signaler un problème
-              </button>
+              {/* Dispute button — only available after delivery */}
+              {isDelivered && (!order.dispute_status || order.dispute_status === 'annule') && (
+                <button
+                  className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
+                  onClick={() => setShowDisputeModal(true)}
+                >
+                  <AlertCircle size={18} />
+                  Signaler un problème
+                </button>
+              )}
+              {!isDelivered && !order.dispute_status && (
+                <div className="w-full py-3.5 bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center justify-center gap-2 text-slate-400">
+                  <Lock size={14} />
+                  <span className="text-xs font-black uppercase tracking-widest">Disponible après livraison</span>
+                </div>
               )}
               <Link 
                 to="/"
