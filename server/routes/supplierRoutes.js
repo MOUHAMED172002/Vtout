@@ -18,6 +18,10 @@ router.patch('/me', requireAuth, requireFournisseur, supplierController.updateMy
 // Un fournisseur récupère ses propres produits / boutiques
 router.get('/me/products', requireAuth, requireFournisseur, supplierController.getMyProducts);
 router.get('/me/boutiques', requireAuth, requireFournisseur, supplierController.getMyBoutiques);
+
+// Litiges du fournisseur
+router.get('/me/disputes', requireAuth, requireFournisseur, supplierController.getMyDisputes);
+router.patch('/me/disputes/:id/respond', requireAuth, requireFournisseur, supplierController.respondToMyDispute);
 router.post('/me/boutiques', requireAuth, requireFournisseur, supplierController.createBoutique);
 router.patch('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.updateMyBoutique);
 router.delete('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.deleteMyBoutique);

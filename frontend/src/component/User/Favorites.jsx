@@ -64,7 +64,7 @@ export default function Favorites() {
           <div className="flex items-center gap-2 text-rose-500 font-black uppercase text-[10px] tracking-[0.3em]">
             <Stars size={14} /> Wishlist
           </div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">Mes <span className="text-slate-400">Favoris.</span></h1>
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Mes <span className="text-slate-400">Favoris.</span></h1>
           <p className="text-slate-500 font-bold max-w-lg leading-relaxed">Retrouvez tous les articles qui vous ont fait craquer et gérez votre liste de souhaits.</p>
         </div>
 

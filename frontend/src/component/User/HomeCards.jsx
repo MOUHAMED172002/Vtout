@@ -152,31 +152,31 @@ export default function HomeCards() {
       {/* Welcome Hero Section */}
       <motion.div
         variants={item}
-        className="relative bg-slate-900 rounded-[3rem] p-10 md:p-20 text-white overflow-hidden shadow-[0_20px_100px_rgba(0,0,0,0.15)]"
+        className="relative bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-6 sm:p-10 md:p-20 text-white overflow-hidden shadow-[0_20px_100px_rgba(0,0,0,0.15)]"
       >
         {/* Abstract Background Shapes */}
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px] animate-pulse"></div>
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]"></div>
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2 rounded-full backdrop-blur-md">
-              <Crown size={16} className="text-primary" />
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="space-y-5 md:space-y-8">
+            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+              <Crown size={14} className="text-primary" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège Vtout</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
               Ravi de vous <br />
               <span className="text-primary">revoir, {userInfo?.fullname?.split(" ")[0]} !</span>
             </h1>
 
-            <p className="text-slate-400 font-bold text-lg max-w-md leading-relaxed">
-              Votre dashboard est à jour. Vous avez <span className="text-slate-900">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
+            <p className="text-slate-400 font-bold text-sm md:text-lg max-w-md leading-relaxed">
+              Votre dashboard est à jour. Vous avez <span className="text-slate-200">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Link to="/products-liste" className="btn btn-primary rounded-2xl px-10 h-16 text-sm font-black shadow-2xl shadow-primary/40 gap-3 group border-none">
-                Shopping Now <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+            <div className="flex flex-wrap gap-3 md:gap-4 pt-2 md:pt-4">
+              <Link to="/products-liste" className="btn btn-primary rounded-2xl px-6 md:px-10 h-12 md:h-16 text-sm font-black shadow-2xl shadow-primary/40 gap-2 group border-none">
+                Shopping Now <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <div className="flex -space-x-3 items-center">
                 {[1, 2, 3].map(i => (
@@ -219,22 +219,22 @@ export default function HomeCards() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-3 gap-3 md:gap-8">
         {stats.map((stat, idx) => (
           <motion.div
             key={idx}
             variants={item}
-            whileHover={{ y: -10 }}
-            className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-[0_10px_50px_rgba(0,0,0,0.03)] flex items-center justify-between group transition-all"
+            whileHover={{ y: -6 }}
+            className="bg-white p-4 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-slate-100 shadow-[0_10px_50px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center md:justify-between gap-3 group transition-all"
           >
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem]">{stat.label}</p>
-              <p className="text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
-              <Link to={stat.to} className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Gérer <ChevronRight size={12} />
+            <div className="space-y-0.5 md:space-y-1">
+              <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.1rem] md:tracking-[0.2rem] leading-tight">{stat.label}</p>
+              <p className="text-2xl md:text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+              <Link to={stat.to} className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Gérer <ChevronRight size={10} />
               </Link>
             </div>
-            <div className={`w-20 h-20 rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500`}>
+            <div className={`w-10 h-10 md:w-20 md:h-20 rounded-[1rem] md:rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500 shrink-0`}>
               {stat.icon}
             </div>
           </motion.div>
@@ -246,22 +246,23 @@ export default function HomeCards() {
         <motion.div
           variants={item}
           whileHover={{ y: -4 }}
-          className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg shadow-emerald-200/50 flex items-center justify-between gap-6"
+          className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white shadow-lg shadow-emerald-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 bg-white/20 rounded-[1.2rem] flex items-center justify-center shrink-0">
-              <Wallet size={28} className="text-white" />
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/20 rounded-[1rem] sm:rounded-[1.2rem] flex items-center justify-center shrink-0">
+              <Wallet size={22} className="text-white sm:hidden" />
+              <Wallet size={28} className="text-white hidden sm:block" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-emerald-100 mb-1">Votre portefeuille</p>
-              <p className="text-4xl font-black tracking-tighter">{walletBalance.toLocaleString("fr-FR")} F</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 mb-0.5">Votre portefeuille</p>
+              <p className="text-2xl sm:text-4xl font-black tracking-tighter">{walletBalance.toLocaleString("fr-FR")} F</p>
             </div>
           </div>
           <Link
             to="/user/dashboard/wallet"
-            className="btn btn-sm bg-white text-emerald-700 hover:bg-emerald-50 border-none font-black rounded-2xl px-6 h-12 shrink-0 shadow-md"
+            className="btn btn-sm bg-white text-emerald-700 hover:bg-emerald-50 border-none font-black rounded-2xl px-5 h-11 shadow-md text-xs whitespace-nowrap w-full sm:w-auto flex items-center justify-center"
           >
-            Commander ou retirer →
+            Gérer le portefeuille →
           </Link>
         </motion.div>
       )}

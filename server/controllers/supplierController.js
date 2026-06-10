@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Supplier, SupplierProduct, Product, ProductVariant, ProductVariantPrice, ProductImage, Category, Profile, Boutique, sequelize } from '../models/index.js';
+import { Supplier, SupplierProduct, Product, ProductVariant, ProductVariantPrice, ProductImage, Category, Profile, Boutique, sequelize, Dispute, Order } from '../models/index.js';
 import crypto from 'crypto';
 import { sendSupplierApprovalNotification } from '../services/mailService.js';
 import { notifySupplierStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
@@ -505,5 +505,51 @@ export const notifyIncompleteSuppliers = async (req, res) => {
     } catch (error) {
         console.error("NOTIFY INCOMPLETE ERROR:", error);
         res.status(500).json({ error: 'Erreur Serveur', details: error.message });
+    }
+};
+
+export const getMyDisputes = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Fournisseur non trouvé' });
+
+        const disputes = await Dispute.findAll({
+            where: { supplier_id: supplier.id },
+            include: [
+                { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
+                { model: Order, as: 'order', attributes: ['id', 'total_amount', 'created_at', 'status'] }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+        res.json(disputes);
+    } catch (err) {
+        console.error('getMyDisputes error:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const respondToMyDispute = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const { id } = req.params;
+        const { supplier_response, supplier_evidence_url } = req.body;
+
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Fournisseur non trouvé' });
+
+        const dispute = await Dispute.findOne({ where: { id, supplier_id: supplier.id } });
+        if (!dispute) return res.status(404).json({ error: 'Litige non trouvé' });
+
+        await dispute.update({
+            supplier_response: supplier_response || dispute.supplier_response,
+            supplier_evidence_url: supplier_evidence_url || dispute.supplier_evidence_url,
+            status: dispute.status === 'open' ? 'under_review' : dispute.status
+        });
+
+        res.json(dispute);
+    } catch (err) {
+        console.error('respondToMyDispute error:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
     }
 };
