@@ -22,31 +22,6 @@ export default {
   },
   plugins: [daisyui],
   daisyui: {
-    themes: [
-      {
-        vtout: {
-          "primary": "#f37021",
-          "secondary": "#0054a6",
-          "accent": "#22c55e",
-          "neutral": "#1e293b",
-          "base-100": "#ffffff",
-          "info": "#0054a6",
-          "success": "#10b981",
-          "warning": "#f59e0b",
-          "error": "#ef4444",
-        },
-      },
-      "light",
-      "dark",
-      "cupcake",
-      "synthwave",
-      "cyberpunk",
-      "luxury",
-      "dracula",
-      "emerald",
-      "corporate",
-      "retro",
-      "valentine"
-    ],
+    themes: ["light", "dark", "retro", "valentine"],
   },
 };
