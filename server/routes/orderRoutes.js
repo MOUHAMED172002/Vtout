@@ -13,6 +13,7 @@ router.post('/', orderController.createOrder); // guests allowed — controller 
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
 router.patch('/:id/dispute/response', requireAuth, orderController.respondToDisputeResolution);
+router.post('/:id/dispute/evidence', requireAuth, orderController.addDisputeEvidence);
 
 router.get('/:id/suggested-livreurs', requireAuth, requireAdmin, orderController.getSuggestedLivreurs);
 router.get('/:id/suggested-suppliers', requireAuth, requireAdmin, orderController.getSuggestedSuppliers);

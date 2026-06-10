@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../lib/AuthHooks";
 import { getOrderById } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
 import DisputeModal from "./DisputeModal";
+import PlatformReviewModal from "../Popup/PlatformReviewModal";
 import {
   ArrowLeft,
   Package,
@@ -27,7 +28,9 @@ import {
   User as UserIcon,
   ThumbsUp,
   ThumbsDown,
-  RefreshCw
+  RefreshCw,
+  Camera,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -93,6 +96,82 @@ const STATUS_CONFIG = {
   annulee: { label: "Annulée", color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", icon: <XCircle size={13} /> },
 };
 
+function EvidenceModal({ orderId, getToken, onClose, onAdded }) {
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = await getToken();
+      // Upload photo first
+      const { uploadSingleImage } = await import('../../services/uploadService');
+      const uploaded = await uploadSingleImage(file, token);
+      const photo_url = uploaded?.url || uploaded?.secure_url;
+      if (!photo_url) throw new Error('Upload failed');
+      // Send to API
+      await import('../../services/api').then(m => m.default.post(
+        `/orders/${orderId}/dispute/evidence`,
+        { photo_url },
+        { headers: { Authorization: `Bearer ${token}` } }
+      ));
+      onAdded();
+    } catch {
+      toast.error("Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-7 space-y-5"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-black text-slate-900 text-sm">Ajouter une preuve</h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><X size={16} className="text-slate-400"/></button>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        {preview ? (
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100">
+            <img src={preview} alt="preuve" className="w-full h-full object-cover" />
+            <button onClick={() => { setFile(null); setPreview(null); }} className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow">
+              <X size={12} className="text-slate-600"/>
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => fileRef.current?.click()} className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center gap-2 text-slate-400 hover:border-primary hover:text-primary transition-all">
+            <Camera size={24}/>
+            <span className="text-[10px] font-black uppercase tracking-widest">Choisir une photo</span>
+          </button>
+        )}
+        <button
+          onClick={handleSubmit}
+          disabled={!file || uploading}
+          className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-40 flex items-center justify-center gap-2 hover:brightness-110 transition-all"
+        >
+          {uploading ? <span className="loading loading-spinner loading-xs"/> : <Camera size={14}/>}
+          {uploading ? 'Envoi...' : 'Envoyer la preuve'}
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function OrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -103,6 +182,8 @@ export default function OrderDetail() {
   const [downloading, setDownloading] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
+  const [showPlatformReview, setShowPlatformReview] = useState(false);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -384,7 +465,11 @@ export default function OrderDetail() {
                         <p className={`text-[10px] font-black uppercase tracking-widest leading-tight ${done ? (current ? colorMap[stepColor].split(' ')[2] : "text-slate-900") : "text-slate-400"}`}>
                           {step.label}
                         </p>
-                        {current && <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>}
+                        {current && (
+                          isDelivered
+                            ? <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>
+                            : <p className={`text-[9px] font-bold mt-0.5 animate-pulse ${colorMap[stepColor].split(' ')[2]}`}>En cours</p>
+                        )}
                         {done && !current && (() => {
                           const d = getStepDate(step);
                           return d
@@ -712,8 +797,28 @@ export default function OrderDetail() {
                        'Litige ouvert — En attente de traitement'}
                     </span>
                   </div>
-                  {order.dispute_status === 'resolu' && (
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                  {(order.dispute_status === 'ouvert' || order.dispute_status === 'en_cours') && (
+                    <button
+                      onClick={() => setShowEvidenceModal(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-all"
+                    >
+                      <Camera size={13} /> Ajouter des preuves
+                    </button>
+                  )}
+                  {order.dispute_status === 'resolu' && (() => {
+                    const resolvedAt = order.dispute?.resolved_at;
+                    const daysLeft = resolvedAt
+                      ? Math.max(0, 7 - Math.floor((Date.now() - new Date(resolvedAt).getTime()) / 86400000))
+                      : 7;
+                    const canContest = daysLeft > 0;
+                    return (
+                    <div className="space-y-2 pt-1">
+                      {canContest && (
+                        <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
+                          <Clock size={10} /> Vous pouvez contester pendant encore {daysLeft} jour{daysLeft > 1 ? 's' : ''}
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
                       <button
                         disabled={disputeResponseLoading}
                         onClick={async () => {
@@ -731,7 +836,7 @@ export default function OrderDetail() {
                         <ThumbsUp size={14} /> Confirmer
                       </button>
                       <button
-                        disabled={disputeResponseLoading}
+                        disabled={disputeResponseLoading || !canContest}
                         onClick={async () => {
                           setDisputeResponseLoading(true);
                           try {
@@ -739,16 +844,44 @@ export default function OrderDetail() {
                             await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
                             setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
                             toast?.success?.('Contestation enregistrée.');
-                          } catch { toast?.error?.('Erreur'); }
+                          } catch (e) { toast?.error?.(e?.response?.data?.error || 'Erreur'); }
                           finally { setDisputeResponseLoading(false); }
                         }}
-                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={!canContest ? 'Délai de contestation dépassé' : ''}
                       >
                         <ThumbsDown size={14} /> Contester
                       </button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                    );
+                  })()}
+
+              {/* Platform review banner — shown only when delivered */}
+              {isDelivered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-[1.5rem] overflow-hidden border border-amber-100 shadow-sm"
+                >
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                        <Star size={16} className="fill-white text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-black text-slate-800 text-sm leading-tight">Satisfait de Vtout ?</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">Partagez votre expérience avec la communauté béninoise</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPlatformReview(true)}
+                      className="shrink-0 flex items-center gap-1.5 px-5 py-2.5 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap"
+                    >
+                      <Star size={11} fill="currentColor" /> Mon avis
+                    </button>
+                  </div>
+                </motion.div>
               )}
 
               {/* Show dispute button only if no active dispute */}
@@ -779,6 +912,15 @@ export default function OrderDetail() {
         order={order}
         getToken={getToken}
         onClose={() => setShowDisputeModal(false)}
+      />
+    )}
+    <PlatformReviewModal isOpen={showPlatformReview} onClose={() => setShowPlatformReview(false)} />
+    {showEvidenceModal && (
+      <EvidenceModal
+        orderId={order.id}
+        getToken={getToken}
+        onClose={() => setShowEvidenceModal(false)}
+        onAdded={() => { setShowEvidenceModal(false); toast.success('Preuve ajoutée !'); }}
       />
     )}
     </>

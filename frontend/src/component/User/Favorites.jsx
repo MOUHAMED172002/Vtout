@@ -32,7 +32,7 @@ export default function Favorites() {
     try {
       const token = await getToken();
       await toggleFavorite(productId, token);
-      toast.success("Retiré des favoris");
+      toast.success("RetirÃ© des favoris");
       setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
     } catch (err) {
       console.error(err);
@@ -52,7 +52,7 @@ export default function Favorites() {
           <Heart className="text-rose-500 w-8 h-8 fill-rose-500" />
         </div>
       </div>
-      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Récupération de vos envies...</p>
+      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">RÃ©cupÃ©ration de vos envies...</p>
     </div>
   );
 
@@ -65,7 +65,7 @@ export default function Favorites() {
             <Stars size={14} /> Wishlist
           </div>
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter">Mes <span className="text-slate-400">Favoris.</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg leading-relaxed">Retrouvez tous les articles qui vous ont fait craquer et gérez votre liste de souhaits.</p>
+          <p className="text-slate-500 font-bold max-w-lg leading-relaxed">Retrouvez tous les articles qui vous ont fait craquer et gÃ©rez votre liste de souhaits.</p>
         </div>
 
         <button
@@ -96,7 +96,7 @@ export default function Favorites() {
             </div>
             <div className="space-y-3 relative z-10">
               <h3 className="text-2xl font-black text-slate-900">Votre liste est vide</h3>
-              <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">Naviguez sur le site et ajoutez des produits à vos favoris pour les retrouver plus tard.</p>
+              <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">Naviguez sur le site et ajoutez des produits Ã  vos favoris pour les retrouver plus tard.</p>
             </div>
             <button
               onClick={() => navigate('/products-liste')}

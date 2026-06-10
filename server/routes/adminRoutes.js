@@ -10,6 +10,8 @@ const router = express.Router();
 // Dispute management
 router.get('/disputes', requireAuth, requireAdmin, disputeController.getAllDisputes);
 router.patch('/disputes/:id', requireAuth, requireAdmin, disputeController.updateDisputeStatus);
+router.get('/disputes/stats', requireAuth, requireAdmin, disputeController.getDisputeStats);
+router.patch('/disputes/:id/supplier-response', requireAuth, requireAdmin, disputeController.supplierRespondToDispute);
 
 // Maintenance / Sync - Temporairement public pour débloquer le terminal
 router.get('/sync-financials', requireAuth, requireAdmin, financialController.adminSyncFinancials);

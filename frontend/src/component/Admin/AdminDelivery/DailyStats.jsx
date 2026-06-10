@@ -35,15 +35,15 @@ export default function DailyStats() {
                     <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
                         <TrendingUp size={14} /> Performance
                     </div>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Livrées <span className="text-slate-400">aujourd'hui</span></h1>
-                    <p className="text-slate-500 font-bold max-w-lg">Surveillez l'activité en temps réel de votre flotte de livraison.</p>
+                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">LivrÃ©es <span className="text-slate-400">aujourd'hui</span></h1>
+                    <p className="text-slate-500 font-bold max-w-lg">Surveillez l'activitÃ© en temps rÃ©el de votre flotte de livraison.</p>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <div className="bg-primary/10 px-6 py-3 rounded-2xl border border-primary/20 text-primary flex items-center gap-3">
                         <Truck size={20} />
                         <div>
-                            <p className="text-[10px] font-black uppercase">Total Journée</p>
+                            <p className="text-[10px] font-black uppercase">Total JournÃ©e</p>
                             <p className="text-xl font-black">{totalToday} livraisons</p>
                         </div>
                     </div>
@@ -62,7 +62,7 @@ export default function DailyStats() {
                 ) : stats.length === 0 ? (
                     <div className="col-span-full bg-white rounded-[2rem] border border-dashed border-slate-200 p-20 text-center">
                         <BarChart3 size={48} className="mx-auto text-slate-200 mb-4" />
-                        <p className="font-black text-slate-300 uppercase tracking-widest italic">Aucune livraison enregistrée ce jour</p>
+                        <p className="font-black text-slate-300 uppercase tracking-widest italic">Aucune livraison enregistrÃ©e ce jour</p>
                     </div>
                 ) : stats.map((s) => (
                     <div key={s.delivery_person_id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-primary/5 transition-all group">
@@ -76,7 +76,7 @@ export default function DailyStats() {
                         </div>
                         <h3 className="text-2xl font-black text-slate-900 mb-1">{s.deliveryPerson?.profile?.fullname || "Livreur"}</h3>
                         <p className="text-slate-400 font-bold text-sm mb-6 flex items-center gap-2">
-                            <Clock size={14} /> Mis à jour à l'instant
+                            <Clock size={14} /> Mis Ã  jour Ã  l'instant
                         </p>
 
                         <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden mb-4">

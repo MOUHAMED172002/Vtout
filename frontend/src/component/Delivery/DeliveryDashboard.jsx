@@ -64,6 +64,7 @@ export default function DeliveryDashboard() {
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [vehicleData, setVehicleData] = useState({ vehicle_type: '', vehicle_model: '', license_plate: '' });
     const [expandedOrderId, setExpandedOrderId] = useState(null);
+    const [previewOrder, setPreviewOrder] = useState(null);
 
     const abortControllerRef = useRef(null);
     const isFetchingRef = useRef(false);
@@ -580,13 +581,21 @@ export default function DeliveryDashboard() {
                                                         <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Gain Course</p>
                                                         <p className="text-2xl font-black text-primary">{(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 1000)).toLocaleString()} F</p>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleAssign(order.id)}
-                                                        disabled={hasDebt}
-                                                        className="btn btn-primary rounded-2xl h-14 px-8 font-black gap-3 shadow-xl shadow-primary/20 disabled:bg-base-200 disabled:text-base-content/40 disabled:shadow-none"
-                                                    >
-                                                        Accepter <ChevronRight size={18} />
-                                                    </button>
+                                                    <div className="flex flex-col sm:flex-row gap-3">
+                                                        <button
+                                                            onClick={() => setPreviewOrder(order)}
+                                                            className="btn btn-outline rounded-2xl h-14 px-6 font-black gap-2 border-2 border-base-content/20 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
+                                                        >
+                                                            <Search size={16} /> Voir détails
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleAssign(order.id)}
+                                                            disabled={hasDebt}
+                                                            className="btn btn-primary rounded-2xl h-14 px-8 font-black gap-3 shadow-xl shadow-primary/20 disabled:bg-base-200 disabled:text-base-content/40 disabled:shadow-none"
+                                                        >
+                                                            Accepter <ChevronRight size={18} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))
@@ -1226,6 +1235,163 @@ export default function DeliveryDashboard() {
                                     Enregistrer
                                 </button>
                             </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Order Preview Modal */}
+            <AnimatePresence>
+                {previewOrder && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[110] flex items-end md:items-center justify-center"
+                        onClick={() => setPreviewOrder(null)}
+                    >
+                        <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" />
+                        <motion.div
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "100%", opacity: 0 }}
+                            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                            onClick={e => e.stopPropagation()}
+                            className="relative z-10 bg-base-100 w-full md:max-w-2xl md:rounded-[3rem] rounded-t-[3rem] shadow-2xl max-h-[92vh] overflow-y-auto"
+                        >
+                            {/* Header */}
+                            <div className="sticky top-0 bg-base-100 z-10 flex items-center justify-between px-8 pt-8 pb-5 border-b border-base-content/5">
+                                <div className="space-y-0.5">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">RÉF. #{previewOrder.id.slice(0, 8)}</p>
+                                    <h2 className="text-2xl font-black text-base-content tracking-tighter">Détails de la Commande</h2>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="px-3 py-1 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                            {previewOrder.status || "disponible"}
+                                        </span>
+                                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                            Gain : {(previewOrder.deliverer_fee !== undefined ? previewOrder.deliverer_fee : (previewOrder.delivery_fee || 1000)).toLocaleString()} F
+                                        </span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setPreviewOrder(null)}
+                                    className="w-12 h-12 bg-base-200 hover:bg-rose-50 hover:text-rose-500 text-base-content/40 rounded-2xl flex items-center justify-center transition-all shrink-0"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="px-8 pb-8 pt-6 space-y-8">
+                                {/* Section 2: Produits à collecter */}
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-base-content/40 uppercase tracking-[0.25em] flex items-center gap-2">
+                                        <Package size={13} /> Produits à Collecter
+                                    </p>
+
+                                    {/* Product cards grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {(previewOrder.items || []).map(item => (
+                                            <div key={item.id} className="flex items-center gap-3 bg-base-200 p-4 rounded-2xl border border-base-content/5">
+                                                <div className="w-[50px] h-[50px] rounded-xl bg-base-100 overflow-hidden border border-base-content/10 shrink-0 flex items-center justify-center">
+                                                    {item.product?.images?.[0]?.image_url ? (
+                                                        <img src={item.product.images[0].image_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Package size={18} className="text-base-content/20" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-black text-base-content truncate">{item.product?.name || "Produit"}</p>
+                                                    <p className="text-[10px] font-bold text-primary">Qté : x{item.quantity}</p>
+                                                    {item.variant && (
+                                                        <p className="text-[9px] font-bold text-base-content/40 italic truncate">{item.variant.attribute_values || item.variant.sku}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Pickup location */}
+                                    <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-2xl space-y-2">
+                                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Store size={11} /> Point de Collecte
+                                        </p>
+                                        <h4 className="text-sm font-black text-base-content">{previewOrder.supplier?.name || "Boutique Vendeur"}</h4>
+                                        {previewOrder.supplier?.phone && (
+                                            <a
+                                                href={`tel:${previewOrder.supplier.phone}`}
+                                                className="inline-flex items-center gap-1.5 text-[10px] font-black text-amber-600 hover:underline"
+                                            >
+                                                <Phone size={11} /> {previewOrder.supplier.phone}
+                                            </a>
+                                        )}
+                                        {(previewOrder.supplier?.address_line || previewOrder.supplier?.commune_label) && (
+                                            <p className="text-[11px] text-base-content/60 font-bold flex items-start gap-1.5 mt-1">
+                                                <MapPin size={11} className="mt-0.5 shrink-0" />
+                                                {[previewOrder.supplier.address_line, previewOrder.supplier.quartier_label || previewOrder.supplier.commune_label].filter(Boolean).join(", ")}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Adresse de livraison */}
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-base-content/40 uppercase tracking-[0.25em] flex items-center gap-2">
+                                        <MapPin size={13} /> Adresse de Livraison
+                                    </p>
+                                    <div className="bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl space-y-2">
+                                        <h4 className="text-sm font-black text-base-content">
+                                            {previewOrder.user?.fullname || previewOrder.guest_name || "Client"}
+                                        </h4>
+                                        <p className="text-[11px] text-base-content/60 font-bold flex items-start gap-1.5">
+                                            <MapPin size={11} className="mt-0.5 shrink-0" />
+                                            {[
+                                                previewOrder.address?.address_line,
+                                                previewOrder.address?.quartier_label || previewOrder.address?.quartier,
+                                                previewOrder.address?.commune_label || previewOrder.address?.commune,
+                                                previewOrder.address?.city
+                                            ].filter(Boolean).join(", ")}
+                                        </p>
+                                        {previewOrder.address?.phone && (
+                                            <a
+                                                href={`tel:${previewOrder.address.phone}`}
+                                                className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-600 hover:underline mt-1"
+                                            >
+                                                <Phone size={11} /> {previewOrder.address.phone}
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Section 4: Votre gain */}
+                                <div className="bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-2xl space-y-2 text-center">
+                                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-[0.3em]">Votre Gain</p>
+                                    <p className="text-5xl font-black text-emerald-500">
+                                        {(previewOrder.deliverer_fee !== undefined ? previewOrder.deliverer_fee : (previewOrder.delivery_fee || 1000)).toLocaleString()}
+                                        <span className="text-2xl ml-1">F</span>
+                                    </p>
+                                    <p className="text-[10px] text-base-content/40 font-bold">Collectez le paiement à la livraison si applicable</p>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                                    <button
+                                        onClick={() => {
+                                            handleAssign(previewOrder.id);
+                                            setPreviewOrder(null);
+                                        }}
+                                        disabled={hasDebt}
+                                        className="flex-1 btn btn-primary rounded-2xl py-4 h-auto font-black text-sm gap-3 shadow-xl shadow-primary/20 disabled:bg-base-200 disabled:text-base-content/40 disabled:shadow-none"
+                                    >
+                                        <Check size={18} /> Accepter cette livraison
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewOrder(null)}
+                                        className="sm:w-auto btn btn-ghost rounded-2xl py-4 h-auto font-black text-sm border-2 border-base-content/10 hover:border-base-content/20"
+                                    >
+                                        Fermer
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

@@ -79,7 +79,7 @@ export default function AddressesManager() {
       if (addr.id) await updateAddress(addr.id, addr, token);
       else await createAddress(addr, token);
       await loadAddresses();
-      showToast("success", "Adresse enregistrée avec succès !");
+      showToast("success", "Adresse enregistrÃ©e avec succÃ¨s !");
     } catch (e) {
       console.error(e);
       showToast("error", "Erreur lors de l'enregistrement.");
@@ -97,7 +97,7 @@ export default function AddressesManager() {
       const token = await getToken();
       await deleteAddress(id, token);
       await loadAddresses();
-      showToast("success", "Adresse supprimée.");
+      showToast("success", "Adresse supprimÃ©e.");
     } catch (e) {
       console.error(e);
       showToast("error", "Erreur lors de la suppression.");
@@ -112,10 +112,10 @@ export default function AddressesManager() {
       const token = await getToken();
       await updateAddress(id, { is_default: true }, token);
       await loadAddresses();
-      showToast("success", "Adresse par défaut mise à jour !");
+      showToast("success", "Adresse par dÃ©faut mise Ã  jour !");
     } catch (e) {
       console.error(e);
-      showToast("error", "Impossible de définir l'adresse par défaut.");
+      showToast("error", "Impossible de dÃ©finir l'adresse par dÃ©faut.");
     } finally {
       setBusy((b) => ({ ...b, settingDefault: null }));
     }
@@ -161,7 +161,7 @@ export default function AddressesManager() {
             <h2 className="text-lg font-black text-slate-900 tracking-tight">Mes adresses</h2>
             {user && (
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                {addresses.length} adresse{addresses.length !== 1 ? "s" : ""} enregistrée{addresses.length !== 1 ? "s" : ""}
+                {addresses.length} adresse{addresses.length !== 1 ? "s" : ""} enregistrÃ©e{addresses.length !== 1 ? "s" : ""}
               </p>
             )}
           </div>
@@ -195,7 +195,7 @@ export default function AddressesManager() {
           </div>
           <div className="text-center space-y-2">
             <p className="text-sm font-black text-slate-400 uppercase tracking-widest">
-              Aucune adresse enregistrée
+              Aucune adresse enregistrÃ©e
             </p>
             <p className="text-xs text-slate-300 font-bold">
               Ajoutez une adresse pour faciliter vos commandes
@@ -243,7 +243,7 @@ export default function AddressesManager() {
                     </div>
                     {a.is_default && (
                       <div className="flex items-center gap-1.5 bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full">
-                        <Star size={9} fill="currentColor" /> Par défaut
+                        <Star size={9} fill="currentColor" /> Par dÃ©faut
                       </div>
                     )}
                   </div>
@@ -274,7 +274,7 @@ export default function AddressesManager() {
                           {isSetting
                             ? <Loader2 size={12} className="animate-spin" />
                             : <CheckCircle2 size={12} />}
-                          Définir par défaut
+                          DÃ©finir par dÃ©faut
                         </button>
                       ) : (
                         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
@@ -388,7 +388,7 @@ export default function AddressesManager() {
                     <strong className="text-slate-700">
                       {confirm.label || "cette adresse"}
                     </strong>{" "}
-                    ? Cette action est irréversible.
+                    ? Cette action est irrÃ©versible.
                   </p>
                 </div>
               </div>

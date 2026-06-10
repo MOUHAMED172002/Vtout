@@ -27,12 +27,12 @@ export default function CashControl() {
     };
 
     const handleConfirmCash = async (deliveryPersonId) => {
-        if (!window.confirm("Confirmez-vous avoir reçu l'intégralité du cash de ce livreur ?")) return;
+        if (!window.confirm("Confirmez-vous avoir reÃ§u l'intÃ©gralitÃ© du cash de ce livreur ?")) return;
 
         try {
             const token = await getToken();
             await confirmCashRemitted(token, deliveryPersonId);
-            toast.success("Cash validé ! Le compte du livreur est débloqué.");
+            toast.success("Cash validÃ© ! Le compte du livreur est dÃ©bloquÃ©.");
             fetchStats();
         } catch (err) {
             toast.error("Erreur lors de la validation");
@@ -46,8 +46,8 @@ export default function CashControl() {
                     <div className="flex items-center gap-3 text-emerald-500 font-black uppercase text-xs tracking-[0.3em]">
                         <DollarSign size={14} /> Finance
                     </div>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Contrôle <span className="text-slate-400">du Cash</span></h1>
-                    <p className="text-slate-500 font-bold max-w-lg">Gérez les encaissements des livreurs et débloquez leurs accès.</p>
+                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">ContrÃ´le <span className="text-slate-400">du Cash</span></h1>
+                    <p className="text-slate-500 font-bold max-w-lg">GÃ©rez les encaissements des livreurs et dÃ©bloquez leurs accÃ¨s.</p>
                 </div>
 
                 <button
@@ -64,7 +64,7 @@ export default function CashControl() {
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/50">
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 pl-10">Livreur</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-center">Commandes non payées</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-center">Commandes non payÃ©es</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-center">Montant Total</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-center">Statut Compte</th>
                                 <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-right pr-10">Action</th>
@@ -79,7 +79,7 @@ export default function CashControl() {
                                         <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-200">
                                             <Check size={40} />
                                         </div>
-                                        <p className="font-black text-slate-300 uppercase tracking-widest text-sm italic py-4">Toutes les caisses sont équilibrées</p>
+                                        <p className="font-black text-slate-300 uppercase tracking-widest text-sm italic py-4">Toutes les caisses sont Ã©quilibrÃ©es</p>
                                     </td>
                                 </tr>
                             ) : debts.map((d) => (
@@ -102,7 +102,7 @@ export default function CashControl() {
                                     </td>
                                     <td className="py-8 text-center">
                                         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-full border border-rose-100 text-[10px] font-black uppercase tracking-widest">
-                                            <AlertCircle size={14} /> Bloqué (Dette)
+                                            <AlertCircle size={14} /> BloquÃ© (Dette)
                                         </div>
                                     </td>
                                     <td className="py-8 text-right pr-10">

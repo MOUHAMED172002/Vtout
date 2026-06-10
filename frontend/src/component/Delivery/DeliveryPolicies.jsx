@@ -7,12 +7,20 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const parseStructuredContent = (content) => {
   if (!content) return [];
-  const lines = content.split('\n');
+
+  // Normalize: insert newlines before numbered sections and "Article X"
+  // even when the DB content is stored as one long blob without line breaks
+  const normalized = content
+    .replace(/([^\n])\s+(\d{1,2}[\.\)]\s+[A-ZÀÂÄÈÉÊËÎÏÔÙÛÜ])/g, '$1\n$2')
+    .replace(/([^\n])\s+(Article\s+\d+)/gi, '$1\n$2');
+
+  const lines = normalized.split('\n');
   const sections = [];
   let current = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
+    if (!trimmed) continue;
     const headerMatch = trimmed.match(/^(\d+)[\.\)]\s+(.+)/);
     const articleMatch = trimmed.match(/^(Article\s+\d+\s*[:\-–]?\s*.+)/i);
 
@@ -23,9 +31,16 @@ const parseStructuredContent = (content) => {
         title: headerMatch ? headerMatch[2] : articleMatch[1],
         paragraphs: [],
       };
-    } else if (trimmed) {
+    } else {
       if (!current) current = { number: null, title: null, paragraphs: [] };
-      current.paragraphs.push(trimmed);
+      // Split long intro blobs into readable chunks (~180 chars each)
+      const raw = trimmed;
+      if (raw.length > 250) {
+        const chunks = raw.match(/.{1,200}(?:\s|$)/g) || [raw];
+        chunks.forEach(c => { if (c.trim()) current.paragraphs.push(c.trim()); });
+      } else {
+        current.paragraphs.push(raw);
+      }
     }
   }
   if (current) sections.push(current);
@@ -69,11 +84,13 @@ function PolicyCard({ policy, idx }) {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <div className="px-7 pb-7 space-y-6 border-t border-slate-100 pt-6">
-              {hasStructure ? (
-                sections.map((sec, i) => (
-                  <div key={i} className="space-y-2">
-                    {(sec.number || sec.title) && (
+            <div className="px-7 pb-7 space-y-5 border-t border-slate-100 pt-6">
+              {sections.map((sec, i) => {
+                const isIntro = !sec.number && !sec.title;
+                return (
+                  <div key={i} className={isIntro ? '' : 'rounded-2xl border border-slate-100 bg-slate-50/60 p-4 space-y-2'}>
+                    {/* Numbered / titled header */}
+                    {!isIntro && (
                       <div className="flex items-start gap-3">
                         {sec.number && (
                           <span className="shrink-0 w-7 h-7 rounded-lg bg-amber-500 text-white text-xs font-black flex items-center justify-center mt-0.5">
@@ -81,24 +98,19 @@ function PolicyCard({ policy, idx }) {
                           </span>
                         )}
                         {sec.title && (
-                          <h4 className="font-black text-slate-700 text-sm leading-snug">{sec.title}</h4>
+                          <h4 className="font-black text-slate-800 text-sm leading-snug pt-0.5">{sec.title}</h4>
                         )}
                       </div>
                     )}
-                    <div className="space-y-2 pl-10">
+                    {/* Paragraphs */}
+                    <div className={`space-y-2 ${!isIntro && sec.number ? 'pl-10' : ''}`}>
                       {sec.paragraphs.map((p, j) => (
-                        <p key={j} className="text-slate-600 text-sm leading-relaxed font-medium">{p}</p>
+                        <p key={j} className={`text-sm leading-relaxed font-medium ${isIntro ? 'text-slate-500 italic' : 'text-slate-600'}`}>{p}</p>
                       ))}
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="space-y-3">
-                  {policy.content.split('\n').filter(l => l.trim()).map((para, i) => (
-                    <p key={i} className="text-slate-600 text-sm leading-relaxed font-medium">{para.trim()}</p>
-                  ))}
-                </div>
-              )}
+                );
+              })}
 
               {/* Footer */}
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 pt-4 border-t border-slate-100">

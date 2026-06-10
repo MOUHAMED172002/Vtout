@@ -20,7 +20,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  MessageCircle
+  MessageCircle,
+  Wallet
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -39,6 +40,7 @@ export default function HomeCards() {
   const [cart, setCart] = useState([]);
   const [address, setAddress] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const navigate = useNavigate();
 
@@ -47,15 +49,18 @@ export default function HomeCards() {
     setLoading(true);
     try {
       const token = await getToken();
-      // Simuler un l�ger d�lai pour voir les squelettes (optionnel, mais utile pour l'UX si l'API est trop rapide)
+      // Simuler un léger délai pour voir les squelettes (optionnel, mais utile pour l'UX si l'API est trop rapide)
       // await new Promise(r => setTimeout(r, 800)); 
 
-      const [profileData, ordersData, favoritesData, cartData, addressesData] = await Promise.all([
+      const [profileData, ordersData, favoritesData, cartData, addressesData, walletData] = await Promise.all([
         getMyProfile(token).catch(() => null),
         getMyOrders(token).catch(() => []),
         getUserFavorites(token).catch(() => []),
         getMyCart(token).catch(() => []),
-        getMyAddresses(token).catch(() => [])
+        getMyAddresses(token).catch(() => []),
+        fetch(`${import.meta.env.VITE_API_URL}/financials/my-status`, { headers: { Authorization: `Bearer ${token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
       ]);
 
       setUserInfo(profileData || { fullname: user.fullName, email: user.primaryEmailAddress?.emailAddress, avatar_url: user.imageUrl });
@@ -63,6 +68,7 @@ export default function HomeCards() {
       setFavorites(Array.isArray(favoritesData) ? favoritesData : []);
       setCart(Array.isArray(cartData) ? cartData : []);
       setAddress(Array.isArray(addressesData) ? addressesData.find(a => a.is_default) || addressesData[0] : null);
+      setWalletBalance(walletData?.balance ?? 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -156,7 +162,7 @@ export default function HomeCards() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2 rounded-full backdrop-blur-md">
               <Crown size={16} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privil�ge Vtout</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900/80">Membre Privilège Vtout</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
@@ -165,7 +171,7 @@ export default function HomeCards() {
             </h1>
 
             <p className="text-slate-400 font-bold text-lg max-w-md leading-relaxed">
-              Votre dashboard est � jour. Vous avez <span className="text-slate-900">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
+              Votre dashboard est à jour. Vous avez <span className="text-slate-900">{orders.length} commandes</span> en cours et des offres exclusives vous attendent.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
@@ -199,13 +205,13 @@ export default function HomeCards() {
                   <p className="text-primary font-black">{orders[0].total_amount.toLocaleString()} FCFA</p>
                 </div>
               ) : (
-                <p className="text-slate-500 font-bold italic">Aucun achat r�cent</p>
+                <p className="text-slate-500 font-bold italic">Aucun achat récent</p>
               )}
               <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: "70%" }} className="h-full bg-primary" />
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-400">
-                <ShieldCheck size={14} /> Paiement S�curis�
+                <ShieldCheck size={14} /> Paiement Sécurisé
               </div>
             </motion.div>
           </div>
@@ -225,7 +231,7 @@ export default function HomeCards() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem]">{stat.label}</p>
               <p className="text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
               <Link to={stat.to} className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                G�rer <ChevronRight size={12} />
+                Gérer <ChevronRight size={12} />
               </Link>
             </div>
             <div className={`w-20 h-20 rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500`}>
@@ -234,6 +240,31 @@ export default function HomeCards() {
           </motion.div>
         ))}
       </div>
+
+      {/* Wallet Banner — only shown when balance > 0 */}
+      {walletBalance > 0 && (
+        <motion.div
+          variants={item}
+          whileHover={{ y: -4 }}
+          className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-[2rem] p-8 text-white shadow-lg shadow-emerald-200/50 flex items-center justify-between gap-6"
+        >
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-white/20 rounded-[1.2rem] flex items-center justify-center shrink-0">
+              <Wallet size={28} className="text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-emerald-100 mb-1">Votre portefeuille</p>
+              <p className="text-4xl font-black tracking-tighter">{walletBalance.toLocaleString("fr-FR")} F</p>
+            </div>
+          </div>
+          <Link
+            to="/user/dashboard/wallet"
+            className="btn btn-sm bg-white text-emerald-700 hover:bg-emerald-50 border-none font-black rounded-2xl px-6 h-12 shrink-0 shadow-md"
+          >
+            Commander ou retirer →
+          </Link>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Recent Activity */}
@@ -244,48 +275,62 @@ export default function HomeCards() {
                 <TrendingUp size={22} />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Commandes R�centes</h2>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Commandes Récentes</h2>
                 <p className="text-xs font-bold text-slate-400">Suivi de vos derniers achats</p>
               </div>
             </div>
             <Link to="/user/dashboard/orders" className="text-xs font-black text-primary hover:underline bg-primary/5 px-6 py-3 rounded-2xl uppercase tracking-widest">Voir Tout</Link>
           </div>
 
-          <div className="space-y-4">
+          {/* ── Status helpers ── */}
+          {(() => {
+            const STATUS_LABEL = { en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' };
+            const STATUS_COLOR = { en_attente: 'bg-amber-50 text-amber-600', confirmee: 'bg-emerald-50 text-emerald-600', confirmée: 'bg-emerald-50 text-emerald-600', expediee: 'bg-blue-50 text-blue-600', expédiée: 'bg-blue-50 text-blue-600', livree: 'bg-emerald-50 text-emerald-600', livrée: 'bg-emerald-50 text-emerald-600', annulee: 'bg-rose-50 text-rose-600', annulée: 'bg-rose-50 text-rose-600' };
+            return (
+          <div className="space-y-3">
             {orders.length > 0 ? (
-              orders.slice(0, 4).map((order) => (
-                <Link
-                  key={order.id}
-                  to={`/user/dashboard/orders/${order.id}`}
-                  className="block"
-                >
-                  <motion.div
-                    whileHover={{ x: 10 }}
-                    className="bg-white p-8 rounded-[2.5rem] border border-slate-50 flex items-center justify-between hover:shadow-[0_10px_50px_rgba(0,0,0,0.05)] transition-all group"
-                  >
-                    <div className="flex items-center gap-8">
-                      <div className="w-20 h-20 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <ShoppingBag size={28} />
+              orders.slice(0, 4).map((order) => {
+                const d = new Date(order.created_at || order.createdAt);
+                const dateStr = isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                const label = STATUS_LABEL[order.status] || order.status;
+                const color = STATUS_COLOR[order.status] || 'bg-orange-50 text-orange-600';
+                return (
+                  <Link key={order.id} to={`/user/dashboard/orders/${order.id}`} className="block">
+                    <motion.div
+                      whileHover={{ x: 4 }}
+                      className="bg-white px-4 py-4 rounded-[1.8rem] border border-slate-100 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all group active:scale-[0.99]"
+                    >
+                      {/* Icon */}
+                      <div className="w-11 h-11 shrink-0 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <ShoppingBag size={18} />
                       </div>
-                      <div className="space-y-1">
-                        <p className="font-black text-slate-900 text-xl tracking-tight">Commande #{order.id.slice(0, 8)}</p>
-                        <div className="flex items-center gap-3">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
-                          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                          <p className="text-xs font-bold text-slate-400">{order.status}</p>
+
+                      {/* Content — two rows */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1 : ref + montant */}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-black text-slate-900 text-sm tracking-tight truncate">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="font-black text-slate-900 text-sm shrink-0">
+                            {Number(order.total_amount).toLocaleString('fr-FR')} F
+                          </p>
+                        </div>
+                        {/* Row 2 : date + badge */}
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-[11px] font-bold text-slate-400">{dateStr}</p>
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${color}`}>
+                            {label}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right space-y-3">
-                      <p className="font-black text-slate-900 text-2xl tracking-tighter">{order.total_amount.toLocaleString()} F</p>
-                      <span className={`inline-flex px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'confirmee' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'
-                        }`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))
+
+                      {/* Chevron */}
+                      <ChevronRight size={14} className="text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
+                    </motion.div>
+                  </Link>
+                );
+              })
             ) : (
               <div className="bg-white p-20 rounded-[3rem] border-2 border-dashed border-slate-100 text-center space-y-6">
                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
@@ -293,12 +338,14 @@ export default function HomeCards() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-black text-slate-900">Aucune commande</h3>
-                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">C'est le moment id�al pour d�couvrir nos nouvelles p�pites technologiques.</p>
+                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">C'est le moment idéal pour découvrir nos nouvelles pépites technologiques.</p>
                 </div>
                 <Link to="/products-liste" className="btn btn-primary rounded-2xl px-10 h-14 font-black shadow-lg shadow-primary/20 border-none">Explorer la Boutique</Link>
               </div>
             )}
           </div>
+            );
+          })()}
         </div>
 
         {/* Sidebar Mini Column */}
@@ -308,7 +355,7 @@ export default function HomeCards() {
               <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
                 <MapPinned size={22} />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Exp�dition</h2>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Expédition</h2>
             </div>
 
             {address ? (
@@ -320,7 +367,7 @@ export default function HomeCards() {
                   </div>
                   <div className="relative z-10">
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">
-                      {address.is_default ? "Adresse par d�faut" : address.label || "Adresse de livraison"}
+                      {address.is_default ? "Adresse par défaut" : address.label || "Adresse de livraison"}
                     </p>
                     <p className="text-2xl font-black text-slate-900 leading-tight tracking-tight">
                       {address.quartier_label}
@@ -348,13 +395,13 @@ export default function HomeCards() {
                     <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-primary">
                       <PackageCheck size={14} />
                     </div>
-                    Livraison estim�e : 24�48h
+                    Livraison estimée : 2448h
                   </div>
                   <Link
                     to="/user/dashboard/addresses"
                     className="flex items-center justify-center gap-2 w-full h-12 mt-2 bg-slate-50 hover:bg-slate-100 rounded-2xl font-black text-slate-700 text-xs uppercase tracking-widest transition-all border border-transparent hover:border-slate-200"
                   >
-                    G�rer mes adresses <ArrowRight size={14} />
+                    Gérer mes adresses <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -389,7 +436,7 @@ export default function HomeCards() {
               <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
               <p className="text-slate-400 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
-                Nos experts vous r�pondent en moins de 5 minutes.
+                Nos experts vous répondent en moins de 5 minutes.
               </p>
             </div>
 
@@ -397,7 +444,7 @@ export default function HomeCards() {
               onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
               className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-2xl shadow-primary/30 border-none relative z-10"
             >
-              Parler � un agent
+              Parler à un agent
             </button>
           </div>
         </div>

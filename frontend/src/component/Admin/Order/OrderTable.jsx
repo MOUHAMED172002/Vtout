@@ -1,6 +1,6 @@
 import React from "react";
 import OrderStatusBadge from "../Order/OrderStatusBadge";
-import { Calendar, User, CreditCard, ChevronRight } from "lucide-react";
+import { Calendar, User, CreditCard, ChevronRight, AlertCircle } from "lucide-react";
 
 /**
  * OrderTable - simple tableau des commandes
@@ -56,6 +56,11 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
                       </p>
                       {o.parent_id && (
                         <span className="text-[8px] font-black bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded-md border border-indigo-100 uppercase tracking-tighter">Multi-Boutique</span>
+                      )}
+                      {o.dispute_status && !['annule', 'resolu'].includes(o.dispute_status) && (
+                        <span className="text-[8px] font-black bg-rose-50 text-rose-500 px-1.5 py-0.5 rounded-md border border-rose-100 uppercase tracking-tighter flex items-center gap-0.5">
+                          <AlertCircle size={8}/> Litige
+                        </span>
                       )}
                     </div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none line-clamp-1 w-24">
