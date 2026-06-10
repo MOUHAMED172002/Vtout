@@ -116,15 +116,15 @@ export default function OrdersList() {
   );
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-6 md:space-y-12 pb-20">
 
       {/* -- Header -- */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
-        <div className="space-y-3">
+      <div className="flex flex-col gap-5">
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em]">
             <ShoppingBag size={14} /> Historique
           </div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">
             Mes <span className="text-slate-400">Commandes.</span>
           </h1>
           <p className="text-slate-500 font-bold max-w-lg leading-relaxed text-sm">
@@ -134,22 +134,22 @@ export default function OrdersList() {
 
         {/* Search + Refresh */}
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
               placeholder="Rechercher par ID..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-              className="bg-white border border-slate-100 rounded-2xl pl-12 pr-6 py-4 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all w-64"
+              className="bg-white border border-slate-100 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all w-full"
             />
           </div>
           <button
             onClick={load}
             title="Actualiser"
-            className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+            className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm shrink-0"
           >
-            <RefreshCcw size={18} />
+            <RefreshCcw size={16} />
           </button>
         </div>
       </div>
