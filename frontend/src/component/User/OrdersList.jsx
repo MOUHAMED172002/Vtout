@@ -128,7 +128,7 @@ export default function OrdersList() {
             Mes <span className="text-slate-400">Commandes.</span>
           </h1>
           <p className="text-slate-500 font-bold max-w-lg leading-relaxed text-sm">
-            Consultez vos achats, téléchargez vos reçus et laissez des avis.
+            Consultez vos achats, tÃ©lÃ©chargez vos reÃ§us et laissez des avis.
           </p>
         </div>
 
@@ -182,11 +182,11 @@ export default function OrdersList() {
       {displayed.length === 0 ? (
         <EmptyState
           type="orders"
-          title={searchQuery || statusFilter ? "Aucun résultat" : "Aucune commande"}
+          title={searchQuery || statusFilter ? "Aucun rÃ©sultat" : "Aucune commande"}
           description={
             searchQuery || statusFilter
               ? "Modifiez vos filtres pour trouver vos commandes."
-              : "Vous n'avez pas encore passé de commande."
+              : "Vous n'avez pas encore passÃ© de commande."
           }
           actionLabel="Boutique"
           actionLink="/products-liste"
@@ -217,7 +217,7 @@ export default function OrdersList() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1.5">
                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                          Réf. {o.id.slice(0, 8).toUpperCase()}
+                          RÃ©f. {o.id.slice(0, 8).toUpperCase()}
                         </p>
                         <h4 className="text-xl font-black text-slate-900 tracking-tighter">
                           Commande #{o.id.slice(0, 6)}
@@ -239,7 +239,7 @@ export default function OrdersList() {
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Articles</p>
                         <p className="text-2xl font-black text-slate-900 tracking-tighter">
-                          {o.items_count ?? (o.items?.length ?? "—")}{" "}
+                          {o.items_count ?? (o.items?.length ?? "Â—")}{" "}
                           <span className="text-xs text-slate-400">items</span>
                         </p>
                       </div>
@@ -259,15 +259,15 @@ export default function OrdersList() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 relative z-10">
-                    {/* Détails */}
+                    {/* DÃ©tails */}
                     <button
                       onClick={() => navigate(`/user/dashboard/orders/${o.id}`)}
                       className="flex-1 btn bg-slate-900 hover:bg-black text-white rounded-2xl h-14 font-black gap-2 shadow-xl shadow-slate-900/10 border-none text-xs"
                     >
-                      Détails <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      DÃ©tails <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
 
-                    {/* Laisser un avis (si livré) */}
+                    {/* Laisser un avis (si livrÃ©) */}
                     {canReview && (
                       <Link
                         to={`/user/dashboard/orders/${o.id}/reviews`}
@@ -278,10 +278,10 @@ export default function OrdersList() {
                       </Link>
                     )}
 
-                    {/* Reçus */}
+                    {/* ReÃ§us */}
                     <button
-                      onClick={() => toast.success("Génération de la facture...")}
-                      title="Télécharger la facture"
+                      onClick={() => toast.success("GÃ©nÃ©ration de la facture...")}
+                      title="TÃ©lÃ©charger la facture"
                       className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:text-primary hover:border-primary/20 transition-all shadow-sm"
                     >
                       <FileText size={20} />

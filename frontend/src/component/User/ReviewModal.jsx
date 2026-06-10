@@ -48,7 +48,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
             image_url: item.product?.images?.[0]?.image_url || null
           }));
 
-          // Dédupliquer par ID produit
+          // DÃ©dupliquer par ID produit
           const uniqueProds = Array.from(new Map(prods.map(p => [p.id, p])).values());
           if (mounted) setProductsList(uniqueProds);
         }
@@ -75,7 +75,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
       return urls;
     } catch (err) {
       console.error("Upload multiple error", err);
-      toast.error("Erreur lors du téléchargement des images.");
+      toast.error("Erreur lors du tÃ©lÃ©chargement des images.");
       return [];
     } finally {
       setUploading(false);
@@ -84,7 +84,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
 
   async function save() {
     if (!orderId) return toast.error("OrderId manquant.");
-    if (!product || !product.id) return toast.error("Veuillez sélectionner un produit.");
+    if (!product || !product.id) return toast.error("Veuillez sÃ©lectionner un produit.");
     if (!rating || rating < 1 || rating > 5) return toast.error("Donnez une note entre 1 et 5.");
 
     setSaving(true);
@@ -98,7 +98,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
           urls = urls.concat(uploaded);
         } catch (uploadErr) {
           console.error("upload error", uploadErr);
-          toast.error("Impossible d'uploader les images. L'avis sera enregistré sans images.");
+          toast.error("Impossible d'uploader les images. L'avis sera enregistrÃ© sans images.");
           urls = [];
         }
       }
@@ -114,7 +114,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
 
       await createReview(payload, token);
 
-      toast.success("Merci ! Votre avis a été ajouté.");
+      toast.success("Merci ! Votre avis a Ã©tÃ© ajoutÃ©.");
       if (onSaved) {
         try { await onSaved(); } catch (e) { console.warn("onSaved callback error", e); }
       }
@@ -140,7 +140,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
         <div className="p-8 md:p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
           <div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Laisser un <span className="text-slate-400">avis.</span></h3>
-            <p className="text-sm font-bold text-slate-400 mt-1">Partagez votre expérience avec la communauté</p>
+            <p className="text-sm font-bold text-slate-400 mt-1">Partagez votre expÃ©rience avec la communautÃ©</p>
           </div>
           <button
             onClick={onClose}
@@ -155,14 +155,14 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
           <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
             {!initialProduct && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Sélectionner un produit</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">SÃ©lectionner un produit</label>
                 {loadingProducts ? (
                   <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
                     <span className="loading loading-spinner loading-xs"></span> Chargement...
                   </div>
                 ) : productsList.length === 0 ? (
                   <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 text-amber-700 text-xs font-bold">
-                    Aucun produit trouvé pour cette commande.
+                    Aucun produit trouvÃ© pour cette commande.
                   </div>
                 ) : (
                   <div className="relative">
@@ -201,11 +201,11 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">Produit sélectionné</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">Produit sÃ©lectionnÃ©</p>
                   <h4 className="text-lg font-black text-slate-900 tracking-tight truncate">{product.name}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <ShieldCheck size={14} className="text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Achat vérifié</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Achat vÃ©rifiÃ©</span>
                   </div>
                 </div>
               </motion.div>
@@ -226,7 +226,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
                 </button>
               ))}
               <span className="ml-2 font-black text-slate-900 text-lg">
-                {rating}/5 <span className="text-slate-400 text-sm font-bold ml-1">— {['Très mauvais', 'Mauvais', 'Moyen', 'Très bien', 'Excellent'][rating - 1]}</span>
+                {rating}/5 <span className="text-slate-400 text-sm font-bold ml-1">â€” {['TrÃ¨s mauvais', 'Mauvais', 'Moyen', 'TrÃ¨s bien', 'Excellent'][rating - 1]}</span>
               </span>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Excellent produit, très satisfait !"
+                placeholder="Ex: Excellent produit, trÃ¨s satisfait !"
                 className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 py-4 font-bold text-slate-700 focus:bg-white focus:border-primary outline-none transition-all"
               />
             </div>
@@ -248,7 +248,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Dites-nous ce que vous avez aimé ou ce qui peut être amélioré..."
+                placeholder="Dites-nous ce que vous avez aimÃ© ou ce qui peut Ãªtre amÃ©liorÃ©..."
                 className="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-medium text-slate-600 focus:bg-white focus:border-primary outline-none transition-all min-h-[150px] resize-none"
               />
             </div>
@@ -292,7 +292,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
             </div>
             {(saving || uploading) && (
               <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest">
-                <span className="loading loading-spinner loading-xs"></span> Étape: {uploading ? 'Upload des images...' : 'Enregistrement de l\'avis...'}
+                <span className="loading loading-spinner loading-xs"></span> Ã‰tape: {uploading ? 'Upload des images...' : 'Enregistrement de l\'avis...'}
               </div>
             )}
           </div>

@@ -29,10 +29,10 @@ export default function AdminFaqManager() {
       const token = await getToken();
       if (editing) {
         await updateFaq(editing.id, form, token);
-        toast.success("FAQ mise à jour !");
+        toast.success("FAQ mise Ã  jour !");
       } else {
         await createFaq(form, token);
-        toast.success("FAQ ajoutée !");
+        toast.success("FAQ ajoutÃ©e !");
       }
       setForm({ question: "", answer: "" });
       setEditing(null);
@@ -47,7 +47,7 @@ export default function AdminFaqManager() {
     try {
       const token = await getToken();
       await apiDeleteFaq(id, token);
-      toast.success("Supprimée !");
+      toast.success("SupprimÃ©e !");
       loadFaqs();
     } catch (err) {
       toast.error("Erreur de suppression");
@@ -67,13 +67,13 @@ export default function AdminFaqManager() {
           className="input input-bordered w-full"
         />
         <textarea
-          placeholder="Réponse"
+          placeholder="RÃ©ponse"
           value={form.answer}
           onChange={(e) => setForm({ ...form, answer: e.target.value })}
           className="textarea textarea-bordered w-full"
         />
         <button className="btn btn-primary w-full" onClick={saveFaq}>
-          {editing ? "Mettre à jour" : "Ajouter"}
+          {editing ? "Mettre Ã  jour" : "Ajouter"}
         </button>
       </div>
 

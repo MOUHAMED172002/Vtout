@@ -24,7 +24,7 @@ export default function UserStatusToggle({ userId }) {
       await updateProfileStatus(userId, !active, token);
       setActive(!active);
     } catch (e) {
-      alert("Erreur lors de la mise à jour du statut");
+      alert("Erreur lors de la mise Ã  jour du statut");
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export default function UserStatusToggle({ userId }) {
 
   return (
     <button className={`btn btn-xs ${active ? "btn-success" : "btn-ghost"}`} onClick={toggle} disabled={loading}>
-      {active ? "Actif" : "Désactivé"}
+      {active ? "Actif" : "DÃ©sactivÃ©"}
     </button>
   );
 }

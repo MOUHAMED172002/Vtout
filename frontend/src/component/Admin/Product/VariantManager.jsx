@@ -85,7 +85,7 @@ export default function VariantManager() {
     try {
       const token = await getToken();
       await createAttribute({ name: newAttrName.trim() }, token);
-      toast.success("Attribut créé");
+      toast.success("Attribut crÃ©Ã©");
       setNewAttrName("");
       setAddingAttr(false);
       fetchAttributes();
@@ -100,7 +100,7 @@ export default function VariantManager() {
     try {
       const token = await getToken();
       await updateAttribute(attrId, { name: editingAttrName.trim() }, token);
-      toast.success("Modifié");
+      toast.success("ModifiÃ©");
       setEditingAttrId(null);
       fetchAttributes();
     } catch (err) {
@@ -113,7 +113,7 @@ export default function VariantManager() {
     try {
       const token = await getToken();
       await deleteAttribute(attrId, token);
-      toast.success("Supprimé");
+      toast.success("SupprimÃ©");
       if (openAttrId === attrId) setOpenAttrId(null);
       fetchAttributes();
     } catch (err) {
@@ -143,7 +143,7 @@ export default function VariantManager() {
             <Layers size={14} /> Catalogue
           </div>
           <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Variantes</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Définissez les attributs comme la couleur, la taille ou la matière pour vos produits.</p>
+          <p className="text-slate-500 font-bold max-w-lg">DÃ©finissez les attributs comme la couleur, la taille ou la matiÃ¨re pour vos produits.</p>
         </div>
         <button onClick={fetchAttributes} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
           <RefreshCcw size={18} />
@@ -157,7 +157,7 @@ export default function VariantManager() {
             <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               className="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
-              placeholder="Ex: Taille, Couleur, Matière..."
+              placeholder="Ex: Taille, Couleur, MatiÃ¨re..."
               value={newAttrName}
               onChange={(e) => setNewAttrName(e.target.value)}
               disabled={addingAttr}
@@ -168,7 +168,7 @@ export default function VariantManager() {
             type="submit"
             disabled={addingAttr || !newAttrName.trim()}
           >
-            <Plus size={20} /> Créer l'attribut
+            <Plus size={20} /> CrÃ©er l'attribut
           </button>
         </form>
       </div>
@@ -236,7 +236,7 @@ export default function VariantManager() {
                             <button onClick={() => deleteValueHandler(v.id)} className="p-1.5 text-slate-300 hover:text-rose-500 opacity-0 group-hover/val:opacity-100 transition-all"><X size={12} /></button>
                           </div>
                         ))}
-                        {values.length === 0 && !valueLoading && <p className="text-[10px] font-bold text-slate-300 italic">Aucune valeur définie</p>}
+                        {values.length === 0 && !valueLoading && <p className="text-[10px] font-bold text-slate-300 italic">Aucune valeur dÃ©finie</p>}
                       </div>
 
                       <form onSubmit={handleAddValue} className="flex gap-2">
