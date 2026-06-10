@@ -3,7 +3,9 @@ import axios from 'axios';
 import { useAuth } from "../../lib/AuthHooks";
 import {
     AlertCircle, CheckCircle2, Clock, XCircle, User,
-    Store, Package, ArrowRight, RefreshCw, Banknote, Eye, Search
+    Store, Package, ArrowRight, RefreshCw, Banknote, Eye,
+    Search, TrendingUp, MessageSquare, Camera, ChevronDown,
+    ChevronUp, FileText, History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -27,6 +29,26 @@ const statusBadge = (status) => {
     return map[status] || null;
 };
 
+function StatCard({ label, value, color, icon: Icon }) {
+    const colorMap = {
+        amber:   'bg-amber-50 text-amber-600',
+        blue:    'bg-blue-50 text-blue-600',
+        emerald: 'bg-emerald-50 text-emerald-600',
+        slate:   'bg-slate-50 text-slate-500',
+    };
+    return (
+        <div className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-sm flex items-center gap-4">
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${colorMap[color]}`}>
+                <Icon size={18} />
+            </div>
+            <div>
+                <p className="text-2xl font-black text-slate-900">{value}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+            </div>
+        </div>
+    );
+}
+
 const DisputeManager = () => {
     const { getToken } = useAuth();
     const [disputes, setDisputes] = useState([]);
@@ -35,9 +57,16 @@ const DisputeManager = () => {
     const [search, setSearch] = useState('');
     const [selectedDispute, setSelectedDispute] = useState(null);
     const [resolution, setResolution] = useState('');
+    const [adminNotes, setAdminNotes] = useState('');
+    const [refundAmount, setRefundAmount] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [stats, setStats] = useState(null);
+    const [showHistory, setShowHistory] = useState(false);
 
-    useEffect(() => { fetchDisputes(); }, []);
+    useEffect(() => {
+        fetchDisputes();
+        fetchStats();
+    }, []);
 
     const fetchDisputes = async () => {
         try {
@@ -54,6 +83,18 @@ const DisputeManager = () => {
         }
     };
 
+    const fetchStats = async () => {
+        try {
+            const token = await getToken();
+            const res = await axios.get(`${API_URL}/admin/disputes/stats`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setStats(res.data);
+        } catch {
+            // Stats are non-critical; fail silently
+        }
+    };
+
     const updateStatus = async (id, status, action = null) => {
         setActionLoading(true);
         try {
@@ -62,11 +103,20 @@ const DisputeManager = () => {
                 status,
                 resolution,
                 action,
+                admin_notes: adminNotes || undefined,
+                refund_amount: refundAmount ? Number(refundAmount) : undefined,
             }, { headers: { Authorization: `Bearer ${token}` } });
-            toast.success(action === 'refund' ? "Remboursement effectué et litige résolu !" : "Statut mis à jour");
+            toast.success(
+                action === 'refund'
+                    ? `Remboursement${refundAmount ? ` de ${Number(refundAmount).toLocaleString()} F` : ' total'} effectué !`
+                    : "Statut mis à jour"
+            );
             fetchDisputes();
+            fetchStats();
             setSelectedDispute(null);
             setResolution('');
+            setAdminNotes('');
+            setRefundAmount('');
         } catch {
             toast.error("Erreur lors de la mise à jour");
         } finally {
@@ -122,6 +172,16 @@ const DisputeManager = () => {
                 </div>
             </header>
 
+            {/* Stats row */}
+            {stats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard label="À traiter" value={stats.byStatus?.open || 0} color="amber" icon={Clock} />
+                    <StatCard label="En examen" value={stats.byStatus?.under_review || 0} color="blue" icon={Eye} />
+                    <StatCard label="Résolus" value={stats.byStatus?.resolved || 0} color="emerald" icon={CheckCircle2} />
+                    <StatCard label="Délai moyen" value={stats.avgResolutionHours ? `${Math.round(stats.avgResolutionHours)}h` : '—'} color="slate" icon={TrendingUp} />
+                </div>
+            )}
+
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 <AnimatePresence>
@@ -168,7 +228,14 @@ const DisputeManager = () => {
                                 </div>
                             </div>
 
-                            <button onClick={() => { setSelectedDispute(dispute); setResolution(dispute.resolution || ''); }}
+                            {/* Auto-clôture indicator for resolved disputes */}
+                            {dispute.status === 'resolved' && dispute.resolved_at && (() => {
+                                const days = Math.max(0, 7 - Math.floor((Date.now() - new Date(dispute.resolved_at)) / 86400000));
+                                if (days === 0) return <span className="text-[9px] text-slate-400 font-bold">Auto-clôturé</span>;
+                                return <span className="text-[9px] text-amber-500 font-bold">Auto-clôture dans {days}j</span>;
+                            })()}
+
+                            <button onClick={() => { setSelectedDispute(dispute); setResolution(dispute.resolution || ''); setAdminNotes(''); setRefundAmount(''); setShowHistory(false); }}
                                 className="w-full py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-rose-600 transition-all flex items-center justify-center gap-2">
                                 Examiner <ArrowRight size={14} />
                             </button>
@@ -240,8 +307,54 @@ const DisputeManager = () => {
                                 </div>
 
                                 {/* Action zone */}
-                                {selectedDispute.status === 'open' || selectedDispute.status === 'under_review' ? (
+                                {(selectedDispute.status === 'open' || selectedDispute.status === 'under_review') ? (
                                     <div className="space-y-4">
+                                        {/* Supplier response */}
+                                        {selectedDispute.supplier_response && (
+                                            <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-1"><Store size={10}/> Réponse du fournisseur</p>
+                                                <p className="text-sm font-medium text-blue-900">{selectedDispute.supplier_response}</p>
+                                                {selectedDispute.supplier_evidence_url && (
+                                                    <a href={selectedDispute.supplier_evidence_url} target="_blank" rel="noreferrer" className="mt-2 block">
+                                                        <img src={selectedDispute.supplier_evidence_url} className="w-full max-h-40 object-cover rounded-xl" alt="preuve fournisseur"/>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* History collapsible */}
+                                        <button onClick={() => setShowHistory(h => !h)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <History size={12}/> Historique {showHistory ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
+                                        </button>
+                                        {showHistory && selectedDispute.status_history?.length > 0 && (
+                                            <div className="space-y-1.5">
+                                                {selectedDispute.status_history.map((h, i) => (
+                                                    <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full shrink-0"/>
+                                                        <span className="capitalize">{h.status.replace('_', ' ')}</span>
+                                                        <span className="text-slate-300">—</span>
+                                                        <span>{new Date(h.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Partial refund amount */}
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Montant à rembourser (laisser vide = total)</p>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={refundAmount}
+                                                    onChange={e => setRefundAmount(e.target.value)}
+                                                    placeholder={`Max: ${Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F`}
+                                                    className="flex-1 bg-slate-50 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-200 border-none"
+                                                />
+                                                <span className="text-xs font-black text-slate-400">FCFA</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Resolution textarea */}
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Décision & Résolution</p>
                                         <textarea
                                             value={resolution}
@@ -249,6 +362,16 @@ const DisputeManager = () => {
                                             placeholder="Expliquez la décision (motif de remboursement, rejet, échange...)"
                                             className="w-full p-5 bg-slate-50 rounded-[1.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 min-h-[100px] border-none outline-none resize-none"
                                         />
+
+                                        {/* Admin internal notes */}
+                                        <textarea
+                                            value={adminNotes}
+                                            onChange={e => setAdminNotes(e.target.value)}
+                                            placeholder="Notes internes (non visible par le client)..."
+                                            rows={2}
+                                            className="w-full p-4 bg-amber-50 rounded-[1.5rem] text-sm font-medium text-amber-900 placeholder:text-amber-300 focus:ring-2 focus:ring-amber-200 border-none outline-none resize-none"
+                                        />
+
                                         <div className="grid grid-cols-1 gap-3">
                                             <button onClick={() => updateStatus(selectedDispute.id, 'resolved', 'refund')} disabled={actionLoading}
                                                 className="py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
