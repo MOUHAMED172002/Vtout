@@ -251,46 +251,55 @@ export default function HomeCards() {
             <Link to="/user/dashboard/orders" className="text-xs font-black text-primary hover:underline bg-primary/5 px-6 py-3 rounded-2xl uppercase tracking-widest">Voir Tout</Link>
           </div>
 
-          <div className="space-y-4">
+          {/* ── Status helpers ── */}
+          {(() => {
+            const STATUS_LABEL = { en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' };
+            const STATUS_COLOR = { en_attente: 'bg-amber-50 text-amber-600', confirmee: 'bg-emerald-50 text-emerald-600', confirmée: 'bg-emerald-50 text-emerald-600', expediee: 'bg-blue-50 text-blue-600', expédiée: 'bg-blue-50 text-blue-600', livree: 'bg-emerald-50 text-emerald-600', livrée: 'bg-emerald-50 text-emerald-600', annulee: 'bg-rose-50 text-rose-600', annulée: 'bg-rose-50 text-rose-600' };
+            return (
+          <div className="space-y-3">
             {orders.length > 0 ? (
-              orders.slice(0, 4).map((order) => (
-                <Link
-                  key={order.id}
-                  to={`/user/dashboard/orders/${order.id}`}
-                  className="block"
-                >
-                  <motion.div
-                    whileHover={{ x: 10 }}
-                    className="bg-white p-8 rounded-[2.5rem] border border-slate-50 flex items-center justify-between hover:shadow-[0_10px_50px_rgba(0,0,0,0.05)] transition-all group"
-                  >
-                    <div className="flex items-center gap-8">
-                      <div className="w-20 h-20 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <ShoppingBag size={28} />
+              orders.slice(0, 4).map((order) => {
+                const d = new Date(order.created_at || order.createdAt);
+                const dateStr = isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                const label = STATUS_LABEL[order.status] || order.status;
+                const color = STATUS_COLOR[order.status] || 'bg-orange-50 text-orange-600';
+                return (
+                  <Link key={order.id} to={`/user/dashboard/orders/${order.id}`} className="block">
+                    <motion.div
+                      whileHover={{ x: 4 }}
+                      className="bg-white px-4 py-4 rounded-[1.8rem] border border-slate-100 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all group active:scale-[0.99]"
+                    >
+                      {/* Icon */}
+                      <div className="w-11 h-11 shrink-0 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <ShoppingBag size={18} />
                       </div>
-                      <div className="space-y-1">
-                        <p className="font-black text-slate-900 text-xl tracking-tight">Commande #{order.id.slice(0, 8)}</p>
-                        <div className="flex items-center gap-3">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{(() => { const d = new Date(order.created_at || order.createdAt); return isNaN(d.getTime()) ? '' : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); })()}</p>
-                          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                          <p className="text-xs font-bold text-slate-400">{{ en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' }[order.status] || order.status}</p>
+
+                      {/* Content — two rows */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1 : ref + montant */}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-black text-slate-900 text-sm tracking-tight truncate">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="font-black text-slate-900 text-sm shrink-0">
+                            {Number(order.total_amount).toLocaleString('fr-FR')} F
+                          </p>
+                        </div>
+                        {/* Row 2 : date + badge */}
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-[11px] font-bold text-slate-400">{dateStr}</p>
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${color}`}>
+                            {label}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right space-y-3">
-                      <p className="font-black text-slate-900 text-2xl tracking-tighter">{order.total_amount.toLocaleString()} F</p>
-                      <span className={`inline-flex px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${{
-                          en_attente: 'bg-amber-50 text-amber-600',
-                          confirmee: 'bg-emerald-50 text-emerald-600', confirmée: 'bg-emerald-50 text-emerald-600',
-                          expediee: 'bg-blue-50 text-blue-600', expédiée: 'bg-blue-50 text-blue-600',
-                          livree: 'bg-emerald-50 text-emerald-600', livrée: 'bg-emerald-50 text-emerald-600',
-                          annulee: 'bg-rose-50 text-rose-600', annulée: 'bg-rose-50 text-rose-600',
-                        }[order.status] || 'bg-orange-50 text-orange-600'}`}>
-                        {{ en_attente: 'En attente', confirmee: 'Confirmée', confirmée: 'Confirmée', expediee: 'Expédiée', expédiée: 'Expédiée', livree: 'Livrée', livrée: 'Livrée', annulee: 'Annulée', annulée: 'Annulée' }[order.status] || order.status}
-                      </span>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))
+
+                      {/* Chevron */}
+                      <ChevronRight size={14} className="text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
+                    </motion.div>
+                  </Link>
+                );
+              })
             ) : (
               <div className="bg-white p-20 rounded-[3rem] border-2 border-dashed border-slate-100 text-center space-y-6">
                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
@@ -304,6 +313,8 @@ export default function HomeCards() {
               </div>
             )}
           </div>
+            );
+          })()}
         </div>
 
         {/* Sidebar Mini Column */}
