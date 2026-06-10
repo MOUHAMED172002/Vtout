@@ -777,7 +777,11 @@ export const updateOrderStatus = async (req, res) => {
         const mappedStatus = STATUS_MAP[status] || status;
 
         // Authorization checks
-        if (role !== 'admin') {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        const userEmail = req.auth?.email?.toLowerCase();
+        const isAdmin = role === 'admin' || (userEmail && adminEmails.includes(userEmail));
+
+        if (!isAdmin) {
             // Get profile IDs for the current user
             const [supplier, rider] = await Promise.all([
                 Supplier.findOne({ where: { user_id: userId } }),
@@ -800,7 +804,7 @@ export const updateOrderStatus = async (req, res) => {
                     return res.status(403).json({ error: 'Seul le livreur désigné peut confirmer la livraison.' });
                 }
             }
-            
+
             if (isOrderSupplier && !isOrderRider && !['confirmée', 'expédiée', 'annulée'].includes(mappedStatus)) {
                  return res.status(403).json({ error: 'Action non autorisée pour un fournisseur.' });
             }
