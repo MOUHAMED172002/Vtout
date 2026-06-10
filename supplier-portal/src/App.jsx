@@ -21,6 +21,7 @@ import SupplierStats from './pages/SupplierStats';
 import SupplierPolicies from './pages/SupplierPolicies';
 import SupplierBoutiques from './pages/SupplierBoutiques';
 import SupplierPromotions from './pages/SupplierPromotions';
+import SupplierDisputes from './pages/SupplierDisputes';
 
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
@@ -104,6 +105,7 @@ function App() {
             <Route path="/statistiques" element={<ProtectedRoute><SupplierStats /></ProtectedRoute>} />
             <Route path="/conditions" element={<ProtectedRoute><SupplierPolicies /></ProtectedRoute>} />
             <Route path="/mes-boutiques" element={<ProtectedRoute><SupplierBoutiques /></ProtectedRoute>} />
+            <Route path="/mes-litiges" element={<ProtectedRoute><SupplierDisputes /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />

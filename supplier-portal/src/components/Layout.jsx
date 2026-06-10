@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Package, PlusCircle, LogOut,
-    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon, Sparkles
+    Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon, Sparkles, AlertCircle
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
 import PortalSwitcher from './Shared/PortalSwitcher';
@@ -24,6 +24,7 @@ const navLinks = [
     { to: '/ajouter-produit', icon: PlusCircle, label: 'Ajouter un produit' },
     { to: '/portefeuille', icon: Wallet, label: 'Mon Portefeuille' },
     { to: '/statistiques', icon: TrendingUp, label: 'Statistiques' },
+    { to: '/mes-litiges', icon: AlertCircle, label: 'Mes Litiges' },
     { to: '/conditions', icon: FileText, label: 'Conditions & Politiques' },
 ];
 

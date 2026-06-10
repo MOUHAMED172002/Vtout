@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, PlusCircle, Wallet, User } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, PlusCircle, Wallet, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const MobileBottomNav = () => {
@@ -11,7 +11,7 @@ const MobileBottomNav = () => {
         { icon: ShoppingBag, label: 'Ventes', to: '/mes-commandes' },
         { icon: PlusCircle, label: 'Ajouter', to: '/ajouter-produit' },
         { icon: Package, label: 'Stocks', to: '/mes-produits' },
-        { icon: Wallet, label: 'Cash', to: '/portefeuille' },
+        { icon: AlertCircle, label: 'Litiges', to: '/mes-litiges' },
     ];
 
     return (
