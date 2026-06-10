@@ -297,6 +297,13 @@ export default function OrderDetail() {
     primary: "bg-primary shadow-primary/30 text-primary border-primary"
   };
 
+  // Dispute contest deadline (computed once, used in JSX)
+  const disputeResolvedAt = order?.dispute?.resolved_at;
+  const disputeDaysLeft = disputeResolvedAt
+    ? Math.max(0, 7 - Math.floor((Date.now() - new Date(disputeResolvedAt).getTime()) / 86400000))
+    : 7;
+  const canContest = disputeDaysLeft > 0;
+
   return (
     <>
     <div className="space-y-10 pb-20">
@@ -805,57 +812,52 @@ export default function OrderDetail() {
                       <Camera size={13} /> Ajouter des preuves
                     </button>
                   )}
-                  {order.dispute_status === 'resolu' && (() => {
-                    const resolvedAt = order.dispute?.resolved_at;
-                    const daysLeft = resolvedAt
-                      ? Math.max(0, 7 - Math.floor((Date.now() - new Date(resolvedAt).getTime()) / 86400000))
-                      : 7;
-                    const canContest = daysLeft > 0;
-                    return (
+                  {order.dispute_status === 'resolu' && (
                     <div className="space-y-2 pt-1">
                       {canContest && (
                         <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
-                          <Clock size={10} /> Vous pouvez contester pendant encore {daysLeft} jour{daysLeft > 1 ? 's' : ''}
+                          <Clock size={10} /> Vous pouvez contester pendant encore {disputeDaysLeft} jour{disputeDaysLeft > 1 ? 's' : ''}
                         </p>
                       )}
                       <div className="grid grid-cols-2 gap-2">
-                      <button
-                        disabled={disputeResponseLoading}
-                        onClick={async () => {
-                          setDisputeResponseLoading(true);
-                          try {
-                            const token = await getToken();
-                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'confirm' }, { headers: { Authorization: `Bearer ${token}` } });
-                            setOrder(prev => ({ ...prev, dispute_status: 'resolu' }));
-                            toast?.success?.('Résolution confirmée. Merci !');
-                          } catch { toast?.error?.('Erreur'); }
-                          finally { setDisputeResponseLoading(false); }
-                        }}
-                        className="py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
-                      >
-                        <ThumbsUp size={14} /> Confirmer
-                      </button>
-                      <button
-                        disabled={disputeResponseLoading || !canContest}
-                        onClick={async () => {
-                          setDisputeResponseLoading(true);
-                          try {
-                            const token = await getToken();
-                            await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
-                            setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
-                            toast?.success?.('Contestation enregistrée.');
-                          } catch (e) { toast?.error?.(e?.response?.data?.error || 'Erreur'); }
-                          finally { setDisputeResponseLoading(false); }
-                        }}
-                        className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={!canContest ? 'Délai de contestation dépassé' : ''}
-                      >
-                        <ThumbsDown size={14} /> Contester
-                      </button>
+                        <button
+                          disabled={disputeResponseLoading}
+                          onClick={async () => {
+                            setDisputeResponseLoading(true);
+                            try {
+                              const token = await getToken();
+                              await api.patch(`/orders/${order.id}/dispute/response`, { response: 'confirm' }, { headers: { Authorization: `Bearer ${token}` } });
+                              setOrder(prev => ({ ...prev, dispute_status: 'resolu' }));
+                              toast?.success?.('Résolution confirmée. Merci !');
+                            } catch { toast?.error?.('Erreur'); }
+                            finally { setDisputeResponseLoading(false); }
+                          }}
+                          className="py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+                        >
+                          <ThumbsUp size={14} /> Confirmer
+                        </button>
+                        <button
+                          disabled={disputeResponseLoading || !canContest}
+                          onClick={async () => {
+                            setDisputeResponseLoading(true);
+                            try {
+                              const token = await getToken();
+                              await api.patch(`/orders/${order.id}/dispute/response`, { response: 'contest' }, { headers: { Authorization: `Bearer ${token}` } });
+                              setOrder(prev => ({ ...prev, dispute_status: 'ouvert' }));
+                              toast?.success?.('Contestation enregistrée.');
+                            } catch (e) { toast?.error?.(e?.response?.data?.error || 'Erreur'); }
+                            finally { setDisputeResponseLoading(false); }
+                          }}
+                          className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={!canContest ? 'Délai de contestation dépassé' : ''}
+                        >
+                          <ThumbsDown size={14} /> Contester
+                        </button>
                       </div>
                     </div>
-                    );
-                  })()}
+                  )}
+                </div>
+              )}
 
               {/* Platform review banner — shown only when delivered */}
               {isDelivered && (
