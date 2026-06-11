@@ -14,7 +14,7 @@ export default function CartIcon() {
     <Link to="/cartpage" className="relative ">
       <AiOutlineShoppingCart className="text-3xl text-primary" />
       {totalItems > 0 && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-slate-900 text-xs w-5 h-5 flex items-center justify-center rounded-full">
+        <span className="absolute -top-2 -right-2 bg-red-500 text-base-content text-xs w-5 h-5 flex items-center justify-center rounded-full">
           {totalItems}
         </span>
       )}

@@ -36,12 +36,12 @@ export default function UserTable({ users = [], loading = false, onView = () => 
                         u.role === 'admin' ? 'bg-rose-50 text-rose-500 border border-rose-100' :
                         (u.role === 'fournisseur' || u.role === 'vendeur') ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' :
                         u.role === 'livreur' ? 'bg-amber-50 text-amber-500 border border-amber-100' :
-                        'bg-slate-50 text-slate-500 border border-slate-100'
+                        'bg-base-200 text-base-content/50 border border-base-200'
                       }`}>
                         {u.role || 'user'}
                       </span>
                     </td>
-                    <td className="text-sm font-medium text-slate-400">{u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</td>
+                    <td className="text-sm font-medium text-base-content/40">{u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</td>
                     <td><UserStatusToggle userId={u.id} /></td>
                     <td><button className="btn btn-sm btn-ghost" onClick={() => onView(u)}>Voir</button></td>
                   </tr>

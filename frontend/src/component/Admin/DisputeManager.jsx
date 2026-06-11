@@ -16,7 +16,7 @@ const MOTIF_COLORS = {
     'Colis non reçu':                  'bg-amber-100 text-amber-700',
     'Produit endommagé':               'bg-rose-100 text-rose-700',
     "Produit différent de l'annonce":  'bg-violet-100 text-violet-700',
-    'Autre':                           'bg-slate-100 text-slate-600',
+    'Autre':                           'bg-base-200 text-base-content/70',
 };
 
 const statusBadge = (status) => {
@@ -24,7 +24,7 @@ const statusBadge = (status) => {
         open:         <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><Clock size={10} /> À traiter</span>,
         under_review: <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><Eye size={10} /> En examen</span>,
         resolved:     <span className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Résolu</span>,
-        cancelled:    <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><XCircle size={10} /> Annulé</span>,
+        cancelled:    <span className="px-3 py-1 bg-base-200 text-base-content/40 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><XCircle size={10} /> Annulé</span>,
     };
     return map[status] || null;
 };
@@ -34,16 +34,16 @@ function StatCard({ label, value, color, icon: Icon }) {
         amber:   'bg-amber-50 text-amber-600',
         blue:    'bg-blue-50 text-blue-600',
         emerald: 'bg-emerald-50 text-emerald-600',
-        slate:   'bg-slate-50 text-slate-500',
+        slate:   'bg-base-200 text-base-content/50',
     };
     return (
-        <div className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-sm flex items-center gap-4">
+        <div className="bg-base-100 rounded-[2rem] p-5 border border-base-200 shadow-sm flex items-center gap-4">
             <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${colorMap[color]}`}>
                 <Icon size={18} />
             </div>
             <div>
-                <p className="text-2xl font-black text-slate-900">{value}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+                <p className="text-2xl font-black text-base-content">{value}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">{label}</p>
             </div>
         </div>
     );
@@ -52,10 +52,10 @@ function StatCard({ label, value, color, icon: Icon }) {
 function InfoRow({ label, value, icon: Icon }) {
     return (
         <div className="flex items-start justify-between gap-3 text-[10px]">
-            <span className="font-bold text-slate-400 shrink-0 flex items-center gap-1">
+            <span className="font-bold text-base-content/40 shrink-0 flex items-center gap-1">
                 {Icon && <Icon size={9} className="opacity-60" />}{label}
             </span>
-            <span className="font-black text-slate-700 text-right break-all">{value}</span>
+            <span className="font-black text-base-content/80 text-right break-all">{value}</span>
         </div>
     );
 }
@@ -145,37 +145,37 @@ const DisputeManager = () => {
         return matchFilter && matchSearch;
     });
 
-    if (loading) return <div className="p-20 text-center animate-pulse font-black text-slate-400 uppercase tracking-widest">Chargement des dossiers...</div>;
+    if (loading) return <div className="p-20 text-center animate-pulse font-black text-base-content/40 uppercase tracking-widest">Chargement des dossiers...</div>;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-base-100 p-8 rounded-[3rem] shadow-sm border border-base-200">
                 <div className="flex items-center gap-5">
                     <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500">
                         <AlertCircle size={32} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Litiges & Réclamations</h1>
-                        <p className="text-slate-400 font-bold text-xs mt-1">{disputes.filter(d => d.status === 'open').length} dossier(s) en attente</p>
+                        <h1 className="text-2xl font-black text-base-content tracking-tight">Litiges & Réclamations</h1>
+                        <p className="text-base-content/40 font-bold text-xs mt-1">{disputes.filter(d => d.status === 'open').length} dossier(s) en attente</p>
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     {/* Search */}
                     <div className="relative">
-                        <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Rechercher..."
-                            className="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-rose-100 w-48"
+                            className="pl-10 pr-4 py-2.5 bg-base-200 border border-base-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-rose-100 w-48"
                         />
                     </div>
                     {/* Filters */}
-                    <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 gap-1">
+                    <div className="flex bg-base-200 p-1.5 rounded-2xl border border-base-200 gap-1">
                         {['all', 'open', 'under_review', 'resolved', 'cancelled'].map(f => (
                             <button key={f} onClick={() => setFilter(f)}
-                                className={`px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all whitespace-nowrap ${filter === f ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                                className={`px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all whitespace-nowrap ${filter === f ? 'bg-base-100 text-base-content shadow-sm' : 'text-base-content/40 hover:text-base-content/70'}`}>
                                 {f === 'all' ? 'Tous' : f === 'open' ? 'À traiter' : f === 'under_review' ? 'En examen' : f === 'resolved' ? 'Clos' : 'Annulés'}
                             </button>
                         ))}
@@ -199,42 +199,42 @@ const DisputeManager = () => {
                     {filtered.map(dispute => (
                         <motion.div key={dispute.id}
                             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
-                            className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-50 hover:shadow-xl hover:shadow-slate-200/50 transition-all space-y-5 flex flex-col"
+                            className="bg-base-100 p-6 rounded-[2.5rem] shadow-sm border border-base-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all space-y-5 flex flex-col"
                         >
                             <div className="flex justify-between items-start gap-2">
                                 {statusBadge(dispute.status)}
-                                <span className="text-[10px] font-bold text-slate-300">#{(dispute.id || '').slice(0, 8)}</span>
+                                <span className="text-[10px] font-bold text-base-content/30">#{(dispute.id || '').slice(0, 8)}</span>
                             </div>
 
                             {/* Motif badge */}
                             {dispute.motif && (
-                                <span className={`self-start px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${MOTIF_COLORS[dispute.motif] || 'bg-slate-100 text-slate-500'}`}>
+                                <span className={`self-start px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${MOTIF_COLORS[dispute.motif] || 'bg-base-200 text-base-content/50'}`}>
                                     {dispute.motif}
                                 </span>
                             )}
 
                             {dispute.description && (
-                                <p className="text-sm text-slate-500 font-medium line-clamp-2 italic">"{dispute.description}"</p>
+                                <p className="text-sm text-base-content/50 font-medium line-clamp-2 italic">"{dispute.description}"</p>
                             )}
 
                             {/* Photo thumbnail */}
                             {dispute.photo_url && (
-                                <a href={dispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden aspect-video bg-slate-100">
+                                <a href={dispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden aspect-video bg-base-200">
                                     <img src={dispute.photo_url} alt="preuve" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                                 </a>
                             )}
 
-                            <div className="p-4 bg-slate-50 rounded-2xl space-y-2.5 flex-1">
+                            <div className="p-4 bg-base-200 rounded-2xl space-y-2.5 flex-1">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100"><User size={12} /></div>
-                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate">{dispute.user?.fullname || 'Client Inconnu'}</span>
+                                    <div className="w-7 h-7 bg-base-100 rounded-lg flex items-center justify-center text-base-content/40 border border-base-200"><User size={12} /></div>
+                                    <span className="text-[10px] font-black text-base-content/70 uppercase tracking-widest truncate">{dispute.user?.fullname || 'Client Inconnu'}</span>
                                 </div>
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary/60 border border-slate-100"><Store size={12} /></div>
-                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate">{dispute.supplier?.name || '—'}</span>
+                                    <div className="w-7 h-7 bg-base-100 rounded-lg flex items-center justify-center text-primary/60 border border-base-200"><Store size={12} /></div>
+                                    <span className="text-[10px] font-black text-base-content/70 uppercase tracking-widest truncate">{dispute.supplier?.name || '—'}</span>
                                 </div>
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-slate-400 border border-slate-100"><Package size={12} /></div>
+                                    <div className="w-7 h-7 bg-base-100 rounded-lg flex items-center justify-center text-base-content/40 border border-base-200"><Package size={12} /></div>
                                     <span className="text-[10px] font-black text-primary uppercase tracking-widest">CMD #{(dispute.order_id || '').slice(0, 8)}</span>
                                 </div>
                             </div>
@@ -242,12 +242,12 @@ const DisputeManager = () => {
                             {/* Auto-clôture indicator for resolved disputes */}
                             {dispute.status === 'resolved' && dispute.resolved_at && (() => {
                                 const days = Math.max(0, 7 - Math.floor((Date.now() - new Date(dispute.resolved_at)) / 86400000));
-                                if (days === 0) return <span className="text-[9px] text-slate-400 font-bold">Auto-clôturé</span>;
+                                if (days === 0) return <span className="text-[9px] text-base-content/40 font-bold">Auto-clôturé</span>;
                                 return <span className="text-[9px] text-amber-500 font-bold">Auto-clôture dans {days}j</span>;
                             })()}
 
                             <button onClick={() => { setSelectedDispute(dispute); setResolution(dispute.resolution || ''); setAdminNotes(''); setRefundAmount(''); setShowHistory(false); }}
-                                className="w-full py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-rose-600 transition-all flex items-center justify-center gap-2">
+                                className="w-full py-3.5 bg-neutral text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-rose-600 transition-all flex items-center justify-center gap-2">
                                 Examiner <ArrowRight size={14} />
                             </button>
                         </motion.div>
@@ -256,8 +256,8 @@ const DisputeManager = () => {
             </div>
 
             {filtered.length === 0 && (
-                <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                    <p className="font-black text-slate-400 uppercase tracking-[0.3em]">Aucun dossier trouvé</p>
+                <div className="text-center py-20 bg-base-200 rounded-[3rem] border-2 border-dashed border-base-300">
+                    <p className="font-black text-base-content/40 uppercase tracking-[0.3em]">Aucun dossier trouvé</p>
                 </div>
             )}
 
@@ -266,22 +266,22 @@ const DisputeManager = () => {
                 {selectedDispute && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-10">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setSelectedDispute(null)} />
+                            className="absolute inset-0 bg-neutral/40 backdrop-blur-md" onClick={() => setSelectedDispute(null)} />
                         <motion.div initial={{ opacity: 0, scale: 0.93, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: 20 }}
-                            className="relative w-full max-w-lg bg-white rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+                            className="relative w-full max-w-lg bg-base-100 rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
                             <div className="p-8 md:p-10 space-y-6">
                                 {/* Header */}
                                 <div className="flex justify-between items-start gap-2">
                                     <div>
-                                        <h2 className="text-2xl font-black text-slate-900">Dossier #{selectedDispute.id.slice(0, 8)}</h2>
-                                        <p className="text-xs text-slate-400 font-bold mt-1">Commande #{(selectedDispute.order_id || '').slice(0, 8)} · {Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F</p>
+                                        <h2 className="text-2xl font-black text-base-content">Dossier #{selectedDispute.id.slice(0, 8)}</h2>
+                                        <p className="text-xs text-base-content/40 font-bold mt-1">Commande #{(selectedDispute.order_id || '').slice(0, 8)} · {Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F</p>
                                     </div>
                                     {statusBadge(selectedDispute.status)}
                                 </div>
 
                                 {/* Motif */}
                                 {selectedDispute.motif && (
-                                    <div className={`px-4 py-2.5 rounded-2xl font-black text-sm ${MOTIF_COLORS[selectedDispute.motif] || 'bg-slate-100 text-slate-600'}`}>
+                                    <div className={`px-4 py-2.5 rounded-2xl font-black text-sm ${MOTIF_COLORS[selectedDispute.motif] || 'bg-base-200 text-base-content/70'}`}>
                                         {selectedDispute.motif}
                                     </div>
                                 )}
@@ -296,7 +296,7 @@ const DisputeManager = () => {
                                 {/* Photo preuve — full-width prominent */}
                                 {selectedDispute.photo_url && (
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Camera size={11}/> Photo preuve du client</p>
+                                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest flex items-center gap-1.5"><Camera size={11}/> Photo preuve du client</p>
                                         <a href={selectedDispute.photo_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden ring-2 ring-rose-100">
                                             <img src={selectedDispute.photo_url} alt="preuve client" className="w-full object-cover max-h-64 hover:scale-[1.02] transition-transform duration-300" />
                                         </a>
@@ -305,10 +305,10 @@ const DisputeManager = () => {
 
                                 {/* ── Parties impliquées ── */}
                                 <div className="space-y-3">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Parties impliquées</p>
+                                    <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Parties impliquées</p>
 
                                     {/* Client */}
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                    <div className="p-4 bg-base-200 rounded-2xl border border-base-200 space-y-2.5">
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className="w-6 h-6 bg-blue-100 text-blue-500 rounded-lg flex items-center justify-center"><User size={11}/></div>
                                             <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Client</span>
@@ -320,7 +320,7 @@ const DisputeManager = () => {
 
                                     {/* Vendeur */}
                                     {selectedDispute.supplier && (
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                        <div className="p-4 bg-base-200 rounded-2xl border border-base-200 space-y-2.5">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <div className="w-6 h-6 bg-amber-100 text-amber-500 rounded-lg flex items-center justify-center"><Store size={11}/></div>
                                                 <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Vendeur</span>
@@ -333,7 +333,7 @@ const DisputeManager = () => {
 
                                     {/* Livreur */}
                                     {selectedDispute.order?.deliveryPerson ? (
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2.5">
+                                        <div className="p-4 bg-base-200 rounded-2xl border border-base-200 space-y-2.5">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <div className="w-6 h-6 bg-emerald-100 text-emerald-500 rounded-lg flex items-center justify-center"><Truck size={11}/></div>
                                                 <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Livreur</span>
@@ -349,9 +349,9 @@ const DisputeManager = () => {
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex items-center gap-3">
-                                            <div className="w-6 h-6 bg-slate-100 text-slate-300 rounded-lg flex items-center justify-center"><Truck size={11}/></div>
-                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Aucun livreur assigné</span>
+                                        <div className="p-4 bg-base-200 rounded-2xl border border-dashed border-base-300 flex items-center gap-3">
+                                            <div className="w-6 h-6 bg-base-200 text-base-content/30 rounded-lg flex items-center justify-center"><Truck size={11}/></div>
+                                            <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">Aucun livreur assigné</span>
                                         </div>
                                     )}
                                 </div>
@@ -373,16 +373,16 @@ const DisputeManager = () => {
                                         )}
 
                                         {/* History collapsible */}
-                                        <button onClick={() => setShowHistory(h => !h)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <button onClick={() => setShowHistory(h => !h)} className="flex items-center gap-2 text-[10px] font-black text-base-content/40 uppercase tracking-widest">
                                             <History size={12}/> Historique {showHistory ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
                                         </button>
                                         {showHistory && selectedDispute.status_history?.length > 0 && (
                                             <div className="space-y-1.5">
                                                 {selectedDispute.status_history.map((h, i) => (
-                                                    <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
-                                                        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full shrink-0"/>
+                                                    <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-base-content/50">
+                                                        <span className="w-1.5 h-1.5 bg-base-300 rounded-full shrink-0"/>
                                                         <span className="capitalize">{h.status.replace('_', ' ')}</span>
-                                                        <span className="text-slate-300">—</span>
+                                                        <span className="text-base-content/30">—</span>
                                                         <span>{new Date(h.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
                                                     </div>
                                                 ))}
@@ -391,26 +391,26 @@ const DisputeManager = () => {
 
                                         {/* Partial refund amount */}
                                         <div className="space-y-2">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Montant à rembourser (laisser vide = total)</p>
+                                            <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Montant à rembourser (laisser vide = total)</p>
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="number"
                                                     value={refundAmount}
                                                     onChange={e => setRefundAmount(e.target.value)}
                                                     placeholder={`Max: ${Number(selectedDispute.order?.total_amount || 0).toLocaleString()} F`}
-                                                    className="flex-1 bg-slate-50 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-200 border-none"
+                                                    className="flex-1 bg-base-200 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-200 border-none"
                                                 />
-                                                <span className="text-xs font-black text-slate-400">FCFA</span>
+                                                <span className="text-xs font-black text-base-content/40">FCFA</span>
                                             </div>
                                         </div>
 
                                         {/* Resolution textarea */}
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Décision & Résolution</p>
+                                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Décision & Résolution</p>
                                         <textarea
                                             value={resolution}
                                             onChange={e => setResolution(e.target.value)}
                                             placeholder="Expliquez la décision (motif de remboursement, rejet, échange...)"
-                                            className="w-full p-5 bg-slate-50 rounded-[1.5rem] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 min-h-[100px] border-none outline-none resize-none"
+                                            className="w-full p-5 bg-base-200 rounded-[1.5rem] text-sm font-bold text-base-content placeholder:text-base-content/30 focus:ring-2 focus:ring-primary/20 min-h-[100px] border-none outline-none resize-none"
                                         />
 
                                         {/* Admin internal notes */}
@@ -436,7 +436,7 @@ const DisputeManager = () => {
                                                 <RefreshCw size={16} /> Mettre en examen
                                             </button>
                                             <button onClick={() => updateStatus(selectedDispute.id, 'cancelled')} disabled={actionLoading}
-                                                className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50">
+                                                className="py-4 bg-base-200 text-base-content/50 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50">
                                                 Rejeter / Annuler
                                             </button>
                                         </div>

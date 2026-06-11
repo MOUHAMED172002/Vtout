@@ -81,13 +81,13 @@ function MapContent({ position, onMapClick, onSearchSelect }) {
             {/* Search bar over map */}
             <div className="absolute top-4 left-4 right-4 z-10" ref={searchRef}>
                 <div className="relative">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" />
                     <input
                         type="text"
                         placeholder="Rechercher une adresse au Bénin..."
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
-                        className="w-full pl-10 pr-10 py-3 rounded-2xl bg-white border border-slate-200 shadow-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        className="w-full pl-10 pr-10 py-3 rounded-2xl bg-base-100 border border-base-300 shadow-xl text-sm font-bold text-base-content/90 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
                     {searching && (
                         <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary animate-spin" />
@@ -95,7 +95,7 @@ function MapContent({ position, onMapClick, onSearchSelect }) {
                     {searchQuery && !searching && (
                         <button
                             onClick={() => { setSearchQuery(""); setSuggestions([]); }}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/80"
                         >
                             <X size={14} />
                         </button>
@@ -104,12 +104,12 @@ function MapContent({ position, onMapClick, onSearchSelect }) {
 
                 {/* Suggestions dropdown */}
                 {suggestions.length > 0 && (
-                    <div className="mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+                    <div className="mt-2 bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden">
                         {suggestions.map((s, i) => (
                             <button
                                 key={i}
                                 onClick={() => handleSuggestionClick(s)}
-                                className="w-full text-left px-5 py-3 text-sm font-bold text-slate-700 hover:bg-primary/5 hover:text-primary flex items-start gap-3 border-b border-slate-50 last:border-0 transition-colors"
+                                className="w-full text-left px-5 py-3 text-sm font-bold text-base-content/80 hover:bg-primary/5 hover:text-primary flex items-start gap-3 border-b border-base-200 last:border-0 transition-colors"
                             >
                                 <MapPin size={14} className="mt-0.5 shrink-0 text-primary" />
                                 <span className="line-clamp-2">{s.formatted_address}</span>
@@ -147,7 +147,7 @@ function MapContent({ position, onMapClick, onSearchSelect }) {
 
             {/* Click instruction */}
             {!position && (
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full backdrop-blur-sm pointer-events-none">
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-neutral/90 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full backdrop-blur-sm pointer-events-none">
                     Cliquez sur la carte pour marquer la position
                 </div>
             )}
@@ -238,10 +238,10 @@ export default function GoogleMapPicker({
                 onClick={() => !readOnly && setOpen(true)}
                 className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${position
                         ? "border-primary bg-primary/5 text-primary"
-                        : "border-dashed border-slate-200 bg-slate-50 text-slate-500 hover:border-primary/40 hover:text-primary"
+                        : "border-dashed border-base-300 bg-base-200 text-base-content/50 hover:border-primary/40 hover:text-primary"
                     }`}
             >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${position ? 'bg-primary text-white' : 'bg-slate-100'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${position ? 'bg-primary text-white' : 'bg-base-200'}`}>
                     <MapPin size={20} />
                 </div>
                 <div className="flex-1 text-left">
@@ -249,21 +249,21 @@ export default function GoogleMapPicker({
                         {position ? "Position sélectionnée ✓" : label}
                     </p>
                     {resolving && (
-                        <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1 mt-0.5">
+                        <p className="text-[11px] font-bold text-base-content/40 flex items-center gap-1 mt-0.5">
                             <Loader2 size={10} className="animate-spin" /> Résolution de l'adresse...
                         </p>
                     )}
                     {resolvedAddress && !resolving && (
-                        <p className="text-[11px] font-bold text-slate-600 mt-0.5 line-clamp-1">{resolvedAddress}</p>
+                        <p className="text-[11px] font-bold text-base-content/70 mt-0.5 line-clamp-1">{resolvedAddress}</p>
                     )}
                     {position && !resolvedAddress && !resolving && (
-                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                        <p className="text-[11px] font-bold text-base-content/40 mt-0.5">
                             {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
                         </p>
                     )}
                 </div>
                 {!readOnly && (
-                    <Navigation2 size={16} className="text-slate-400" />
+                    <Navigation2 size={16} className="text-base-content/40" />
                 )}
             </button>
 
@@ -282,22 +282,22 @@ export default function GoogleMapPicker({
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 60, opacity: 0 }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="bg-white w-full max-w-3xl rounded-t-[3rem] md:rounded-[3rem] overflow-hidden shadow-2xl"
+                            className="bg-base-100 w-full max-w-3xl rounded-t-[3rem] md:rounded-[3rem] overflow-hidden shadow-2xl"
                         >
                             {/* Modal header */}
-                            <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
+                            <div className="flex items-center justify-between px-8 py-5 border-b border-base-200">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
                                         <MapPin size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-900">Sélectionner la position</h3>
-                                        <p className="text-xs text-slate-400 font-bold">Cliquez sur la carte ou recherchez une adresse</p>
+                                        <h3 className="text-lg font-black text-base-content">Sélectionner la position</h3>
+                                        <p className="text-xs text-base-content/40 font-bold">Cliquez sur la carte ou recherchez une adresse</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setOpen(false)}
-                                    className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-2xl flex items-center justify-center transition-colors"
+                                    className="w-10 h-10 bg-base-200 hover:bg-base-300 rounded-2xl flex items-center justify-center transition-colors"
                                 >
                                     <X size={18} />
                                 </button>
@@ -313,20 +313,20 @@ export default function GoogleMapPicker({
                             </div>
 
                             {/* Footer */}
-                            <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between gap-4">
+                            <div className="px-8 py-5 border-t border-base-200 flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     {resolving ? (
-                                        <p className="text-sm font-bold text-slate-400 flex items-center gap-2">
+                                        <p className="text-sm font-bold text-base-content/40 flex items-center gap-2">
                                             <Loader2 size={14} className="animate-spin text-primary" />
                                             Résolution de l'adresse GPS...
                                         </p>
                                     ) : position ? (
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adresse détectée</p>
-                                            <p className="text-sm font-bold text-slate-700 truncate">{resolvedAddress || `${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Adresse détectée</p>
+                                            <p className="text-sm font-bold text-base-content/80 truncate">{resolvedAddress || `${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`}</p>
                                         </div>
                                     ) : (
-                                        <p className="text-sm font-bold text-slate-400">Aucune position sélectionnée</p>
+                                        <p className="text-sm font-bold text-base-content/40">Aucune position sélectionnée</p>
                                     )}
                                 </div>
                                 <button

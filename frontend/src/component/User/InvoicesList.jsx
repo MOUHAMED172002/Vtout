@@ -126,7 +126,7 @@ export default function InvoicesList() {
       ) : (
         <div className="space-y-3">
           {invoices.map(inv => (
-            <div key={inv.id} className="card bg-white p-4 flex items-center justify-between">
+            <div key={inv.id} className="card bg-base-100 p-4 flex items-center justify-between">
               <div>
                 <div className="font-medium">{inv.invoice_number || `Reçus ${inv.id}`}</div>
                 <div className="text-sm text-gray-500">

@@ -32,7 +32,7 @@ export default function CookieConsent() {
                     exit={{ y: 100, opacity: 0 }}
                     className="fixed bottom-6 left-6 right-6 md:left-auto md:right-12 md:w-[450px] z-[9999]"
                 >
-                    <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border border-white/10 relative overflow-hidden group">
+                    <div className="bg-neutral rounded-[2.5rem] p-8 shadow-2xl border border-white/10 relative overflow-hidden group">
                         {/* Decorative Background */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all"></div>
 
@@ -62,14 +62,14 @@ export default function CookieConsent() {
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={acceptAll}
-                                    className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white hover:text-slate-900 transition-all shadow-xl shadow-primary/10"
+                                    className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-base-200 hover:text-base-content transition-all shadow-xl shadow-primary/10"
                                 >
                                     Accepter tout
                                 </button>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={declineAll}
-                                        className="flex-1 py-4 bg-white/5 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all border border-white/10"
+                                        className="flex-1 py-4 bg-base-100/5 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-base-200/10 transition-all border border-white/10"
                                     >
                                         Refuser
                                     </button>

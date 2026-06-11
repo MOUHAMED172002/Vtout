@@ -135,26 +135,26 @@ function EvidenceModal({ orderId, getToken, onClose, onAdded }) {
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-neutral/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-7 space-y-5"
+        className="relative w-full max-w-sm bg-base-100 rounded-[2rem] shadow-2xl p-7 space-y-5"
       >
         <div className="flex items-center justify-between">
-          <h3 className="font-black text-slate-900 text-sm">Ajouter une preuve</h3>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><X size={16} className="text-slate-400"/></button>
+          <h3 className="font-black text-base-content text-sm">Ajouter une preuve</h3>
+          <button onClick={onClose} className="p-2 hover:bg-base-200 rounded-xl"><X size={16} className="text-base-content/40"/></button>
         </div>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
         {preview ? (
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100">
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-base-200">
             <img src={preview} alt="preuve" className="w-full h-full object-cover" />
-            <button onClick={() => { setFile(null); setPreview(null); }} className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow">
-              <X size={12} className="text-slate-600"/>
+            <button onClick={() => { setFile(null); setPreview(null); }} className="absolute top-2 right-2 w-7 h-7 bg-base-100 rounded-full flex items-center justify-center shadow">
+              <X size={12} className="text-base-content/70"/>
             </button>
           </div>
         ) : (
-          <button onClick={() => fileRef.current?.click()} className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center gap-2 text-slate-400 hover:border-primary hover:text-primary transition-all">
+          <button onClick={() => fileRef.current?.click()} className="w-full py-8 border-2 border-dashed border-base-300 rounded-2xl flex flex-col items-center gap-2 text-base-content/40 hover:border-primary hover:text-primary transition-all">
             <Camera size={24}/>
             <span className="text-[10px] font-black uppercase tracking-widest">Choisir une photo</span>
           </button>
@@ -241,7 +241,7 @@ export default function OrderDetail() {
           <Zap className="text-primary w-8 h-8" />
         </div>
       </div>
-      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">
+      <p className="text-xs font-black text-base-content/40 uppercase tracking-[0.3em] animate-pulse">
         Chargement de la commande...
       </p>
     </div>
@@ -249,13 +249,13 @@ export default function OrderDetail() {
 
   /* ── Not found ── */
   if (!order) return (
-    <div className="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 space-y-8">
+    <div className="text-center py-20 bg-base-100 rounded-[3rem] border-2 border-dashed border-base-200 space-y-8">
       <div className="w-20 h-20 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto">
         <AlertCircle size={40} />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black text-slate-900">Commande introuvable</h2>
-        <p className="text-slate-400 font-bold max-w-sm mx-auto">
+        <h2 className="text-2xl font-black text-base-content">Commande introuvable</h2>
+        <p className="text-base-content/40 font-bold max-w-sm mx-auto">
           Cette commande n'existe pas ou vous n'y avez pas accès.
         </p>
       </div>
@@ -312,7 +312,7 @@ export default function OrderDetail() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <button
           onClick={() => navigate("/user/dashboard/orders")}
-          className="flex items-center gap-3 px-6 py-3.5 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm group"
+          className="flex items-center gap-3 px-6 py-3.5 bg-base-100 border border-base-200 rounded-2xl font-black text-xs uppercase tracking-widest text-base-content/50 hover:text-base-content hover:border-base-300 transition-all shadow-sm group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Mes commandes
@@ -344,7 +344,7 @@ export default function OrderDetail() {
               disabled={!invoiceAvailable || downloading}
               className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-sm border ${invoiceAvailable
                 ? "bg-primary text-white border-primary shadow-primary/20 hover:brightness-110"
-                : "bg-slate-100 text-slate-400 border-slate-100 cursor-not-allowed"
+                : "bg-base-200 text-base-content/40 border-base-200 cursor-not-allowed"
                 }`}
             >
               {downloading ? <span className="loading loading-spinner loading-xs" /> : <Download size={14} />}
@@ -358,7 +358,7 @@ export default function OrderDetail() {
 
             {/* Tooltip */}
             {!invoiceAvailable && !downloading && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-4 py-2 bg-slate-900 text-white text-[10px] font-bold rounded-xl whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-4 py-2 bg-neutral text-white text-[10px] font-bold rounded-xl whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
                 <div className="flex items-center gap-2">
                   <AlertCircle size={12} className="text-amber-400" />
                   {order?.payment_method === "delivery"
@@ -374,20 +374,20 @@ export default function OrderDetail() {
       </div>
 
       {/* ── Main Card ── */}
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
+      <div className="bg-base-100 rounded-[3rem] border border-base-200 shadow-2xl shadow-slate-200/20 overflow-hidden">
 
         {/* Header */}
-        <div className="p-10 md:p-14 border-b border-slate-50 bg-gradient-to-r from-slate-50/60 to-transparent">
+        <div className="p-10 md:p-14 border-b border-base-200 bg-gradient-to-r from-slate-50/60 to-transparent">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="px-5 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">
+                <span className="px-5 py-2 rounded-full bg-neutral text-white text-[10px] font-black uppercase tracking-widest">
                   #{order.id.slice(0, 8).toUpperCase()}
                 </span>
                 <span className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
                   {statusCfg.icon} {statusCfg.label}
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-1.5 text-[10px] font-black text-base-content/40 uppercase tracking-widest">
                   <Calendar className="w-3 h-3" />
                   {(() => {
                     const d = new Date(order.created_at || order.createdAt);
@@ -395,8 +395,8 @@ export default function OrderDetail() {
                   })()}
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
-                Détails de <span className="text-slate-400">Commande.</span>
+              <h1 className="text-4xl md:text-5xl font-black text-base-content tracking-tighter">
+                Détails de <span className="text-base-content/40">Commande.</span>
               </h1>
             </div>
             </div>
@@ -422,10 +422,10 @@ export default function OrderDetail() {
                 </div>
  
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/20 backdrop-blur-md px-8 py-5 rounded-3xl border border-white/30">
+                  <div className="bg-base-100/20 backdrop-blur-md px-8 py-5 rounded-3xl border border-white/30">
                     <span className="text-4xl font-black tracking-[0.2em]">{order.delivery_code}</span>
                   </div>
-                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center animate-pulse">
+                  <div className="w-12 h-12 bg-base-100/10 rounded-full flex items-center justify-center animate-pulse">
                     <Lock size={20} />
                   </div>
                 </div>
@@ -440,7 +440,7 @@ export default function OrderDetail() {
  
           {/* ── Progress Section ── */}
         {!isCancelled ? (
-          <div className="px-10 md:px-14 py-8 border-b border-slate-50 bg-slate-50/30 overflow-x-auto">
+          <div className="px-10 md:px-14 py-8 border-b border-base-200 bg-base-200/30 overflow-x-auto">
             <div className="flex items-start min-w-max gap-0">
               {STEPS.map((step, idx) => {
                 const done = stepIndex >= 0 && idx <= stepIndex;
@@ -450,11 +450,11 @@ export default function OrderDetail() {
 
                 let colorClass = "";
                 if (current) {
-                  colorClass = `${colorMap[stepColor].split(' ')[0]} ${colorMap[stepColor].split(' ')[1]} text-slate-900 scale-110`;
+                  colorClass = `${colorMap[stepColor].split(' ')[0]} ${colorMap[stepColor].split(' ')[1]} text-base-content scale-110`;
                 } else if (done) {
-                  colorClass = "bg-slate-900 text-white";
+                  colorClass = "bg-neutral text-white";
                 } else {
-                  colorClass = "bg-white text-slate-300 border border-slate-100";
+                  colorClass = "bg-base-100 text-base-content/30 border border-base-200";
                 }
 
                 return (
@@ -464,12 +464,12 @@ export default function OrderDetail() {
                         {step.icon}
                         {done && !current && (
                           <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                            <CheckCircle2 size={10} className="text-slate-900" />
+                            <CheckCircle2 size={10} className="text-base-content" />
                           </div>
                         )}
                       </div>
                       <div className="text-center px-1">
-                        <p className={`text-[10px] font-black uppercase tracking-widest leading-tight ${done ? (current ? colorMap[stepColor].split(' ')[2] : "text-slate-900") : "text-slate-400"}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest leading-tight ${done ? (current ? colorMap[stepColor].split(' ')[2] : "text-base-content") : "text-base-content/40"}`}>
                           {step.label}
                         </p>
                         {current && (
@@ -480,19 +480,19 @@ export default function OrderDetail() {
                         {done && !current && (() => {
                           const d = getStepDate(step);
                           return d
-                            ? <p className="text-[9px] font-bold text-slate-400 mt-0.5">{d}</p>
+                            ? <p className="text-[9px] font-bold text-base-content/40 mt-0.5">{d}</p>
                             : <p className="text-[9px] font-bold text-emerald-500 mt-0.5">✓ Fait</p>;
                         })()}
-                        {!done && <p className="text-[9px] font-bold text-slate-300 mt-0.5">En attente</p>}
+                        {!done && <p className="text-[9px] font-bold text-base-content/30 mt-0.5">En attente</p>}
                       </div>
                     </div>
                     {!isLast && (idx < stepIndex ? (
                       <div className="flex items-center mt-6">
-                        <div className={`h-1 w-12 rounded-full transition-all duration-700 ${idx < stepIndex ? "bg-slate-900" : "bg-slate-100"}`} />
+                        <div className={`h-1 w-12 rounded-full transition-all duration-700 ${idx < stepIndex ? "bg-neutral" : "bg-base-200"}`} />
                       </div>
                     ) : (
                       <div className="flex items-center mt-6">
-                        <div className="h-1 w-12 bg-slate-100 rounded-full" />
+                        <div className="h-1 w-12 bg-base-200 rounded-full" />
                       </div>
                     ))}
                   </React.Fragment>
@@ -500,7 +500,7 @@ export default function OrderDetail() {
               })}
             </div>
             {stepIndex >= 0 && (
-              <p className="mt-4 text-xs font-bold text-slate-400 italic">{STEPS[stepIndex]?.sublabel}</p>
+              <p className="mt-4 text-xs font-bold text-base-content/40 italic">{STEPS[stepIndex]?.sublabel}</p>
             )}
           </div>
         ) : (
@@ -517,28 +517,28 @@ export default function OrderDetail() {
 
         {/* ── DELIVERY CODE (Updated) ── */}
         {(normalizedStatus === 'expediee' || normalizedStatus === 'confirmee') && (
-          <div className="px-10 md:px-14 py-10 bg-slate-50 border-b border-slate-100 space-y-6">
+          <div className="px-10 md:px-14 py-10 bg-base-200 border-b border-base-200 space-y-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="space-y-2 text-center md:text-left">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2 justify-center md:justify-start">
+                <h3 className="text-xl font-black text-base-content tracking-tight flex items-center gap-2 justify-center md:justify-start">
                   <ShieldCheck className="text-primary" size={24} /> 
                   Code de Confirmation.
                 </h3>
-                <p className="text-xs font-bold text-slate-400">Ce code est unique et servira à valider votre livraison.</p>
+                <p className="text-xs font-bold text-base-content/40">Ce code est unique et servira à valider votre livraison.</p>
               </div>
-              <div className="bg-white px-10 py-5 rounded-[2rem] border-2 border-primary/20 shadow-xl shadow-primary/5 text-center min-w-[200px]">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Code Confidentiel</p>
+              <div className="bg-base-100 px-10 py-5 rounded-[2rem] border-2 border-primary/20 shadow-xl shadow-primary/5 text-center min-w-[200px]">
+                <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest mb-1">Code Confidentiel</p>
                 <p className="text-4xl font-black text-primary tracking-[0.2em]">{order.delivery_code || '----'}</p>
-                <p className="text-[9px] font-bold text-slate-400 max-w-[150px] mx-auto mt-2 leading-tight">Présentez ce code au livreur pour recevoir votre colis.</p>
+                <p className="text-[9px] font-bold text-base-content/40 max-w-[150px] mx-auto mt-2 leading-tight">Présentez ce code au livreur pour recevoir votre colis.</p>
               </div>
             </div>
           </div>
         )}
 
         {normalizedStatus === 'expediee' && (
-          <div className="px-10 md:px-14 py-10 border-b border-slate-100 space-y-6">
+          <div className="px-10 md:px-14 py-10 border-b border-base-200 space-y-6">
             <div className="flex items-center justify-between">
-               <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+               <h3 className="text-xl font-black text-base-content tracking-tight flex items-center gap-2">
                   <Navigation className="text-primary animate-pulse" size={24} /> 
                   Suivi en temps réel.
                 </h3>
@@ -558,10 +558,10 @@ export default function OrderDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-12">
 
           {/* Articles */}
-          <div className="lg:col-span-8 p-10 md:p-14 space-y-8 border-b lg:border-b-0 lg:border-r border-slate-50">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <div className="lg:col-span-8 p-10 md:p-14 space-y-8 border-b lg:border-b-0 lg:border-r border-base-200">
+            <h3 className="text-2xl font-black text-base-content tracking-tight flex items-center gap-3">
               Articles
-              <span className="text-xs font-black text-slate-400 bg-slate-50 w-8 h-8 rounded-full flex items-center justify-center border border-slate-100">
+              <span className="text-xs font-black text-base-content/40 bg-base-200 w-8 h-8 rounded-full flex items-center justify-center border border-base-200">
                 {order.items?.length || 0}
               </span>
             </h3>
@@ -579,9 +579,9 @@ export default function OrderDetail() {
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.08 }}
-                    className="p-6 bg-slate-50/30 rounded-[2rem] border border-transparent hover:border-slate-100 hover:bg-white transition-all flex items-center gap-6 group"
+                    className="p-6 bg-base-200/30 rounded-[2rem] border border-transparent hover:border-base-200 hover:bg-base-200 transition-all flex items-center gap-6 group"
                   >
-                    <div className="w-20 h-20 bg-white rounded-[1.5rem] p-3 flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-slate-50 overflow-hidden">
+                    <div className="w-20 h-20 bg-base-100 rounded-[1.5rem] p-3 flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-base-200 overflow-hidden">
                       <img
                         src={itemImage}
                         className="w-full h-full object-contain mix-blend-multiply"
@@ -593,15 +593,15 @@ export default function OrderDetail() {
                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
                         {item.product?.category?.name || "Produit"}
                       </p>
-                      <h4 className="text-lg font-black text-slate-900 tracking-tight truncate">
+                      <h4 className="text-lg font-black text-base-content tracking-tight truncate">
                         {item.product?.name || `Produit #${item.product_id}`}
                       </h4>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                      <div className="flex items-center gap-3 text-xs font-bold text-base-content/40">
                         <span>Qté : {item.quantity}</span>
-                        <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                        <span className="w-1 h-1 bg-base-300 rounded-full" />
                         <span>{item.variant?.name ? `${item.variant.name} · ` : ""}{Number(item.price).toLocaleString()} FCFA / unité</span>
                         {item.original_price && Number(item.original_price) > Number(item.price) && (
-                          <span className="line-through text-slate-300">{Number(item.original_price).toLocaleString()} FCFA</span>
+                          <span className="line-through text-base-content/30">{Number(item.original_price).toLocaleString()} FCFA</span>
                         )}
                       </div>
                     </div>
@@ -611,7 +611,7 @@ export default function OrderDetail() {
                           -{Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)}%
                         </p>
                       )}
-                      <p className="text-xl font-black text-slate-900 tracking-tighter">
+                      <p className="text-xl font-black text-base-content tracking-tighter">
                         {(item.quantity * item.price).toLocaleString()} F
                       </p>
                       <Link to={`/products/${item.product_id}`} className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest block">
@@ -629,10 +629,10 @@ export default function OrderDetail() {
 
             {/* Résumé financier */}
             <div className="space-y-6">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Résumé.</h3>
+              <h3 className="text-xl font-black text-base-content tracking-tight">Résumé.</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm font-bold">
-                  <span className="text-slate-400 uppercase tracking-wide text-xs">Sous-total</span>
+                  <span className="text-base-content/40 uppercase tracking-wide text-xs">Sous-total</span>
                   <span>{(Number(order.total_amount) + Number(order.discount_amount || 0) - Number(order.delivery_fee || 0)).toLocaleString()} F</span>
                 </div>
                 {order.discount_amount > 0 && (
@@ -644,16 +644,16 @@ export default function OrderDetail() {
                   </div>
                 )}
                 <div className="flex justify-between items-center text-sm font-bold">
-                  <span className="text-slate-400 uppercase tracking-wide text-xs">Livraison</span>
+                  <span className="text-base-content/40 uppercase tracking-wide text-xs">Livraison</span>
                   {Number(order.delivery_fee) > 0 ? (
                     <span>{Number(order.delivery_fee).toLocaleString()} F</span>
                   ) : (
                     <span className="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg text-xs font-black">OFFERT</span>
                   )}
                 </div>
-                <div className="h-px bg-slate-100" />
+                <div className="h-px bg-base-200" />
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Total Final</span>
+                  <span className="text-xs font-black text-base-content uppercase tracking-wider">Total Final</span>
                   <span className="text-3xl font-black text-primary tracking-tighter">
                     {Number(order.total_amount).toLocaleString()} F
                   </span>
@@ -663,8 +663,8 @@ export default function OrderDetail() {
 
             {/* Adresse de livraison */}
             <div className="space-y-4">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Livraison.</h3>
-              <div className="bg-slate-900 rounded-[2.5rem] text-white p-8 space-y-5 relative overflow-hidden group">
+              <h3 className="text-xl font-black text-base-content tracking-tight">Livraison.</h3>
+              <div className="bg-neutral rounded-[2.5rem] text-white p-8 space-y-5 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-[0.06] group-hover:scale-125 transition-transform duration-700 pointer-events-none">
                   <MapPin size={80} />
                 </div>
@@ -681,7 +681,7 @@ export default function OrderDetail() {
                     {order.address.quartier_label && (
                       <div className="flex items-start gap-3">
                         <Navigation size={13} className="text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-slate-300 font-bold text-sm">
+                        <span className="text-base-content/30 font-bold text-sm">
                           {order.address.quartier_label}, {order.address.commune_label}
                         </span>
                       </div>
@@ -689,18 +689,18 @@ export default function OrderDetail() {
                     {order.address.departement_label && (
                       <div className="flex items-start gap-3">
                         <MapPin size={13} className="text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-slate-300 font-bold text-sm">{order.address.departement_label}</span>
+                        <span className="text-base-content/30 font-bold text-sm">{order.address.departement_label}</span>
                       </div>
                     )}
                     {order.address.phone && (
                       <div className="flex items-center gap-3">
                         <Phone size={13} className="text-primary flex-shrink-0" />
-                        <span className="text-slate-300 font-bold text-sm">{order.address.phone}</span>
+                        <span className="text-base-content/30 font-bold text-sm">{order.address.phone}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-slate-400 text-sm font-bold italic relative z-10">Adresse non renseignée.</p>
+                  <p className="text-base-content/40 text-sm font-bold italic relative z-10">Adresse non renseignée.</p>
                 )}
 
                 <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest relative z-10">
@@ -712,13 +712,13 @@ export default function OrderDetail() {
             {/* Boutique Location (Only info exposed to customer) */}
             {order.boutique && (
               <div className="space-y-4">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Expédié de.</h3>
+                <h3 className="text-xl font-black text-base-content tracking-tight">Expédié de.</h3>
                 <div className="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex items-center gap-4">
-                  <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm border border-emerald-100">
+                  <div className="w-11 h-11 bg-base-100 rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm border border-emerald-100">
                     <Store size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-slate-900 leading-none">Boutique Partenaire</p>
+                    <p className="text-sm font-black text-base-content leading-none">Boutique Partenaire</p>
                     <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1.5">
                       {order.boutique.commune_label || order.boutique.commune}{order.boutique.departement_label ? `, ${order.boutique.departement_label}` : ""}
                     </p>
@@ -729,16 +729,16 @@ export default function OrderDetail() {
 
             {/* Paiement */}
             <div className="space-y-4">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Paiement.</h3>
-              <div className="p-6 bg-slate-50 rounded-[2rem] flex items-center gap-4 border border-slate-100">
-                <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm border border-slate-100">
+              <h3 className="text-xl font-black text-base-content tracking-tight">Paiement.</h3>
+              <div className="p-6 bg-base-200 rounded-[2rem] flex items-center gap-4 border border-base-200">
+                <div className="w-11 h-11 bg-base-100 rounded-2xl flex items-center justify-center text-primary shadow-sm border border-base-200">
                   <CreditCard size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-slate-900 leading-none">
+                  <p className="text-sm font-black text-base-content leading-none">
                     {order.payment_method === "fedapay" ? "FedaPay" : "Paiement à la livraison"}
                   </p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">
+                  <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-1.5">
                     {order.payment_status === "payé" ? "Transaction confirmée" : "En attente de règlement"}
                   </p>
                 </div>
@@ -748,10 +748,10 @@ export default function OrderDetail() {
             {/* Livreur (Nouveau) */}
             {order.deliveryPerson && (
               <div className="space-y-4">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Votre Livreur.</h3>
-                <div className="p-6 bg-white rounded-[2rem] border-2 border-primary/10 flex items-center gap-5 shadow-xl shadow-primary/5 group transition-all hover:bg-slate-50">
+                <h3 className="text-xl font-black text-base-content tracking-tight">Votre Livreur.</h3>
+                <div className="p-6 bg-base-100 rounded-[2rem] border-2 border-primary/10 flex items-center gap-5 shadow-xl shadow-primary/5 group transition-all hover:bg-base-200">
                   <div className="relative">
-                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 overflow-hidden border border-slate-200">
+                    <div className="w-16 h-16 bg-base-200 rounded-2xl flex items-center justify-center text-base-content/40 overflow-hidden border border-base-300">
                       {order.deliveryPerson.profile?.avatar_url ? (
                         <img src={order.deliveryPerson.profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
@@ -763,7 +763,7 @@ export default function OrderDetail() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-black text-slate-900 leading-tight">
+                    <h4 className="font-black text-base-content leading-tight">
                       {order.deliveryPerson.profile?.fullname || "Livreur Assigné"}
                     </h4>
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">
@@ -771,7 +771,7 @@ export default function OrderDetail() {
                     </p>
                     <a
                       href={`tel:${order.deliveryPerson.profile?.phone}`}
-                      className="inline-flex items-center gap-2 mt-3 text-xs font-black text-slate-900 hover:text-primary transition-colors"
+                      className="inline-flex items-center gap-2 mt-3 text-xs font-black text-base-content hover:text-primary transition-colors"
                     >
                       <Phone size={14} className="text-primary" />
                       {order.deliveryPerson.profile?.phone || "Contact non dispo."}
@@ -782,7 +782,7 @@ export default function OrderDetail() {
             )}
  
             {/* Actions */}
-            <div className="pt-12 border-t border-slate-100 flex flex-col gap-4">
+            <div className="pt-12 border-t border-base-200 flex flex-col gap-4">
 
               {/* Dispute status card */}
               {order.dispute_status && order.dispute_status !== 'annule' && (
@@ -807,7 +807,7 @@ export default function OrderDetail() {
                   {(order.dispute_status === 'ouvert' || order.dispute_status === 'en_cours') && (
                     <button
                       onClick={() => setShowEvidenceModal(true)}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-all"
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-base-200 border border-base-300 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/70 hover:bg-base-200 transition-all"
                     >
                       <Camera size={13} /> Ajouter des preuves
                     </button>
@@ -848,7 +848,7 @@ export default function OrderDetail() {
                             } catch (e) { toast?.error?.(e?.response?.data?.error || 'Erreur'); }
                             finally { setDisputeResponseLoading(false); }
                           }}
-                          className="py-3 bg-white border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="py-3 bg-base-100 border-2 border-rose-200 text-rose-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           title={!canContest ? 'Délai de contestation dépassé' : ''}
                         >
                           <ThumbsDown size={14} /> Contester
@@ -872,8 +872,8 @@ export default function OrderDetail() {
                         <Star size={16} className="fill-white text-white" />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-black text-slate-800 text-sm leading-tight">Satisfait de Vtout ?</p>
-                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">Partagez votre expérience avec la communauté béninoise</p>
+                        <p className="font-black text-base-content/90 text-sm leading-tight">Satisfait de Vtout ?</p>
+                        <p className="text-[10px] font-bold text-base-content/50 mt-0.5">Partagez votre expérience avec la communauté béninoise</p>
                       </div>
                     </div>
                     <button
@@ -889,7 +889,7 @@ export default function OrderDetail() {
               {/* Dispute button — only available after delivery */}
               {isDelivered && (!order.dispute_status || order.dispute_status === 'annule') && (
                 <button
-                  className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
+                  className="w-full py-4 bg-neutral text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-200 flex items-center justify-center gap-2 hover:bg-rose-600 transition-all active:scale-95"
                   onClick={() => setShowDisputeModal(true)}
                 >
                   <AlertCircle size={18} />
@@ -897,14 +897,14 @@ export default function OrderDetail() {
                 </button>
               )}
               {!isDelivered && !order.dispute_status && (
-                <div className="w-full py-3.5 bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center justify-center gap-2 text-slate-400">
+                <div className="w-full py-3.5 bg-base-200 border border-base-200 rounded-[1.5rem] flex items-center justify-center gap-2 text-base-content/40">
                   <Lock size={14} />
                   <span className="text-xs font-black uppercase tracking-widest">Disponible après livraison</span>
                 </div>
               )}
               <Link 
                 to="/"
-                className="w-full py-4 bg-slate-50 text-slate-400 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-100 transition-all"
+                className="w-full py-4 bg-base-200 text-base-content/40 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-base-200 transition-all"
               >
                 <ArrowLeft size={16} />
                 Retour à l'accueil

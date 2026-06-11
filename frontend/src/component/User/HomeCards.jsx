@@ -83,7 +83,7 @@ export default function HomeCards() {
   if (loading) return (
     <div className="space-y-12 max-w-[1200px] animate-pulse">
       {/* Hero Skeleton */}
-      <div className="bg-slate-100 rounded-[3rem] p-10 md:p-20 h-[400px]">
+      <div className="bg-base-200 rounded-[3rem] p-10 md:p-20 h-[400px]">
         <div className="space-y-6 max-w-lg">
           <Skeleton className="w-32 h-8 rounded-full" />
           <Skeleton className="w-full h-16 rounded-2xl" />
@@ -95,7 +95,7 @@ export default function HomeCards() {
       {/* Stats Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white p-10 rounded-[3rem] border border-slate-50 flex justify-between items-center h-40">
+          <div key={i} className="bg-base-100 p-10 rounded-[3rem] border border-base-200 flex justify-between items-center h-40">
             <div className="space-y-3">
               <Skeleton className="w-20 h-3 rounded-full" />
               <Skeleton className="w-12 h-10 rounded-xl" />
@@ -155,12 +155,12 @@ export default function HomeCards() {
         className="relative bg-gradient-to-br from-blue-600 to-blue-900 rounded-[2rem] md:rounded-[3rem] p-6 sm:p-10 md:p-20 text-white overflow-hidden shadow-[0_20px_100px_rgba(37,99,235,0.25)]"
       >
         {/* Abstract Background Shapes */}
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-base-100/10 rounded-full blur-[100px] animate-pulse"></div>
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-400/20 rounded-full blur-[100px]"></div>
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="space-y-5 md:space-y-8">
-            <div className="inline-flex items-center gap-3 bg-white/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
+            <div className="inline-flex items-center gap-3 bg-base-100/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
               <Crown size={14} className="text-primary" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Membre Privilège Vtout</span>
             </div>
@@ -193,7 +193,7 @@ export default function HomeCards() {
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-8 space-y-6"
+              className="bg-base-100/10 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] p-8 space-y-6"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-widest text-blue-300">Dernier Achat</span>
@@ -207,7 +207,7 @@ export default function HomeCards() {
               ) : (
                 <p className="text-blue-300 font-bold italic">Aucun achat récent</p>
               )}
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 bg-base-100/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: "70%" }} className="h-full bg-primary" />
               </div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-400">
@@ -225,11 +225,11 @@ export default function HomeCards() {
             <motion.div
               variants={item}
               whileHover={{ y: -4 }}
-              className="bg-white p-3 md:p-10 rounded-[1.2rem] md:rounded-[3rem] border border-slate-100 shadow-sm flex flex-row items-center justify-between gap-2 group transition-all h-full"
+              className="bg-base-100 p-3 md:p-10 rounded-[1.2rem] md:rounded-[3rem] border border-base-200 shadow-sm flex flex-row items-center justify-between gap-2 group transition-all h-full"
             >
               <div className="min-w-0">
-                <p className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.05rem] md:tracking-[0.2rem] leading-tight truncate">{stat.label}</p>
-                <p className="text-xl md:text-5xl font-black text-slate-900 tracking-tighter">{stat.value}</p>
+                <p className="text-[7px] md:text-[10px] font-black text-base-content/40 uppercase tracking-[0.05rem] md:tracking-[0.2rem] leading-tight truncate">{stat.label}</p>
+                <p className="text-xl md:text-5xl font-black text-base-content tracking-tighter">{stat.value}</p>
               </div>
               <div className={`w-8 h-8 md:w-20 md:h-20 rounded-[0.7rem] md:rounded-[2rem] ${stat.bg} ${stat.color} flex items-center justify-center group-hover:scale-110 transition-all duration-500 shrink-0`}>
                 {stat.icon}
@@ -247,7 +247,7 @@ export default function HomeCards() {
           className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white shadow-lg shadow-orange-200/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/20 rounded-[1rem] sm:rounded-[1.2rem] flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 bg-base-100/20 rounded-[1rem] sm:rounded-[1.2rem] flex items-center justify-center shrink-0">
               <Wallet size={22} className="text-white sm:hidden" />
               <Wallet size={28} className="text-white hidden sm:block" />
             </div>
@@ -274,8 +274,8 @@ export default function HomeCards() {
                 <TrendingUp size={22} />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Commandes Récentes</h2>
-                <p className="text-xs font-bold text-slate-400">Suivi de vos derniers achats</p>
+                <h2 className="text-3xl font-black text-base-content tracking-tighter">Commandes Récentes</h2>
+                <p className="text-xs font-bold text-base-content/40">Suivi de vos derniers achats</p>
               </div>
             </div>
             <Link to="/user/dashboard/orders" className="text-xs font-black text-primary hover:underline bg-primary/5 px-6 py-3 rounded-2xl uppercase tracking-widest">Voir Tout</Link>
@@ -297,10 +297,10 @@ export default function HomeCards() {
                   <Link key={order.id} to={`/user/dashboard/orders/${order.id}`} className="block">
                     <motion.div
                       whileHover={{ x: 4 }}
-                      className="bg-white px-4 py-4 rounded-[1.8rem] border border-slate-100 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all group active:scale-[0.99]"
+                      className="bg-base-100 px-4 py-4 rounded-[1.8rem] border border-base-200 flex items-center gap-3 hover:shadow-md hover:border-base-300 transition-all group active:scale-[0.99]"
                     >
                       {/* Icon */}
-                      <div className="w-11 h-11 shrink-0 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <div className="w-11 h-11 shrink-0 bg-base-200 rounded-2xl flex items-center justify-center text-base-content/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                         <ShoppingBag size={18} />
                       </div>
 
@@ -308,16 +308,16 @@ export default function HomeCards() {
                       <div className="flex-1 min-w-0">
                         {/* Row 1 : ref + montant */}
                         <div className="flex items-center justify-between gap-2">
-                          <p className="font-black text-slate-900 text-sm tracking-tight truncate">
+                          <p className="font-black text-base-content text-sm tracking-tight truncate">
                             #{order.id.slice(0, 8).toUpperCase()}
                           </p>
-                          <p className="font-black text-slate-900 text-sm shrink-0">
+                          <p className="font-black text-base-content text-sm shrink-0">
                             {Number(order.total_amount).toLocaleString('fr-FR')} F
                           </p>
                         </div>
                         {/* Row 2 : date + badge */}
                         <div className="flex items-center justify-between gap-2 mt-1">
-                          <p className="text-[11px] font-bold text-slate-400">{dateStr}</p>
+                          <p className="text-[11px] font-bold text-base-content/40">{dateStr}</p>
                           <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${color}`}>
                             {label}
                           </span>
@@ -325,19 +325,19 @@ export default function HomeCards() {
                       </div>
 
                       {/* Chevron */}
-                      <ChevronRight size={14} className="text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
+                      <ChevronRight size={14} className="text-base-content/30 shrink-0 group-hover:text-primary transition-colors" />
                     </motion.div>
                   </Link>
                 );
               })
             ) : (
-              <div className="bg-white p-20 rounded-[3rem] border-2 border-dashed border-slate-100 text-center space-y-6">
-                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                  <ShoppingBag size={40} className="text-slate-200" />
+              <div className="bg-base-100 p-20 rounded-[3rem] border-2 border-dashed border-base-200 text-center space-y-6">
+                <div className="w-24 h-24 bg-base-200 rounded-full flex items-center justify-center mx-auto">
+                  <ShoppingBag size={40} className="text-base-content/20" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">Aucune commande</h3>
-                  <p className="text-slate-400 font-bold max-w-xs mx-auto text-sm">C'est le moment idéal pour découvrir nos nouvelles pépites technologiques.</p>
+                  <h3 className="text-xl font-black text-base-content">Aucune commande</h3>
+                  <p className="text-base-content/40 font-bold max-w-xs mx-auto text-sm">C'est le moment idéal pour découvrir nos nouvelles pépites technologiques.</p>
                 </div>
                 <Link to="/products-liste" className="btn btn-primary rounded-2xl px-10 h-14 font-black shadow-lg shadow-primary/20 border-none">Explorer la Boutique</Link>
               </div>
@@ -354,13 +354,13 @@ export default function HomeCards() {
               <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl">
                 <MapPinned size={22} />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Expédition</h2>
+              <h2 className="text-3xl font-black text-base-content tracking-tighter">Expédition</h2>
             </div>
 
             {address ? (
-              <div className="bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/20 overflow-hidden relative group">
+              <div className="bg-base-100 rounded-[3rem] border border-base-200 shadow-xl shadow-slate-200/20 overflow-hidden relative group">
                 {/* Dark header */}
-                <div className="bg-slate-900 p-8 space-y-4 relative overflow-hidden">
+                <div className="bg-neutral p-8 space-y-4 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-3 opacity-[0.06] pointer-events-none">
                     <MapPinned size={80} />
                   </div>
@@ -368,10 +368,10 @@ export default function HomeCards() {
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">
                       {address.is_default ? "Adresse par défaut" : address.label || "Adresse de livraison"}
                     </p>
-                    <p className="text-2xl font-black text-slate-900 leading-tight tracking-tight">
+                    <p className="text-2xl font-black text-base-content leading-tight tracking-tight">
                       {address.quartier_label}
                     </p>
-                    <p className="text-slate-400 font-bold text-sm mt-1">
+                    <p className="text-base-content/40 font-bold text-sm mt-1">
                       {address.commune_label}{address.departement_label ? `, ${address.departement_label}` : ""}
                     </p>
                   </div>
@@ -383,35 +383,35 @@ export default function HomeCards() {
                 {/* Details */}
                 <div className="p-8 space-y-4">
                   {address.phone && (
-                    <div className="flex items-center gap-3 text-sm text-slate-600 font-bold">
-                      <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-primary">
+                    <div className="flex items-center gap-3 text-sm text-base-content/70 font-bold">
+                      <div className="w-8 h-8 bg-base-200 rounded-xl flex items-center justify-center text-primary">
                         <MapPin size={14} />
                       </div>
                       {address.phone}
                     </div>
                   )}
-                  <div className="flex items-center gap-3 text-sm text-slate-600 font-bold">
-                    <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-primary">
+                  <div className="flex items-center gap-3 text-sm text-base-content/70 font-bold">
+                    <div className="w-8 h-8 bg-base-200 rounded-xl flex items-center justify-center text-primary">
                       <PackageCheck size={14} />
                     </div>
                     Livraison estimée : 2448h
                   </div>
                   <Link
                     to="/user/dashboard/addresses"
-                    className="flex items-center justify-center gap-2 w-full h-12 mt-2 bg-slate-50 hover:bg-slate-100 rounded-2xl font-black text-slate-700 text-xs uppercase tracking-widest transition-all border border-transparent hover:border-slate-200"
+                    className="flex items-center justify-center gap-2 w-full h-12 mt-2 bg-base-200 hover:bg-base-200 rounded-2xl font-black text-base-content/80 text-xs uppercase tracking-widest transition-all border border-transparent hover:border-base-300"
                   >
                     Gérer mes adresses <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
             ) : (
-              <div className="bg-white p-10 rounded-[3rem] border-2 border-dashed border-slate-100 space-y-6 text-center">
+              <div className="bg-base-100 p-10 rounded-[3rem] border-2 border-dashed border-base-200 space-y-6 text-center">
                 <div className="w-16 h-16 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mx-auto">
                   <MapPinned size={28} />
                 </div>
                 <div className="space-y-2">
-                  <p className="font-black text-slate-900">Aucune adresse</p>
-                  <p className="text-slate-400 font-bold text-sm">
+                  <p className="font-black text-base-content">Aucune adresse</p>
+                  <p className="text-base-content/40 font-bold text-sm">
                     Ajoutez une adresse de livraison pour recevoir vos commandes.
                   </p>
                 </div>
@@ -426,14 +426,14 @@ export default function HomeCards() {
           </div>
 
 
-          <div className="bg-slate-900 p-10 rounded-[3rem] text-white space-y-8 relative overflow-hidden group">
+          <div className="bg-neutral p-10 rounded-[3rem] text-white space-y-8 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
               <MessageCircle size={100} />
             </div>
 
             <div className="space-y-3 relative z-10">
               <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
-              <p className="text-slate-400 text-sm font-bold leading-relaxed">
+              <p className="text-base-content/40 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
                 Nos experts vous répondent en moins de 5 minutes.
               </p>

@@ -110,7 +110,7 @@ export default function CartPage() {
   );
 
   return (
-    <div className={isDashboard ? "pb-12" : "bg-slate-50 min-h-screen pt-12 pb-24"}>
+    <div className={isDashboard ? "pb-12" : "bg-base-200 min-h-screen pt-12 pb-24"}>
       <div className={isDashboard ? "w-full" : "max-w-[1200px] mx-auto px-6"}>
         <div className={`flex flex-col ${isDashboard ? "xl:flex-row" : "lg:flex-row"} gap-12`}>
 
@@ -118,7 +118,7 @@ export default function CartPage() {
           <div className="flex-1 space-y-8">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-4xl font-black text-gray-900 tracking-tighter">Votre Panier</h1>
-              <span className="bg-white px-4 py-1 rounded-full border border-gray-100 text-sm font-bold text-gray-500 shadow-sm">
+              <span className="bg-base-100 px-4 py-1 rounded-full border border-gray-100 text-sm font-bold text-gray-500 shadow-sm">
                 {displayCart.length} Article{displayCart.length > 1 ? 's' : ''}
               </span>
             </div>
@@ -133,7 +133,7 @@ export default function CartPage() {
               />
             ) : (
               <div className="space-y-6">
-                <div className="flex items-center gap-4 px-6 py-4 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-4 px-6 py-4 bg-base-100 rounded-3xl border border-gray-100 shadow-sm">
                   <input
                     type="checkbox"
                     className="checkbox checkbox-primary rounded-lg"
@@ -152,7 +152,7 @@ export default function CartPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className={`group relative bg-white p-6 rounded-[2rem] border transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${selectedIds.has(item.id) ? 'border-primary ring-4 ring-primary/5 shadow-xl' : 'border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-md'}`}
+                        className={`group relative bg-base-100 p-6 rounded-[2rem] border transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${selectedIds.has(item.id) ? 'border-primary ring-4 ring-primary/5 shadow-xl' : 'border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-md'}`}
                       >
                         <div className="flex items-center gap-6 w-full md:w-auto">
                           <input
@@ -161,7 +161,7 @@ export default function CartPage() {
                             checked={selectedIds.has(item.id)}
                             onChange={() => toggleSelect(item.id)}
                           />
-                          <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-50 rounded-2xl p-4 flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
+                          <div className="w-24 h-24 md:w-32 md:h-32 bg-base-200 rounded-2xl p-4 flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
                             <img
                               src={item.image_url || "/images/placeholder-rect.png"}
                               alt={item.name}
@@ -189,15 +189,15 @@ export default function CartPage() {
                                     .trim();
 
                                   return (
-                                    <div key={key} className="flex items-center bg-slate-50 border border-slate-100 rounded-full px-3 py-1 gap-2 shadow-sm">
-                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{key}</span>
+                                    <div key={key} className="flex items-center bg-base-200 border border-base-200 rounded-full px-3 py-1 gap-2 shadow-sm">
+                                      <span className="text-[9px] font-black text-base-content/40 uppercase tracking-tighter">{key}</span>
                                       <span className="text-[10px] font-black text-primary uppercase">{cleanVal}</span>
                                     </div>
                                   );
                                 });
                               } catch (e) {
                                 return (
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 py-1.5 px-3 rounded-xl border border-slate-100">
+                                  <span className="text-[10px] font-black text-base-content/40 uppercase tracking-widest bg-base-200 py-1.5 px-3 rounded-xl border border-base-200">
                                     Standard Edition
                                   </span>
                                 );
@@ -213,7 +213,7 @@ export default function CartPage() {
                                     <span className="text-2xl font-black text-primary">
                                       {discountedPrice.toLocaleString()} F
                                     </span>
-                                    <span className="text-sm font-bold text-slate-400 line-through">
+                                    <span className="text-sm font-bold text-base-content/40 line-through">
                                       {originalPrice.toLocaleString()} F
                                     </span>
                                   </div>
@@ -232,17 +232,17 @@ export default function CartPage() {
                         </div>
 
                         <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                          <div className="flex items-center bg-slate-100 rounded-2xl p-2 gap-4">
+                          <div className="flex items-center bg-base-200 rounded-2xl p-2 gap-4">
                             <button
                               onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-gray-900 transition-colors shadow-sm active:scale-90"
+                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-base-200 text-gray-900 transition-colors shadow-sm active:scale-90"
                             >
                               <Minus size={18} />
                             </button>
                             <span className="text-lg font-black w-6 text-blue-400 text-center">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white text-gray-900 transition-colors shadow-sm active:scale-90"
+                              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-base-200 text-gray-900 transition-colors shadow-sm active:scale-90"
                             >
                               <Plus size={18} />
                             </button>
@@ -267,14 +267,14 @@ export default function CartPage() {
           {displayCart.length > 0 && (
             <div className={`w-full ${isDashboard ? "xl:w-[400px]" : "lg:w-[400px]"}`}>
               <div className="sticky top-24 space-y-6">
-                <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                <div className="bg-neutral text-white p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700"></div>
 
                   <h2 className="text-2xl font-black mb-8 relative z-10 flex items-center gap-3">
                     Résumé <CheckCircle2 className="text-primary" size={24} />
                   </h2>
 
-                  <div className="space-y-4 mb-8 text-slate-400 relative z-10">
+                  <div className="space-y-4 mb-8 text-base-content/40 relative z-10">
                     <div className="flex justify-between font-bold">
                       <span>Articles ({displayCart.length})</span>
                       <span className="text-blue-900">{total.toLocaleString()} F</span>
@@ -282,17 +282,17 @@ export default function CartPage() {
                     <div className="flex justify-between font-bold items-center">
                       <div className="flex flex-col">
                         <span>Frais de livraison</span>
-                        <span className="text-[10px] font-medium text-slate-500 mt-0.5 italic">Calculés à l'étape suivante</span>
+                        <span className="text-[10px] font-medium text-base-content/50 mt-0.5 italic">Calculés à l'étape suivante</span>
                       </div>
                       <span className="text-primary text-sm italic">À définir</span>
                     </div>
-                    <div className="h-px bg-slate-800 my-6"></div>
+                    <div className="h-px bg-neutral/90 my-6"></div>
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
                         <span className="font-black text-sm uppercase tracking-widest">Total partiel</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Hors livraison</span>
+                        <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mt-1">Hors livraison</span>
                       </div>
-                      <span className="text-4xl font-black text-slate-900">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
+                      <span className="text-4xl font-black text-base-content">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
                     </div>
                   </div>
 
@@ -304,7 +304,7 @@ export default function CartPage() {
                   </button>
                 </div>
 
-                <div className="bg-white p-8 rounded-3xl border border-gray-100 space-y-4 shadow-sm">
+                <div className="bg-base-100 p-8 rounded-3xl border border-gray-100 space-y-4 shadow-sm">
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Besoin d'aide ?</p>
                   <p className="text-sm font-bold text-gray-600">Nos experts sont disponibles 24/7 pour vous accompagner dans votre achat.</p>
                   <button

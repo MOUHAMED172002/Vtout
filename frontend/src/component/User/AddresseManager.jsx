@@ -10,13 +10,13 @@ import AddressSelector from "../context/AddressSelector";
 
 // --- Skeleton Card ----------------------------------------------------------
 const SkeletonCard = () => (
-  <div className="p-5 rounded-[1.8rem] border border-slate-100 bg-white space-y-4 animate-pulse">
-    <div className="h-5 w-32 bg-slate-100 rounded-full" />
-    <div className="h-4 w-48 bg-slate-50 rounded-full" />
-    <div className="h-3 w-24 bg-slate-50 rounded-full" />
+  <div className="p-5 rounded-[1.8rem] border border-base-200 bg-base-100 space-y-4 animate-pulse">
+    <div className="h-5 w-32 bg-base-200 rounded-full" />
+    <div className="h-4 w-48 bg-base-200 rounded-full" />
+    <div className="h-3 w-24 bg-base-200 rounded-full" />
     <div className="flex gap-2 mt-3">
-      <div className="h-8 w-8 rounded-xl bg-slate-100" />
-      <div className="h-8 w-8 rounded-xl bg-slate-100" />
+      <div className="h-8 w-8 rounded-xl bg-base-200" />
+      <div className="h-8 w-8 rounded-xl bg-base-200" />
     </div>
   </div>
 );
@@ -154,13 +154,13 @@ export default function AddressesManager() {
       {/* -- Header -- */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
+          <div className="w-12 h-12 bg-neutral rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
             <MapPin size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">Mes adresses</h2>
+            <h2 className="text-lg font-black text-base-content tracking-tight">Mes adresses</h2>
             {user && (
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
                 {addresses.length} adresse{addresses.length !== 1 ? "s" : ""} enregistrée{addresses.length !== 1 ? "s" : ""}
               </p>
             )}
@@ -171,7 +171,7 @@ export default function AddressesManager() {
           whileTap={{ scale: 0.97 }}
           onClick={openAdd}
           disabled={isLooping || busy.saving}
-          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-xl shadow-slate-900/20 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 bg-neutral hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-xl shadow-slate-900/20 transition-all disabled:opacity-50"
         >
           <Plus size={14} />
           Nouvelle adresse
@@ -188,16 +188,16 @@ export default function AddressesManager() {
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center gap-6 py-20 border-4 border-dashed border-slate-100 rounded-[2.5rem] bg-slate-50/30"
+          className="flex flex-col items-center justify-center gap-6 py-20 border-4 border-dashed border-base-200 rounded-[2.5rem] bg-base-200/30"
         >
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
-            <Home size={36} className="text-slate-200" />
+          <div className="w-20 h-20 bg-base-100 rounded-full flex items-center justify-center shadow-inner">
+            <Home size={36} className="text-base-content/20" />
           </div>
           <div className="text-center space-y-2">
-            <p className="text-sm font-black text-slate-400 uppercase tracking-widest">
+            <p className="text-sm font-black text-base-content/40 uppercase tracking-widest">
               Aucune adresse enregistrée
             </p>
-            <p className="text-xs text-slate-300 font-bold">
+            <p className="text-xs text-base-content/30 font-bold">
               Ajoutez une adresse pour faciliter vos commandes
             </p>
           </div>
@@ -205,7 +205,7 @@ export default function AddressesManager() {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             onClick={openAdd}
-            className="flex items-center gap-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest px-8 py-4 rounded-full shadow-xl"
+            className="flex items-center gap-2 bg-neutral text-white text-xs font-black uppercase tracking-widest px-8 py-4 rounded-full shadow-xl"
           >
             <Plus size={14} /> Ajouter une adresse
           </motion.button>
@@ -223,21 +223,21 @@ export default function AddressesManager() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className={`relative rounded-[1.8rem] border-2 overflow-hidden shadow-sm transition-all duration-300 bg-white ${a.is_default
+                  className={`relative rounded-[1.8rem] border-2 overflow-hidden shadow-sm transition-all duration-300 bg-base-100 ${a.is_default
                       ? "border-emerald-400 shadow-emerald-100 ring-2 ring-emerald-400/20"
-                      : "border-slate-100 hover:border-slate-200 hover:shadow-md"
+                      : "border-base-200 hover:border-base-300 hover:shadow-md"
                     }`}
                 >
                   {/* Card header */}
                   <div
-                    className={`px-6 py-4 flex items-center justify-between ${a.is_default ? "bg-slate-900" : "bg-slate-800"
+                    className={`px-6 py-4 flex items-center justify-between ${a.is_default ? "bg-neutral" : "bg-neutral/90"
                       }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-slate-900">
+                      <div className="w-8 h-8 rounded-xl bg-base-100/10 flex items-center justify-center text-base-content">
                         <MapPin size={15} />
                       </div>
-                      <span className="font-black text-slate-900 text-sm truncate max-w-[140px]">
+                      <span className="font-black text-base-content text-sm truncate max-w-[140px]">
                         {a.label || "Adresse"}
                       </span>
                     </div>
@@ -250,26 +250,26 @@ export default function AddressesManager() {
 
                   {/* Card body */}
                   <div className="px-6 py-5 space-y-3">
-                    <p className="text-base font-black text-slate-900 leading-tight">
+                    <p className="text-base font-black text-base-content leading-tight">
                       {[a.quartier_label, a.commune_label].filter(Boolean).join(", ") || a.address_line}
                     </p>
                     {(a.quartier_label || a.commune_label) && a.address_line && (
-                      <p className="text-xs text-slate-500 font-bold">{a.address_line}</p>
+                      <p className="text-xs text-base-content/50 font-bold">{a.address_line}</p>
                     )}
                     {a.phone && (
-                      <div className="flex items-center gap-2 text-slate-400">
+                      <div className="flex items-center gap-2 text-base-content/40">
                         <Phone size={13} />
                         <span className="text-xs font-bold">{a.phone}</span>
                       </div>
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                    <div className="flex items-center justify-between pt-3 border-t border-base-200">
                       {!a.is_default ? (
                         <button
                           onClick={() => makeDefault(a.id)}
                           disabled={isDeleting || isSetting}
-                          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors disabled:opacity-40"
+                          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-base-content/40 hover:text-emerald-600 transition-colors disabled:opacity-40"
                         >
                           {isSetting
                             ? <Loader2 size={12} className="animate-spin" />
@@ -288,7 +288,7 @@ export default function AddressesManager() {
                           whileTap={{ scale: 0.9 }}
                           onClick={() => openEdit(a)}
                           disabled={isDeleting || isSetting}
-                          className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-500 flex items-center justify-center transition-all disabled:opacity-40"
+                          className="w-9 h-9 rounded-xl bg-base-200 text-base-content/40 hover:bg-blue-50 hover:text-blue-500 flex items-center justify-center transition-all disabled:opacity-40"
                         >
                           <Pencil size={14} />
                         </motion.button>
@@ -297,7 +297,7 @@ export default function AddressesManager() {
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setConfirm({ open: true, id: a.id, label: a.label })}
                           disabled={isDeleting || isSetting}
-                          className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all disabled:opacity-40"
+                          className="w-9 h-9 rounded-xl bg-base-200 text-base-content/40 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all disabled:opacity-40"
                         >
                           {isDeleting
                             ? <Loader2 size={14} className="animate-spin" />
@@ -328,21 +328,21 @@ export default function AddressesManager() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 60, opacity: 0 }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
-              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden"
+              className="bg-base-100 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden"
             >
               {/* Modal header */}
-              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-50 bg-slate-900">
+              <div className="flex items-center justify-between px-8 py-6 border-b border-base-200 bg-neutral">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-slate-900">
+                  <div className="w-10 h-10 rounded-xl bg-base-100/10 flex items-center justify-center text-base-content">
                     <MapPin size={18} />
                   </div>
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">
+                  <h3 className="text-base font-black text-base-content tracking-tight">
                     {editingAddress ? "Modifier l'adresse" : "Nouvelle adresse"}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectorOpen(false)}
-                  className="w-9 h-9 rounded-xl bg-white/10 text-slate-900/60 hover:bg-white/20 hover:text-slate-900 flex items-center justify-center transition-all"
+                  className="w-9 h-9 rounded-xl bg-base-100/10 text-base-content/60 hover:bg-base-200/20 hover:text-base-content flex items-center justify-center transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -375,17 +375,17 @@ export default function AddressesManager() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.93, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 space-y-6"
+              className="bg-base-100 rounded-[2rem] shadow-2xl w-full max-w-sm p-8 space-y-6"
             >
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center">
                   <AlertTriangle size={28} className="text-rose-500" />
                 </div>
                 <div>
-                  <h4 className="text-base font-black text-slate-900">Supprimer l'adresse</h4>
-                  <p className="text-sm text-slate-500 font-bold mt-2">
+                  <h4 className="text-base font-black text-base-content">Supprimer l'adresse</h4>
+                  <p className="text-sm text-base-content/50 font-bold mt-2">
                     Voulez-vous vraiment supprimer{" "}
-                    <strong className="text-slate-700">
+                    <strong className="text-base-content/80">
                       {confirm.label || "cette adresse"}
                     </strong>{" "}
                     ? Cette action est irréversible.
@@ -395,7 +395,7 @@ export default function AddressesManager() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirm({ open: false, id: null, label: "" })}
-                  className="flex-1 py-3 rounded-2xl bg-slate-50 text-slate-600 text-sm font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
+                  className="flex-1 py-3 rounded-2xl bg-base-200 text-base-content/70 text-sm font-black uppercase tracking-widest hover:bg-base-200 transition-all"
                 >
                   Annuler
                 </button>

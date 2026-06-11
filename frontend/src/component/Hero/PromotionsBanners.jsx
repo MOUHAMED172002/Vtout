@@ -127,11 +127,11 @@ const PromotionsBanners = () => {
         ? { background: 'rgba(0,20,50,0.9)' }
         : { background: 'linear-gradient(135deg, #fff7f0 0%, #fef3ff 50%, #f0f7ff 100%)' };
 
-    const textTitleClass = isDark ? "text-white" : "text-slate-900";
-    const textSubtitleClass = isDark ? "text-slate-300/80" : "text-slate-600";
+    const textTitleClass = isDark ? "text-white" : "text-base-content";
+    const textSubtitleClass = isDark ? "text-base-content/30/80" : "text-base-content/70";
 
     return (
-        <section className={`relative py-12 overflow-hidden transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+        <section className={`relative py-12 overflow-hidden transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-base-100'}`}>
             {/* Background Glows */}
             {isDark && (
                 <>

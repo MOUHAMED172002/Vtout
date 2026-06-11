@@ -48,7 +48,7 @@ export default function EmailVerificationBanner() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="bg-white/20 p-2 rounded-full">
+                                <div className="bg-base-100/20 p-2 rounded-full">
                                     {sent ? <CheckCircle2 size={18} className="text-white" /> : <Mail size={18} className="text-white" />}
                                 </div>
                                 <div className="flex flex-col">
@@ -60,7 +60,7 @@ export default function EmailVerificationBanner() {
                                 <button 
                                     onClick={handleResend}
                                     disabled={isSending || sent}
-                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-indigo-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm hover:bg-indigo-50 transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-base-100 text-indigo-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm hover:bg-indigo-50 transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
                                 >
                                     {isSending ? (
                                         <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
@@ -72,7 +72,7 @@ export default function EmailVerificationBanner() {
                                 </button>
                                 <button 
                                     onClick={() => setIsDismissed(true)}
-                                    className="p-1.5 hover:bg-white/20 rounded-full transition-colors text-indigo-200 hover:text-white"
+                                    className="p-1.5 hover:bg-base-200/20 rounded-full transition-colors text-indigo-200 hover:text-white"
                                 >
                                     <X size={16} />
                                 </button>

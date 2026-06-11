@@ -104,25 +104,25 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-sm">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-slate-100"
+                className="bg-base-100 w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-base-200"
             >
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <div className="p-8 border-b border-base-200 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
                             <Store size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Nouvelle Boutique</h2>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                            <h2 className="text-xl font-black text-base-content tracking-tight">Nouvelle Boutique</h2>
+                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">
                                 {initialSupplier ? `Pour: ${initialSupplier.name}` : 'Assigner à un marchand'}
                             </p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
                         <X size={20} />
                     </button>
                 </div>
@@ -136,11 +136,11 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
 
                     {!initialSupplier && (
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sélectionner le Marchand (Propriétaire)</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Sélectionner le Marchand (Propriétaire)</label>
                             <select 
                                 value={selectedSupplierId}
                                 onChange={(e) => setSelectedSupplierId(e.target.value)}
-                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
+                                className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
                             >
                                 <option value="">Choisir un marchand...</option>
                                 {suppliers.map(s => (
@@ -151,37 +151,37 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
                     )}
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom de la boutique</label>
-                        <input {...register('name', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Boutique Principale - Cotonou" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Nom de la boutique</label>
+                        <input {...register('name', { required: true })} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Boutique Principale - Cotonou" />
                     </div>
 
                     {/* Zone Géographique */}
-                    <div className="space-y-4 pt-4 border-t border-slate-50">
+                    <div className="space-y-4 pt-4 border-t border-base-200">
                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Localisation Géographique</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Département</label>
-                                <select {...register('departement_id', { required: true })} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Département</label>
+                                <select {...register('departement_id', { required: true })} className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
                                     <option value="">Département</option>
                                     {hierarchy.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Commune</label>
-                                <select {...register('commune_id', { required: true })} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Commune</label>
+                                <select {...register('commune_id', { required: true })} className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
                                     <option value="">Commune</option>
                                     {communes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Quartier</label>
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Quartier</label>
                                 <select 
                                     {...register('quartier_id', { required: true })} 
                                     onChange={(e) => {
                                         register('quartier_id').onChange(e);
                                         handleQuartierChange(e.target.value);
                                     }}
-                                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                 >
                                     <option value="">Quartier</option>
                                     {quartiers.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
@@ -192,26 +192,26 @@ export default function AddBoutiqueModal({ supplier: initialSupplier, onClose, o
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Téléphone Direct</label>
-                            <input type="tel" {...register('phone')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Téléphone Direct</label>
+                            <input type="tel" {...register('phone')} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Lien WhatsApp</label>
-                            <input type="tel" {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Lien WhatsApp</label>
+                            <input type="tel" {...register('whatsapp')} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adresse Complète / Détails</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Adresse Complète / Détails</label>
                         <div className="relative">
-                            <MapPin className="absolute left-6 top-5 text-slate-300" size={18} />
-                            <textarea {...register('address_line')} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Numéro de carré, repères visuels..." />
+                            <MapPin className="absolute left-6 top-5 text-base-content/30" size={18} />
+                            <textarea {...register('address_line')} className="w-full bg-base-200 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Numéro de carré, repères visuels..." />
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-50 flex gap-4">
-                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-100 transition-colors">Annuler</button>
-                        <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+                    <div className="pt-4 border-t border-base-200 flex gap-4">
+                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-base-200 text-base-content/40 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-base-200 transition-colors">Annuler</button>
+                        <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:bg-neutral transition-all flex items-center justify-center gap-2">
                             <Save size={16} /> Enregistrer la Boutique
                         </button>
                     </div>

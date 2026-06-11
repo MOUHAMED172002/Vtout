@@ -32,7 +32,7 @@ export default function Login() {
         {/* Logo */}
         <div className="relative z-10">
           <button onClick={() => navigate('/')} className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-lg shrink-0">
+            <div className="w-11 h-11 bg-base-100 rounded-xl flex items-center justify-center shadow-lg shrink-0">
               <ShoppingBag size={20} style={{ color: '#f37021' }} />
             </div>
             <div className="text-left">
@@ -81,7 +81,7 @@ export default function Login() {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 px-6 py-12 sm:px-12 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center bg-base-200 px-6 py-12 sm:px-12 overflow-y-auto">
         {/* Mobile logo */}
         <div className="flex lg:hidden items-center mb-8">
           <button onClick={() => navigate('/')} className="inline-flex items-center gap-2.5">
@@ -91,7 +91,7 @@ export default function Login() {
             >
               <ShoppingBag size={16} className="text-white" />
             </div>
-            <span className="font-black text-xl text-slate-900 tracking-tight">Vtout</span>
+            <span className="font-black text-xl text-base-content tracking-tight">Vtout</span>
           </button>
         </div>
 

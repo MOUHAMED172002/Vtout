@@ -33,13 +33,13 @@ const statuses = {
         cta: { label: 'Retour à l\'accueil', to: '/', style: 'bg-rose-500 hover:bg-rose-600' }
     },
     error: {
-        icon: <XCircle className="w-16 h-16 text-slate-400" />,
+        icon: <XCircle className="w-16 h-16 text-base-content/40" />,
         title: 'Erreur serveur',
         subtitle: 'Une erreur est survenue lors de la vérification.',
         detail: 'Veuillez réessayer plus tard ou contacter notre support.',
         color: 'from-slate-50 to-white',
-        border: 'border-slate-100',
-        cta: { label: 'Retour à l\'accueil', to: '/', style: 'bg-slate-700 hover:bg-slate-800' }
+        border: 'border-base-200',
+        cta: { label: 'Retour à l\'accueil', to: '/', style: 'bg-slate-700 hover:bg-neutral/90' }
     }
 };
 
@@ -73,7 +73,7 @@ export default function VerifyEmailPage() {
 
     if (!status) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="min-h-screen flex items-center justify-center bg-base-200">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
         );
@@ -90,8 +90,8 @@ export default function VerifyEmailPage() {
                 className={`w-full max-w-md bg-gradient-to-b ${config.color} rounded-3xl border ${config.border} shadow-xl overflow-hidden`}
             >
                 {/* Top bar */}
-                <div className="bg-slate-900 px-8 py-5 text-center">
-                    <span className="text-slate-400 text-xs font-black uppercase tracking-widest">Vtout · Sécurité</span>
+                <div className="bg-neutral px-8 py-5 text-center">
+                    <span className="text-base-content/40 text-xs font-black uppercase tracking-widest">Vtout · Sécurité</span>
                 </div>
 
                 {/* Content */}
@@ -105,11 +105,11 @@ export default function VerifyEmailPage() {
                     </motion.div>
 
                     <div className="space-y-2">
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">{config.title}</h1>
-                        <p className="text-slate-500 font-semibold text-sm">{config.subtitle}</p>
+                        <h1 className="text-2xl font-black text-base-content tracking-tight">{config.title}</h1>
+                        <p className="text-base-content/50 font-semibold text-sm">{config.subtitle}</p>
                     </div>
 
-                    <p className="text-slate-400 text-sm leading-relaxed">{config.detail}</p>
+                    <p className="text-base-content/40 text-sm leading-relaxed">{config.detail}</p>
 
                     <Link
                         to={config.cta.to}
@@ -130,27 +130,27 @@ function PendingState() {
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden"
+                className="w-full max-w-md bg-base-100 rounded-3xl border border-base-200 shadow-xl overflow-hidden"
             >
-                <div className="bg-slate-900 px-8 py-5 text-center">
-                    <span className="text-slate-400 text-xs font-black uppercase tracking-widest">Vtout · Sécurité</span>
+                <div className="bg-neutral px-8 py-5 text-center">
+                    <span className="text-base-content/40 text-xs font-black uppercase tracking-widest">Vtout · Sécurité</span>
                 </div>
                 <div className="p-10 flex flex-col items-center text-center space-y-6">
                     <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center">
                         <Mail className="w-10 h-10 text-indigo-600" />
                     </div>
                     <div className="space-y-2">
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Vérifiez votre email</h1>
-                        <p className="text-slate-500 font-semibold text-sm">Un lien de confirmation vous a été envoyé</p>
+                        <h1 className="text-2xl font-black text-base-content tracking-tight">Vérifiez votre email</h1>
+                        <p className="text-base-content/50 font-semibold text-sm">Un lien de confirmation vous a été envoyé</p>
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed">
+                    <p className="text-base-content/40 text-sm leading-relaxed">
                         Consultez votre boîte mail et cliquez sur le lien de vérification pour sécuriser votre compte.
                         Le lien expire dans <strong>24 heures</strong>.
                     </p>
-                    <p className="text-xs text-slate-300">Pensez à vérifier vos spams si vous ne le trouvez pas.</p>
+                    <p className="text-xs text-base-content/30">Pensez à vérifier vos spams si vous ne le trouvez pas.</p>
                     <Link
                         to="/"
-                        className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-black text-sm hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center"
+                        className="w-full py-3.5 rounded-2xl bg-neutral text-white font-black text-sm hover:bg-neutral/90 active:scale-95 transition-all flex items-center justify-center"
                     >
                         Retour à l'accueil
                     </Link>

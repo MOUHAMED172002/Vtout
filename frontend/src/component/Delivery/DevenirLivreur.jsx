@@ -192,7 +192,7 @@ export default function DevenirLivreur() {
                                         <div className="grid gap-5">
                                             {policies.length > 0 ? (
                                                 policies.map((p) => (
-                                                    <div key={p.id} className="group p-8 bg-base-200/50 rounded-3xl border border-base-content/10 hover:border-primary/30 transition-all hover:bg-base-100 hover:shadow-xl hover:shadow-base-content/5">
+                                                    <div key={p.id} className="group p-8 bg-base-200/50 rounded-3xl border border-base-content/10 hover:border-primary/30 transition-all hover:bg-base-200 hover:shadow-xl hover:shadow-base-content/5">
                                                         <div className="flex items-center gap-4 mb-3">
                                                             <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                                                                 <CheckCircle2 size={20} />
@@ -206,7 +206,7 @@ export default function DevenirLivreur() {
                                                 ))
                                             ) : (
                                                 ["Avoir au moins 18 ans", "Moyen de déplacement propre", "Smartphone & Connexion Internet", "Pièce d'identité valide"].map((text, i) => (
-                                                    <div key={i} className="flex items-center gap-4 p-6 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-gray-700">
+                                                    <div key={i} className="flex items-center gap-4 p-6 bg-base-200 rounded-2xl border border-base-200 font-bold text-gray-700">
                                                         <CheckCircle2 size={24} className="text-emerald-500" />
                                                         {text}
                                                     </div>
@@ -219,7 +219,7 @@ export default function DevenirLivreur() {
                                         <label className="flex items-center gap-5 cursor-pointer group bg-primary/5 p-6 rounded-3xl border border-primary/10">
                                             <input
                                                 type="checkbox"
-                                                className="checkbox checkbox-primary rounded-xl w-7 h-7 border-slate-300"
+                                                className="checkbox checkbox-primary rounded-xl w-7 h-7 border-base-300"
                                                 checked={acceptedTerms}
                                                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                                             />
@@ -243,7 +243,7 @@ export default function DevenirLivreur() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="space-y-12"
                                 >
-                                    <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+                                    <div className="flex items-center gap-4 border-b border-base-200 pb-6">
                                         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                             <FileText size={24} />
                                         </div>
@@ -252,21 +252,21 @@ export default function DevenirLivreur() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nom Complet</label>
+                                            <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">Nom Complet</label>
                                             <div className="relative">
-                                                <UserIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <UserIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30" />
                                                 <input type="text" className="w-full pl-12 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.fullname} onChange={e => setForm({ ...form, fullname: e.target.value })} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">WhatsApp</label>
+                                            <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">WhatsApp</label>
                                             <div className="relative">
-                                                <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30" />
                                                 <input type="tel" className="w-full pl-12 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+229 00 00 00 00" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Type de véhicule</label>
+                                            <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">Type de véhicule</label>
                                             <select className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none appearance-none text-base-content" value={form.vehicle_type} onChange={e => setForm({ ...form, vehicle_type: e.target.value })}>
                                                 <option value="moto">Moto (Zémidjan)</option>
                                                 <option value="car">Voiture</option>
@@ -274,23 +274,23 @@ export default function DevenirLivreur() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Modèle du véhicule</label>
+                                            <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">Modèle du véhicule</label>
                                             <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.vehicle_model} onChange={e => setForm({ ...form, vehicle_model: e.target.value })} placeholder="Ex: Haojue 110" />
                                         </div>
                                     </div>
 
                                     <div className="space-y-6">
-                                        <label className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] ml-1 block">Zones de service <span className="text-primary">({(form.service_zones || []).length})</span></label>
+                                        <label className="text-[11px] font-black uppercase text-base-content tracking-[0.2em] ml-1 block">Zones de service <span className="text-primary">({(form.service_zones || []).length})</span></label>
                                         <div className="relative">
-                                            <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" />
+                                            <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/30" />
                                             <input type="text" placeholder="Rechercher une commune..." value={zoneSearch} onChange={e => setZoneSearch(e.target.value)} className="w-full pl-14 h-16 rounded-3xl font-bold bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none shadow-inner text-base-content" />
                                         </div>
 
-                                        <div className="bg-slate-50/50 rounded-[2rem] p-8 max-h-[400px] overflow-y-auto border border-slate-100 space-y-8 shadow-inner custom-scrollbar">
+                                        <div className="bg-base-200/50 rounded-[2rem] p-8 max-h-[400px] overflow-y-auto border border-base-200 space-y-8 shadow-inner custom-scrollbar">
                                             {filteredDepts.map(dept => (
                                                 <div key={dept.departement} className="space-y-4">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
-                                                        <span className="w-8 h-px bg-slate-200"></span>
+                                                    <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest flex items-center gap-3">
+                                                        <span className="w-8 h-px bg-base-300"></span>
                                                         {dept.departement}
                                                     </p>
                                                     <div className="flex flex-wrap gap-3">
@@ -315,10 +315,10 @@ export default function DevenirLivreur() {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <label className="text-[11px] font-black uppercase text-slate-900 tracking-[0.2em] ml-1 block">Pièce d'identité (Scan/Photo)</label>
-                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-16 text-center space-y-6 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100 hover:border-primary/20 hover:bg-primary/5'}`}>
+                                        <label className="text-[11px] font-black uppercase text-base-content tracking-[0.2em] ml-1 block">Pièce d'identité (Scan/Photo)</label>
+                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-16 text-center space-y-6 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-base-200 hover:border-primary/20 hover:bg-primary/5'}`}>
                                             <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.pdf" onChange={handleFileChange} disabled={uploading} />
-                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.id_card_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-slate-100 text-slate-400 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
+                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.id_card_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-base-200 text-base-content/40 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
                                                 {uploading ? <Loader2 size={32} className="animate-spin" /> : form.id_card_url ? <CheckCircle2 size={32} /> : <Upload size={32} />}
                                             </div>
                                             <div className="space-y-2">
@@ -335,7 +335,7 @@ export default function DevenirLivreur() {
                                     </div>
 
                                     <div className="flex gap-6 pt-6">
-                                        <button onClick={() => setStep(1)} className="flex-1 h-16 rounded-2xl font-black text-slate-400 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all uppercase tracking-widest text-[11px]">Retour</button>
+                                        <button onClick={() => setStep(1)} className="flex-1 h-16 rounded-2xl font-black text-base-content/40 hover:text-base-content bg-base-200 hover:bg-base-300 transition-all uppercase tracking-widest text-[11px]">Retour</button>
                                         <button
                                             onClick={handleRegister}
                                             disabled={loading || uploading || !form.id_card_url || !form.service_zones?.length}
@@ -366,7 +366,7 @@ export default function DevenirLivreur() {
                                             Votre demande est en cours d'examen. Notre équipe vous contactera sous <span className="text-primary">24h</span>.
                                         </p>
                                     </div>
-                                    <button onClick={() => navigate("/")} className="w-full max-w-xs h-20 bg-slate-900 text-white hover:bg-black rounded-[2rem] font-black text-xl shadow-2xl shadow-slate-200 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">
+                                    <button onClick={() => navigate("/")} className="w-full max-w-xs h-20 bg-neutral text-white hover:bg-black rounded-[2rem] font-black text-xl shadow-2xl shadow-slate-200 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">
                                         Retour à l'accueil
                                     </button>
                                 </motion.div>

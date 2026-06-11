@@ -62,7 +62,7 @@ export default function DeliveryMapLink({
                     rel="noreferrer"
                     className="flex items-center gap-4 p-4 bg-primary text-white rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all group font-black"
                 >
-                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
+                    <div className="w-10 h-10 bg-base-100/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
                         <Navigation2 size={20} />
                     </div>
                     <div className="flex-1">
@@ -80,13 +80,13 @@ export default function DeliveryMapLink({
                         href={supplierMapUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl transition-all text-slate-700 font-bold"
+                        className="flex items-center gap-3 p-3 bg-base-200 hover:bg-base-200 border border-base-200 rounded-2xl transition-all text-base-content/80 font-bold"
                     >
                         <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
                             <MapPin size={16} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Fournisseur</p>
+                            <p className="text-[10px] uppercase tracking-widest text-base-content/40 font-black">Fournisseur</p>
                             <p className="text-xs truncate">{supplierAddress || "Voir sur Maps"}</p>
                         </div>
                     </a>
@@ -98,13 +98,13 @@ export default function DeliveryMapLink({
                         href={clientMapUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl transition-all text-slate-700 font-bold"
+                        className="flex items-center gap-3 p-3 bg-base-200 hover:bg-base-200 border border-base-200 rounded-2xl transition-all text-base-content/80 font-bold"
                     >
                         <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
                             <MapPin size={16} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Client</p>
+                            <p className="text-[10px] uppercase tracking-widest text-base-content/40 font-black">Client</p>
                             <p className="text-xs truncate">{clientAddress || "Voir sur Maps"}</p>
                         </div>
                     </a>

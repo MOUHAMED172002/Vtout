@@ -43,7 +43,7 @@ export default function OrderStatusBadge({ status }) {
   const config = configs[status] || {
     label: status || "Inconnu",
     icon: AlertCircle,
-    className: "bg-slate-50 text-slate-500 border-slate-100",
+    className: "bg-base-200 text-base-content/50 border-base-200",
   };
 
   const Icon = config.icon;

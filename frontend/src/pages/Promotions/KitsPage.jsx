@@ -38,8 +38,8 @@ function KitImageCarousel({ items, isDark, discount, tag }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
-              <Package size={20} className="text-slate-400" />
+            <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`}>
+              <Package size={20} className="text-base-content/40" />
             </div>
           )}
         </motion.div>
@@ -90,7 +90,7 @@ function KitImageCarousel({ items, isDark, discount, tag }) {
           {items.map((_, i) => (
             <span
               key={i}
-              className={`h-1 rounded-full transition-all duration-200 ${i === idx ? 'w-3 bg-white' : 'w-1.5 bg-white/40'}`}
+              className={`h-1 rounded-full transition-all duration-200 ${i === idx ? 'w-3 bg-base-100' : 'w-1.5 bg-base-100/40'}`}
             />
           ))}
         </div>
@@ -114,8 +114,8 @@ function KitCard({ kit, idx, isDark, goToDetail, handleBuyKit }) {
       onClick={() => goToDetail(kit)}
       className={`group rounded-[2.5rem] p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer flex flex-col ${
         isDark
-          ? 'bg-slate-900/40 border-slate-800 hover:border-emerald-500/40 shadow-xl shadow-black/20'
-          : 'bg-white border-slate-200 hover:border-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-emerald-100'
+          ? 'bg-neutral/40 border-slate-800 hover:border-emerald-500/40 shadow-xl shadow-black/20'
+          : 'bg-base-100 border-base-300 hover:border-emerald-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-emerald-100'
       }`}
     >
       <KitImageCarousel
@@ -130,7 +130,7 @@ function KitCard({ kit, idx, isDark, goToDetail, handleBuyKit }) {
         <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500">
           {kit.items.length} article{kit.items.length > 1 ? 's' : ''} inclus
         </p>
-        <h3 className={`font-black text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
+        <h3 className={`font-black text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 transition-colors ${isDark ? 'text-white' : 'text-base-content/90'}`}>
           {kit.name}
         </h3>
         <div className="flex items-baseline gap-2 pt-1">
@@ -138,7 +138,7 @@ function KitCard({ kit, idx, isDark, goToDetail, handleBuyKit }) {
             {Number(kit.kitPrice).toLocaleString()} F
           </span>
           {kit.originalPrice > kit.kitPrice && (
-            <span className="font-mono text-xs text-slate-400 line-through font-bold whitespace-nowrap">
+            <span className="font-mono text-xs text-base-content/40 line-through font-bold whitespace-nowrap">
               {Number(kit.originalPrice).toLocaleString()} F
             </span>
           )}
@@ -244,13 +244,13 @@ export default function KitsPage() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-base-200 text-base-content'}`}>
 
         {/* Glow */}
         <div className={`absolute top-0 left-1/3 w-96 h-96 rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`} />
 
         {/* Header */}
-        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-slate-900 bg-slate-950/40' : 'border-slate-200 bg-white'}`}>
+        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-neutral bg-slate-950/40' : 'border-base-300 bg-base-100'}`}>
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8 z-10 relative">
             <div className="space-y-4 text-center md:text-left">
               <div className={`inline-flex items-center gap-2 font-black uppercase text-xs tracking-[0.2em] px-4 py-2 rounded-full shadow-sm border ${
@@ -259,24 +259,24 @@ export default function KitsPage() {
                 <Package size={14} className="text-emerald-500" /> Lots Prêts
               </div>
               <h1 className={`text-4xl md:text-7xl font-black tracking-tighter leading-none ${
-                isDark ? 'bg-gradient-to-r from-white via-slate-100 to-emerald-400 bg-clip-text text-transparent' : 'text-slate-900'
+                isDark ? 'bg-gradient-to-r from-white via-slate-100 to-emerald-400 bg-clip-text text-transparent' : 'text-base-content'
               }`}>
                 PACKS & <span className="text-emerald-600">KITS</span>
               </h1>
-              <p className={`font-medium text-sm md:text-lg max-w-2xl ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`font-medium text-sm md:text-lg max-w-2xl ${isDark ? 'text-base-content/40' : 'text-base-content/70'}`}>
                 Achetez des ensembles intelligents de produits complémentaires et profitez de réductions incroyables par rapport aux achats séparés !
               </p>
             </div>
 
             <div className={`rounded-3xl p-6 md:p-8 shadow-2xl max-w-sm shrink-0 flex items-center gap-4 border transition-colors ${
-              isDark ? 'bg-slate-900/60 border-emerald-500/30' : 'bg-white border-emerald-100 shadow-emerald-100'
+              isDark ? 'bg-neutral/60 border-emerald-500/30' : 'bg-base-100 border-emerald-100 shadow-emerald-100'
             }`}>
               <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
                 <Package size={22} className="stroke-[2.5]" />
               </div>
               <div>
-                <h4 className={`font-black text-sm uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-800'}`}>Un Seul Clic</h4>
-                <p className={`text-xs mt-1 font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Tous les articles du kit sont ajoutés automatiquement à votre panier.</p>
+                <h4 className={`font-black text-sm uppercase tracking-wider ${isDark ? 'text-white' : 'text-base-content/90'}`}>Un Seul Clic</h4>
+                <p className={`text-xs mt-1 font-medium ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>Tous les articles du kit sont ajoutés automatiquement à votre panier.</p>
               </div>
             </div>
           </div>
@@ -287,7 +287,7 @@ export default function KitsPage() {
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={`rounded-[2.5rem] p-4 border ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+                <div key={i} className={`rounded-[2.5rem] p-4 border ${isDark ? 'bg-neutral/30 border-slate-800' : 'bg-base-100 border-base-300 shadow-sm'}`}>
                   <ProductSkeleton />
                 </div>
               ))}
@@ -295,13 +295,13 @@ export default function KitsPage() {
           ) : kits.length === 0 ? (
             <div className="py-24 flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
               <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${
-                isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'
+                isDark ? 'bg-neutral border-slate-800 text-base-content/50' : 'bg-base-100 border-base-300 text-base-content/40 shadow-sm'
               }`}>
                 <ShieldAlert size={40} />
               </div>
               <div className="space-y-2">
-                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>Aucun pack disponible</h3>
-                <p className={`font-medium text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-base-content/90'}`}>Aucun pack disponible</h3>
+                <p className={`font-medium text-sm ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>
                   Aucun kit promotionnel n'est configuré en boutique pour le moment.
                 </p>
               </div>

@@ -59,7 +59,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
           </button>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-base-100/10 rounded-2xl flex items-center justify-center">
                 <Flame size={20} className="text-orange-300 animate-pulse" />
               </div>
               <div>
@@ -93,7 +93,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
             <div className="relative aspect-square rounded-3xl overflow-hidden border-2 border-rose-200 shadow-2xl shadow-rose-500/10">
               {mainImg
                 ? <img src={mainImg} alt={product.name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold bg-slate-100">Pas d'image</div>
+                : <div className="w-full h-full flex items-center justify-center text-base-content/40 text-sm font-bold bg-base-200">Pas d'image</div>
               }
               {pct > 0 && (
                 <div className="absolute top-4 right-4 w-16 h-16 rounded-full flex items-center justify-center text-white font-black text-xl shadow-xl"
@@ -104,7 +104,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               <div className="absolute bottom-0 left-0 right-0 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }}>
                 <div className="flex items-center gap-2">
                   <span className="text-white/80 text-xs font-bold">Stock restant</span>
-                  <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-base-100/20 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-rose-400 to-orange-400 rounded-full" style={{ width: `${stockPct}%` }} />
                   </div>
                   <span className="text-rose-300 text-xs font-black">{stockLeft} restant{stockLeft > 1 ? 's' : ''}</span>
@@ -115,7 +115,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               <div className="flex gap-2 flex-wrap">
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
-                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-rose-500 scale-105' : 'border-slate-200 opacity-60 hover:opacity-100'}`}>
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-rose-500 scale-105' : 'border-base-300 opacity-60 hover:opacity-100'}`}>
                     <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -129,18 +129,18 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               {product.average_rating > 0 && (
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold mb-2">
                   <Star size={12} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-                  <span className="text-slate-400 ml-1">· {product.review_count ?? 0} avis</span>
+                  <span className="text-base-content/40 ml-1">· {product.review_count ?? 0} avis</span>
                 </div>
               )}
-              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</h1>
+              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</h1>
             </div>
 
             {/* Price */}
-            <div className={`rounded-3xl p-6 border border-rose-200 ${isDark ? 'bg-rose-900/10' : 'bg-white'} shadow-lg shadow-rose-500/5`}>
+            <div className={`rounded-3xl p-6 border border-rose-200 ${isDark ? 'bg-rose-900/10' : 'bg-base-100'} shadow-lg shadow-rose-500/5`}>
               <p className="text-rose-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Prix flash</p>
               <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="text-5xl font-black text-rose-600">{price.toLocaleString()}<span className="text-2xl ml-1">F</span></span>
-                {hasDiscount && <span className={`text-lg font-bold line-through ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{oldPrice.toLocaleString()} F</span>}
+                {hasDiscount && <span className={`text-lg font-bold line-through ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>{oldPrice.toLocaleString()} F</span>}
               </div>
               {hasDiscount && (
                 <div className="mt-3 inline-flex items-center gap-2 bg-rose-500 text-white px-4 py-1.5 rounded-full text-xs font-black">
@@ -150,13 +150,13 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
             </div>
 
             {/* Steps */}
-            <div className={`rounded-2xl p-5 border ${isDark ? 'bg-slate-900 border-rose-500/20' : 'bg-rose-50 border-rose-100'}`}>
+            <div className={`rounded-2xl p-5 border ${isDark ? 'bg-neutral border-rose-500/20' : 'bg-rose-50 border-rose-100'}`}>
               <p className="text-rose-600 text-[10px] font-black uppercase tracking-widest mb-4">Comment en profiter</p>
               <ol className="space-y-3">
                 {["Commandez maintenant avant la fin du compte à rebours", "Le stock est limité — premier arrivé, premier servi", "Le prix flash est garanti à la validation de votre commande"].map((step, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <span className="shrink-0 w-6 h-6 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center">{i + 1}</span>
-                    <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{step}</span>
+                    <span className={`text-sm font-medium ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{step}</span>
                   </li>
                 ))}
               </ol>
@@ -175,7 +175,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
               <Zap size={20} fill="currentColor" /> Acheter maintenant — Offre limitée
             </button>
             <button onClick={() => navigate(`/products/${product.id}`)}
-              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-slate-400 hover:border-slate-500' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-base-content/40 hover:border-slate-500' : 'border-base-300 text-base-content/50 hover:border-base-300'}`}>
               <ExternalLink size={14} /> Voir la fiche complète
             </button>
 
@@ -192,7 +192,7 @@ function FlashLayout({ product, timeLeft, isDark, navigate }) {
         style={{ background: isDark ? 'rgba(10,10,10,0.96)' : 'rgba(255,245,245,0.97)', borderColor: isDark ? '#2d1b1b' : '#fecaca', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{product.name}</p>
             <p className="font-mono font-black text-base text-rose-600">{price.toLocaleString()} F</p>
           </div>
           <button onClick={handleBuy}
@@ -226,11 +226,11 @@ function ReductionLayout({ product, isDark, navigate }) {
   });
 
   return (
-    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-base-100'}`}>
       {/* Clean top bar */}
       <div className="pt-20 pb-6 border-b" style={{ borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10">
-          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-4 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-700'}`}>
+          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-4 transition-colors ${isDark ? 'text-base-content/50 hover:text-base-content/30' : 'text-base-content/40 hover:text-base-content/80'}`}>
             <ArrowLeft size={13} /> Retour aux promotions
           </button>
           {/* Savings hero */}
@@ -241,13 +241,13 @@ function ReductionLayout({ product, isDark, navigate }) {
               </div>
               <div>
                 <p className="text-violet-600 text-[10px] font-black uppercase tracking-[0.3em]">Réduction directe</p>
-                <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</p>
+                <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</p>
               </div>
             </div>
             {pct > 0 && (
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className={`text-sm font-bold line-through ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{oldPrice.toLocaleString()} F</p>
+                  <p className={`text-sm font-bold line-through ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>{oldPrice.toLocaleString()} F</p>
                   <p className="text-3xl font-black text-violet-600">{price.toLocaleString()} F</p>
                 </div>
                 <div className="w-20 h-20 rounded-full flex items-center justify-center text-white font-black text-xl shadow-xl"
@@ -268,7 +268,7 @@ function ReductionLayout({ product, isDark, navigate }) {
               style={{ borderColor: isDark ? '#312e81' : '#ede9fe' }}>
               {mainImg
                 ? <img src={mainImg} alt={product.name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold bg-slate-100">Pas d'image</div>
+                : <div className="w-full h-full flex items-center justify-center text-base-content/40 text-sm font-bold bg-base-200">Pas d'image</div>
               }
               {pct > 0 && (
                 <div className="absolute top-4 left-4 bg-violet-600 text-white font-black text-sm px-4 py-2 rounded-2xl shadow-lg">
@@ -280,7 +280,7 @@ function ReductionLayout({ product, isDark, navigate }) {
               <div className="flex gap-2 flex-wrap">
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
-                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-violet-500 scale-105' : 'border-slate-200 opacity-60 hover:opacity-100'}`}>
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-violet-500 scale-105' : 'border-base-300 opacity-60 hover:opacity-100'}`}>
                     <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -294,10 +294,10 @@ function ReductionLayout({ product, isDark, navigate }) {
               {product.average_rating > 0 && (
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold mb-2">
                   <Star size={12} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-                  <span className="text-slate-400 ml-1">· {product.review_count ?? 0} avis</span>
+                  <span className="text-base-content/40 ml-1">· {product.review_count ?? 0} avis</span>
                 </div>
               )}
-              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</h1>
+              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</h1>
             </div>
 
             {/* Before / After */}
@@ -305,8 +305,8 @@ function ReductionLayout({ product, isDark, navigate }) {
               <p className="text-violet-600 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Comparaison des prix</p>
               <div className="flex items-center gap-4">
                 <div className="flex-1 text-center">
-                  <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Avant</p>
-                  <p className={`text-2xl font-black line-through ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{oldPrice.toLocaleString()} F</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>Avant</p>
+                  <p className={`text-2xl font-black line-through ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>{oldPrice.toLocaleString()} F</p>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <ArrowRight size={20} className="text-violet-500" />
@@ -326,8 +326,8 @@ function ReductionLayout({ product, isDark, navigate }) {
             </div>
 
             {/* Simple steps */}
-            <div className={`rounded-2xl p-5 border ${isDark ? 'bg-slate-900 border-violet-500/10' : 'bg-slate-50 border-slate-100'}`}>
-              <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>C'est simple</p>
+            <div className={`rounded-2xl p-5 border ${isDark ? 'bg-neutral border-violet-500/10' : 'bg-base-200 border-base-200'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>C'est simple</p>
               <div className="space-y-3">
                 {[
                   { icon: <CheckCircle2 size={15} className="text-emerald-500" />, text: "Le prix affiché est déjà le prix réduit" },
@@ -336,7 +336,7 @@ function ReductionLayout({ product, isDark, navigate }) {
                 ].map(({ icon, text }, i) => (
                   <div key={i} className="flex items-center gap-3">
                     {icon}
-                    <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{text}</span>
+                    <span className={`text-sm font-medium ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{text}</span>
                   </div>
                 ))}
               </div>
@@ -353,7 +353,7 @@ function ReductionLayout({ product, isDark, navigate }) {
               Profiter de la réduction
             </button>
             <button onClick={() => navigate(`/products/${product.id}`)}
-              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-slate-400 hover:border-slate-500' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-base-content/40 hover:border-slate-500' : 'border-base-300 text-base-content/50 hover:border-base-300'}`}>
               <ExternalLink size={14} /> Voir la fiche complète
             </button>
 
@@ -369,7 +369,7 @@ function ReductionLayout({ product, isDark, navigate }) {
         style={{ background: isDark ? 'rgba(15,10,30,0.96)' : 'rgba(250,250,255,0.97)', borderColor: isDark ? '#312e81' : '#ede9fe', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{product.name}</p>
             <p className="font-mono font-black text-base text-violet-600">{price.toLocaleString()} F</p>
           </div>
           <button onClick={handleBuy}
@@ -419,11 +419,11 @@ function VolumeLayout({ product, isDark, navigate }) {
   });
 
   return (
-    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-base-200'}`}>
       {/* Header */}
       <div className="pt-20 pb-6" style={{ background: isDark ? '#0f172a' : 'linear-gradient(135deg, #eff6ff, #f0f9ff)' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10">
-          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-6 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-700'}`}>
+          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-6 transition-colors ${isDark ? 'text-base-content/50 hover:text-base-content/30' : 'text-base-content/40 hover:text-base-content/80'}`}>
             <ArrowLeft size={13} /> Retour aux promotions
           </button>
           <div className="flex items-center gap-3">
@@ -432,7 +432,7 @@ function VolumeLayout({ product, isDark, navigate }) {
             </div>
             <div>
               <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em]">Remise par quantité</p>
-              <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</p>
+              <p className={`font-black text-lg ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</p>
             </div>
             {bestDiscount > 0 && (
               <span className="ml-auto bg-blue-600 text-white font-black text-sm px-4 py-2 rounded-2xl shadow">
@@ -451,7 +451,7 @@ function VolumeLayout({ product, isDark, navigate }) {
               style={{ borderColor: isDark ? '#1e3a5f' : '#bfdbfe' }}>
               {mainImg
                 ? <img src={mainImg} alt={product.name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold bg-slate-100">Pas d'image</div>
+                : <div className="w-full h-full flex items-center justify-center text-base-content/40 text-sm font-bold bg-base-200">Pas d'image</div>
               }
               <div className="absolute top-4 left-4 bg-blue-600 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow">
                 <Percent size={10} className="inline mr-1" />REMISE QUANTITÉ
@@ -461,7 +461,7 @@ function VolumeLayout({ product, isDark, navigate }) {
               <div className="flex gap-2 flex-wrap">
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
-                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-blue-500 scale-105' : 'border-slate-200 opacity-60 hover:opacity-100'}`}>
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-blue-500 scale-105' : 'border-base-300 opacity-60 hover:opacity-100'}`}>
                     <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -471,7 +471,7 @@ function VolumeLayout({ product, isDark, navigate }) {
             {/* Tier table */}
             {tiers.length > 0 && (
               <div className={`rounded-2xl border overflow-hidden ${isDark ? 'border-slate-700' : 'border-blue-100'}`}>
-                <div className={`px-4 py-3 ${isDark ? 'bg-slate-800' : 'bg-blue-600'}`}>
+                <div className={`px-4 py-3 ${isDark ? 'bg-neutral/90' : 'bg-blue-600'}`}>
                   <p className="text-white font-black text-xs uppercase tracking-widest">Paliers de réduction</p>
                 </div>
                 <div className="divide-y" style={{ borderColor: isDark ? '#334155' : '#dbeafe' }}>
@@ -480,16 +480,16 @@ function VolumeLayout({ product, isDark, navigate }) {
                     const disc = tier.discount ?? 0;
                     const isActive = activeTier === tier;
                     return (
-                      <div key={i} className={`flex items-center justify-between px-4 py-3 transition-colors ${isActive ? (isDark ? 'bg-blue-900/30' : 'bg-blue-50') : (isDark ? 'bg-slate-900' : 'bg-white')}`}>
+                      <div key={i} className={`flex items-center justify-between px-4 py-3 transition-colors ${isActive ? (isDark ? 'bg-blue-900/30' : 'bg-blue-50') : (isDark ? 'bg-neutral' : 'bg-base-100')}`}>
                         <div className="flex items-center gap-2">
                           {isActive && <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />}
-                          <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          <span className={`text-sm font-bold ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>
                             {tier.min !== undefined && tier.max !== undefined
                               ? `${tier.min} – ${tier.max ?? '∞'} articles`
                               : `Dès ${min} article${min > 1 ? 's' : ''}`}
                           </span>
                         </div>
-                        <span className={`font-black text-sm ${isActive ? 'text-blue-600' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
+                        <span className={`font-black text-sm ${isActive ? 'text-blue-600' : (isDark ? 'text-base-content/40' : 'text-base-content/50')}`}>
                           {disc > 0 ? `-${disc}%` : tier.multiplier ? `×${tier.multiplier}` : '—'}
                         </span>
                       </div>
@@ -506,36 +506,36 @@ function VolumeLayout({ product, isDark, navigate }) {
               {product.average_rating > 0 && (
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold mb-2">
                   <Star size={12} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-                  <span className="text-slate-400 ml-1">· {product.review_count ?? 0} avis</span>
+                  <span className="text-base-content/40 ml-1">· {product.review_count ?? 0} avis</span>
                 </div>
               )}
-              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</h1>
+              <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tighter ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</h1>
             </div>
 
             {/* Quantity selector */}
-            <div className={`rounded-3xl p-6 border ${isDark ? 'bg-slate-900 border-blue-500/20' : 'bg-white border-blue-100'} shadow-lg`}>
+            <div className={`rounded-3xl p-6 border ${isDark ? 'bg-neutral border-blue-500/20' : 'bg-base-100 border-blue-100'} shadow-lg`}>
               <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Calculateur de remise</p>
               <div className="flex items-center gap-4 mb-5">
                 <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className={`w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center border transition-all ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>−</button>
-                <span className={`text-3xl font-black min-w-[3rem] text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>{qty}</span>
+                  className={`w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center border transition-all ${isDark ? 'border-slate-600 text-base-content/30 hover:bg-neutral/90' : 'border-base-300 text-base-content/70 hover:bg-base-200'}`}>−</button>
+                <span className={`text-3xl font-black min-w-[3rem] text-center ${isDark ? 'text-white' : 'text-base-content'}`}>{qty}</span>
                 <button onClick={() => setQty(q => q + 1)}
                   className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center bg-blue-600 text-white hover:bg-blue-500 transition-all">+</button>
-                <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>article{qty > 1 ? 's' : ''}</span>
+                <span className={`text-sm font-bold ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>article{qty > 1 ? 's' : ''}</span>
               </div>
 
-              <div className={`rounded-2xl p-4 space-y-3 ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              <div className={`rounded-2xl p-4 space-y-3 ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`}>
                 <div className="flex justify-between text-sm">
-                  <span className={`font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Prix unitaire</span>
-                  <span className={`font-black ${discount > 0 ? 'text-blue-600' : (isDark ? 'text-white' : 'text-slate-900')}`}>
+                  <span className={`font-bold ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>Prix unitaire</span>
+                  <span className={`font-black ${discount > 0 ? 'text-blue-600' : (isDark ? 'text-white' : 'text-base-content')}`}>
                     {unitPrice.toLocaleString()} F{discount > 0 && <span className="text-emerald-500 ml-1 text-xs">(-{discount}%)</span>}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className={`font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Quantité</span>
-                  <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>× {qty}</span>
+                  <span className={`font-bold ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>Quantité</span>
+                  <span className={`font-black ${isDark ? 'text-white' : 'text-base-content'}`}>× {qty}</span>
                 </div>
-                <div className={`border-t pt-3 flex justify-between ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                <div className={`border-t pt-3 flex justify-between ${isDark ? 'border-slate-700' : 'border-base-300'}`}>
                   <span className="font-black text-sm">Total</span>
                   <span className="font-black text-xl text-blue-600">{totalPrice.toLocaleString()} F</span>
                 </div>
@@ -565,7 +565,7 @@ function VolumeLayout({ product, isDark, navigate }) {
               <Package size={20} /> Commander {qty} article{qty > 1 ? 's' : ''}
             </button>
             <button onClick={() => navigate(`/products/${product.id}`)}
-              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-slate-400 hover:border-slate-500' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+              className={`w-full py-3 rounded-2xl font-black text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${isDark ? 'border-slate-700 text-base-content/40 hover:border-slate-500' : 'border-base-300 text-base-content/50 hover:border-base-300'}`}>
               <ExternalLink size={14} /> Voir la fiche complète
             </button>
 
@@ -581,7 +581,7 @@ function VolumeLayout({ product, isDark, navigate }) {
         style={{ background: isDark ? 'rgba(10,15,30,0.96)' : 'rgba(245,249,255,0.97)', borderColor: isDark ? '#1e3a5f' : '#bfdbfe', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{qty} × {product.name}</p>
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{qty} × {product.name}</p>
             <p className="font-mono font-black text-base text-blue-600">{totalPrice.toLocaleString()} F</p>
           </div>
           <button onClick={handleBuy}
@@ -619,11 +619,11 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
   };
 
   return (
-    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen pb-24 md:pb-20 ${isDark ? 'bg-slate-950' : 'bg-base-200'}`}>
       {/* Header */}
       <div className="pt-20 pb-6 border-b" style={{ borderColor: isDark ? '#1e293b' : '#d1fae5' }}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10">
-          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-4 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-700'}`}>
+          <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest mb-4 transition-colors ${isDark ? 'text-base-content/50 hover:text-base-content/30' : 'text-base-content/40 hover:text-base-content/80'}`}>
             <ArrowLeft size={13} /> Retour aux packs
           </button>
           <div className="flex flex-wrap items-center gap-3">
@@ -632,7 +632,7 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.3em]">Pack & Kit</p>
-              <p className={`font-black text-lg truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{product.name}</p>
+              <p className={`font-black text-lg truncate ${isDark ? 'text-white' : 'text-base-content'}`}>{product.name}</p>
             </div>
             {oldPrice > price && oldPrice > 0 && (
               <span className="shrink-0 bg-rose-500 text-white font-black text-sm px-4 py-2 rounded-2xl shadow">
@@ -645,14 +645,14 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
 
       <div className="max-w-[1100px] mx-auto px-4 md:px-10 pt-8 space-y-8">
         {/* Price panel */}
-        <div className={`rounded-3xl p-6 border ${isDark ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-white border-emerald-100'} shadow-lg`}>
+        <div className={`rounded-3xl p-6 border ${isDark ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-base-100 border-emerald-100'} shadow-lg`}>
           <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Prix du pack complet</p>
           <div className="flex items-baseline gap-3 flex-wrap">
             <span className="text-5xl font-black text-emerald-600">
               {price.toLocaleString()}<span className="text-2xl ml-1">F</span>
             </span>
             {oldPrice > price && oldPrice > 0 && (
-              <span className={`text-lg font-bold line-through ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{oldPrice.toLocaleString()} F</span>
+              <span className={`text-lg font-bold line-through ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>{oldPrice.toLocaleString()} F</span>
             )}
           </div>
           {oldPrice > price && oldPrice > 0 && (
@@ -665,25 +665,25 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
         {/* Items included */}
         {items.length > 0 && (
           <div>
-            <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>
               {items.length} article{items.length > 1 ? 's' : ''} inclus dans ce pack
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {items.map((item, i) => {
                 const itemPrice = Math.round(Number(item.price || 0) * ratio);
                 return (
-                  <div key={item.id ?? i} className={`rounded-2xl border p-3 flex flex-col gap-2.5 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
+                  <div key={item.id ?? i} className={`rounded-2xl border p-3 flex flex-col gap-2.5 ${isDark ? 'bg-neutral border-slate-800' : 'bg-base-100 border-base-200 shadow-sm'}`}>
                     <div className="aspect-square rounded-xl overflow-hidden">
                       {item.images?.[0]?.image_url
                         ? <img src={item.images[0].image_url} alt={item.name} className="w-full h-full object-cover" />
-                        : <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}><Package size={18} className="text-slate-400" /></div>
+                        : <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`}><Package size={18} className="text-base-content/40" /></div>
                       }
                     </div>
-                    <p className={`text-xs font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{item.name}</p>
+                    <p className={`text-xs font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-base-content/90'}`}>{item.name}</p>
                     <div className="flex items-baseline gap-1.5">
                       <p className="text-emerald-600 font-mono font-black text-sm">{itemPrice.toLocaleString()} F</p>
                       {Number(item.price || 0) !== itemPrice && (
-                        <p className={`font-mono font-bold text-[10px] line-through ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{Number(item.price || 0).toLocaleString()} F</p>
+                        <p className={`font-mono font-bold text-[10px] line-through ${isDark ? 'text-base-content/70' : 'text-base-content/40'}`}>{Number(item.price || 0).toLocaleString()} F</p>
                       )}
                     </div>
                   </div>
@@ -694,7 +694,7 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
         )}
 
         {/* How it works */}
-        <div className={`rounded-2xl p-5 border ${isDark ? 'bg-slate-900 border-emerald-500/10' : 'bg-emerald-50 border-emerald-100'}`}>
+        <div className={`rounded-2xl p-5 border ${isDark ? 'bg-neutral border-emerald-500/10' : 'bg-emerald-50 border-emerald-100'}`}>
           <p className="text-emerald-700 text-[10px] font-black uppercase tracking-widest mb-4">Comment ça marche</p>
           <div className="space-y-3">
             {[
@@ -704,7 +704,7 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
             ].map(({ icon, text }, i) => (
               <div key={i} className="flex items-center gap-3">
                 {icon}
-                <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{text}</span>
+                <span className={`text-sm font-medium ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{text}</span>
               </div>
             ))}
           </div>
@@ -724,7 +724,7 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
         style={{ background: isDark ? 'rgba(5,20,15,0.96)' : 'rgba(240,255,245,0.97)', borderColor: isDark ? '#064e3b' : '#a7f3d0', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className={`text-[11px] font-black truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{product.name}</p>
+            <p className={`text-[11px] font-black truncate ${isDark ? 'text-base-content/30' : 'text-base-content/80'}`}>{product.name}</p>
             <p className="font-mono font-black text-base text-emerald-600">{price.toLocaleString()} F</p>
           </div>
           <button onClick={handleBuy}
@@ -742,9 +742,9 @@ function TrustBadges({ priceColor, isDark }) {
   return (
     <div className="grid grid-cols-3 gap-2">
       {[{ icon: <Truck size={16} />, label: "Livraison 48h" }, { icon: <ShieldCheck size={16} />, label: "Garantie 1 an" }, { icon: <RotateCcw size={16} />, label: "Retour gratuit" }].map(({ icon, label }) => (
-        <div key={label} className={`flex flex-col items-center text-center p-3 rounded-2xl space-y-1 ${isDark ? "bg-slate-800/50" : "bg-slate-50"}`}>
+        <div key={label} className={`flex flex-col items-center text-center p-3 rounded-2xl space-y-1 ${isDark ? "bg-neutral/90/50" : "bg-base-200"}`}>
           <span className={`mb-0.5 ${priceColor}`}>{icon}</span>
-          <span className="text-[9px] font-black uppercase text-slate-400 leading-tight">{label}</span>
+          <span className="text-[9px] font-black uppercase text-base-content/40 leading-tight">{label}</span>
         </div>
       ))}
     </div>
@@ -753,7 +753,7 @@ function TrustBadges({ priceColor, isDark }) {
 function BoutiqueInfo({ product, isDark }) {
   if (!product.boutique?.name && !product.boutique?.commune_label) return null;
   return (
-    <div className={`flex items-center gap-4 text-xs font-bold ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+    <div className={`flex items-center gap-4 text-xs font-bold ${isDark ? "text-base-content/50" : "text-base-content/40"}`}>
       {product.boutique?.name && <span className="flex items-center gap-1"><Store size={12} />{product.boutique.name}</span>}
       {product.boutique?.commune_label && <span className="flex items-center gap-1"><MapPin size={12} />{product.boutique.commune_label}</span>}
     </div>
@@ -762,8 +762,8 @@ function BoutiqueInfo({ product, isDark }) {
 function DescriptionBlock({ product, isDark }) {
   if (!product.description) return null;
   return (
-    <div className={`mt-10 rounded-2xl border p-5 ${isDark ? "bg-slate-900/50 border-slate-800 text-slate-300" : "bg-white border-slate-200 text-slate-700"}`}>
-      <h2 className={`font-black text-sm uppercase tracking-wider mb-3 ${isDark ? "text-white" : "text-slate-800"}`}>Description</h2>
+    <div className={`mt-10 rounded-2xl border p-5 ${isDark ? "bg-neutral/50 border-slate-800 text-base-content/30" : "bg-base-100 border-base-300 text-base-content/80"}`}>
+      <h2 className={`font-black text-sm uppercase tracking-wider mb-3 ${isDark ? "text-white" : "text-base-content/90"}`}>Description</h2>
       <p className="text-sm leading-relaxed whitespace-pre-line">{product.description}</p>
     </div>
   );
@@ -814,9 +814,9 @@ export default function PromoDetailPage() {
   const Skeleton = () => (
     <>
       <Navbar />
-      <div className={`min-h-screen pt-24 pb-20 ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
+      <div className={`min-h-screen pt-24 pb-20 ${isDark ? "bg-slate-950" : "bg-base-200"}`}>
         <div className="max-w-[1100px] mx-auto px-4 md:px-10 space-y-6">
-          {[...Array(4)].map((_, i) => <div key={i} className={`h-40 rounded-2xl animate-pulse ${isDark ? "bg-slate-800" : "bg-slate-200"}`} />)}
+          {[...Array(4)].map((_, i) => <div key={i} className={`h-40 rounded-2xl animate-pulse ${isDark ? "bg-neutral/90" : "bg-base-300"}`} />)}
         </div>
       </div>
       <Footer />
@@ -828,9 +828,9 @@ export default function PromoDetailPage() {
   if (notFound || !product) return (
     <>
       <Navbar />
-      <div className={`min-h-screen flex flex-col items-center justify-center gap-6 ${isDark ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-900"}`}>
+      <div className={`min-h-screen flex flex-col items-center justify-center gap-6 ${isDark ? "bg-slate-950 text-white" : "bg-base-200 text-base-content"}`}>
         <p className="text-lg font-black">Produit introuvable.</p>
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm font-black px-5 py-2.5 rounded-xl border border-slate-300 hover:border-slate-500 transition-colors">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm font-black px-5 py-2.5 rounded-xl border border-base-300 hover:border-slate-500 transition-colors">
           <ArrowLeft size={16} /> Retour aux promotions
         </button>
       </div>

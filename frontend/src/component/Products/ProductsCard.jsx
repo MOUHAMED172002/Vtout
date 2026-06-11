@@ -164,7 +164,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-white">
+      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-base-100">
         {/* Blurred background fills white space with the product's own colors */}
         <div
           className="absolute inset-0 scale-110"
@@ -198,7 +198,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
             {imgs.map((_, idx) => (
               <div 
                 key={idx}
-                className={`h-1 rounded-full transition-all duration-300 ${idx === currentImgIndex ? "w-4 bg-white" : "w-1 bg-white/50"}`}
+                className={`h-1 rounded-full transition-all duration-300 ${idx === currentImgIndex ? "w-4 bg-base-100" : "w-1 bg-base-100/50"}`}
               />
             ))}
           </div>
@@ -220,7 +220,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleToggleFavorite}
-          className={`absolute top-3 right-3 p-2.5 rounded-2xl backdrop-blur-xl transition-all duration-500 z-10 ${isFavorite ? "bg-rose-500 text-white shadow-xl shadow-rose-500/30 border border-rose-400/50" : "bg-white/40 text-slate-600 hover:bg-white hover:text-rose-500 border border-white/40 shadow-sm"}`}
+          className={`absolute top-3 right-3 p-2.5 rounded-2xl backdrop-blur-xl transition-all duration-500 z-10 ${isFavorite ? "bg-rose-500 text-white shadow-xl shadow-rose-500/30 border border-rose-400/50" : "bg-base-100/40 text-base-content/70 hover:bg-base-200 hover:text-rose-500 border border-white/40 shadow-sm"}`}
         >
           {isFavorite ? <AiFillHeart className="w-5 h-5" /> : <AiOutlineHeart className="w-5 h-5" />}
         </motion.button>
@@ -238,7 +238,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn btn-circle btn-sm bg-white/90 border-none hover:bg-white text-gray-800 shadow-lg"
+                  className="btn btn-circle btn-sm bg-base-100/90 border-none hover:bg-base-200 text-gray-800 shadow-lg"
                   onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`, { state: navState }); }}
                 >
                   <Eye size={16} />
@@ -247,7 +247,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="btn btn-sm bg-white/90 border-none hover:bg-white text-gray-800 shadow-lg font-bold rounded-2xl px-3 gap-1"
+                    className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-gray-800 shadow-lg font-bold rounded-2xl px-3 gap-1"
                     onClick={(e) => {
                       e.preventDefault();
                       navigate('/checkout', {
@@ -329,7 +329,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
               </span>
               <span className="text-primary">Populaire</span>
             </div>
-            <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((salesCount / 60) * 100, 100)}%` }}

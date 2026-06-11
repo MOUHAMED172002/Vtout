@@ -22,7 +22,7 @@ export default function InvoiceButton({ order }) {
 
   return (
     <button
-      className="btn btn-ghost btn-sm gap-2 h-12 rounded-xl border border-slate-100 px-4 hover:bg-slate-50 transition-all font-black"
+      className="btn btn-ghost btn-sm gap-2 h-12 rounded-xl border border-base-200 px-4 hover:bg-base-200 transition-all font-black"
       onClick={handleDownload}
       disabled={downloading}
     >

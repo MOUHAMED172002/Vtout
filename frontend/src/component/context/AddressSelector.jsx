@@ -178,7 +178,7 @@ export default function AddressSelector({
   return (
     <div className="space-y-6">
       <div className="space-y-2 relative" ref={wrapperRef}>
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2 flex items-center gap-2">
           <MapPin size={14} className="text-primary" /> Localité (Rechercher votre quartier) *
         </label>
         <div className="relative">
@@ -187,7 +187,7 @@ export default function AddressSelector({
           </div>
           <input
             type="text"
-            className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:font-medium placeholder:text-slate-300"
+            className="w-full h-14 bg-base-100 border border-base-300 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-base-content placeholder:font-medium placeholder:text-base-content/30"
             placeholder="Ex: Akassato, Godomey..."
             value={searchQuery}
             onChange={(e) => {
@@ -206,7 +206,7 @@ export default function AddressSelector({
 
         {showSuggestions && searchQuery && filteredLocations.length > 0 && (
              <div 
-               className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar"
+               className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl shadow-slate-200/50 border border-base-200 max-h-64 overflow-y-auto custom-scrollbar"
              >
                 {filteredLocations.map((loc) => (
                    <div 
@@ -216,39 +216,39 @@ export default function AddressSelector({
                         setSearchQuery(loc.formattedAddress);
                         setShowSuggestions(false);
                      }}
-                     className="px-5 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                     className="px-5 py-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
                    >
-                      <div className="font-bold text-sm text-slate-900">{loc.quartier_label}</div>
-                      <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
+                      <div className="font-bold text-sm text-base-content">{loc.quartier_label}</div>
+                      <div className="text-xs text-base-content/40 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
                    </div>
                 ))}
              </div>
           )}
         
         {showSuggestions && searchQuery && filteredLocations.length === 0 && (
-          <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
-             <p className="text-sm font-bold text-slate-500">Aucune localité trouvée.</p>
+          <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl border border-base-200 p-4 text-center">
+             <p className="text-sm font-bold text-base-content/50">Aucune localité trouvée.</p>
           </div>
         )}
       </div>
 
       {selectedLocation && (
           <div
-            className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6"
+            className="p-6 bg-base-200 rounded-[2rem] border border-base-200 space-y-6"
           >
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Détails (Rue, Maison, Repère) - Optionnel</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2">Détails (Rue, Maison, Repère) - Optionnel</label>
               <input
                 type="text"
                 value={addressDetails}
                 onChange={(e) => setAddressDetails(e.target.value)}
                 placeholder="Ex: Portail noir, près de la pharmacie..."
-                className="w-full h-12 bg-white border border-slate-200 rounded-xl px-5 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900"
+                className="w-full h-12 bg-base-100 border border-base-300 rounded-xl px-5 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-base-content"
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2 flex items-center gap-2">
                 <Phone size={14} className="text-primary" /> Numéro de téléphone *
               </label>
               <div className="relative">
@@ -264,30 +264,30 @@ export default function AddressSelector({
                   }}
                   onBlur={handlePhoneBlur}
                   placeholder="Ex: 61000000 ou +228..."
-                  className={`w-full h-14 bg-white border rounded-2xl pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-slate-900 ${
+                  className={`w-full h-14 bg-base-100 border rounded-2xl pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-base-content ${
                     phoneRaw.startsWith('+') ? 'pl-6' : 'pl-16'
-                  } ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-slate-200 focus:border-primary focus:ring-primary/5'}`}
+                  } ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-base-300 focus:border-primary focus:ring-primary/5'}`}
                 />
                 {!phoneRaw.startsWith('+') && (
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                    <span className="text-slate-400 font-bold">+229</span>
+                    <span className="text-base-content/40 font-bold">+229</span>
                   </div>
                 )}
                 {isPhoneValid && !phoneError && <Check size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500" />}
               </div>
               {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}
-              <p className="text-[9px] font-medium text-slate-400 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter la livraison.</p>
+              <p className="text-[9px] font-medium text-base-content/40 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter la livraison.</p>
             </div>
           </div>
         )}
       
       {/* Settings for Address Manager mode */}
       {(onSave || onCancel) && (
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6 md:mt-2">
+        <div className="flex justify-end gap-3 pt-4 border-t border-base-200 mt-6 md:mt-2">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2 transition-all outline-none"
+              className="px-6 py-3 rounded-2xl bg-base-100 border border-base-300 text-base-content/70 text-sm font-black uppercase tracking-widest hover:bg-base-200 hover:text-base-content flex items-center gap-2 transition-all outline-none"
             >
               <X size={16} /> Annuler
             </button>
@@ -305,14 +305,14 @@ export default function AddressSelector({
       )}
 
       {selectedLocation && !onSave && (
-        <div className="p-5 bg-slate-900 rounded-[1.5rem] text-white flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
+        <div className="p-5 bg-neutral rounded-[1.5rem] text-white flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
-          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary shrink-0 z-10">
+          <div className="w-12 h-12 bg-base-100/5 rounded-2xl flex items-center justify-center text-primary shrink-0 z-10">
             <ShieldCheck size={24} />
           </div>
           <div className="min-w-0 z-10">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">Livraison garantie</p>
-            <p className="text-xs font-bold text-slate-300 truncate">{currentAddressLine || 'Localité vérifiée'}</p>
+            <p className="text-xs font-bold text-base-content/30 truncate">{currentAddressLine || 'Localité vérifiée'}</p>
           </div>
         </div>
       )}

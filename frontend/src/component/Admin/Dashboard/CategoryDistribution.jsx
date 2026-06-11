@@ -57,7 +57,7 @@ const CategoryDistribution = ({ distribution = [] }) => {
         <div className="h-[300px] relative">
             {distribution.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
-                    <p className="text-slate-400 font-bold">Aucune donnée de vente</p>
+                    <p className="text-base-content/40 font-bold">Aucune donnée de vente</p>
                 </div>
             ) : (
                 <Doughnut data={chartData} options={options} />

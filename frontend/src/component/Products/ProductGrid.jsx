@@ -6,17 +6,17 @@ import { Sparkles, ArrowRight } from "lucide-react";
 
 // Effect 5: Skeleton Shimmer Component
 const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 p-4 space-y-4 shadow-sm relative isolate">
-    <div className="aspect-square bg-slate-100 rounded-xl relative overflow-hidden">
+  <div className="bg-base-100 rounded-2xl overflow-hidden border border-gray-100 p-4 space-y-4 shadow-sm relative isolate">
+    <div className="aspect-square bg-base-200 rounded-xl relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" style={{ width: '200%' }} />
     </div>
-    <div className="h-4 bg-slate-100 rounded-full w-2/3 relative overflow-hidden">
+    <div className="h-4 bg-base-200 rounded-full w-2/3 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" style={{ width: '200%' }} />
     </div>
-    <div className="h-4 bg-slate-100 rounded-full w-1/3 relative overflow-hidden">
+    <div className="h-4 bg-base-200 rounded-full w-1/3 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" style={{ width: '200%' }} />
     </div>
-    <div className="h-2 bg-slate-100 rounded-full w-full relative overflow-hidden">
+    <div className="h-2 bg-base-200 rounded-full w-full relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" style={{ width: '200%' }} />
     </div>
   </div>
@@ -70,7 +70,7 @@ export default function ProductGrid({ products = [], showButton = true, title = 
           >
             <Link
               to="/products-liste"
-              className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-primary transition-colors group bg-slate-50 px-6 py-3 rounded-full border border-slate-100 shadow-sm"
+              className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-primary transition-colors group bg-base-200 px-6 py-3 rounded-full border border-base-200 shadow-sm"
             >
               Voir tout le catalogue <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
             </Link>
@@ -119,7 +119,7 @@ export default function ProductGrid({ products = [], showButton = true, title = 
         >
           <Link 
             to="/products-liste" 
-            className="inline-flex h-16 items-center px-12 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-slate-200 hover:bg-primary hover:shadow-primary/30 active:scale-95 transition-all group gap-4"
+            className="inline-flex h-16 items-center px-12 bg-neutral text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-slate-200 hover:bg-primary hover:shadow-primary/30 active:scale-95 transition-all group gap-4"
           >
             Tout explorer le catalogue
             <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />

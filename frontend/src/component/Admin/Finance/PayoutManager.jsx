@@ -58,25 +58,25 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
         <div className="p-8 space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Gestion des Retraits</h2>
-                    <p className="text-sm font-bold text-slate-400">Suivre et valider les paiements des partenaires.</p>
+                    <h2 className="text-3xl font-black text-base-content tracking-tighter">Gestion des Retraits</h2>
+                    <p className="text-sm font-bold text-base-content/40">Suivre et valider les paiements des partenaires.</p>
                 </div>
 
-                <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm w-full md:w-auto">
-                    <div className="flex items-center gap-2 px-4 border-r border-slate-50">
-                        <Search size={18} className="text-slate-400" />
+                <div className="flex items-center gap-4 bg-base-100 p-2 rounded-2xl border border-base-200 shadow-sm w-full md:w-auto">
+                    <div className="flex items-center gap-2 px-4 border-r border-base-200">
+                        <Search size={18} className="text-base-content/40" />
                         <input 
                             type="text" 
                             placeholder="Rechercher..." 
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="bg-transparent border-none outline-none text-sm font-bold text-slate-600 w-40"
+                            className="bg-transparent border-none outline-none text-sm font-bold text-base-content/70 w-40"
                         />
                     </div>
                     <select 
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
-                        className="bg-transparent border-none outline-none text-xs font-black uppercase text-slate-500 px-4"
+                        className="bg-transparent border-none outline-none text-xs font-black uppercase text-base-content/50 px-4"
                     >
                         <option value="all">Tous</option>
                         <option value="pending">En attente</option>
@@ -92,7 +92,7 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
                         initial={{ opacity: 0, y: 10 }} 
                         animate={{ opacity: 1, y: 0 }}
                         key={p.id} 
-                        className="bg-white rounded-3xl border border-slate-100 p-8 flex flex-col lg:flex-row items-center justify-between gap-8 hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
+                        className="bg-base-100 rounded-3xl border border-base-200 p-8 flex flex-col lg:flex-row items-center justify-between gap-8 hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
                     >
                         <div className="flex items-center gap-6 flex-1">
                             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-500'}`}>
@@ -100,7 +100,7 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
                             </div>
                             <div className="space-y-1">
                                 <div className="flex items-center gap-3">
-                                    <h4 className="text-xl font-black text-slate-900">{Number(p.amount).toLocaleString()} F</h4>
+                                    <h4 className="text-xl font-black text-base-content">{Number(p.amount).toLocaleString()} F</h4>
                                     <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
                                         p.status === 'pending' ? 'bg-amber-100 text-amber-600' : 
                                         p.status === 'paid' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
@@ -108,10 +108,10 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
                                         {p.status}
                                     </span>
                                 </div>
-                                <p className="text-sm font-bold text-slate-500">
-                                    {p.user?.fullname} · <span className="text-slate-400 font-medium">{p.user?.email}</span>
+                                <p className="text-sm font-bold text-base-content/50">
+                                    {p.user?.fullname} · <span className="text-base-content/40 font-medium">{p.user?.email}</span>
                                 </p>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/30">
                                     {p.payment_method} · {p.payment_details}
                                 </p>
                             </div>
@@ -128,7 +128,7 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
                                     </button>
                                     <button 
                                         onClick={() => handleAction(p.id, 'paid')}
-                                        className="btn bg-slate-900 text-white hover:bg-black rounded-xl px-10 h-12 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-200"
+                                        className="btn bg-neutral text-white hover:bg-black rounded-xl px-10 h-12 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-200"
                                     >
                                         Marquer comme payé
                                     </button>
@@ -144,9 +144,9 @@ export default function PayoutManager({ globalSearchQuery = "" }) {
                 ))}
 
                 {filteredPayouts.length === 0 && (
-                    <div className="py-32 text-center bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100">
-                        <Banknote size={64} className="mx-auto text-slate-200 mb-6" />
-                        <p className="text-xl font-black text-slate-300 italic">Aucune demande trouvée.</p>
+                    <div className="py-32 text-center bg-base-200 rounded-[3rem] border-4 border-dashed border-base-200">
+                        <Banknote size={64} className="mx-auto text-base-content/20 mb-6" />
+                        <p className="text-xl font-black text-base-content/30 italic">Aucune demande trouvée.</p>
                     </div>
                 )}
             </div>

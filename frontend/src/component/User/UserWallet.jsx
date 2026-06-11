@@ -113,17 +113,17 @@ export default function UserWallet() {
       case "approved": return <CheckCircle size={14} className="text-blue-500" />;
       case "paid": return <CheckCircle size={14} className="text-emerald-500" />;
       case "rejected": return <XCircle size={14} className="text-red-500" />;
-      default: return <AlertCircle size={14} className="text-slate-400" />;
+      default: return <AlertCircle size={14} className="text-base-content/40" />;
     }
   };
 
   if (loading) {
     return (
       <div className="space-y-6 max-w-2xl animate-pulse">
-        <div className="bg-slate-100 rounded-[2rem] h-40" />
-        <div className="bg-slate-100 rounded-[2rem] h-24" />
-        <div className="bg-slate-100 rounded-[2rem] h-64" />
-        <div className="bg-slate-100 rounded-[2rem] h-48" />
+        <div className="bg-base-200 rounded-[2rem] h-40" />
+        <div className="bg-base-200 rounded-[2rem] h-24" />
+        <div className="bg-base-200 rounded-[2rem] h-64" />
+        <div className="bg-base-200 rounded-[2rem] h-48" />
       </div>
     );
   }
@@ -131,21 +131,21 @@ export default function UserWallet() {
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Balance Card */}
-      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-5 md:p-8">
+      <div className="bg-base-100 rounded-[2rem] border border-primary/20 shadow-sm p-5 md:p-8">
         <div className="flex items-center gap-3 mb-3 md:mb-4">
           <div className="w-9 h-9 md:w-10 md:h-10 bg-primary/10 rounded-xl md:rounded-2xl flex items-center justify-center">
             <Wallet size={18} className="text-primary" />
           </div>
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Solde disponible</p>
+          <p className="text-xs font-black uppercase tracking-widest text-base-content/40">Solde disponible</p>
         </div>
-        <p className={`text-4xl md:text-5xl font-black tracking-tighter ${balance > 0 ? "text-primary" : "text-slate-400"}`}>
+        <p className={`text-4xl md:text-5xl font-black tracking-tighter ${balance > 0 ? "text-primary" : "text-base-content/40"}`}>
           {balance.toLocaleString("fr-FR")} <span className="text-xl md:text-2xl font-bold">F</span>
         </p>
         {balance > 0 && (
           <p className="mt-2 text-sm font-bold text-primary">Disponible pour retrait ou commande</p>
         )}
         {balance === 0 && (
-          <p className="mt-2 text-sm font-bold text-slate-400">Aucun solde pour le moment</p>
+          <p className="mt-2 text-sm font-bold text-base-content/40">Aucun solde pour le moment</p>
         )}
       </div>
 
@@ -164,20 +164,20 @@ export default function UserWallet() {
       </div>
 
       {/* Payout Request Form */}
-      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
+      <div className="bg-base-100 rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
             <ArrowUpRight size={20} className="text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Demande de retrait</h2>
-            <p className="text-xs font-bold text-slate-400">Solde disponible : {balance.toLocaleString("fr-FR")} F</p>
+            <h2 className="text-xl font-black text-base-content tracking-tight">Demande de retrait</h2>
+            <p className="text-xs font-bold text-base-content/40">Solde disponible : {balance.toLocaleString("fr-FR")} F</p>
           </div>
         </div>
 
         <form onSubmit={handlePayoutSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">
+            <label className="block text-xs font-black uppercase tracking-widest text-base-content/50 mb-2">
               Montant (F CFA)
             </label>
             <input
@@ -196,7 +196,7 @@ export default function UserWallet() {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">
+            <label className="block text-xs font-black uppercase tracking-widest text-base-content/50 mb-2">
               Méthode de paiement
             </label>
             <select
@@ -211,7 +211,7 @@ export default function UserWallet() {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">
+            <label className="block text-xs font-black uppercase tracking-widest text-base-content/50 mb-2">
               Détails (numéro, nom du compte…)
             </label>
             <textarea
@@ -235,16 +235,16 @@ export default function UserWallet() {
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
+      <div className="bg-base-100 rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
             <ArrowDownLeft size={20} className="text-primary" />
           </div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Historique des transactions</h2>
+          <h2 className="text-xl font-black text-base-content tracking-tight">Historique des transactions</h2>
         </div>
 
         {transactions.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 font-bold">Aucune transaction pour le moment.</div>
+          <div className="text-center py-10 text-base-content/40 font-bold">Aucune transaction pour le moment.</div>
         ) : (
           <div className="space-y-3">
             {transactions.slice(0, 20).map((tx, idx) => {
@@ -252,14 +252,14 @@ export default function UserWallet() {
               return (
                 <div
                   key={tx.id || idx}
-                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl"
+                  className="flex items-center gap-4 p-4 bg-base-200 rounded-2xl"
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${isPayout ? "bg-red-50" : "bg-emerald-50"}`}>
                     {isPayout ? "➡️" : "💸"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-900 text-sm truncate">{getTransactionLabel(tx)}</p>
-                    <p className="text-xs font-bold text-slate-400">{formatDate(tx.created_at || tx.createdAt)}</p>
+                    <p className="font-black text-base-content text-sm truncate">{getTransactionLabel(tx)}</p>
+                    <p className="text-xs font-bold text-base-content/40">{formatDate(tx.created_at || tx.createdAt)}</p>
                   </div>
                   <p className={`font-black text-sm shrink-0 ${isPayout ? "text-red-500" : "text-emerald-600"}`}>
                     {isPayout ? "-" : "+"}{Number(tx.adjustment ?? tx.amount ?? 0).toLocaleString("fr-FR")} F
@@ -272,29 +272,29 @@ export default function UserWallet() {
       </div>
 
       {/* Payout Requests History */}
-      <div className="bg-white rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
+      <div className="bg-base-100 rounded-[2rem] border border-primary/20 shadow-sm p-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
             <Clock size={20} className="text-primary" />
           </div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Demandes de retrait</h2>
+          <h2 className="text-xl font-black text-base-content tracking-tight">Demandes de retrait</h2>
         </div>
 
         {payoutRequests.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 font-bold">Aucune demande de retrait.</div>
+          <div className="text-center py-10 text-base-content/40 font-bold">Aucune demande de retrait.</div>
         ) : (
           <div className="space-y-3">
             {payoutRequests.map((req, idx) => (
               <div
                 key={req.id || idx}
-                className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl"
+                className="flex items-center gap-4 p-4 bg-base-200 rounded-2xl"
               >
-                <div className="w-10 h-10 bg-white rounded-xl border border-slate-100 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-base-100 rounded-xl border border-base-200 flex items-center justify-center shrink-0">
                   {getStatusIcon(req.status)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 text-sm">{Number(req.amount).toLocaleString("fr-FR")} F</p>
-                  <p className="text-xs font-bold text-slate-400">{req.payment_method} · {formatDate(req.created_at || req.createdAt)}</p>
+                  <p className="font-black text-base-content text-sm">{Number(req.amount).toLocaleString("fr-FR")} F</p>
+                  <p className="text-xs font-bold text-base-content/40">{req.payment_method} · {formatDate(req.created_at || req.createdAt)}</p>
                 </div>
                 {getStatusBadge(req.status)}
               </div>

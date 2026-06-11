@@ -52,14 +52,14 @@ export default function FlashSalePage() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-base-200 text-base-content'}`}>
         
         {/* Background glow accents */}
         <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-rose-500/10' : 'bg-rose-500/5'}`} />
         <div className={`absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-orange-500/10' : 'bg-orange-500/5'}`} />
 
         {/* Hero Banner Header */}
-        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-slate-900 bg-slate-950/40' : 'border-slate-200 bg-white'}`}>
+        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-neutral bg-slate-950/40' : 'border-base-300 bg-base-100'}`}>
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
             <div className="space-y-4 text-center md:text-left">
               <motion.div 
@@ -76,11 +76,11 @@ export default function FlashSalePage() {
               <h1 className={`text-4xl md:text-7xl font-black tracking-tighter leading-none ${
                 isDark 
                   ? 'bg-gradient-to-r from-white via-slate-100 to-rose-400 bg-clip-text text-transparent' 
-                  : 'text-slate-900'
+                  : 'text-base-content'
               }`}>
                 VENTES <span className="text-rose-500 font-black">FLASH</span>
               </h1>
-              <p className={`font-medium text-sm md:text-lg max-w-xl ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`font-medium text-sm md:text-lg max-w-xl ${isDark ? 'text-base-content/40' : 'text-base-content/70'}`}>
                 Des baisses de prix massives proposées par nos vendeurs pour une durée limitée. Faites vite, les stocks s'épuisent rapidement !
               </p>
             </div>
@@ -91,11 +91,11 @@ export default function FlashSalePage() {
               animate={{ opacity: 1, y: 0 }}
               className={`backdrop-blur-xl border px-8 py-6 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-2 shrink-0 ${
                 isDark 
-                  ? 'bg-slate-900/60 border-rose-500/30 shadow-rose-950/20' 
-                  : 'bg-white border-rose-200 shadow-rose-100'
+                  ? 'bg-neutral/60 border-rose-500/30 shadow-rose-950/20' 
+                  : 'bg-base-100 border-rose-200 shadow-rose-100'
               }`}
             >
-              <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${isDark ? 'text-base-content/50' : 'text-base-content/40'}`}>
                 <Clock size={12} className="text-rose-500 animate-spin" style={{ animationDuration: '4s' }} /> Temps Restant
               </span>
               <span className="font-mono text-2xl md:text-4xl font-black text-rose-500 tracking-wider drop-shadow-[0_0_8px_rgba(244,63,94,0.2)]">
@@ -114,7 +114,7 @@ export default function FlashSalePage() {
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className={`p-4 rounded-[2rem] border ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+                <div key={i} className={`p-4 rounded-[2rem] border ${isDark ? 'bg-neutral/30 border-slate-800' : 'bg-base-100 border-base-300 shadow-sm'}`}>
                   <ProductSkeleton dark={isDark} />
                 </div>
               ))}
@@ -126,13 +126,13 @@ export default function FlashSalePage() {
               className="py-24 flex flex-col items-center text-center space-y-6 max-w-md mx-auto"
             >
               <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${
-                isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'
+                isDark ? 'bg-neutral border-slate-800 text-base-content/50' : 'bg-base-100 border-base-300 text-base-content/40 shadow-sm'
               }`}>
                 <ShieldAlert size={40} />
               </div>
               <div className="space-y-2">
-                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>Aucune vente flash active</h3>
-                <p className={`font-medium text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-base-content/90'}`}>Aucune vente flash active</h3>
+                <p className={`font-medium text-sm ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>
                   Toutes les offres flash en cours ont été épuisées. Revenez très bientôt pour la prochaine vague !
                 </p>
               </div>
@@ -157,14 +157,14 @@ export default function FlashSalePage() {
                     transition={{ delay: idx * 0.05 }}
                     className={`group rounded-[2.5rem] p-4 border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between ${
                       isDark 
-                        ? 'bg-slate-900/40 border-slate-850 hover:border-rose-500/40 shadow-xl shadow-black/20 hover:shadow-rose-950/10' 
-                        : 'bg-white border-slate-200 hover:border-rose-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-rose-100'
+                        ? 'bg-neutral/40 border-slate-850 hover:border-rose-500/40 shadow-xl shadow-black/20 hover:shadow-rose-950/10' 
+                        : 'bg-base-100 border-base-300 hover:border-rose-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:shadow-rose-100'
                     }`}
                   >
                     <div>
                       {/* Product Image Panel */}
                       <div className={`relative aspect-square rounded-[1.8rem] overflow-hidden mb-5 flex items-center justify-center border transition-colors ${
-                        isDark ? 'bg-slate-950/60 border-slate-850' : 'bg-slate-50 border-slate-100'
+                        isDark ? 'bg-slate-950/60 border-slate-850' : 'bg-base-200 border-base-200'
                       }`}>
                         {p.images && p.images[0] ? (
                           <img 
@@ -173,7 +173,7 @@ export default function FlashSalePage() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <span className="text-slate-400 text-xs font-bold">Pas d'image</span>
+                          <span className="text-base-content/40 text-xs font-bold">Pas d'image</span>
                         )}
 
                         {/* Top Badges */}
@@ -192,7 +192,7 @@ export default function FlashSalePage() {
                         <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 duration-300">
                           <button
                             onClick={() => navigate(`/promotions/produit/${p.id}?type=flash`)}
-                            className="w-10 h-10 rounded-full bg-white text-slate-800 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform"
+                            className="w-10 h-10 rounded-full bg-base-100 text-base-content/90 flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform"
                           >
                             <Eye size={16} />
                           </button>
@@ -209,7 +209,7 @@ export default function FlashSalePage() {
                             </span>
                           </div>
                         )}
-                        <h3 className={`font-black text-sm md:text-base line-clamp-1 group-hover:text-rose-500 transition-colors ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        <h3 className={`font-black text-sm md:text-base line-clamp-1 group-hover:text-rose-500 transition-colors ${isDark ? 'text-white' : 'text-base-content/90'}`}>
                           {p.name}
                         </h3>
                         
@@ -217,8 +217,8 @@ export default function FlashSalePage() {
                         {p.average_rating && (
                           <div className="flex items-center gap-1 text-[10px] text-amber-500 font-bold uppercase tracking-wider">
                             <Star size={10} fill="currentColor" /> {Number(p.average_rating).toFixed(1)}
-                            <span className="text-slate-400/60">•</span>
-                            <span className="text-slate-400">Vente Flash</span>
+                            <span className="text-base-content/40/60">•</span>
+                            <span className="text-base-content/40">Vente Flash</span>
                           </div>
                         )}
 
@@ -228,7 +228,7 @@ export default function FlashSalePage() {
                             {Number(p.price).toLocaleString()} F
                           </span>
                           {(Number(p.old_price || 0) > Number(p.price || 0)) && (
-                            <span className="font-mono text-xs text-slate-400 line-through font-bold">
+                            <span className="font-mono text-xs text-base-content/40 line-through font-bold">
                               {Number(p.old_price || 0).toLocaleString()} F
                             </span>
                           )}

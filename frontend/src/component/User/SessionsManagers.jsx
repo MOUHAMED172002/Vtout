@@ -158,7 +158,7 @@ export default function SessionsManager() {
       ) : (
         <div className="space-y-2">
           {sessions.map((s) => (
-            <div key={s.id} className="card bg-white p-3 flex justify-between items-center">
+            <div key={s.id} className="card bg-base-100 p-3 flex justify-between items-center">
               <div>
                 <div className="font-medium">{s.device || "Appareil"}</div>
                 <div className="text-xs text-gray-500">
