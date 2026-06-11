@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../services/api";
 import toast from "react-hot-toast";
 import { 
   Plus, Search, Edit2, Trash2, Eye, 
@@ -32,11 +32,9 @@ const BlogManager = () => {
     is_published: false
   });
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get(`${API_URL}/blogs?publishedOnly=false`);
+      const res = await api.get('/blogs?publishedOnly=false');
       setBlogs(res.data);
     } catch (err) {
       toast.error("Erreur lors du chargement des articles");
@@ -84,14 +82,11 @@ const BlogManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const token = localStorage.getItem("token"); // Better Auth token logic should be here
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
       if (editingBlog) {
-        await axios.put(`${API_URL}/blogs/${editingBlog.id}`, formData, config);
+        await api.put(`/blogs/${editingBlog.id}`, formData);
         toast.success("Article mis à jour !");
       } else {
-        await axios.post(`${API_URL}/blogs`, formData, config);
+        await api.post('/blogs', formData);
         toast.success("Article créé avec succès !");
       }
       setShowModal(false);
@@ -106,8 +101,7 @@ const BlogManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer cet article définitivement ?")) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/blogs/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await api.delete(`/blogs/${id}`);
       toast.success("Article supprimé");
       fetchBlogs();
     } catch (err) {
@@ -124,12 +118,8 @@ const BlogManager = () => {
 
     setUploading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(`${API_URL}/upload/single`, formDataUpload, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`
-        }
+      const res = await api.post('/upload/single', formDataUpload, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
       setFormData({ ...formData, image_url: res.data.url });
       toast.success("Image téléchargée !");
