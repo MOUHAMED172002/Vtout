@@ -23,16 +23,15 @@ export async function runMasterSeed() {
         // 1.5 Comprehensive Catalog Seed
         await runComprehensiveSeed();
 
-        // 2. Categories (via SQL - Optional if comprehensive seed covers it)
-        const sqlPath = path.join(__dirname, 'import_categories.sql');
-        if (fs.existsSync(sqlPath)) {
-            console.log('🌱 [SEED] Loading Categories...');
-            const sql = fs.readFileSync(sqlPath, 'utf8');
-            const queries = sql.split(';').map(q => q.trim()).filter(q => q.length > 0);
-            for (let query of queries) {
-                try { await sequelize.query(query); } catch (err) {}
+        // 2. Categories — V1 / V2 / V3 (INSERT IGNORE — idempotent)
+        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql']) {
+            const p = path.join(__dirname, file);
+            if (fs.existsSync(p)) {
+                console.log(`🌱 [SEED] Loading ${file}...`);
+                const queries = fs.readFileSync(p, 'utf8').split(';').map(q => q.trim()).filter(q => q.length > 0);
+                for (const q of queries) { try { await sequelize.query(q); } catch (_) {} }
+                console.log(`✅ [SEED] ${file} loaded.`);
             }
-            console.log('✅ [SEED] Categories loaded.');
         }
 
         // 3. Contracts & Policies
