@@ -238,7 +238,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn btn-circle btn-sm bg-base-100/90 border-none hover:bg-base-200 text-gray-800 shadow-lg"
+                  className="btn btn-circle btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg"
                   onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`, { state: navState }); }}
                 >
                   <Eye size={16} />
@@ -247,7 +247,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-gray-800 shadow-lg font-bold rounded-2xl px-3 gap-1"
+                    className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg font-bold rounded-2xl px-3 gap-1"
                     onClick={(e) => {
                       e.preventDefault();
                       navigate('/checkout', {
@@ -284,8 +284,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
         {product.review_count > 0 && (
           <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-orange-400 font-bold uppercase tracking-widest">
             <Star size={9} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-            <span className="text-gray-300">•</span>
-            <span className="text-gray-400">Certifié</span>
+            <span className="text-base-content/30">•</span>
+            <span className="text-base-content/50">Certifié</span>
           </div>
         )}
 
@@ -323,7 +323,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
         <div className="flex items-center gap-2">
           {/* Sales bar */}
           <div className="flex-1 min-w-0">
-            <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
+            <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-base-content/50 mb-1 uppercase tracking-tighter">
               <span className="flex items-center gap-0.5 text-orange-500">
                 <Zap size={8} fill="currentColor" /> {salesCount} vendus
               </span>
