@@ -110,7 +110,7 @@ export default function FaqList() {
         <div className="bg-neutral rounded-[3rem] p-10 md:p-16 text-center space-y-8 relative overflow-hidden">
           <div className="relative z-10 space-y-4">
             <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">Vous avez toujours des questions ?</h3>
-            <p className="text-base-content/40 font-bold max-w-md mx-auto">Notre service client est disponible pour répondre à tous vos besoins spécifiques.</p>
+            <p className="text-white/60 font-bold max-w-md mx-auto">Notre service client est disponible pour répondre à tous vos besoins spécifiques.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <button
                 onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
