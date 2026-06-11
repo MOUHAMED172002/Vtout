@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { ShoppingCart, Eye, Star, Zap, Truck, MapPin } from "lucide-react";
@@ -8,6 +8,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getOptimizedImage } from "../../utils/cloudinaryHelper";
 import toast from "react-hot-toast";
 
+// Module-level registry: ensures only one card can cycle images at a time
+const hoverRegistry = new Map();
+
 export default function ProductCard({ product, onFavoriteChange }) {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -16,6 +19,26 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const cardKey = useRef(Symbol());
+
+  // Register/unregister this card's setter in the global registry
+  useEffect(() => {
+    const key = cardKey.current;
+    hoverRegistry.set(key, setIsHovered);
+    return () => hoverRegistry.delete(key);
+  }, []);
+
+  const handleHoverEnter = () => {
+    // Deactivate all other cards before activating this one
+    hoverRegistry.forEach((setter, key) => {
+      if (key !== cardKey.current) setter(false);
+    });
+    setIsHovered(true);
+  };
+
+  const handleHoverLeave = () => {
+    setIsHovered(false);
+  };
 
   useEffect(() => {
     if (product?.images && product.images.length > 0) {
@@ -162,8 +185,11 @@ export default function ProductCard({ product, onFavoriteChange }) {
         to={`/products/${product.id}`}
         state={navState}
         className="block relative aspect-square overflow-hidden bg-base-100"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={handleHoverEnter}
+        onMouseLeave={handleHoverLeave}
+        onTouchStart={handleHoverEnter}
+        onTouchEnd={handleHoverLeave}
+        onTouchCancel={handleHoverLeave}
       >
         {/* Blurred background fills white space with the product's own colors */}
         <div
