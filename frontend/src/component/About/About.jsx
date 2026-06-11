@@ -144,7 +144,7 @@ export default function About() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
           <div className="text-center space-y-4 mb-10">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Nos Valeurs Fondamentales</h2>
-            <p className="text-base-content/40 font-bold max-w-2xl mx-auto">Ce qui nous anime au quotidien pour vous offrir la meilleure expérience possible.</p>
+            <p className="text-white/60 font-bold max-w-2xl mx-auto">Ce qui nous anime au quotidien pour vous offrir la meilleure expérience possible.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -153,12 +153,12 @@ export default function About() {
               { icon: <Rocket className="text-primary" size={32} />, title: "Innovation Continue", desc: "Nous cherchons sans cesse à améliorer nos services et processus de livraison." },
               { icon: <ShieldCheck className="text-primary" size={32} />, title: "Transparence Totale", desc: "Pas de frais cachés, pas de surprises. Juste de la qualité et du service." }
             ].map((value, i) => (
-              <div key={i} className="p-12 rounded-[3rem] bg-neutral/90/50 border border-slate-700 hover:border-primary/50 transition-all group">
-                <div className="mb-8 w-16 h-16 rounded-2xl bg-neutral flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <div key={i} className="p-12 rounded-[3rem] bg-white/5 border border-white/10 hover:border-primary/50 transition-all group">
+                <div className="mb-8 w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                   {value.icon}
                 </div>
                 <h3 className="text-2xl font-black mb-4 tracking-tight">{value.title}</h3>
-                <p className="text-base-content/40 font-bold leading-relaxed">{value.desc}</p>
+                <p className="text-white/60 font-bold leading-relaxed">{value.desc}</p>
               </div>
             ))}
           </div>
@@ -195,7 +195,7 @@ export default function About() {
         <div className="bg-primary rounded-[3rem] p-8 md:p-14 relative overflow-hidden shadow-2xl shadow-primary/30">
           <div className="absolute top-0 right-0 w-96 h-96 bg-base-100/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
           <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-            <h2 className="text-4xl md:text-6xl font-black text-base-content tracking-tighter max-w-3xl leading-[1.1]">
+            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter max-w-3xl leading-[1.1]">
               Rejoignez la révolution du commerce premium
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
