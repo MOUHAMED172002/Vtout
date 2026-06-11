@@ -23,8 +23,8 @@ export async function runMasterSeed() {
         // 1.5 Comprehensive Catalog Seed
         await runComprehensiveSeed();
 
-        // 2. Categories — V1 / V2 / V3 (INSERT IGNORE — idempotent)
-        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql']) {
+        // 2. Categories (V1 → V4, idempotent INSERT IGNORE)
+        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql', 'import_categories_v4.sql']) {
             const p = path.join(__dirname, file);
             if (fs.existsSync(p)) {
                 console.log(`🌱 [SEED] Loading ${file}...`);
