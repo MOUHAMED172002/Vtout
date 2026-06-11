@@ -25,21 +25,46 @@ const createIcon = (IconComponent, color) => {
 export default function AdminControlTower() {
     const [activeDrivers, setActiveDrivers] = useState({});
     const [isSyncing, setIsSyncing] = useState(false);
+    const syncPollRef = React.useRef(null);
+
+    const pollSyncStatus = React.useCallback(() => {
+        syncPollRef.current = setInterval(async () => {
+            try {
+                const res = await api.get('/admin/sync-financials');
+                if (!res.data.running) {
+                    clearInterval(syncPollRef.current);
+                    setIsSyncing(false);
+                    if (res.data.error) {
+                        toast.error(`Échec : ${res.data.error}`);
+                    } else if (res.data.stats) {
+                        toast.success(`Synchronisation terminée ! ${res.data.stats.ordersProcessed || 0} commandes traitées.`);
+                    }
+                }
+            } catch {
+                clearInterval(syncPollRef.current);
+                setIsSyncing(false);
+            }
+        }, 3000);
+    }, []);
 
     const handleSyncFinancials = async () => {
         if (!window.confirm("Voulez-vous synchroniser tous les gains ? Cela corrigera les portefeuilles des livreurs et fournisseurs.")) return;
-        
+
         setIsSyncing(true);
         try {
-            const res = await api.post('/admin/sync-financials');
-            toast.success(`Synchronisation terminée ! ${res.data.stats?.ordersProcessed || 0} commandes traitées.`);
+            await api.post('/admin/sync-financials');
+            toast.success("Synchronisation démarrée... Résultat dans quelques secondes.");
+            pollSyncStatus();
         } catch (error) {
             console.error("Sync error:", error);
             toast.error(error.response?.data?.error || "Échec de la synchronisation");
-        } finally {
             setIsSyncing(false);
         }
     };
+
+    React.useEffect(() => {
+        return () => { if (syncPollRef.current) clearInterval(syncPollRef.current); };
+    }, []);
 
     useEffect(() => {
         let socket = getSocket();
