@@ -35,7 +35,7 @@ export default function AdminControlTower() {
             toast.success(`Synchronisation terminée ! ${res.data.stats?.ordersProcessed || 0} commandes traitées.`);
         } catch (error) {
             console.error("Sync error:", error);
-            toast.error("Échec de la synchronisation");
+            toast.error(error.response?.data?.error || "Échec de la synchronisation");
         } finally {
             setIsSyncing(false);
         }
