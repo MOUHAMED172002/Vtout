@@ -132,15 +132,15 @@ const PlatformReviews = () => {
 
                             <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
                                 <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                                    {review.user?.avatar_url ? (
-                                        <img src={review.user.avatar_url} alt="" className="w-full h-full object-cover" />
+                                    {(review.author?.avatar_url || review.user?.avatar_url) ? (
+                                        <img src={review.author?.avatar_url || review.user?.avatar_url} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <User size={20} className="text-slate-400" />
                                     )}
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                        {review.user?.fullname || "Client Vtout"}
+                                        {review.author?.fullname || review.user?.fullname || "Client Vtout"}
                                         <CheckCircle size={14} className="text-emerald-500" />
                                     </h4>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Client Vérifié</p>
