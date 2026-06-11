@@ -248,7 +248,7 @@ export const adminSyncFinancials = async (req, res) => {
         const { processOrderFinancials } = await import('../services/financialService.js');
 
         console.log("🚀 [AdminSync] Starting Global Financial Sync...");
-        
+
         // 1. Normalize Statuses (Aggressive)
         const replacements = [
             { from: 'confirmee', to: 'confirmée' },
@@ -269,7 +269,6 @@ export const adminSyncFinancials = async (req, res) => {
         }
 
         // 2. Tag old null-source transactions with correct source values
-        // This prevents the idempotency checks from missing old transactions
         console.log("[AdminSync] Tagging old null-source transactions...");
         const [taggedDeliverer] = await sequelize.query(
             `UPDATE financial_transactions SET source = 'deliverer' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Course (Livreur)%'`,
@@ -285,19 +284,25 @@ export const adminSyncFinancials = async (req, res) => {
         );
         console.log(`[AdminSync] Tagged: ${taggedDeliverer} deliverer, ${taggedSupplier} supplier, ${taggedAdmin} admin_commission`);
 
-        // 3. Remove duplicate deliverer earnings (keep only the earliest per order+user)
-        console.log("[AdminSync] Removing duplicate deliverer earnings...");
-        const [duplicatesRemoved] = await sequelize.query(
-            `DELETE FROM financial_transactions WHERE id IN (
-                SELECT id FROM (
-                    SELECT id, ROW_NUMBER() OVER (PARTITION BY order_id, user_id, source ORDER BY created_at ASC) as rn
-                    FROM financial_transactions
-                    WHERE type = 'earning' AND source = 'deliverer'
-                ) sub WHERE rn > 1
-            )`,
-            { type: sequelize.QueryTypes.DELETE }
-        );
-        console.log(`[AdminSync] Removed ${duplicatesRemoved || 0} duplicate deliverer transactions`);
+        // 3. Remove duplicate deliverer earnings — requires MySQL 8.0+ (ROW_NUMBER)
+        //    Wrapped in try/catch so MySQL 5.7 doesn't abort the whole sync
+        let duplicatesRemoved = 0;
+        try {
+            const [result] = await sequelize.query(
+                `DELETE FROM financial_transactions WHERE id IN (
+                    SELECT id FROM (
+                        SELECT id, ROW_NUMBER() OVER (PARTITION BY order_id, user_id, source ORDER BY created_at ASC) as rn
+                        FROM financial_transactions
+                        WHERE type = 'earning' AND source = 'deliverer'
+                    ) sub WHERE rn > 1
+                )`,
+                { type: sequelize.QueryTypes.DELETE }
+            );
+            duplicatesRemoved = result || 0;
+            console.log(`[AdminSync] Removed ${duplicatesRemoved} duplicate deliverer transactions`);
+        } catch (dedupErr) {
+            console.warn('[AdminSync] Deduplication query skipped (MySQL < 8.0 or other error):', dedupErr.message);
+        }
 
         // 4. Mark all earnings as completed
         await FinancialTransaction.update(
@@ -306,36 +311,48 @@ export const adminSyncFinancials = async (req, res) => {
         );
 
         // 5. Find ALL delivered orders
-        const orders = await Order.findAll({ 
-            where: { status: { [Op.in]: ['livrée', 'livree'] } } 
+        const orders = await Order.findAll({
+            where: { status: { [Op.in]: ['livrée', 'livree'] } }
         });
 
         let feesFixed = 0;
         let processedCount = 0;
         let skippedCount = 0;
+        const errors = [];
 
         const tiers = await getDeliveryFeeTiers();
 
         for (const order of orders) {
-            if (!order.delivery_fee || parseFloat(order.delivery_fee) === 0) {
-                const computedFee = computeDeliveryFee(parseFloat(order.total_amount || 0), tiers);
-                await order.update({ delivery_fee: computedFee });
-                feesFixed++;
-            }
+            try {
+                if (!order.delivery_fee || parseFloat(order.delivery_fee) === 0) {
+                    const computedFee = computeDeliveryFee(parseFloat(order.total_amount || 0), tiers);
+                    await order.update({ delivery_fee: computedFee });
+                    feesFixed++;
+                }
 
-            await processOrderFinancials(order);
-            processedCount++;
+                await processOrderFinancials(order);
+                processedCount++;
+            } catch (orderErr) {
+                skippedCount++;
+                const msg = `Order ${order.id}: ${orderErr.message}`;
+                errors.push(msg);
+                console.error(`[AdminSync] Skipped ${msg}`);
+            }
         }
 
-        res.json({ 
+        res.json({
             success: true,
-            message: 'Synchronisation terminée', 
+            message: skippedCount > 0
+                ? `Synchronisation terminée avec ${skippedCount} erreur(s)`
+                : 'Synchronisation terminée',
             stats: {
                 totalDeliveredOrdersFound: orders.length,
                 deliveryFeesRecalculated: feesFixed,
                 ordersProcessed: processedCount,
-                duplicatesRemoved: duplicatesRemoved || 0,
-                transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0)
+                ordersSkipped: skippedCount,
+                duplicatesRemoved,
+                transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0),
+                ...(errors.length > 0 && { errors })
             }
         });
     } catch (error) {
