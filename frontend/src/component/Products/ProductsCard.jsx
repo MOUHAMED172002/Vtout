@@ -157,14 +157,14 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const navState = cheapestVariantId ? { selectedVariantId: cheapestVariantId } : undefined;
 
   return (
-    <motion.div
-      layout
-      whileHover={{ y: -4 }}
-      className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] transition-all duration-500"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Link to={`/products/${product.id}`} state={navState} className="block relative aspect-square overflow-hidden bg-base-100">
+    <div className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
+      <Link
+        to={`/products/${product.id}`}
+        state={navState}
+        className="block relative aspect-square overflow-hidden bg-base-100"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         {/* Blurred background fills white space with the product's own colors */}
         <div
           className="absolute inset-0 scale-110"
@@ -225,56 +225,43 @@ export default function ProductCard({ product, onFavoriteChange }) {
           {isFavorite ? <AiFillHeart className="w-5 h-5" /> : <AiOutlineHeart className="w-5 h-5" />}
         </motion.button>
 
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/30 to-transparent flex gap-2 justify-center items-center z-20"
+        {/* Hover overlay — CSS-only so it can never be stuck on multiple cards */}
+        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/30 to-transparent flex gap-2 justify-center items-center z-20 translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+          <div className="flex gap-2">
+            <button
+              className="btn btn-circle btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg active:scale-90 transition-transform"
+              onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`, { state: navState }); }}
             >
-              <div className="flex gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn btn-circle btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg"
-                  onClick={(e) => { e.preventDefault(); navigate(`/products/${product.id}`, { state: navState }); }}
-                >
-                  <Eye size={16} />
-                </motion.button>
-                {!isOutOfStock && (
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg font-bold rounded-2xl px-3 gap-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate('/checkout', {
-                        state: {
-                          items: [{
-                            id: product.id,
-                            product_id: product.id,
-                            name: product.name,
-                            price: currentPrice,
-                            price_snapshot: currentPrice,
-                            quantity: 1,
-                            image_url: imgs[0],
-                            boutique_id: product.boutique_id,
-                            boutique: product.boutique,
-                          }],
-                          total: Number(currentPrice),
-                        }
-                      });
-                    }}
-                  >
-                    <Zap size={14} fill="currentColor" className="text-amber-500" /> Acheter
-                  </motion.button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <Eye size={16} />
+            </button>
+            {!isOutOfStock && (
+              <button
+                className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg font-bold rounded-2xl px-3 gap-1 active:scale-90 transition-transform"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/checkout', {
+                    state: {
+                      items: [{
+                        id: product.id,
+                        product_id: product.id,
+                        name: product.name,
+                        price: currentPrice,
+                        price_snapshot: currentPrice,
+                        quantity: 1,
+                        image_url: imgs[0],
+                        boutique_id: product.boutique_id,
+                        boutique: product.boutique,
+                      }],
+                      total: Number(currentPrice),
+                    }
+                  });
+                }}
+              >
+                <Zap size={14} fill="currentColor" className="text-amber-500" /> Acheter
+              </button>
+            )}
+          </div>
+        </div>
       </Link>
 
       {/* ── Info Section ── */}
@@ -369,6 +356,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
         </div>
 
       </div>
-    </motion.div>
+    </div>
   );
 }
