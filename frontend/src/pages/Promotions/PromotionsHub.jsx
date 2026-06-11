@@ -59,7 +59,7 @@ export default function PromotionsHub() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen pt-32 pb-24 transition-colors duration-300 ${isDark ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
+      <div className={`min-h-screen pt-32 pb-24 transition-colors duration-300 ${isDark ? 'bg-slate-950 text-white' : 'bg-base-100 text-base-content'}`}>
         <div className="container mx-auto px-4 max-w-7xl">
           
           <div className="text-center space-y-4 mb-16">
@@ -82,7 +82,7 @@ export default function PromotionsHub() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className={`max-w-2xl mx-auto font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+              className={`max-w-2xl mx-auto font-medium ${isDark ? 'text-base-content/40' : 'text-base-content/70'}`}
             >
               Découvrez toutes les façons d'économiser sur Vtout. Choisissez l'offre qui correspond le mieux à vos besoins actuels.
             </motion.p>
@@ -100,7 +100,7 @@ export default function PromotionsHub() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${promo.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
                 
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-20 h-20 bg-base-100 rounded-full flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300">
                   {promo.icon}
                 </div>
                 
@@ -108,12 +108,12 @@ export default function PromotionsHub() {
                 <h4 className={`text-sm font-bold uppercase tracking-wider mb-4 ${promo.color.split(' ')[0].replace('from-', 'text-')}`}>
                   {promo.subtitle}
                 </h4>
-                <p className={`text-sm leading-relaxed mb-8 flex-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <p className={`text-sm leading-relaxed mb-8 flex-1 ${isDark ? 'text-base-content/40' : 'text-base-content/70'}`}>
                   {promo.desc}
                 </p>
 
                 <div className="w-full mt-auto">
-                  <div className={`flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-black text-sm uppercase tracking-widest transition-all bg-white shadow-sm border group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 ${isDark ? 'text-slate-800' : 'text-slate-800'}`}>
+                  <div className={`flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-black text-sm uppercase tracking-widest transition-all bg-base-100 shadow-sm border group-hover:bg-neutral group-hover:text-white group-hover:border-neutral ${isDark ? 'text-base-content/90' : 'text-base-content/90'}`}>
                     Explorer <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>

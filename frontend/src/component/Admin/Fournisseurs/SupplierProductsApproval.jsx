@@ -104,17 +104,17 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
     return (
         <div className="space-y-8 pb-20">
             <div>
-                <h2 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Approbation Produits</h2>
-                <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Modération des catalogues fournisseurs</p>
+                <h2 className="text-4xl font-black tracking-tighter text-base-content mb-2">Approbation Produits</h2>
+                <p className="text-base-content/50 font-bold uppercase tracking-[0.2em] text-[10px]">Modération des catalogues fournisseurs</p>
             </div>
 
-            <div className="flex items-center justify-between gap-4 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm mb-6">
-                <div className="flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100 w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <Search size={18} className="text-slate-400" />
+            <div className="flex items-center justify-between gap-4 bg-base-100 p-6 rounded-[32px] border border-base-200 shadow-sm mb-6">
+                <div className="flex items-center gap-3 bg-base-200 px-5 py-3 rounded-2xl border border-base-200 w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <Search size={18} className="text-base-content/40" />
                     <input 
                         type="text" 
                         placeholder="Rechercher un produit en attente..."
-                        className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full"
+                        className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 w-full"
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && fetchPendingProducts()}
@@ -122,30 +122,30 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                 </div>
                 <button 
                     onClick={fetchPendingProducts}
-                    className="p-3 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all"
+                    className="p-3 bg-base-200 text-base-content/40 hover:text-primary hover:bg-primary/5 rounded-2xl transition-all"
                 >
                     <Package size={18} />
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-slate-900">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-base-content">
                 {/* List Section */}
-                <div className="xl:col-span-2 bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div className="xl:col-span-2 bg-base-100 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-base-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50/50">
-                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Produit</th>
-                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Prix Public / Payout</th>
-                                    <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">Actions</th>
+                                <tr className="bg-base-200/50">
+                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200">Produit</th>
+                                    <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200">Prix Public / Payout</th>
+                                    <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-base-content/40 border-b border-base-200">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-base-200">
                                 {products.length > 0 ? (
                                     products.map((product) => (
                                         <tr
                                             key={product.id}
-                                            className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-indigo-50/30' : ''}`}
+                                            className={`hover:bg-base-200/50 transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-indigo-50/30' : ''}`}
                                             onClick={() => {
                                                 setSelectedProduct(product);
                                                 setFeedback(product.admin_feedback || '');
@@ -158,25 +158,25 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                                         <img
                                                             src={product.images[0].image_url}
                                                             alt={product.name}
-                                                            className="w-12 h-12 rounded-xl object-cover bg-slate-100 shrink-0"
+                                                            className="w-12 h-12 rounded-xl object-cover bg-base-200 shrink-0"
                                                         />
                                                     ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                                                            <Package size={20} className="text-slate-300" />
+                                                        <div className="w-12 h-12 rounded-xl bg-base-200 flex items-center justify-center shrink-0">
+                                                            <Package size={20} className="text-base-content/30" />
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <p className="text-sm font-black text-slate-900">{product.name}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{product.category?.name}</p>
+                                                        <p className="text-sm font-black text-base-content">{product.name}</p>
+                                                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">{product.category?.name}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6">
                                                 <p className="text-sm font-black text-indigo-600">{product.price || 0} FCFA</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gain: {product.supplier_price || 0} FCFA</p>
+                                                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">Gain: {product.supplier_price || 0} FCFA</p>
                                             </td>
                                             <td className="px-8 py-6 text-right">
-                                                <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-primary transition-colors shadow-sm">
+                                                <button className="p-2 bg-base-100 border border-base-300 rounded-lg text-base-content/40 hover:text-primary transition-colors shadow-sm">
                                                     <Eye size={16} />
                                                 </button>
                                             </td>
@@ -187,7 +187,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                         <td colSpan="3" className="px-10 py-20 text-center">
                                             <div className="flex flex-col items-center gap-4">
                                                 <CheckCircle size={40} className="text-emerald-200" />
-                                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Tous les produits sont traités</p>
+                                                <p className="text-sm font-black text-base-content/40 uppercase tracking-widest">Tous les produits sont traités</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -198,7 +198,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                 </div>
 
                 {/* Detail/Approval Panel */}
-                <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-10 h-fit sticky top-8">
+                <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-base-200 p-10 h-fit sticky top-8">
                     <AnimatePresence mode="wait">
                         {selectedProduct ? (
                             <motion.div
@@ -207,15 +207,15 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                 exit={{ opacity: 0, y: -20 }}
                                 className="space-y-8"
                             >
-                                <div className="border-b border-slate-100 pb-8">
+                                <div className="border-b border-base-200 pb-8">
                                     <h3 className="text-2xl font-black tracking-tighter mb-1">Examen du Produit</h3>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Validation de l'offre</p>
+                                    <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Validation de l'offre</p>
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col gap-2">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Gain Fournisseur (Payout)</span>
-                                        <span className="text-xl font-black text-slate-900">{selectedProduct.supplier_price} <span className="text-sm text-slate-400">FCFA</span></span>
+                                    <div className="p-6 bg-base-200 rounded-3xl border border-base-200 flex flex-col gap-2">
+                                        <span className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">Gain Fournisseur (Payout)</span>
+                                        <span className="text-xl font-black text-base-content">{selectedProduct.supplier_price} <span className="text-sm text-base-content/40">FCFA</span></span>
                                     </div>
 
                                     <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100 flex flex-col gap-2">
@@ -225,12 +225,12 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Message au fournisseur</label>
+                                        <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest px-2">Message au fournisseur</label>
                                         <textarea
                                             value={feedback}
                                             onChange={(e) => setFeedback(e.target.value)}
                                             rows="3"
-                                            className="w-full bg-slate-50 border-none rounded-3xl px-6 py-5 text-sm font-bold placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 transition-all text-slate-900"
+                                            className="w-full bg-base-200 border-none rounded-3xl px-6 py-5 text-sm font-bold placeholder:text-base-content/30 focus:ring-2 focus:ring-primary/20 transition-all text-base-content"
                                             placeholder="Ex: Photos de mauvaise qualité..."
                                         />
                                     </div>
@@ -238,7 +238,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     <div className="grid grid-cols-3 gap-4 pt-4 text-white">
                                         <button
                                             onClick={() => handleDelete(selectedProduct)}
-                                            className="flex items-center justify-center gap-2 py-5 bg-slate-800 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all shadow-xl shadow-slate-200"
+                                            className="flex items-center justify-center gap-2 py-5 bg-neutral/90 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral transition-all shadow-xl shadow-slate-200"
                                         >
                                             <Trash2 size={14} /> Supprimer
                                         </button>
@@ -250,7 +250,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                         </button>
                                         <button
                                             onClick={() => handleApprove(selectedProduct)}
-                                            className="flex items-center justify-center gap-2 py-5 bg-primary rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all shadow-xl shadow-primary/20"
+                                            className="flex items-center justify-center gap-2 py-5 bg-primary rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral/90 transition-all shadow-xl shadow-primary/20"
                                         >
                                             <CheckCircle size={14} /> Approuver
                                         </button>
@@ -259,12 +259,12 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                             </motion.div>
                         ) : (
                             <div className="py-20 flex flex-col items-center text-center gap-6">
-                                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                                <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center text-base-content/20">
                                     <AlertCircle size={40} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-black text-slate-800">Aucune sélection</p>
-                                    <p className="max-w-[200px] text-xs font-bold text-slate-400 leading-relaxed">Cliquez sur un produit dans la liste pour l'examiner.</p>
+                                    <p className="text-lg font-black text-base-content/90">Aucune sélection</p>
+                                    <p className="max-w-[200px] text-xs font-bold text-base-content/40 leading-relaxed">Cliquez sur un produit dans la liste pour l'examiner.</p>
                                 </div>
                             </div>
                         )}

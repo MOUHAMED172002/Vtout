@@ -53,7 +53,7 @@ const getStatusConfig = (status) => {
     case "annulee": return { label: "Annulée", icon: <XCircle size={13} />, color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" };
     case "expediee": return { label: "En transit", icon: <Truck size={13} />, color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
     case "livree": return { label: "Livrée", icon: <PackageCheck size={13} />, color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
-    default: return { label: status, icon: <Box size={13} />, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" };
+    default: return { label: status, icon: <Box size={13} />, color: "text-base-content/70", bg: "bg-base-200", border: "border-base-300" };
   }
 };
 
@@ -109,7 +109,7 @@ export default function OrdersList() {
           <ShoppingBag className="text-primary w-8 h-8" />
         </div>
       </div>
-      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">
+      <p className="text-xs font-black text-base-content/40 uppercase tracking-[0.3em] animate-pulse">
         Chargement de votre historique...
       </p>
     </div>
@@ -124,10 +124,10 @@ export default function OrdersList() {
           <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em]">
             <ShoppingBag size={14} /> Historique
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">
-            Mes <span className="text-slate-400">Commandes.</span>
+          <h1 className="text-3xl md:text-5xl font-black text-base-content tracking-tighter">
+            Mes <span className="text-base-content/40">Commandes.</span>
           </h1>
-          <p className="text-slate-500 font-bold max-w-lg leading-relaxed text-sm">
+          <p className="text-base-content/50 font-bold max-w-lg leading-relaxed text-sm">
             Consultez vos achats, téléchargez vos reçus et laissez des avis.
           </p>
         </div>
@@ -135,19 +135,19 @@ export default function OrdersList() {
         {/* Search + Refresh */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" size={16} />
             <input
               type="text"
               placeholder="Rechercher par ID..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-              className="bg-white border border-slate-100 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all w-full"
+              className="bg-base-100 border border-base-200 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all w-full"
             />
           </div>
           <button
             onClick={load}
             title="Actualiser"
-            className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm shrink-0"
+            className="w-12 h-12 flex items-center justify-center bg-base-100 border border-base-200 rounded-2xl text-base-content/40 hover:text-primary hover:border-primary/20 transition-all shadow-sm shrink-0"
           >
             <RefreshCcw size={16} />
           </button>
@@ -164,12 +164,12 @@ export default function OrdersList() {
               key={f.value}
               onClick={() => { setStatusFilter(f.value); setPage(1); }}
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-200 ${active
-                ? "bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/10 scale-105"
-                : "bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:text-slate-900 shadow-sm"
+                ? "bg-neutral text-white border-neutral shadow-xl shadow-slate-900/10 scale-105"
+                : "bg-base-100 text-base-content/50 border-base-200 hover:border-base-300 hover:text-base-content shadow-sm"
                 }`}
             >
               {f.label}
-              <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black ${active ? "bg-white/20 text-slate-900" : "bg-slate-100 text-slate-500"
+              <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black ${active ? "bg-base-100/20 text-base-content" : "bg-base-200 text-base-content/50"
                 }`}>
                 {count}
               </span>
@@ -205,7 +205,7 @@ export default function OrdersList() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.35, delay: idx * 0.05 }}
-                  className="group bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-xl shadow-slate-200/20 hover:border-primary/30 transition-all flex flex-col gap-8 relative overflow-hidden"
+                  className="group bg-base-100 rounded-[2.5rem] border border-base-200 p-10 shadow-xl shadow-slate-200/20 hover:border-primary/30 transition-all flex flex-col gap-8 relative overflow-hidden"
                 >
                   {/* Decorative bg icon */}
                   <div className="absolute top-8 right-8 text-slate-50 group-hover:text-primary/5 transition-colors pointer-events-none">
@@ -219,7 +219,7 @@ export default function OrdersList() {
                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
                           Réf. {o.id.slice(0, 8).toUpperCase()}
                         </p>
-                        <h4 className="text-xl font-black text-slate-900 tracking-tighter">
+                        <h4 className="text-xl font-black text-base-content tracking-tighter">
                           Commande #{o.id.slice(0, 6)}
                         </h4>
                       </div>
@@ -229,24 +229,24 @@ export default function OrdersList() {
                     </div>
 
                     {/* Metrics */}
-                    <div className="grid grid-cols-2 gap-6 py-5 border-y border-slate-50">
+                    <div className="grid grid-cols-2 gap-6 py-5 border-y border-base-200">
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Montant</p>
-                        <p className="text-2xl font-black text-slate-900 tracking-tighter">
-                          {Number(o.total_amount).toLocaleString()} <span className="text-sm text-slate-400">FCFA</span>
+                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Montant</p>
+                        <p className="text-2xl font-black text-base-content tracking-tighter">
+                          {Number(o.total_amount).toLocaleString()} <span className="text-sm text-base-content/40">FCFA</span>
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Articles</p>
-                        <p className="text-2xl font-black text-slate-900 tracking-tighter">
+                        <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Articles</p>
+                        <p className="text-2xl font-black text-base-content tracking-tighter">
                           {o.items_count ?? (o.items?.length ?? "")}{" "}
-                          <span className="text-xs text-slate-400">items</span>
+                          <span className="text-xs text-base-content/40">items</span>
                         </p>
                       </div>
                     </div>
 
                     {/* Date */}
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-base-content/40 tracking-widest">
                       <Clock size={13} className="text-primary" />
                       {(() => {
                         const d = new Date(o.created_at || o.createdAt);
@@ -262,7 +262,7 @@ export default function OrdersList() {
                     {/* Détails */}
                     <button
                       onClick={() => navigate(`/user/dashboard/orders/${o.id}`)}
-                      className="flex-1 btn bg-slate-900 hover:bg-black text-white rounded-2xl h-14 font-black gap-2 shadow-xl shadow-slate-900/10 border-none text-xs"
+                      className="flex-1 btn bg-neutral hover:bg-black text-white rounded-2xl h-14 font-black gap-2 shadow-xl shadow-slate-900/10 border-none text-xs"
                     >
                       Détails <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
@@ -282,7 +282,7 @@ export default function OrdersList() {
                     <button
                       onClick={() => toast.success("Génération de la facture...")}
                       title="Télécharger la facture"
-                      className="w-14 h-14 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+                      className="w-14 h-14 flex items-center justify-center bg-base-100 border border-base-200 text-base-content/40 rounded-2xl hover:text-primary hover:border-primary/20 transition-all shadow-sm"
                     >
                       <FileText size={20} />
                     </button>
@@ -297,21 +297,21 @@ export default function OrdersList() {
       {/* -- Pagination -- */}
       {totalPages > 1 && (
         <div className="flex justify-center pt-4">
-          <div className="bg-white p-3 rounded-3xl border border-slate-100 shadow-2xl shadow-slate-200/50 flex items-center gap-4">
+          <div className="bg-base-100 p-3 rounded-3xl border border-base-200 shadow-2xl shadow-slate-200/50 flex items-center gap-4">
             <button
               disabled={page === 1}
               onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 hover:bg-primary hover:text-white disabled:opacity-20 transition-all font-black"
+              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-base-200 hover:bg-primary hover:text-white disabled:opacity-20 transition-all font-black"
             >
               <ChevronRight size={20} className="rotate-180" />
             </button>
-            <span className="px-4 text-xs font-black text-slate-700 uppercase tracking-widest">
-              {page} <span className="text-slate-300 mx-2">/</span> {totalPages}
+            <span className="px-4 text-xs font-black text-base-content/80 uppercase tracking-widest">
+              {page} <span className="text-base-content/30 mx-2">/</span> {totalPages}
             </span>
             <button
               disabled={page >= totalPages}
               onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 hover:bg-primary hover:text-white disabled:opacity-20 transition-all font-black"
+              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-base-200 hover:bg-primary hover:text-white disabled:opacity-20 transition-all font-black"
             >
               <ChevronRight size={20} />
             </button>

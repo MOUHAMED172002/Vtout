@@ -79,7 +79,7 @@ const NotificationCenter = () => {
         if (type?.includes('delivery')) return <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><Truck size={16} /></div>;
         if (type === 'financial' || type === 'wallet') return <div className="p-2 bg-green-100 text-green-600 rounded-lg"><Wallet size={16} /></div>;
         if (type === 'order') return <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><ShoppingBag size={16} /></div>;
-        return <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Bell size={16} /></div>;
+        return <div className="p-2 bg-base-200 text-base-content/70 rounded-lg"><Bell size={16} /></div>;
     };
 
     const modal = (
@@ -157,7 +157,7 @@ const NotificationCenter = () => {
                                             position: 'relative',
                                             transition: 'background 0.2s'
                                         }}
-                                        className="hover:bg-slate-50"
+                                        className="hover:bg-base-200"
                                     >
                                         <div style={{ flexShrink: 0 }}>{getIcon(notif.type)}</div>
                                         <div style={{ flex: 1, minWidth: 0 }}>

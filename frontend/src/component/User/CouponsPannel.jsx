@@ -184,7 +184,7 @@ export default function CouponsPanel() {
             const label = cp.title || cp.code || `Coupon ${cp.id || cu.coupon_id}`;
             const discountLabel = cp.discount_amount != null ? `${cp.discount_amount} FCFA` : (cp.discount_percent != null ? `${cp.discount_percent}%` : "—");
             return (
-              <div key={cu.id} className="card bg-white p-3 flex justify-between items-center">
+              <div key={cu.id} className="card bg-base-100 p-3 flex justify-between items-center">
                 <div>
                   <div className="font-medium">{label}</div>
                   <div className="text-xs text-gray-500">{cp.code} • {discountLabel}</div>

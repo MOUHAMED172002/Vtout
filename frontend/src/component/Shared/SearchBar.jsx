@@ -70,13 +70,13 @@ export default function SearchModal() {
         className="relative group cursor-pointer hidden md:block"
       >
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <Search className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
+          <Search className="w-4 h-4 text-base-content/40 group-hover:text-primary transition-colors" />
         </div>
-        <div className="w-64 lg:w-80 pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-black text-slate-400 uppercase tracking-widest group-hover:bg-white group-hover:shadow-md group-hover:border-primary/20 transition-all">
+        <div className="w-64 lg:w-80 pl-12 pr-12 py-3 bg-base-200 border border-base-200 rounded-2xl text-xs font-black text-base-content/40 uppercase tracking-widest group-hover:bg-base-200 group-hover:shadow-md group-hover:border-primary/20 transition-all">
           Rechercher...
         </div>
         <div className="absolute inset-y-0 right-4 flex items-center">
-          <kbd className="hidden lg:inline-flex items-center gap-1 h-5 select-none rounded border border-slate-200 bg-white px-1.5 font-sans text-[10px] font-medium text-slate-400 opacity-100">
+          <kbd className="hidden lg:inline-flex items-center gap-1 h-5 select-none rounded border border-base-300 bg-base-100 px-1.5 font-sans text-[10px] font-medium text-base-content/40 opacity-100">
             ⌘K
           </kbd>
         </div>
@@ -85,7 +85,7 @@ export default function SearchModal() {
       {/* Version Mobile (Icone Simple) */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-primary transition-all active:scale-95"
+        className="md:hidden p-3 bg-base-200 rounded-2xl text-base-content/40 hover:text-primary transition-all active:scale-95"
       >
         <Search size={22} />
       </button>
@@ -97,7 +97,7 @@ export default function SearchModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center pt-4 md:pt-20 z-[200] px-2 md:px-4"
+            className="fixed inset-0 bg-neutral/40 backdrop-blur-sm flex items-start justify-center pt-4 md:pt-20 z-[200] px-2 md:px-4"
             onClick={() => setOpen(false)}
           >
             <motion.div
@@ -105,11 +105,11 @@ export default function SearchModal() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl md:rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[80vh]"
+              className="bg-base-100 rounded-3xl md:rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[80vh]"
             >
               {/* Header Search */}
-              <div className="p-6 border-b border-slate-50 flex items-center gap-4">
-                <div className={`p-3 rounded-2xl transition-colors ${loading ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-400'}`}>
+              <div className="p-6 border-b border-base-200 flex items-center gap-4">
+                <div className={`p-3 rounded-2xl transition-colors ${loading ? 'bg-primary/10 text-primary' : 'bg-base-200 text-base-content/40'}`}>
                   {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
                 </div>
                 <input
@@ -117,12 +117,12 @@ export default function SearchModal() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Que cherchez-vous aujourd'hui ?"
-                  className="w-full text-xl font-bold placeholder:text-slate-300 border-none focus:ring-0"
+                  className="w-full text-xl font-bold placeholder:text-base-content/30 border-none focus:ring-0"
                   autoFocus
                 />
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-3 hover:bg-slate-50 rounded-2xl transition-colors text-slate-400 hover:text-slate-900"
+                  className="p-3 hover:bg-base-200 rounded-2xl transition-colors text-base-content/40 hover:text-base-content"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -132,7 +132,7 @@ export default function SearchModal() {
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 {results.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Suggestions de produits</p>
+                    <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Suggestions de produits</p>
                     {results.map((item, idx) => (
                       <motion.div
                         key={item.id}
@@ -140,18 +140,18 @@ export default function SearchModal() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
                         onClick={() => handleSelectProduct(item.id)}
-                        className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 cursor-pointer transition-all group"
+                        className="flex items-center gap-4 p-4 rounded-3xl hover:bg-base-200 cursor-pointer transition-all group"
                       >
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-slate-100">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-base-200">
                           <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-black text-slate-900 truncate tracking-tight">{item.name}</p>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{item.category}</p>
+                          <p className="font-black text-base-content truncate tracking-tight">{item.name}</p>
+                          <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest">{item.category}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-black text-primary tracking-tighter">{item.price.toLocaleString()} F</p>
-                          <div className="flex items-center gap-1 text-[10px] font-black text-slate-300 uppercase group-hover:text-primary transition-colors">
+                          <div className="flex items-center gap-1 text-[10px] font-black text-base-content/30 uppercase group-hover:text-primary transition-colors">
                             Voir <ArrowRight size={10} />
                           </div>
                         </div>
@@ -167,15 +167,15 @@ export default function SearchModal() {
                   />
                 ) : !loading && (
                   <div className="py-20 flex flex-col items-center justify-center text-center opacity-40">
-                    <Search size={48} className="text-slate-200 mb-4" />
-                    <p className="text-sm font-bold text-slate-400">Commencez à taper pour rechercher...</p>
+                    <Search size={48} className="text-base-content/20 mb-4" />
+                    <p className="text-sm font-bold text-base-content/40">Commencez à taper pour rechercher...</p>
                   </div>
                 )}
               </div>
 
               {/* Footer Search */}
-              <div className="p-4 bg-slate-50/50 border-t border-slate-50 text-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Astuce : Utilisez les flèches pour naviguer rapidement</p>
+              <div className="p-4 bg-base-200/50 border-t border-base-200 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Astuce : Utilisez les flèches pour naviguer rapidement</p>
               </div>
             </motion.div>
           </motion.div>

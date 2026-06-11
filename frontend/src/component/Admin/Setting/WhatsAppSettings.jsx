@@ -50,17 +50,17 @@ export default function WhatsAppSettings() {
 
   if (loading)
     return (
-      <div className="p-10 text-center animate-pulse font-black text-slate-300 uppercase tracking-widest">
+      <div className="p-10 text-center animate-pulse font-black text-base-content/30 uppercase tracking-widest">
         Chargement de la configuration WhatsApp...
       </div>
     );
 
   const InputField = ({ label, name, type = "text", placeholder, hint, secret, icon: Icon }) => (
     <div className="space-y-2">
-      <label className="text-[10px] font-black uppercase text-slate-400 ml-2">{label}</label>
+      <label className="text-[10px] font-black uppercase text-base-content/40 ml-2">{label}</label>
       <div className="relative">
         {Icon && (
-          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/40">
             <Icon size={18} />
           </div>
         )}
@@ -69,19 +69,19 @@ export default function WhatsAppSettings() {
           value={whatsapp[name]}
           onChange={(e) => setWhatsapp({ ...whatsapp, [name]: e.target.value })}
           placeholder={placeholder}
-          className={`w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none transition-all`}
+          className={`w-full h-14 bg-base-200 border border-base-200 rounded-2xl ${Icon ? "pl-14" : "px-6"} pr-12 font-bold text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none transition-all`}
         />
         {secret && (
           <button
             type="button"
             onClick={() => setShowToken(!showToken)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/80 transition-colors"
           >
             {showToken ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         )}
       </div>
-      {hint && <p className="text-[10px] text-slate-400 ml-2 mt-1">{hint}</p>}
+      {hint && <p className="text-[10px] text-base-content/40 ml-2 mt-1">{hint}</p>}
     </div>
   );
 
@@ -94,7 +94,7 @@ export default function WhatsAppSettings() {
         className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[2rem] p-8 text-white"
       >
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+          <div className="w-14 h-14 bg-base-100/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
             <MessageSquare size={28} />
           </div>
           <div>
@@ -111,16 +111,16 @@ export default function WhatsAppSettings() {
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.15 }}
-        className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8"
+        className="bg-base-100 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-base-200 space-y-8"
       >
-        <div className="flex items-center justify-between border-b border-slate-50 pb-6">
+        <div className="flex items-center justify-between border-b border-base-200 pb-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center">
               <Key size={22} />
             </div>
             <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tighter">Paramètres Green API</h2>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">
+              <h2 className="text-xl font-black text-base-content tracking-tighter">Paramètres Green API</h2>
+              <p className="text-xs text-base-content/40 font-medium mt-0.5">
                 Identifiants requis pour l'envoi des messages
               </p>
             </div>
@@ -159,15 +159,15 @@ export default function WhatsAppSettings() {
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8"
+        className="bg-base-100 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-base-200 space-y-8"
       >
-        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+        <div className="flex items-center gap-4 border-b border-base-200 pb-6">
           <div className="w-12 h-12 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center">
             <Phone size={22} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tighter">Numéros Admin WhatsApp</h2>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
+            <h2 className="text-xl font-black text-base-content tracking-tighter">Numéros Admin WhatsApp</h2>
+            <p className="text-xs text-base-content/40 font-medium mt-0.5">
               Recevez les alertes de commandes et erreurs système
             </p>
           </div>
@@ -200,15 +200,15 @@ export default function WhatsAppSettings() {
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.25 }}
-        className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-8"
+        className="bg-base-100 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-base-200 space-y-8"
       >
-        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+        <div className="flex items-center gap-4 border-b border-base-200 pb-6">
           <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center">
             <AlertCircle size={22} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tighter">Activation des Notifications</h2>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
+            <h2 className="text-xl font-black text-base-content tracking-tighter">Activation des Notifications</h2>
+            <p className="text-xs text-base-content/40 font-medium mt-0.5">
               Choisissez qui reçoit des alertes WhatsApp
             </p>
           </div>
@@ -220,16 +220,16 @@ export default function WhatsAppSettings() {
             { id: "notif_whatsapp_supplier", label: "Fournisseurs", sub: "Nouvelles Commandes" },
             { id: "notif_whatsapp_deliverer", label: "Livreurs", sub: "Assignations" },
           ].map((item) => (
-            <label key={item.id} className="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:border-emerald-200 transition-all group">
+            <label key={item.id} className="flex items-center gap-4 p-5 bg-base-200 rounded-2xl border border-base-200 cursor-pointer hover:border-emerald-200 transition-all group">
               <input
                 type="checkbox"
                 checked={whatsapp[item.id] !== "false"}
                 onChange={(e) => setWhatsapp({ ...whatsapp, [item.id]: String(e.target.checked) })}
-                className="w-6 h-6 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="w-6 h-6 rounded-lg border-base-300 text-emerald-600 focus:ring-emerald-500"
               />
               <div>
-                <p className="text-sm font-black text-slate-900">{item.label}</p>
-                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{item.sub}</p>
+                <p className="text-sm font-black text-base-content">{item.label}</p>
+                <p className="text-[10px] font-medium text-base-content/40 uppercase tracking-tighter">{item.sub}</p>
               </div>
             </label>
           ))}
@@ -246,7 +246,7 @@ export default function WhatsAppSettings() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50"
+          className="flex items-center gap-3 px-10 py-5 bg-neutral text-white rounded-2xl font-black text-sm hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50"
         >
           {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
           {saving ? "Sauvegarde en cours..." : "Enregistrer la Configuration"}

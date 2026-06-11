@@ -11,7 +11,7 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <span className="loading loading-spinner loading-lg text-primary"></span>
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Chargement des commandes...</p>
+        <p className="text-base-content/40 font-bold uppercase tracking-widest text-xs">Chargement des commandes...</p>
       </div>
     );
   }
@@ -19,7 +19,7 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
   if (!orders.length) {
     return (
       <div className="py-20 text-center">
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Aucune commande trouvée</p>
+        <p className="text-base-content/40 font-bold uppercase tracking-widest text-xs">Aucune commande trouvée</p>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
     <div className="overflow-x-auto">
       <table className="table w-full border-separate border-spacing-y-4 px-4">
         <thead>
-          <tr className="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] border-none">
+          <tr className="text-base-content/40 font-black uppercase text-[10px] tracking-[0.2em] border-none">
             <th className="bg-transparent pl-8">Référence</th>
             <th className="bg-transparent">Client</th>
             <th className="bg-transparent">Montant</th>
@@ -41,17 +41,17 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
           {orders.map((o) => (
             <tr
               key={o.id}
-              className="group bg-white hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
+              className="group bg-base-100 hover:bg-base-200 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
               onClick={() => onView(o)}
             >
               <td className="pl-8 py-5 rounded-l-[1.5rem] border-none">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-base-content/40 group-hover:bg-primary group-hover:text-white transition-colors">
                     <span className="text-[10px] font-black uppercase">REF</span>
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-black text-slate-900 leading-none">
+                      <p className="text-sm font-black text-base-content leading-none">
                         #{o.id ? o.id.slice(0, 8).toUpperCase() : "N/A"}
                       </p>
                       {o.parent_id && (
@@ -63,7 +63,7 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none line-clamp-1 w-24">
+                    <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest leading-none line-clamp-1 w-24">
                       ID: {o.id || "N/A"}
                     </p>
                   </div>
@@ -71,8 +71,8 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
               </td>
               <td className="border-none">
                 <div className="flex items-center gap-2">
-                  <User size={14} className="text-slate-300" />
-                  <span className="text-sm font-bold text-slate-600">
+                  <User size={14} className="text-base-content/30" />
+                  <span className="text-sm font-bold text-base-content/70">
                     {o.guest_name || (o.user_id ? `${o.user_id.slice(0, 8)}...` : "Client Invité")}
                   </span>
                 </div>
@@ -80,20 +80,20 @@ export default function OrderTable({ orders = [], loading = false, onView = () =
               <td className="border-none">
                 <div className="flex items-center gap-2">
                   <CreditCard size={14} className="text-primary/40" />
-                  <span className="text-sm font-black text-slate-900">{(Number(o.total_amount) || 0).toLocaleString()} F</span>
+                  <span className="text-sm font-black text-base-content">{(Number(o.total_amount) || 0).toLocaleString()} F</span>
                 </div>
               </td>
               <td className="border-none">
                 <OrderStatusBadge status={o.status} />
               </td>
               <td className="border-none">
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-base-content/40">
                   <Calendar size={14} />
                   <span className="text-xs font-bold">{o.created_at ? new Date(o.created_at).toLocaleDateString() : "-"}</span>
                 </div>
               </td>
               <td className="pr-8 rounded-r-[1.5rem] border-none text-right">
-                <button className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all ml-auto">
+                <button className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-base-content/40 hover:bg-primary hover:text-white transition-all ml-auto">
                   <ChevronRight size={18} />
                 </button>
               </td>

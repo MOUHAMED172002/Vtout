@@ -113,16 +113,16 @@ export default function CategorySelect() {
           <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
             <Layers size={14} /> Structure
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Catégories</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Définissez les commissions par défaut pour chaque type de produit.</p>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-base-content/40">Catégories</span></h1>
+          <p className="text-base-content/50 font-bold max-w-lg">Définissez les commissions par défaut pour chaque type de produit.</p>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={fetchAll} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
+          <button onClick={fetchAll} className="w-12 h-12 flex items-center justify-center bg-base-100 rounded-2xl border border-base-200 shadow-sm hover:bg-base-200 transition-all text-base-content/40">
             <RefreshCcw size={18} />
           </button>
           <button
             onClick={() => setAddingOpen(!addingOpen)}
-            className={`btn h-14 rounded-2xl px-8 font-black gap-2 shadow-lg transition-all ${addingOpen ? 'btn-ghost bg-white border-slate-100 text-slate-400' : 'btn-primary shadow-primary/20'}`}
+            className={`btn h-14 rounded-2xl px-8 font-black gap-2 shadow-lg transition-all ${addingOpen ? 'btn-ghost bg-base-100 border-base-200 text-base-content/40' : 'btn-primary shadow-primary/20'}`}
           >
             {addingOpen ? <X size={20} /> : <Plus size={20} />}
             {addingOpen ? "Annuler" : "Nouvelle Catégorie"}
@@ -138,13 +138,13 @@ export default function CategorySelect() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <form onSubmit={handleAddSubmit} className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <form onSubmit={handleAddSubmit} className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de la catégorie</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Nom de la catégorie</label>
                 <div className="relative">
-                  <Layers className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <Layers className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30" size={18} />
                   <input
-                    className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
+                    className="w-full bg-base-200 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="Ex: Électronique, Vêtements..."
@@ -153,12 +153,12 @@ export default function CategorySelect() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Commission (%)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Commission (%)</label>
                 <div className="relative">
-                  <Percent className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <Percent className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30" size={18} />
                   <input
                     type="number"
-                    className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
+                    className="w-full bg-base-200 border-none rounded-2xl pl-16 pr-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                     value={newCommission}
                     onChange={(e) => setNewCommission(e.target.value)}
                     placeholder="15"
@@ -167,9 +167,9 @@ export default function CategorySelect() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Parent (optionnel)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Parent (optionnel)</label>
                 <select
-                  className="w-full bg-slate-50 border-none rounded-2xl px-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer text-slate-900"
+                  className="w-full bg-base-200 border-none rounded-2xl px-8 py-5 text-sm font-bold focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer text-base-content"
                   value={newParent ?? ""}
                   onChange={(e) => setNewParent(e.target.value === "" ? null : e.target.value)}
                 >
@@ -191,7 +191,7 @@ export default function CategorySelect() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des catégories...</div>
+          <div className="col-span-full py-20 text-center font-bold text-base-content/30 uppercase tracking-widest text-xs animate-pulse">Chargement des catégories...</div>
         ) : categories.length > 0 ? (
           categories.map((c) => {
             const parent = c.parent_id ? categoryMap[c.parent_id] : null;
@@ -201,22 +201,22 @@ export default function CategorySelect() {
               <motion.div
                 key={c.id}
                 layout
-                className="group relative bg-white rounded-[2.5rem] p-8 border border-slate-50 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+                className="group relative bg-base-100 rounded-[2.5rem] p-8 border border-base-200 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
               >
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                  <div className="w-14 h-14 rounded-2xl bg-base-200 text-base-content/40 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                     <Hash size={24} />
                   </div>
                   <button
                     onClick={() => handleDelete(c)}
-                    className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                    className="p-3 text-base-content/30 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 size={18} />
                   </button>
                 </div>
 
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black text-slate-900 leading-tight">{c.name}</h3>
+                  <h3 className="text-xl font-black text-base-content leading-tight">{c.name}</h3>
                   {parent && (
                     <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest">
                       <span>{parent.name}</span>
@@ -226,7 +226,7 @@ export default function CategorySelect() {
                   )}
                 </div>
 
-                <div className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-50 pt-6">
+                <div className="mt-8 grid grid-cols-2 gap-4 border-t border-base-200 pt-6">
                   <button 
                     onClick={() => {
                         const rate = prompt("Nouvelle commission (%) pour " + c.name, c.commission_rate || 15);
@@ -239,22 +239,22 @@ export default function CategorySelect() {
                             }
                         }
                     }}
-                    className="flex flex-col items-start p-2 hover:bg-slate-50 rounded-xl transition-colors"
+                    className="flex flex-col items-start p-2 hover:bg-base-200 rounded-xl transition-colors"
                   >
-                    <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Commission</span>
+                    <span className="text-[10px] font-black uppercase text-base-content/30 tracking-widest">Commission</span>
                     <span className="text-lg font-black text-primary">{c.commission_rate || 0}%</span>
                   </button>
                   <div className="flex flex-col text-right p-2">
-                    <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Produits</span>
-                    <span className="text-lg font-black text-slate-900">{prodCount}</span>
+                    <span className="text-[10px] font-black uppercase text-base-content/30 tracking-widest">Produits</span>
+                    <span className="text-lg font-black text-base-content">{prodCount}</span>
                   </div>
                 </div>
               </motion.div>
             );
           })
         ) : (
-          <div className="col-span-full py-20 bg-white rounded-[3rem] border border-dashed border-slate-200 text-center">
-            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune catégorie définie</p>
+          <div className="col-span-full py-20 bg-base-100 rounded-[3rem] border border-dashed border-base-300 text-center">
+            <p className="font-black text-base-content/40 uppercase tracking-widest">Aucune catégorie définie</p>
           </div>
         )}
       </div>

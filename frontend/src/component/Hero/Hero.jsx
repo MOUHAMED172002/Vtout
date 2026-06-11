@@ -83,16 +83,16 @@ const Hero = () => {
 
     const bgContainerClass = isDark
         ? "bg-[#050d1a]/80 border-[#0054a6]/30"
-        : "bg-slate-50/90 border-slate-200/80 shadow-lg";
+        : "bg-base-200/90 border-base-300/80 shadow-lg";
 
-    const textTitleClass = isDark ? "text-white" : "text-slate-900";
-    const textSubtitleClass = isDark ? "text-slate-400" : "text-slate-600";
+    const textTitleClass = isDark ? "text-white" : "text-base-content";
+    const textSubtitleClass = isDark ? "text-base-content/40" : "text-base-content/70";
     const buttonOutlineClass = isDark
         ? "border-slate-700 hover:border-[#0054a6]/60 text-white hover:bg-[#0054a6]/10"
-        : "border-slate-300 hover:border-[#0054a6]/40 text-slate-800 hover:bg-[#0054a6]/5";
+        : "border-base-300 hover:border-[#0054a6]/40 text-base-content/90 hover:bg-[#0054a6]/5";
 
     return (
-        <section className={`relative pt-6 md:pt-10 overflow-hidden transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
+        <section className={`relative pt-6 md:pt-10 overflow-hidden transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-base-100'}`}>
             {/* Background Glows */}
             {isDark && (
                 <>

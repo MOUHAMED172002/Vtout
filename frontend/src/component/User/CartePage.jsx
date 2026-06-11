@@ -151,7 +151,7 @@ export default function CartPage() {
         <>
           <div className="space-y-3">
             {items.map((it) => (
-              <div key={it.id} className="card bg-white p-4 flex items-center gap-4">
+              <div key={it.id} className="card bg-base-100 p-4 flex items-center gap-4">
                 <div className="w-20 h-20 bg-gray-100 flex items-center justify-center overflow-hidden rounded">
                   <img
                     src={it.image_url || "/placeholder.jpg"}
@@ -209,7 +209,7 @@ export default function CartPage() {
             ))}
           </div>
 
-          <div className="mt-6 card bg-white p-4">
+          <div className="mt-6 card bg-base-100 p-4">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="w-full md:w-1/2 flex gap-2">
                 <input

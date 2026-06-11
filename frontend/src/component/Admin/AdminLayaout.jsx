@@ -276,10 +276,10 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans">
+    <div className="flex min-h-screen bg-base-200 font-sans">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-base-100 border-r border-base-200 transition-all duration-300 ease-in-out lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
@@ -294,9 +294,9 @@ const AdminLayout = () => {
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
                 <LayoutDashboard className="text-white" size={20} />
               </div>
-              <span className="text-xl font-black tracking-tighter text-slate-900 group-hover:text-indigo-600 transition-colors">Vtout Admin</span>
+              <span className="text-xl font-black tracking-tighter text-base-content group-hover:text-indigo-600 transition-colors">Vtout Admin</span>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-400 hover:text-slate-900">
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-base-content/40 hover:text-base-content">
               <X size={20} />
             </button>
           </div>
@@ -313,11 +313,11 @@ const AdminLayout = () => {
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 group ${
                     selectedMenu === menu.name
                       ? "bg-indigo-50 text-indigo-600"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                      : "text-base-content/50 hover:bg-base-200 hover:text-base-content"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={selectedMenu === menu.name ? "text-indigo-600" : "group-hover:text-slate-900"}>
+                    <span className={selectedMenu === menu.name ? "text-indigo-600" : "group-hover:text-base-content"}>
                       {menu.icon}
                     </span>
                     <span className="font-bold text-sm">{menu.name}</span>
@@ -329,7 +329,7 @@ const AdminLayout = () => {
                 </button>
 
                 {openMenu === menu.name && (
-                  <div className="mt-1 ml-4 pl-4 border-l-2 border-slate-50 space-y-1">
+                  <div className="mt-1 ml-4 pl-4 border-l-2 border-base-200 space-y-1">
                     {menu.subItems.map((sub) => (
                       <button
                         key={sub.key}
@@ -341,7 +341,7 @@ const AdminLayout = () => {
                         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-sm ${
                           selectedSub === sub.key
                             ? "text-indigo-600 font-black bg-indigo-50/50"
-                            : "text-slate-500 font-bold hover:text-slate-900 hover:bg-slate-50/50"
+                            : "text-base-content/50 font-bold hover:text-base-content hover:bg-base-200/50"
                         }`}
                       >
                         {sub.icon}
@@ -355,10 +355,10 @@ const AdminLayout = () => {
           </nav>
 
           {/* User Section */}
-          <div className="p-6 border-t border-slate-50 space-y-4">
+          <div className="p-6 border-t border-base-200 space-y-4">
             <button
               onClick={() => navigate("/")}
-              className="w-full flex items-center gap-3 p-4 text-slate-500 font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all border border-transparent hover:border-indigo-100"
+              className="w-full flex items-center gap-3 p-4 text-base-content/50 font-bold hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all border border-transparent hover:border-indigo-100"
             >
               <Store size={18} />
               Retour au site
@@ -384,18 +384,18 @@ const AdminLayout = () => {
       {/* Main Content */}
       <main className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? "lg:ml-72" : ""}`}>
         {/* Top Header */}
-        <header className="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+        <header className="h-20 lg:h-24 bg-base-100/80 backdrop-blur-md border-b border-base-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
           <div className="flex items-center gap-2 lg:gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className={`lg:hidden p-2 bg-slate-50 text-slate-900 rounded-xl transition-opacity ${isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              className={`lg:hidden p-2 bg-base-200 text-base-content rounded-xl transition-opacity ${isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               <Menu size={20} />
             </button>
             <div className="hidden sm:block">
-              <h2 className="text-lg lg:text-2xl font-black tracking-tighter text-slate-900 flex items-center">
+              <h2 className="text-lg lg:text-2xl font-black tracking-tighter text-base-content flex items-center">
                 <span className="hidden md:inline">{selectedMenu}</span>
-                <span className="mx-2 text-slate-300 text-lg hidden md:inline">/</span>
+                <span className="mx-2 text-base-content/30 text-lg hidden md:inline">/</span>
                 <span className="text-indigo-600 truncate max-w-[150px] lg:max-w-none">
                   {menuItems.find(m => m.name === selectedMenu)?.subItems.find(s => s.key === selectedSub)?.name || selectedSub}
                 </span>
@@ -407,16 +407,16 @@ const AdminLayout = () => {
             {/* Search Bar - Desktop */}
             <div className="flex-1 max-w-md hidden sm:block">
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-indigo-600 transition-colors" size={18} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher partout..."
-                  className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-base font-medium placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
+                  className="w-full pl-12 pr-12 py-3 bg-base-200 border border-base-200 rounded-2xl text-base font-medium placeholder:text-base-content/40 focus:bg-base-100 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-md text-slate-400">
+                  <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-base-200 rounded-md text-base-content/40">
                     <X size={14} />
                   </button>
                 )}
@@ -427,7 +427,7 @@ const AdminLayout = () => {
             <div className="sm:hidden">
               <button 
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600"
+                className="p-2 bg-base-200 text-base-content/40 rounded-xl hover:text-indigo-600"
               >
                 <Search size={20} />
               </button>
@@ -438,7 +438,7 @@ const AdminLayout = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="fixed inset-x-0 top-0 h-20 bg-white z-[60] flex items-center px-4 gap-4 shadow-xl"
+                    className="fixed inset-x-0 top-0 h-20 bg-base-100 z-[60] flex items-center px-4 gap-4 shadow-xl"
                   >
                     <Search className="text-indigo-600" size={20} />
                     <input
@@ -447,9 +447,9 @@ const AdminLayout = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Rechercher..."
-                      className="flex-1 bg-transparent border-none text-base font-bold text-slate-900 focus:ring-0"
+                      className="flex-1 bg-transparent border-none text-base font-bold text-base-content focus:ring-0"
                     />
-                    <button onClick={() => setIsMobileSearchOpen(false)} className="p-2 text-slate-400">
+                    <button onClick={() => setIsMobileSearchOpen(false)} className="p-2 text-base-content/40">
                       <X size={24} />
                     </button>
                   </motion.div>
@@ -463,12 +463,12 @@ const AdminLayout = () => {
               <NotificationCenter />
             </div>
 
-            <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-slate-100">
+            <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-base-200">
               <div className="text-right hidden xl:block">
-                <p className="text-sm font-black text-slate-900 leading-none">Admin Vtout</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Super Admin</p>
+                <p className="text-sm font-black text-base-content leading-none">Admin Vtout</p>
+                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-1">Super Admin</p>
               </div>
-              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-slate-100 rounded-xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
+              <div className="w-8 h-8 lg:w-12 lg:h-12 bg-base-200 rounded-xl overflow-hidden border-2 border-white shadow-md flex-shrink-0">
                 <img src="https://ui-avatars.com/api/?name=Admin+Vtout&background=4f46e5&color=fff" alt="Avatar" />
               </div>
               <button 
@@ -501,7 +501,7 @@ const AdminLayout = () => {
       {isSidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-neutral/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
         ></div>
       )}
     </div>

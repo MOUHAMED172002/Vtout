@@ -27,10 +27,10 @@ const Blogs = () => {
     return (
       <div className="py-12 px-12 text-center">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 w-48 bg-slate-200 rounded mb-4"></div>
+          <div className="h-8 w-48 bg-base-300 rounded mb-4"></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full mt-10">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-[300px] bg-slate-100 rounded-2xl"></div>
+              <div key={i} className="h-[300px] bg-base-200 rounded-2xl"></div>
             ))}
           </div>
         </div>
@@ -62,18 +62,18 @@ const Blogs = () => {
                   src={data.image_url || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop"}
                   alt={data.title}
                 />
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                <div className="absolute top-4 left-4 bg-base-100/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600">
                    {data.category}
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                   {new Date(data.published_at || data.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
-                <h3 className='font-black text-xl text-slate-900 group-hover:text-primary transition-colors leading-tight'>
+                <h3 className='font-black text-xl text-base-content group-hover:text-primary transition-colors leading-tight'>
                   {data.title}
                 </h3>
-                <p className='line-clamp-2 text-sm text-slate-500 font-medium leading-relaxed whitespace-pre-wrap'>
+                <p className='line-clamp-2 text-sm text-base-content/50 font-medium leading-relaxed whitespace-pre-wrap'>
                   {data.summary}
                 </p>
                 <div className="flex items-center gap-2 pt-2">

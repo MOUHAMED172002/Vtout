@@ -142,21 +142,21 @@ export default function VariantManager() {
           <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
             <Layers size={14} /> Catalogue
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Variantes</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Définissez les attributs comme la couleur, la taille ou la matière pour vos produits.</p>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-base-content/40">Variantes</span></h1>
+          <p className="text-base-content/50 font-bold max-w-lg">Définissez les attributs comme la couleur, la taille ou la matière pour vos produits.</p>
         </div>
-        <button onClick={fetchAttributes} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
+        <button onClick={fetchAttributes} className="w-12 h-12 flex items-center justify-center bg-base-100 rounded-2xl border border-base-200 shadow-sm hover:bg-base-200 transition-all text-base-content/40">
           <RefreshCcw size={18} />
         </button>
       </div>
 
       {/* Add New Attribute Card */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/50">
+      <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-xl shadow-slate-200/50">
         <form onSubmit={handleAddAttribute} className="flex gap-4">
           <div className="flex-1 relative">
-            <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" />
             <input
-              className="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
+              className="w-full bg-base-200 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20 placeholder:text-base-content/40"
               placeholder="Ex: Taille, Couleur, Matière..."
               value={newAttrName}
               onChange={(e) => setNewAttrName(e.target.value)}
@@ -176,20 +176,20 @@ export default function VariantManager() {
       {/* Attributes List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
-          <div className="col-span-full py-20 text-center font-bold text-slate-300 uppercase tracking-widest text-xs animate-pulse">Chargement des attributs...</div>
+          <div className="col-span-full py-20 text-center font-bold text-base-content/30 uppercase tracking-widest text-xs animate-pulse">Chargement des attributs...</div>
         ) : (
           attributes.map((attr) => (
-            <div key={attr.id} className={`group bg-white rounded-[2rem] border transition-all duration-300 flex flex-col ${openAttrId === attr.id ? 'border-primary shadow-2xl ring-4 ring-primary/5' : 'border-slate-50 hover:border-slate-200 shadow-sm'}`}>
+            <div key={attr.id} className={`group bg-base-100 rounded-[2rem] border transition-all duration-300 flex flex-col ${openAttrId === attr.id ? 'border-primary shadow-2xl ring-4 ring-primary/5' : 'border-base-200 hover:border-base-300 shadow-sm'}`}>
               <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${openAttrId === attr.id ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${openAttrId === attr.id ? 'bg-primary text-white' : 'bg-base-200 text-base-content/40'}`}>
                     <Layers size={20} />
                   </div>
                   {editingAttrId === attr.id ? (
                     <div className="flex items-center gap-2 flex-1">
                       <input
                         autoFocus
-                        className="w-full bg-slate-50 border-none rounded-xl px-3 py-2 text-sm font-bold focus:ring-1 focus:ring-primary/20"
+                        className="w-full bg-base-200 border-none rounded-xl px-3 py-2 text-sm font-bold focus:ring-1 focus:ring-primary/20"
                         value={editingAttrName}
                         onChange={(e) => setEditingAttrName(e.target.value)}
                       />
@@ -198,8 +198,8 @@ export default function VariantManager() {
                     </div>
                   ) : (
                     <div onClick={() => setOpenAttrId(openAttrId === attr.id ? null : attr.id)} className="cursor-pointer">
-                      <h3 className="text-lg font-black text-slate-900 group-hover:text-primary transition-colors">{attr.name}</h3>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">#{attr.id}</p>
+                      <h3 className="text-lg font-black text-base-content group-hover:text-primary transition-colors">{attr.name}</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">#{attr.id}</p>
                     </div>
                   )}
                 </div>
@@ -207,11 +207,11 @@ export default function VariantManager() {
                 <div className="flex items-center gap-1">
                   {!editingAttrId && (
                     <>
-                      <button onClick={() => { setEditingAttrId(attr.id); setEditingAttrName(attr.name); }} className="p-3 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"><Edit3 size={18} /></button>
-                      <button onClick={() => deleteAttributeHandler(attr.id)} className="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                      <button onClick={() => { setEditingAttrId(attr.id); setEditingAttrName(attr.name); }} className="p-3 text-base-content/40 hover:text-primary hover:bg-base-200 rounded-xl transition-all"><Edit3 size={18} /></button>
+                      <button onClick={() => deleteAttributeHandler(attr.id)} className="p-3 text-base-content/40 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
                     </>
                   )}
-                  <button onClick={() => setOpenAttrId(openAttrId === attr.id ? null : attr.id)} className={`p-3 rounded-xl transition-all ${openAttrId === attr.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'text-slate-400 hover:bg-slate-50'}`}>
+                  <button onClick={() => setOpenAttrId(openAttrId === attr.id ? null : attr.id)} className={`p-3 rounded-xl transition-all ${openAttrId === attr.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'text-base-content/40 hover:bg-base-200'}`}>
                     {openAttrId === attr.id ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                   </button>
                 </div>
@@ -224,29 +224,29 @@ export default function VariantManager() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="border-t border-slate-50 bg-slate-50/50"
+                    className="border-t border-base-200 bg-base-200/50"
                   >
                     <div className="p-6 space-y-4">
                       <div className="flex flex-wrap gap-2">
                         {valueLoading ? (
-                          <div className="text-[10px] font-bold text-slate-400 animate-pulse">Chargement...</div>
+                          <div className="text-[10px] font-bold text-base-content/40 animate-pulse">Chargement...</div>
                         ) : values.map(v => (
-                          <div key={v.id} className="group/val relative flex items-center gap-2 bg-white border border-slate-100 rounded-xl pl-4 pr-3 py-2 shadow-sm hover:border-primary transition-all">
-                            <span className="text-xs font-bold text-slate-600">{v.value}</span>
-                            <button onClick={() => deleteValueHandler(v.id)} className="p-1.5 text-slate-300 hover:text-rose-500 opacity-0 group-hover/val:opacity-100 transition-all"><X size={12} /></button>
+                          <div key={v.id} className="group/val relative flex items-center gap-2 bg-base-100 border border-base-200 rounded-xl pl-4 pr-3 py-2 shadow-sm hover:border-primary transition-all">
+                            <span className="text-xs font-bold text-base-content/70">{v.value}</span>
+                            <button onClick={() => deleteValueHandler(v.id)} className="p-1.5 text-base-content/30 hover:text-rose-500 opacity-0 group-hover/val:opacity-100 transition-all"><X size={12} /></button>
                           </div>
                         ))}
-                        {values.length === 0 && !valueLoading && <p className="text-[10px] font-bold text-slate-300 italic">Aucune valeur définie</p>}
+                        {values.length === 0 && !valueLoading && <p className="text-[10px] font-bold text-base-content/30 italic">Aucune valeur définie</p>}
                       </div>
 
                       <form onSubmit={handleAddValue} className="flex gap-2">
                         <input
-                          className="flex-1 bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold focus:ring-1 focus:ring-primary/20"
+                          className="flex-1 bg-base-100 border border-base-200 rounded-xl px-4 py-2 text-xs font-bold focus:ring-1 focus:ring-primary/20"
                           placeholder="Nouvelle valeur..."
                           value={newValue}
                           onChange={(e) => setNewValue(e.target.value)}
                         />
-                        <button type="submit" disabled={!newValue.trim()} className="bg-slate-900 text-white p-2 rounded-xl disabled:opacity-50"><Plus size={16} /></button>
+                        <button type="submit" disabled={!newValue.trim()} className="bg-neutral text-white p-2 rounded-xl disabled:opacity-50"><Plus size={16} /></button>
                       </form>
                     </div>
                   </motion.div>

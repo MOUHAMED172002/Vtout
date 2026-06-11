@@ -29,22 +29,22 @@ export default function BoutiqueStatsModal({ boutique, onClose }) {
     }, [boutique.id]);
 
     if (loading) return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-neutral/60 backdrop-blur-sm">
             <span className="loading loading-spinner loading-lg text-white"></span>
         </div>
     );
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-sm">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden border border-slate-100"
+                className="bg-base-100 w-full max-w-4xl max-h-[90vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden border border-base-200"
             >
                 {/* Header */}
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-indigo-600 text-white">
+                <div className="p-8 border-b border-base-200 flex items-center justify-between bg-indigo-600 text-white">
                     <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                        <div className="w-14 h-14 bg-base-100/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
                             <BarChart3 size={28} />
                         </div>
                         <div>
@@ -52,7 +52,7 @@ export default function BoutiqueStatsModal({ boutique, onClose }) {
                             <p className="text-[10px] font-black uppercase tracking-widest opacity-70">{boutique.name} · Rapport Analytique</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-11 h-11 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-indigo-600 transition-all">
+                    <button onClick={onClose} className="w-11 h-11 rounded-2xl bg-base-100/10 text-white flex items-center justify-center hover:bg-base-200 hover:text-indigo-600 transition-all">
                         <X size={20} />
                     </button>
                 </div>
@@ -60,13 +60,13 @@ export default function BoutiqueStatsModal({ boutique, onClose }) {
                 <div className="flex-1 overflow-y-auto p-8 md:p-10 space-y-12 custom-scrollbar">
                     {/* Key Metrics */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-3">
+                        <div className="p-8 bg-base-200 rounded-[2.5rem] border border-base-200 space-y-3">
                             <div className="flex items-center justify-between">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ventes Brutes</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Ventes Brutes</p>
                                 <DollarSign size={16} className="text-indigo-500" />
                             </div>
-                            <h3 className="text-3xl font-black text-slate-900">{data?.stats.totalSales.toLocaleString()} F</h3>
-                            <p className="text-[10px] font-bold text-slate-400">Chiffre d'affaires généré</p>
+                            <h3 className="text-3xl font-black text-base-content">{data?.stats.totalSales.toLocaleString()} F</h3>
+                            <p className="text-[10px] font-bold text-base-content/40">Chiffre d'affaires généré</p>
                         </div>
 
                         <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 space-y-3">
@@ -91,38 +91,38 @@ export default function BoutiqueStatsModal({ boutique, onClose }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Stats Details */}
                         <div className="space-y-6">
-                            <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                            <h4 className="text-sm font-black uppercase tracking-widest text-base-content/40 flex items-center gap-2">
                                 <Activity size={16} /> Statistiques de Volume
                             </h4>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm">
-                                    <p className="text-2xl font-black text-slate-900">{data?.stats.ordersCount}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Commandes Livrées</p>
+                                <div className="p-6 bg-base-100 border border-base-200 rounded-3xl shadow-sm">
+                                    <p className="text-2xl font-black text-base-content">{data?.stats.ordersCount}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Commandes Livrées</p>
                                 </div>
-                                <div className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm">
-                                    <p className="text-2xl font-black text-slate-900">{data?.stats.itemsCount}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Articles Vendus</p>
+                                <div className="p-6 bg-base-100 border border-base-200 rounded-3xl shadow-sm">
+                                    <p className="text-2xl font-black text-base-content">{data?.stats.itemsCount}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Articles Vendus</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Recent Transactions */}
                         <div className="space-y-6">
-                            <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                            <h4 className="text-sm font-black uppercase tracking-widest text-base-content/40 flex items-center gap-2">
                                 <ShoppingBag size={16} /> Ventes Récentes
                             </h4>
                             <div className="space-y-3">
                                 {data?.recentTransactions.map((tx, i) => (
-                                    <div key={i} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-transparent hover:border-indigo-100 transition-all">
+                                    <div key={i} className="p-4 bg-base-200 rounded-2xl flex items-center justify-between border border-transparent hover:border-indigo-100 transition-all">
                                         <div className="min-w-0">
-                                            <p className="text-xs font-black text-slate-800 truncate">{tx.product_name}</p>
-                                            <p className="text-[9px] font-bold text-slate-400">ID: #{tx.order_id.slice(0, 8)}</p>
+                                            <p className="text-xs font-black text-base-content/90 truncate">{tx.product_name}</p>
+                                            <p className="text-[9px] font-bold text-base-content/40">ID: #{tx.order_id.slice(0, 8)}</p>
                                         </div>
                                         <p className="text-xs font-black text-indigo-600 whitespace-nowrap">+{tx.amount.toLocaleString()} F</p>
                                     </div>
                                 ))}
                                 {data?.recentTransactions.length === 0 && (
-                                    <p className="text-xs font-bold text-slate-300 italic text-center py-4">Aucune vente enregistrée.</p>
+                                    <p className="text-xs font-bold text-base-content/30 italic text-center py-4">Aucune vente enregistrée.</p>
                                 )}
                             </div>
                         </div>

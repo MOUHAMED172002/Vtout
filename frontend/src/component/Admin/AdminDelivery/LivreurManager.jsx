@@ -101,27 +101,27 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                     <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
                         <Truck size={14} /> Logistique
                     </div>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Livreurs</span></h1>
-                    <p className="text-slate-500 font-bold max-w-lg">VÃ©rifiez les nouveaux inscrits et gÃ©rez votre flotte de livraison.</p>
+                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-base-content/40">Livreurs</span></h1>
+                    <p className="text-base-content/50 font-bold max-w-lg">VÃ©rifiez les nouveaux inscrits et gÃ©rez votre flotte de livraison.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm min-w-[250px]">
-                        <Search size={18} className="text-slate-400" />
+                    <div className="flex items-center gap-4 bg-base-100 px-6 py-3 rounded-2xl border border-base-200 shadow-sm min-w-[250px]">
+                        <Search size={18} className="text-base-content/40" />
                         <input
                             type="text"
                             placeholder="Nom/Email..."
-                            className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full"
+                            className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 w-full"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm min-w-[250px]">
-                        <Truck size={18} className="text-slate-400" />
+                    <div className="flex items-center gap-4 bg-base-100 px-6 py-3 rounded-2xl border border-base-200 shadow-sm min-w-[250px]">
+                        <Truck size={18} className="text-base-content/40" />
                         <input
                             type="text"
                             placeholder="Filtrer par Zone (ex: Cotonou)..."
-                            className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full"
+                            className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 w-full"
                             value={zoneFilter}
                             onChange={(e) => setZoneFilter(e.target.value)}
                         />
@@ -133,40 +133,40 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
             <div className="flex flex-wrap items-center gap-4">
                 <button
                     onClick={() => setFilter("all")}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${filter === "all" ? 'bg-slate-900 text-white shadow-lg shadow-slate-300' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${filter === "all" ? 'bg-neutral text-white shadow-lg shadow-slate-300' : 'bg-base-100 text-base-content/40 hover:bg-base-200 border border-base-200'}`}
                 >
                     Tous ({stats.total})
                 </button>
                 <button
                     onClick={() => setFilter("  En attente")}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "  En attente" ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "  En attente" ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-base-100 text-base-content/40 hover:bg-base-200 border border-base-200'}`}
                 >
                     <Clock size={16} /> Candidatures ({stats['En attente']})
                 </button>
                 <button
                     onClick={() => setFilter("available")}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "available" ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "available" ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-base-100 text-base-content/40 hover:bg-base-200 border border-base-200'}`}
                 >
-                    <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div> En Ligne
+                    <div className="w-2 h-2 rounded-full bg-base-100 animate-pulse"></div> En Ligne
                 </button>
                 <button
                     onClick={() => setFilter("verified")}
-                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "verified" ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100'}`}
+                    className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${filter === "verified" ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-base-100 text-base-content/40 hover:bg-base-200 border border-base-200'}`}
                 >
                     <ShieldCheck size={16} /> ApprouvÃ©s ({stats.verified})
                 </button>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="bg-base-100 rounded-[2.5rem] border border-base-200 shadow-xl shadow-slate-200/50 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="table w-full border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-50 bg-slate-50/50">
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 pl-10">IdentitÃ©</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">VÃ©hicule</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">Zone / Statut</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6">Documents</th>
-                                <th className="text-[10px] font-black uppercase tracking-widest text-slate-400 py-6 text-right pr-10">Actions de validation</th>
+                            <tr className="border-b border-base-200 bg-base-200/50">
+                                <th className="text-[10px] font-black uppercase tracking-widest text-base-content/40 py-6 pl-10">IdentitÃ©</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-base-content/40 py-6">VÃ©hicule</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-base-content/40 py-6">Zone / Statut</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-base-content/40 py-6">Documents</th>
+                                <th className="text-[10px] font-black uppercase tracking-widest text-base-content/40 py-6 text-right pr-10">Actions de validation</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -175,26 +175,26 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                             ) : filteredLivreurs.length === 0 ? (
                                 <tr>
                                     <td colSpan="4" className="text-center py-32 space-y-4">
-                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
+                                        <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto text-base-content/20">
                                             <AlertCircle size={40} />
                                         </div>
-                                        <p className="font-black text-slate-300 uppercase tracking-widest text-sm italic py-20">Aucun dossier dans cette catÃ©gorie</p>
+                                        <p className="font-black text-base-content/30 uppercase tracking-widest text-sm italic py-20">Aucun dossier dans cette catÃ©gorie</p>
                                     </td>
                                 </tr>
                             ) : filteredLivreurs.map((l) => (
-                                <tr key={l.id} className="group hover:bg-slate-50/80 transition-all duration-300">
+                                <tr key={l.id} className="group hover:bg-base-200/80 transition-all duration-300">
                                     <td className="py-8 pl-10">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-16 h-16 bg-slate-100 rounded-[1.5rem] flex items-center justify-center text-slate-400 border border-slate-200 shadow-inner overflow-hidden">
+                                            <div className="w-16 h-16 bg-base-200 rounded-[1.5rem] flex items-center justify-center text-base-content/40 border border-base-300 shadow-inner overflow-hidden">
                                                 {l.profile?.avatar_url ? <img src={l.profile.avatar_url} className="w-full h-full object-cover" /> : <User size={28} />}
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="font-black text-slate-900 text-lg leading-tight">{l.profile?.fullname || "Candidat Anonyme"}</p>
+                                                <p className="font-black text-base-content text-lg leading-tight">{l.profile?.fullname || "Candidat Anonyme"}</p>
                                                 <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                                                    <div className="flex items-center gap-2 text-[11px] font-bold text-base-content/40">
                                                         <Mail size={12} className="text-primary/40" /> {l.profile?.email || 'Pas d\'email'}
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                                                    <div className="flex items-center gap-2 text-[11px] font-bold text-base-content/40">
                                                         <Phone size={12} className="text-primary/40" /> {l.profile?.phone || 'Pas de numÃ©ro'}
                                                     </div>
                                                 </div>
@@ -202,15 +202,15 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                                         </div>
                                     </td>
                                     <td className="py-8">
-                                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 inline-block min-w-[180px]">
+                                        <div className="bg-base-200 p-4 rounded-2xl border border-base-200 inline-block min-w-[180px]">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Truck size={14} className="text-slate-400" />
+                                                <Truck size={14} className="text-base-content/40" />
                                                 <span className="text-[10px] font-black uppercase text-primary tracking-widest">
                                                     {l.vehicle_type === 'moto' ? 'Moto / ZÃ©m' : l.vehicle_type === 'car' ? 'Voiture / Van' : 'VÃ©lo'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-black text-slate-900 uppercase">{l.vehicle_model || "ModÃ¨le inconnu"}</p>
-                                            <p className="text-[10px] font-bold text-slate-400">{l.license_plate || "SANS PLAQUE"}</p>
+                                            <p className="text-sm font-black text-base-content uppercase">{l.vehicle_model || "ModÃ¨le inconnu"}</p>
+                                            <p className="text-[10px] font-bold text-base-content/40">{l.license_plate || "SANS PLAQUE"}</p>
                                         </div>
                                     </td>
                                     <td className="py-8">
@@ -241,7 +241,7 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                                                     // Filter out empty or non-string values and remove duplicates
                                                     const cleanZones = [...new Set(zones.filter(z => typeof z === 'string' && z.length > 1))];
 
-                                                    if (cleanZones.length === 0) return <span className="text-[10px] font-bold text-slate-300 italic">Aucune zone spÃ©cifiÃ©e</span>;
+                                                    if (cleanZones.length === 0) return <span className="text-[10px] font-bold text-base-content/30 italic">Aucune zone spÃ©cifiÃ©e</span>;
 
                                                     return cleanZones.map((zone, zIdx) => (
                                                         <span key={`${l.id}-${zone}-${zIdx}`} className="px-3 py-1 bg-indigo-50 text-[9px] font-black text-indigo-600 rounded-full uppercase tracking-tighter border border-indigo-100 shadow-sm">
@@ -251,8 +251,8 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                                                 })()}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-2 h-2 rounded-full ${l.status === 'hors_ligne' ? 'bg-slate-300' : 'bg-emerald-500 animate-pulse'}`}></div>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                <div className={`w-2 h-2 rounded-full ${l.status === 'hors_ligne' ? 'bg-base-300' : 'bg-emerald-500 animate-pulse'}`}></div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
                                                     {l.status === 'hors_ligne' ? 'Hors Ligne' : l.status === 'disponible' ? 'En ligne / Disponible' : 'En mission'}
                                                 </span>
                                             </div>
@@ -295,7 +295,7 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                                             ) : (
                                                 <button
                                                     onClick={() => handleVerify(l.id, false)}
-                                                    className="flex items-center gap-2 bg-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all group"
+                                                    className="flex items-center gap-2 bg-base-200 text-base-content/40 hover:text-rose-500 hover:bg-rose-50 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all group"
                                                 >
                                                     <X size={16} className="group-hover:rotate-90 transition-transform" /> RÃ©voquer l'accÃ¨s
                                                 </button>

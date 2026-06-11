@@ -130,21 +130,21 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex justify-center items-center p-4">
+    <div className="fixed inset-0 z-[100] bg-neutral/60 backdrop-blur-md flex justify-center items-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-white"
+        className="bg-base-100 rounded-[3rem] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-white"
       >
         {/* Header */}
-        <div className="p-8 md:p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+        <div className="p-8 md:p-10 border-b border-base-200 flex justify-between items-center bg-base-200/50">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Laisser un <span className="text-slate-400">avis.</span></h3>
-            <p className="text-sm font-bold text-slate-400 mt-1">Partagez votre expérience avec la communauté</p>
+            <h3 className="text-2xl font-black text-base-content tracking-tighter">Laisser un <span className="text-base-content/40">avis.</span></h3>
+            <p className="text-sm font-bold text-base-content/40 mt-1">Partagez votre expérience avec la communauté</p>
           </div>
           <button
             onClick={onClose}
-            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shadow-sm hover:shadow-md"
+            className="w-12 h-12 rounded-2xl bg-base-100 border border-base-200 flex items-center justify-center text-base-content/40 hover:text-base-content transition-all shadow-sm hover:shadow-md"
           >
             <X size={20} />
           </button>
@@ -152,10 +152,10 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
 
         <div className="flex-1 overflow-y-auto p-8 md:p-10 space-y-8 custom-scrollbar">
           {/* Product Selection / Info */}
-          <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+          <div className="p-6 bg-base-200 rounded-[2rem] border border-base-200 space-y-4">
             {!initialProduct && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Sélectionner un produit</label>
+                <label className="text-[10px] font-black text-base-content/40 uppercase tracking-widest pl-1">Sélectionner un produit</label>
                 {loadingProducts ? (
                   <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
                     <span className="loading loading-spinner loading-xs"></span> Chargement...
@@ -172,12 +172,12 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
                         const p = productsList.find(x => String(x.id) === String(e.target.value));
                         setProduct(p || null);
                       }}
-                      className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-900 appearance-none focus:border-primary outline-none transition-all cursor-pointer shadow-sm"
+                      className="w-full bg-base-100 border-2 border-base-200 rounded-2xl px-5 py-4 font-bold text-base-content appearance-none focus:border-primary outline-none transition-all cursor-pointer shadow-sm"
                     >
                       <option value="">-- Choisir un article --</option>
                       {productsList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-base-content/40">
                       <Package size={18} />
                     </div>
                   </div>
@@ -189,23 +189,23 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"
+                className="flex items-center gap-4 bg-base-100 p-4 rounded-2xl border border-base-200 shadow-sm"
               >
-                <div className="w-20 h-20 bg-slate-50 rounded-xl overflow-hidden p-2 flex-shrink-0 border border-slate-50">
+                <div className="w-20 h-20 bg-base-200 rounded-xl overflow-hidden p-2 flex-shrink-0 border border-base-200">
                   {product.image_url ? (
                     <img src={product.image_url} alt={product.name} className="w-full h-full object-contain" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                    <div className="w-full h-full flex items-center justify-center bg-base-200 text-base-content/30">
                       <Package size={24} />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black text-primary uppercase tracking-widest">Produit sélectionné</p>
-                  <h4 className="text-lg font-black text-slate-900 tracking-tight truncate">{product.name}</h4>
+                  <h4 className="text-lg font-black text-base-content tracking-tight truncate">{product.name}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <ShieldCheck size={14} className="text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Achat vérifié</span>
+                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Achat vérifié</span>
                   </div>
                 </div>
               </motion.div>
@@ -214,19 +214,19 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
 
           {/* Rating */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Note globale</label>
+            <label className="text-[10px] font-black text-base-content/40 uppercase tracking-widest pl-1">Note globale</label>
             <div className="flex items-center gap-3">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
                   key={s}
                   onClick={() => setRating(s)}
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${rating >= s ? 'bg-amber-400 text-white shadow-lg shadow-amber-200' : 'bg-slate-50 text-slate-300 hover:bg-slate-100'}`}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${rating >= s ? 'bg-amber-400 text-white shadow-lg shadow-amber-200' : 'bg-base-200 text-base-content/30 hover:bg-base-200'}`}
                 >
                   <Star size={24} fill={rating >= s ? "currentColor" : "none"} strokeWidth={rating >= s ? 0 : 2} />
                 </button>
               ))}
-              <span className="ml-2 font-black text-slate-900 text-lg">
-                {rating}/5 <span className="text-slate-400 text-sm font-bold ml-1">— {['Très mauvais', 'Mauvais', 'Moyen', 'Très bien', 'Excellent'][rating - 1]}</span>
+              <span className="ml-2 font-black text-base-content text-lg">
+                {rating}/5 <span className="text-base-content/40 text-sm font-bold ml-1">— {['Très mauvais', 'Mauvais', 'Moyen', 'Très bien', 'Excellent'][rating - 1]}</span>
               </span>
             </div>
           </div>
@@ -234,31 +234,31 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
           {/* Title & Body */}
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Titre de votre avis</label>
+              <label className="text-[10px] font-black text-base-content/40 uppercase tracking-widest pl-1">Titre de votre avis</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Excellent produit, très satisfait !"
-                className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl px-6 py-4 font-bold text-slate-700 focus:bg-white focus:border-primary outline-none transition-all"
+                className="w-full bg-base-200 border-2 border-base-200 rounded-2xl px-6 py-4 font-bold text-base-content/80 focus:bg-base-100 focus:border-primary outline-none transition-all"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Votre commentaire</label>
+              <label className="text-[10px] font-black text-base-content/40 uppercase tracking-widest pl-1">Votre commentaire</label>
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Dites-nous ce que vous avez aimé ou ce qui peut être amélioré..."
-                className="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-medium text-slate-600 focus:bg-white focus:border-primary outline-none transition-all min-h-[150px] resize-none"
+                className="w-full bg-base-200 border-2 border-base-200 rounded-3xl px-6 py-4 font-medium text-base-content/70 focus:bg-base-100 focus:border-primary outline-none transition-all min-h-[150px] resize-none"
               />
             </div>
           </div>
 
           {/* Image Upload */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Photos (Optionnel)</label>
+            <label className="text-[10px] font-black text-base-content/40 uppercase tracking-widest pl-1">Photos (Optionnel)</label>
             <div className="flex flex-wrap gap-4">
-              <label className="w-24 h-24 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary cursor-pointer transition-all bg-slate-50 group">
+              <label className="w-24 h-24 rounded-[2rem] border-2 border-dashed border-base-300 flex flex-col items-center justify-center text-base-content/40 hover:border-primary hover:text-primary cursor-pointer transition-all bg-base-200 group">
                 <Upload size={20} className="group-hover:-translate-y-1 transition-transform" />
                 <span className="text-[8px] font-black uppercase mt-2">Ajouter</span>
                 <input
@@ -271,10 +271,10 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
               </label>
 
               {previews.map((u, i) => (
-                <div key={i} className="w-24 h-24 rounded-[2rem] overflow-hidden border border-slate-100 bg-white relative group shadow-sm">
+                <div key={i} className="w-24 h-24 rounded-[2rem] overflow-hidden border border-base-200 bg-base-100 relative group shadow-sm">
                   <img src={u} alt={`preview-${i}`} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button onClick={() => setLocalFiles(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-900">
+                    <button onClick={() => setLocalFiles(prev => prev.filter((_, idx) => idx !== i))} className="text-base-content">
                       <X size={16} />
                     </button>
                   </div>
@@ -282,7 +282,7 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
               ))}
 
               {uploadedUrls.map((u, i) => (
-                <div key={`u-${i}`} className="w-24 h-24 rounded-[2rem] overflow-hidden border border-emerald-100 bg-white relative shadow-sm">
+                <div key={`u-${i}`} className="w-24 h-24 rounded-[2rem] overflow-hidden border border-emerald-100 bg-base-100 relative shadow-sm">
                   <img src={u} alt={`uploaded-${i}`} className="w-full h-full object-cover" />
                   <div className="absolute top-2 right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg">
                     <ShieldCheck size={10} />
@@ -299,17 +299,17 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
         </div>
 
         {/* Footer */}
-        <div className="p-8 md:p-10 border-t border-slate-50 bg-slate-50/50 flex flex-col sm:flex-row gap-4">
+        <div className="p-8 md:p-10 border-t border-base-200 bg-base-200/50 flex flex-col sm:flex-row gap-4">
           <button
             onClick={onClose}
-            className="flex-1 px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all"
+            className="flex-1 px-8 py-4 bg-base-100 border border-base-300 rounded-2xl font-black text-xs uppercase tracking-widest text-base-content/40 hover:text-base-content hover:border-neutral transition-all"
             disabled={saving || uploading}
           >
             Annuler
           </button>
           <button
             onClick={save}
-            className="flex-[2] px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+            className="flex-[2] px-8 py-4 bg-neutral text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 disabled:bg-base-300 disabled:text-base-content/40 disabled:shadow-none"
             disabled={saving || uploading || !product || !rating}
           >
             {saving ? "Finalisation..." : (uploading ? "Upload en cours..." : "Publier mon avis")}

@@ -145,7 +145,7 @@ export default function ProfileSettings() {
         
         {/* Colonne gauche (Avatar et Identité) */}
         <motion.div variants={itemVariants} className="lg:col-span-1">
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 flex flex-col items-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+          <div className="bg-base-100/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 flex flex-col items-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -z-10 group-hover:bg-indigo-500/20 transition-all duration-500"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl -z-10 group-hover:bg-rose-500/20 transition-all duration-500"></div>
 
@@ -157,7 +157,7 @@ export default function ProfileSettings() {
                 whileHover={{ scale: 1.05 }}
                 src={profile.avatar_url || "https://placehold.co/150x150?text=U"}
                 alt="Avatar"
-                className="w-36 h-36 rounded-full object-cover border-[4px] border-white dark:border-gray-800 shadow-xl z-10 bg-white"
+                className="w-36 h-36 rounded-full object-cover border-[4px] border-white dark:border-gray-800 shadow-xl z-10 bg-base-100"
               />
               <button 
                 className="absolute bottom-2 right-2 p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full transition-transform hover:scale-110 shadow-lg z-30"
@@ -184,7 +184,7 @@ export default function ProfileSettings() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Informations personnelles */}
-          <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 overflow-hidden relative group">
+          <motion.div variants={itemVariants} className="bg-base-100/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 overflow-hidden relative group">
             <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-indigo-500 to-purple-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
             
             <div className="mb-8 pl-4 border-b border-gray-100 dark:border-gray-800 pb-4">
@@ -207,7 +207,7 @@ export default function ProfileSettings() {
                     type="text"
                     value={profile.fullname}
                     onChange={(e) => setProfile({ ...profile, fullname: e.target.value })}
-                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all font-medium text-gray-900 dark:text-white"
+                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-base-100 dark:focus:bg-gray-900 transition-all font-medium text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function ProfileSettings() {
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all font-medium text-gray-900 dark:text-white"
+                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-base-100 dark:focus:bg-gray-900 transition-all font-medium text-gray-900 dark:text-white"
                     placeholder="+229 00 00 00 00"
                   />
                 </div>
@@ -260,7 +260,7 @@ export default function ProfileSettings() {
           </motion.div>
 
           {/* Mot de passe */}
-          <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 overflow-hidden relative group">
+          <motion.div variants={itemVariants} className="bg-base-100/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-gray-900/50 p-8 border border-white/50 dark:border-gray-800 overflow-hidden relative group">
             <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-rose-400 to-orange-400 opacity-80 group-hover:opacity-100 transition-opacity"></div>
             
             <div className="mb-8 pl-4 border-b border-gray-100 dark:border-gray-800 pb-4">
@@ -284,7 +284,7 @@ export default function ProfileSettings() {
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-rose-400 focus:bg-white dark:focus:bg-gray-900 transition-all text-gray-900 dark:text-white"
+                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-rose-400 focus:bg-base-100 dark:focus:bg-gray-900 transition-all text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -300,7 +300,7 @@ export default function ProfileSettings() {
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-rose-400 focus:bg-white dark:focus:bg-gray-900 transition-all text-gray-900 dark:text-white"
+                    className="pl-11 w-full rounded-2xl border-0 ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50/50 dark:bg-gray-800 p-3.5 text-sm focus:ring-2 focus:ring-rose-400 focus:bg-base-100 dark:focus:bg-gray-900 transition-all text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function ProfileSettings() {
                   whileTap={{ scale: 0.97 }}
                   disabled={pwdLoading}
                   type="submit"
-                  className="flex items-center px-8 py-3.5 bg-gray-900 dark:bg-gray-100 hover:bg-black dark:hover:bg-white text-white dark:text-gray-900 rounded-2xl font-bold shadow-xl shadow-gray-200 dark:shadow-none transition-all disabled:opacity-75"
+                  className="flex items-center px-8 py-3.5 bg-gray-900 dark:bg-gray-100 hover:bg-black dark:hover:bg-base-200 text-white dark:text-gray-900 rounded-2xl font-bold shadow-xl shadow-gray-200 dark:shadow-none transition-all disabled:opacity-75"
                 >
                   {pwdLoading ? <Loader className="w-5 h-5 mr-2 animate-spin" /> : <ChevronRight className="w-5 h-5 mr-2" />}
                   Mettre à jour mot de passe

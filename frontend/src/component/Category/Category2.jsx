@@ -41,7 +41,7 @@ export default function Category2() {
     return (
       <div className="container my-24 flex justify-center items-center h-64 mx-auto">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-slate-100 rounded-full"></div>
+          <div className="w-16 h-16 border-4 border-base-200 rounded-full"></div>
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin absolute top-0"></div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function Category2() {
   }
 
   return (
-    <div className="bg-slate-50/50 min-h-screen pb-20">
+    <div className="bg-base-200/50 min-h-screen pb-20">
       <div className="container mx-auto px-4 md:px-8 max-w-7xl pt-24">
         {/* Refined Header */}
         <div className="mb-16 space-y-4 px-4 text-center">
@@ -65,11 +65,11 @@ export default function Category2() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight"
+            className="text-4xl md:text-6xl font-black text-base-content tracking-tight"
           >
-            Toutes Nos <span className="text-slate-300 italic font-serif font-light">Catégories.</span>
+            Toutes Nos <span className="text-base-content/30 italic font-serif font-light">Catégories.</span>
           </motion.h1>
-          <p className="text-slate-500 font-bold text-sm max-w-lg mx-auto leading-relaxed">
+          <p className="text-base-content/50 font-bold text-sm max-w-lg mx-auto leading-relaxed">
             Parcourez l'intégralité de notre univers et trouvez l'inspiration parmi nos nombreuses collections spécialisées.
           </p>
         </div>
@@ -90,32 +90,32 @@ export default function Category2() {
                 transition={{ delay: 0.05 * index }}
                 className="group"
               >
-                <div className={`bg-white rounded-[2.5rem] border border-slate-100 shadow-sm transition-all duration-500 overflow-hidden ${isOpen ? 'shadow-2xl shadow-primary/10 ring-1 ring-primary/20' : 'hover:shadow-xl hover:shadow-slate-200/50'}`}>
+                <div className={`bg-base-100 rounded-[2.5rem] border border-base-200 shadow-sm transition-all duration-500 overflow-hidden ${isOpen ? 'shadow-2xl shadow-primary/10 ring-1 ring-primary/20' : 'hover:shadow-xl hover:shadow-slate-200/50'}`}>
                   <button
                     onClick={() => toggle(cat.id)}
                     className="w-full text-left flex items-center gap-5 p-8 group/btn"
                     aria-expanded={isOpen}
                   >
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl transition-all duration-500 shadow-inner ${isOpen ? 'bg-primary text-white scale-110 -rotate-6' : 'bg-slate-50 text-white group-hover/btn:bg-primary/10 group-hover/btn:scale-105'}`}>
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl transition-all duration-500 shadow-inner ${isOpen ? 'bg-primary text-white scale-110 -rotate-6' : 'bg-base-200 text-white group-hover/btn:bg-primary/10 group-hover/btn:scale-105'}`}>
                       {isEmoji ? (
                         <span className={isOpen ? 'drop-shadow-md' : ''}>{cat.icon}</span>
                       ) : (
-                        <Icon size={30} className={isOpen ? 'text-slate-900' : 'text-slate-700 group-hover/btn:text-primary'} />
+                        <Icon size={30} className={isOpen ? 'text-base-content' : 'text-base-content/80 group-hover/btn:text-primary'} />
                       )}
                     </div>
 
                     <div className="flex-1">
-                      <div className={`text-xl font-black tracking-tight transition-colors duration-300 ${isOpen ? 'text-primary' : 'text-slate-900'}`}>
+                      <div className={`text-xl font-black tracking-tight transition-colors duration-300 ${isOpen ? 'text-primary' : 'text-base-content'}`}>
                         {cat.name}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">
                           {children.length} {children.length > 1 ? 'Sous-catégories' : 'Sous-catégorie'}
                         </span>
                       </div>
                     </div>
 
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${isOpen ? 'bg-primary text-white rotate-180' : 'bg-slate-50 text-slate-400 group-hover/btn:bg-slate-900 group-hover/btn:text-white'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${isOpen ? 'bg-primary text-white rotate-180' : 'bg-base-200 text-base-content/40 group-hover/btn:bg-neutral group-hover/btn:text-white'}`}>
                       <LucideIcons.ChevronDown size={18} />
                     </div>
                   </button>
@@ -129,12 +129,12 @@ export default function Category2() {
                         transition={{ duration: 0.4, ease: "circOut" }}
                       >
                         <div className="px-8 pb-10">
-                          <div className="h-[1px] bg-slate-50 mb-8" />
+                          <div className="h-[1px] bg-base-200 mb-8" />
 
                           {children.length === 0 ? (
                             <button
                               onClick={() => navigate(`/products-liste?category_id=${cat.id}`)}
-                              className="w-full py-4 bg-slate-900 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary transition-all shadow-lg shadow-slate-200"
+                              className="w-full py-4 bg-neutral text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary transition-all shadow-lg shadow-slate-200"
                             >
                               Explorer la Collection
                             </button>
@@ -147,12 +147,12 @@ export default function Category2() {
                                   <button
                                     key={sub.id}
                                     onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
-                                    className="flex items-center gap-4 p-4 rounded-2xl border border-transparent hover:border-slate-100 hover:bg-slate-50 transition-all text-left group/sub"
+                                    className="flex items-center gap-4 p-4 rounded-2xl border border-transparent hover:border-base-200 hover:bg-base-200 transition-all text-left group/sub"
                                   >
-                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-lg shadow-sm group-hover/sub:border-primary/20 group-hover/sub:text-primary transition-all">
+                                    <div className="w-10 h-10 rounded-xl bg-base-100 border border-base-200 flex items-center justify-center text-lg shadow-sm group-hover/sub:border-primary/20 group-hover/sub:text-primary transition-all">
                                       {isSubEmoji ? <span>{sub.icon}</span> : <IconSub size={16} />}
                                     </div>
-                                    <span className='text-sm font-bold text-slate-600 group-hover/sub:text-primary group-hover/sub:translate-x-1 transition-all'>
+                                    <span className='text-sm font-bold text-base-content/70 group-hover/sub:text-primary group-hover/sub:translate-x-1 transition-all'>
                                       {sub.name}
                                     </span>
                                   </button>

@@ -35,10 +35,10 @@ function useCountdown(dateStr) {
 // --- Countdown Unit ---
 const CountUnit = ({ value, label }) => (
     <div className="flex flex-col items-center min-w-[44px]">
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2 text-xl font-black text-slate-900 tabular-nums leading-none">
+        <div className="bg-base-100/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-2 text-xl font-black text-base-content tabular-nums leading-none">
             {String(value).padStart(2, '0')}
         </div>
-        <span className="text-[8px] font-black uppercase tracking-widest text-slate-900/50 mt-1">{label}</span>
+        <span className="text-[8px] font-black uppercase tracking-widest text-base-content/50 mt-1">{label}</span>
     </div>
 );
 
@@ -80,18 +80,18 @@ const Banner = ({ data }) => {
                         <motion.div
                             animate={{ scale: [1, 1.06, 1] }}
                             transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest text-slate-900 shadow-xl"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest text-base-content shadow-xl"
                             style={{ background: accentColor }}
                         >
                             <Zap size={12} fill="currentColor" />
                             {data?.discount || 'Offre exclusive'}
                         </motion.div>
 
-                        <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tighter leading-none uppercase">
+                        <h2 className="text-4xl sm:text-5xl font-black text-base-content tracking-tighter leading-none uppercase">
                             {data?.title || 'Offre Spéciale'}
                         </h2>
 
-                        <p className="text-slate-900/60 font-bold text-sm leading-relaxed">
+                        <p className="text-base-content/60 font-bold text-sm leading-relaxed">
                             {data?.title4 || 'Offre limitée, profitez-en vite !'}
                         </p>
 
@@ -99,18 +99,18 @@ const Banner = ({ data }) => {
                         {isValid && (
                             <div className="flex items-center gap-2 pt-2">
                                 <CountUnit value={timeLeft.d} label="Jours" />
-                                <span className="text-slate-900/30 font-black text-xl mb-4">:</span>
+                                <span className="text-base-content/30 font-black text-xl mb-4">:</span>
                                 <CountUnit value={timeLeft.h} label="Heures" />
-                                <span className="text-slate-900/30 font-black text-xl mb-4">:</span>
+                                <span className="text-base-content/30 font-black text-xl mb-4">:</span>
                                 <CountUnit value={timeLeft.m} label="Min" />
-                                <span className="text-slate-900/30 font-black text-xl mb-4">:</span>
+                                <span className="text-base-content/30 font-black text-xl mb-4">:</span>
                                 <CountUnit value={timeLeft.s} label="Sec" />
                             </div>
                         )}
 
                         {/* Show date string when not ISO */}
                         {!isValid && data?.date && (
-                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-900/40">
+                            <p className="text-[11px] font-black uppercase tracking-widest text-base-content/40">
                                 {data.date}
                             </p>
                         )}
@@ -139,7 +139,7 @@ const Banner = ({ data }) => {
                         <motion.div
                             animate={{ rotate: [-4, 2, -4], scale: [1, 1.05, 1] }}
                             transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
-                            className="absolute top-4 right-4 sm:right-6 flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-slate-900 shadow-2xl border border-white/20"
+                            className="absolute top-4 right-4 sm:right-6 flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-base-content shadow-2xl border border-white/20"
                             style={{ background: accentColor }}
                         >
                             <Tag size={10} />
@@ -155,10 +155,10 @@ const Banner = ({ data }) => {
                         className="space-y-5 flex flex-col"
                     >
                         <div>
-                            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-900/40">
+                            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-base-content/40">
                                 {data?.title2 || 'Collection'}
                             </p>
-                            <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mt-1">
+                            <h3 className="text-3xl sm:text-4xl font-black text-base-content tracking-tight leading-tight mt-1">
                                 {data?.title3 || 'Ventes Spéciales'}
                             </h3>
                         </div>
@@ -169,7 +169,7 @@ const Banner = ({ data }) => {
                             style={{ background: accentColor }}
                         />
 
-                        <p className="text-sm text-slate-900/50 font-bold leading-relaxed">
+                        <p className="text-sm text-base-content/50 font-bold leading-relaxed">
                             Des prix imbattables sur une sélection premium. Stocks limités.
                         </p>
 
@@ -177,7 +177,7 @@ const Banner = ({ data }) => {
                         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
                             <Link
                                 to="/products-liste"
-                                className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest text-slate-900 shadow-2xl transition-all group"
+                                className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest text-base-content shadow-2xl transition-all group"
                                 style={{ background: 'white' }}
                             >
                                 Découvrir

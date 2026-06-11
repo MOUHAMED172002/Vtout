@@ -17,7 +17,7 @@ const StatCard = ({ title, value, icon, color, trend, index }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1 }}
-    className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-100/50 flex flex-col gap-4 group hover:border-primary/20 transition-all"
+    className="bg-base-100 p-6 rounded-[2rem] border border-gray-100 shadow-xl shadow-slate-100/50 flex flex-col gap-4 group hover:border-primary/20 transition-all"
   >
     <div className="flex items-start justify-between">
       <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-500`}>
@@ -31,7 +31,7 @@ const StatCard = ({ title, value, icon, color, trend, index }) => (
       )}
     </div>
     <div>
-      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{title}</p>
+      <p className="text-[9px] font-black text-base-content/40 uppercase tracking-[0.2em] mb-1">{title}</p>
       <p className="text-2xl font-black text-gray-900 tracking-tight">{value}</p>
     </div>
   </motion.div>
@@ -49,7 +49,7 @@ const QuickStats = ({ stats = {} }) => {
   } = stats;
 
   const config = [
-    { title: "Ventes Globales", value: `${Number(revenue).toLocaleString()} F`, icon: <TrendingUp size={20} />, color: "bg-slate-900 shadow-slate-200" },
+    { title: "Ventes Globales", value: `${Number(revenue).toLocaleString()} F`, icon: <TrendingUp size={20} />, color: "bg-neutral shadow-slate-200" },
     { title: "Commission Admin", value: `${Number(admin_profit).toLocaleString()} F`, icon: <DollarSign size={20} />, color: "bg-purple-600 shadow-purple-100" },
     { title: "Gains Livreurs", value: `${Number(delivery_profits).toLocaleString()} F`, icon: <Truck size={20} />, color: "bg-blue-600 shadow-blue-100" },
     { title: "Gains Fournisseurs", value: `${Number(supplier_profits).toLocaleString()} F`, icon: <Store size={20} />, color: "bg-emerald-600 shadow-emerald-100" },

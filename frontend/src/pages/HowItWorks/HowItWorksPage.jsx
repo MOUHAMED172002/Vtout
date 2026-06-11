@@ -89,7 +89,7 @@ export default function HowItWorksPage() {
   }, [getConfig, navigate, tab]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-base-100">
       {/* Page header */}
       <section className={`relative pt-24 pb-12 overflow-hidden ${active.bgColor}`}>
         <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none" style={{ background: 'rgba(0,84,166,0.07)' }} />
@@ -102,10 +102,10 @@ export default function HowItWorksPage() {
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#0054a6' }} />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#0054a6' }}>Comment ça marche</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900 mb-3">
+          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-base-content mb-3">
             Pour les <span style={{ color: '#f37021' }}>{active.label}s</span>
           </h1>
-          <p className="text-base text-slate-600 font-medium max-w-xl mx-auto">{active.description}</p>
+          <p className="text-base text-base-content/70 font-medium max-w-xl mx-auto">{active.description}</p>
         </div>
       </section>
 
@@ -118,7 +118,7 @@ export default function HowItWorksPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07 }}
-              className="relative bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200 transition-all duration-400 group"
+              className="relative bg-base-100 rounded-3xl p-7 border border-base-200 shadow-sm hover:shadow-xl hover:border-base-300 transition-all duration-400 group"
             >
               <div className="flex items-center justify-between mb-5">
                 <div className={`w-11 h-11 rounded-2xl ${active.bgColor} ${active.textColor} flex items-center justify-center`}>
@@ -128,11 +128,11 @@ export default function HowItWorksPage() {
                   {String(step.num).padStart(2, '0')}
                 </span>
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2 tracking-tight">{step.title}</h3>
-              <p className="text-slate-500 font-medium leading-relaxed text-sm">{step.desc}</p>
+              <h3 className="text-lg font-black text-base-content mb-2 tracking-tight">{step.title}</h3>
+              <p className="text-base-content/50 font-medium leading-relaxed text-sm">{step.desc}</p>
               {i < active.steps.length - 1 && (i + 1) % 3 !== 0 && (
                 <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                  <ChevronRight size={18} className="text-slate-200" />
+                  <ChevronRight size={18} className="text-base-content/20" />
                 </div>
               )}
             </motion.div>
@@ -144,7 +144,7 @@ export default function HowItWorksPage() {
       <section className="pb-16 max-w-5xl mx-auto px-6">
         <div className={`rounded-[2.5rem] p-10 md:p-14 bg-gradient-to-br ${active.gradient} text-white text-center relative overflow-hidden`}>
           <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-base-100/10 rounded-full blur-[60px] pointer-events-none" />
           <div className="relative z-10">
             <h3 className="text-3xl md:text-4xl font-black tracking-tighter mb-3">Prêt à commencer ?</h3>
             <p className="text-white/80 font-medium mb-7 max-w-md mx-auto text-sm">
@@ -157,7 +157,7 @@ export default function HowItWorksPage() {
                 href={active.ctaLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white text-slate-900 font-black px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all text-sm"
+                className="inline-flex items-center gap-2 bg-base-100 text-base-content font-black px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all text-sm"
               >
                 {active.ctaLabel}
                 <ArrowRight size={16} />
@@ -165,7 +165,7 @@ export default function HowItWorksPage() {
             ) : (
               <button
                 onClick={() => navigate(active.ctaLink)}
-                className="inline-flex items-center gap-2 bg-white text-slate-900 font-black px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all text-sm"
+                className="inline-flex items-center gap-2 bg-base-100 text-base-content font-black px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all text-sm"
               >
                 {active.ctaLabel}
                 <ArrowRight size={16} />

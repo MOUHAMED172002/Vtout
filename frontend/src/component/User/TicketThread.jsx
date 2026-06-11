@@ -96,7 +96,7 @@ export default function TicketThread({ ticket, onClose }) {
   }
 
   return (
-    <div className="card bg-white p-4">
+    <div className="card bg-base-100 p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="font-medium">{ticket?.subject || "Ticket"}</div>
@@ -114,7 +114,7 @@ export default function TicketThread({ ticket, onClose }) {
           messages.map((m) => (
             <div
               key={m.id}
-              className={`p-2 border rounded ${m.sender_id === currentUserId ? "bg-blue-50 self-end" : "bg-white"}`}
+              className={`p-2 border rounded ${m.sender_id === currentUserId ? "bg-blue-50 self-end" : "bg-base-100"}`}
             >
               <div className="text-xs text-gray-500">
                 {m.sender_id === currentUserId ? "Vous" : "Support"} • {m.created_at ? new Date(m.created_at).toLocaleString() : ""}

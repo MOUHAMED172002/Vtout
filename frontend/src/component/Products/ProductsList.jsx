@@ -98,10 +98,10 @@ export default function ProductsList() {
   const allLoaded = !loading && !loadingMore && !hasMore && products.length > 0;
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-base-200 min-h-screen">
 
       {/* Header */}
-      <div className="bg-white border-b border-slate-100 pt-8 md:pt-16 pb-8 md:pb-12">
+      <div className="bg-base-100 border-b border-base-200 pt-8 md:pt-16 pb-8 md:pb-12">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
             <div className="space-y-3 md:space-y-4">
@@ -109,30 +109,30 @@ export default function ProductsList() {
                 <SlidersHorizontal size={14} /> Collection Complète
               </div>
               <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tighter leading-tight">
-                Notre <span className="text-slate-400">Boutique</span>
+                Notre <span className="text-base-content/40">Boutique</span>
               </h1>
-              <p className="text-slate-500 font-bold max-w-xl text-sm md:text-lg">
+              <p className="text-base-content/50 font-bold max-w-xl text-sm md:text-lg">
                 Découvrez une sélection rigoureuse d'articles premium.
               </p>
             </div>
 
             {/* Search bar - sticky on mobile */}
-            <div className="sticky top-20 md:relative z-40 md:top-0 -mx-6 px-6 py-4 md:p-0 bg-white/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none transition-all">
+            <div className="sticky top-20 md:relative z-40 md:top-0 -mx-6 px-6 py-4 md:p-0 bg-base-100/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none transition-all">
               <div className="relative w-full md:w-[450px] group">
                 <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
-                  <Search size={20} className="text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Search size={20} className="text-base-content/40 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
                   type="text"
                   placeholder="Rechercher un article..."
                   value={filters.search || ""}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl md:rounded-[2.5rem] py-4 md:py-5 pl-16 pr-12 text-base md:text-lg font-bold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/30 focus:ring-8 focus:ring-primary/5 transition-all outline-none shadow-sm group-hover:shadow-md"
+                  className="w-full bg-base-200 border-2 border-base-200 rounded-2xl md:rounded-[2.5rem] py-4 md:py-5 pl-16 pr-12 text-base md:text-lg font-bold text-base-content placeholder:text-base-content/30 focus:bg-base-100 focus:border-primary/30 focus:ring-8 focus:ring-primary/5 transition-all outline-none shadow-sm group-hover:shadow-md"
                 />
                 {filters.search && (
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, search: "" }))}
-                    className="absolute inset-y-0 right-6 flex items-center text-slate-300 hover:text-rose-500 transition-colors"
+                    className="absolute inset-y-0 right-6 flex items-center text-base-content/30 hover:text-rose-500 transition-colors"
                   >
                     <X size={20} strokeWidth={3} />
                   </button>
@@ -147,15 +147,15 @@ export default function ProductsList() {
 
         {/* Sidebar Filters Desktop */}
         <aside className="hidden lg:block w-80 shrink-0">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/40 sticky top-36 relative overflow-hidden">
+          <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-xl shadow-slate-200/40 sticky top-36 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-[-20%] -translate-y-[20%] blur-3xl pointer-events-none" />
-            <div className="flex items-center gap-4 mb-10 pb-6 border-b border-slate-50 relative">
-              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-primary shadow-xl shadow-slate-900/20">
+            <div className="flex items-center gap-4 mb-10 pb-6 border-b border-base-200 relative">
+              <div className="w-12 h-12 bg-neutral rounded-2xl flex items-center justify-center text-primary shadow-xl shadow-slate-900/20">
                 <SlidersHorizontal size={22} className="stroke-[2.5]" />
               </div>
               <div>
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">Filtres</h3>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Personnalisation</p>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-base-content">Filtres</h3>
+                <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest mt-1">Personnalisation</p>
               </div>
             </div>
             <FiltersPanel onFilterChange={setFilters} />
@@ -169,7 +169,7 @@ export default function ProductsList() {
           <div className="flex items-center justify-between lg:hidden mb-8">
             <FiltersPanelDrawer onFilterChange={setFilters} mobileOnly />
             {!loading && (
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-xs font-black text-base-content/40 uppercase tracking-widest">
                 {products.length} / {totalCount} articles
               </p>
             )}
@@ -187,12 +187,12 @@ export default function ProductsList() {
           {/* Empty State */}
           {!loading && products.length === 0 && (
             <div className="py-32 flex flex-col items-center justify-center text-center space-y-6">
-              <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+              <div className="w-24 h-24 bg-base-200 rounded-full flex items-center justify-center text-base-content/30">
                 <PackageSearch size={48} />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900">Aucun produit trouvé</h3>
-                <p className="text-slate-500 font-bold max-w-xs mx-auto">
+                <h3 className="text-2xl font-black text-base-content">Aucun produit trouvé</h3>
+                <p className="text-base-content/50 font-bold max-w-xs mx-auto">
                   Essayez de modifier vos filtres ou effectuez une nouvelle recherche.
                 </p>
               </div>
@@ -240,7 +240,7 @@ export default function ProductsList() {
               {loadingMore && (
                 <div className="flex items-center justify-center gap-3 py-8 mt-4">
                   <Loader2 size={22} className="animate-spin text-primary" />
-                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                  <span className="text-sm font-black text-base-content/40 uppercase tracking-widest">
                     Chargement...
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export default function ProductsList() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center justify-center gap-3 py-12 mt-4 border-t border-slate-200"
+                  className="flex flex-col items-center justify-center gap-3 py-12 mt-4 border-t border-base-300"
                 >
                   <div className="flex items-center gap-2 text-emerald-500">
                     <CheckCircle2 size={20} />
@@ -259,7 +259,7 @@ export default function ProductsList() {
                       Tous les articles sont affichés
                     </span>
                   </div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                  <p className="text-[11px] font-bold text-base-content/40 uppercase tracking-widest">
                     {products.length} article{products.length > 1 ? "s" : ""} au total
                   </p>
                 </motion.div>

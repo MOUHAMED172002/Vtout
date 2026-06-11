@@ -7,7 +7,7 @@ import React from "react";
 export const Skeleton = ({ className = "" }) => {
     return (
         <div
-            className={`relative overflow-hidden bg-slate-100 before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent ${className}`}
+            className={`relative overflow-hidden bg-base-200 before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent ${className}`}
         />
     );
 };
@@ -17,7 +17,7 @@ export const Skeleton = ({ className = "" }) => {
  */
 export const ProductSkeleton = () => {
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 space-y-6 border border-slate-50 shadow-sm">
+        <div className="bg-base-100 rounded-[2.5rem] p-6 space-y-6 border border-base-200 shadow-sm">
             <Skeleton className="w-full aspect-square rounded-[2rem]" />
             <div className="space-y-3">
                 <Skeleton className="w-1/3 h-3 rounded-full" />

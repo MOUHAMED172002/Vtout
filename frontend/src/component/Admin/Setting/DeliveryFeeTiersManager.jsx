@@ -141,7 +141,7 @@ export default function DeliveryFeeTiersManager() {
             </AnimatePresence>
 
             {/* Tiers Table */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-base-100 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-0 text-[11px] font-black text-gray-400 uppercase tracking-widest px-5 py-3 bg-gray-50 border-b border-gray-100">
                     <span>Prix vendeur min (F)</span>
                     <span>Prix vendeur max (F)</span>
@@ -167,7 +167,7 @@ export default function DeliveryFeeTiersManager() {
                                         type="number"
                                         value={tier.min}
                                         onChange={e => handleChange(i, "min", e.target.value)}
-                                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                        className="w-full bg-base-100 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                         min={0}
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
@@ -185,7 +185,7 @@ export default function DeliveryFeeTiersManager() {
                                                 type="number"
                                                 value={tier.max ?? ""}
                                                 onChange={e => handleChange(i, "max", e.target.value)}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                                className="w-full bg-base-100 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                                 min={tier.min + 1}
                                             />
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold pointer-events-none">F</span>
@@ -248,7 +248,7 @@ export default function DeliveryFeeTiersManager() {
             )}
 
             {/* Simulator */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <div className="bg-base-100 rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4">
                 <h3 className="font-black text-gray-900 flex items-center gap-2">
                     <Zap size={16} className="text-amber-500" fill="currentColor" /> Simulateur de prix
                 </h3>

@@ -78,19 +78,19 @@ function SearchableSelect({ label, value, options, onChange, placeholder, disabl
 
   return (
     <div className="space-y-2 relative" ref={containerRef}>
-      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2">{label}</label>
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center px-6 cursor-pointer transition-all hover:border-primary/50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${isOpen ? 'border-primary ring-4 ring-primary/5' : ''}`}
+        className={`w-full h-14 rounded-2xl bg-base-200 border border-base-200 flex items-center px-6 cursor-pointer transition-all hover:border-primary/50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${isOpen ? 'border-primary ring-4 ring-primary/5' : ''}`}
       >
         <div className="flex-1 overflow-hidden">
           {selectedOption ? (
-            <span className="text-sm font-bold text-slate-900 truncate">{selectedOption.name}</span>
+            <span className="text-sm font-bold text-base-content truncate">{selectedOption.name}</span>
           ) : (
-            <span className="text-sm font-bold text-slate-300">{placeholder || "Choisir..."}</span>
+            <span className="text-sm font-bold text-base-content/30">{placeholder || "Choisir..."}</span>
           )}
         </div>
-        <ChevronRight className={`transition-transform duration-300 text-slate-400 ${isOpen ? 'rotate-90 text-primary' : ''}`} size={16} />
+        <ChevronRight className={`transition-transform duration-300 text-base-content/40 ${isOpen ? 'rotate-90 text-primary' : ''}`} size={16} />
       </div>
 
       <AnimatePresence>
@@ -99,17 +99,17 @@ function SearchableSelect({ label, value, options, onChange, placeholder, disabl
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute z-[100] top-[calc(100%+8px)] left-0 right-0 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-72"
+            className="absolute z-[100] top-[calc(100%+8px)] left-0 right-0 bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden flex flex-col max-h-72"
           >
-            <div className="p-3 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
-              <Search size={14} className="text-slate-400" />
+            <div className="p-3 border-b border-base-200 bg-base-200/50 flex items-center gap-3">
+              <Search size={14} className="text-base-content/40" />
               <input
                 autoFocus
                 type="text"
                 placeholder="Rechercher..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent border-none text-sm font-bold text-slate-700 focus:ring-0 w-full p-0"
+                className="bg-transparent border-none text-sm font-bold text-base-content/80 focus:ring-0 w-full p-0"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -118,7 +118,7 @@ function SearchableSelect({ label, value, options, onChange, placeholder, disabl
                 filteredOptions.map((opt) => (
                   <div
                     key={opt.id}
-                    className={`px-6 py-3 text-sm font-bold transition-colors cursor-pointer flex items-center justify-between hover:bg-slate-50 ${String(opt.id) === String(value) ? 'bg-primary/5 text-primary' : 'text-slate-600'}`}
+                    className={`px-6 py-3 text-sm font-bold transition-colors cursor-pointer flex items-center justify-between hover:bg-base-200 ${String(opt.id) === String(value) ? 'bg-primary/5 text-primary' : 'text-base-content/70'}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onChange(opt.id);
@@ -131,7 +131,7 @@ function SearchableSelect({ label, value, options, onChange, placeholder, disabl
                   </div>
                 ))
               ) : (
-                <div className="p-6 text-center text-[10px] font-black uppercase text-slate-300 tracking-widest">
+                <div className="p-6 text-center text-[10px] font-black uppercase text-base-content/30 tracking-widest">
                   Aucun résultat
                 </div>
               )}
@@ -311,7 +311,7 @@ export default function AddressSelectorPremium({ onChange, requirePhone = false,
           disabled={!selectedCommuneId}
         />
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2 flex items-center gap-2">
              <Phone size={14} className="text-primary" /> Téléphone *
           </label>
           <div className="relative">
@@ -320,7 +320,7 @@ export default function AddressSelectorPremium({ onChange, requirePhone = false,
               placeholder="61 00 00 00"
               value={phoneRaw}
               onChange={(e) => setPhoneRaw(e.target.value)}
-              className="input input-bordered w-full h-14 rounded-2xl bg-slate-50 font-bold text-sm border-slate-100 focus:border-primary"
+              className="input input-bordered w-full h-14 rounded-2xl bg-base-200 font-bold text-sm border-base-200 focus:border-primary"
             />
             {phoneNormalized && <Check size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500" />}
           </div>
@@ -328,7 +328,7 @@ export default function AddressSelectorPremium({ onChange, requirePhone = false,
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2 flex items-center gap-2">
           <MapPin size={14} className="text-primary" /> Géolocalisation Précise (Mapbox)
         </label>
         <MapboxPicker
@@ -341,12 +341,12 @@ export default function AddressSelectorPremium({ onChange, requirePhone = false,
 
       <AnimatePresence>
         {(selected.quartier || gpsLocation) && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-neutral text-white rounded-[2rem] shadow-xl relative overflow-hidden">
              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
              <h3 className="font-black mb-4 flex items-center gap-2 text-sm uppercase tracking-widest text-primary">
                 <MapPin size={16} /> RÉSUMÉ ADRESSE
              </h3>
-             <div className="space-y-2 text-xs font-bold text-slate-300">
+             <div className="space-y-2 text-xs font-bold text-base-content/30">
                 <p>Départment: <span className="text-white">{selected.departement || "-"}</span></p>
                 <p>Commune: <span className="text-white">{selected.commune || "-"}</span></p>
                 <p>Quartier: <span className="text-white">{selected.quartier || "-"}</span></p>

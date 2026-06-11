@@ -311,7 +311,7 @@ export default function ProductPages() {
   if (!product) return <div className="p-20 text-center font-bold text-xl">Produit introuvable</div>;
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-base-100 min-h-screen">
       <div className="max-w-[1400px] mx-auto pt-4 md:pt-8 pb-32 md:pb-16 px-4 md:px-8">
         {/* Breadcrumbs — dynamic & mobile friendly */}
         <nav aria-label="fil d'ariane" className="mb-4 md:mb-8">
@@ -319,12 +319,12 @@ export default function ProductPages() {
             <li>
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-slate-50 rounded-lg border border-slate-100"
+                className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-base-200 rounded-lg border border-base-200"
               >
                 Accueil
               </button>
             </li>
-            <li className="select-none text-slate-300">
+            <li className="select-none text-base-content/30">
               <ChevronRight size={12} />
             </li>
             {product.category && (
@@ -332,17 +332,17 @@ export default function ProductPages() {
                 <li>
                   <button
                     onClick={() => navigate(`/products-liste?category=${product.category_id}`)}
-                    className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-slate-50 rounded-lg border border-slate-100"
+                    className="hover:text-primary active:text-primary font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all px-2 py-1 bg-base-200 rounded-lg border border-base-200"
                   >
                     {product.category.name}
                   </button>
                 </li>
-                <li className="select-none text-slate-300">
+                <li className="select-none text-base-content/30">
                   <ChevronRight size={12} />
                 </li>
               </>
             )}
-            <li className="text-slate-900 font-black uppercase tracking-widest text-[9px] md:text-[10px] max-w-[150px] md:max-w-none truncate px-1">
+            <li className="text-base-content font-black uppercase tracking-widest text-[9px] md:text-[10px] max-w-[150px] md:max-w-none truncate px-1">
               {product.name}
             </li>
           </ol>
@@ -378,7 +378,7 @@ export default function ProductPages() {
 
               <button
                 onClick={toggleFav}
-                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all z-10 ${isFav ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white/80 text-gray-800 hover:bg-white'}`}
+                className={`absolute top-4 right-4 md:top-6 md:right-6 p-3 rounded-full backdrop-blur-md border border-white/40 transition-all z-10 ${isFav ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-base-100/80 text-gray-800 hover:bg-base-200'}`}
               >
                 {isFav ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
               </button>
@@ -441,7 +441,7 @@ export default function ProductPages() {
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Avantage Client</p>
-                    <p className="text-sm font-black text-slate-900">
+                    <p className="text-sm font-black text-base-content">
                       Livraison gratuite dans : {product.free_delivery_communes.join(', ')}
                     </p>
                   </div>
@@ -451,11 +451,11 @@ export default function ProductPages() {
               {/* Price section */}
               <div className="flex items-baseline gap-4">
                 <div className="flex flex-col">
-                  <span className="text-5xl font-black text-slate-900 tracking-tighter">
+                  <span className="text-5xl font-black text-base-content tracking-tighter">
                     {formatPrice(displayPrice.current)} <span className="text-xl text-primary">FCFA</span>
                   </span>
                   {displayPrice.old > displayPrice.current && (
-                    <span className="text-lg text-slate-400 line-through font-bold decoration-slate-300">
+                    <span className="text-lg text-base-content/40 line-through font-bold decoration-slate-300">
                       {formatPrice(displayPrice.old)} FCFA
                     </span>
                   )}
@@ -505,7 +505,7 @@ export default function ProductPages() {
                               }))}
                               className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl border-2 font-bold transition-all text-sm md:text-base ${active
                                 ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                                : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                                : 'border-gray-100 bg-base-100 text-gray-600 hover:border-gray-200'
                                 }`}
                             >
                               {val}
@@ -524,7 +524,7 @@ export default function ProductPages() {
               <div className="flex items-center gap-4">
                 <div className="join border-2 border-gray-100 rounded-2xl overflow-hidden h-14">
                   <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="join-item text-gray-400 hover:text-primary px-5 text-xl transition-colors">-</button>
-                  <div className="join-item flex items-center px-4 font-black text-gray-900 text-xl bg-white">{quantity}</div>
+                  <div className="join-item flex items-center px-4 font-black text-gray-900 text-xl bg-base-100">{quantity}</div>
                   <button onClick={() => setQuantity(q => q + 1)} className="join-item text-gray-400 hover:text-primary px-5 text-xl transition-colors">+</button>
                 </div>
                 <button
@@ -538,7 +538,7 @@ export default function ProductPages() {
               <button
                 onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
                 disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
-                className="btn bg-orange-400 text-slate-900 btn-block h-14 rounded-2xl text-lg font-black border-2 border-gray-900 text-gray-900 hover:bg-orange-400 hover:text-slate-900 disabled:opacity-50"
+                className="btn bg-orange-400 text-base-content btn-block h-14 rounded-2xl text-lg font-black border-2 border-gray-900 text-gray-900 hover:bg-orange-400 hover:text-base-content disabled:opacity-50"
               >
                 {isOutOfStock ? "Produit Épuisé" : "Commander maintenant!"}
               </button>
@@ -551,12 +551,12 @@ export default function ProductPages() {
                   initial={{ y: 100, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0 }}
-                  className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
+                  className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100/80 backdrop-blur-xl border-t border-gray-100 p-4 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col min-w-0">
                       <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest truncate">{product.name}</span>
-                      <span className="text-lg font-black text-slate-900 leading-none">
+                      <span className="text-lg font-black text-base-content leading-none">
                         {formatPrice(displayPrice.current)} <span className="text-xs text-primary">F</span>
                       </span>
                     </div>

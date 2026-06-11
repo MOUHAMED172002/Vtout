@@ -131,12 +131,12 @@ const SuppliersManager = ({ globalSearchQuery = "" }) => {
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm w-full lg:w-auto focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                        <Search size={18} className="text-slate-400" />
+                    <div className="flex items-center gap-3 bg-base-100 px-5 py-3 rounded-2xl border border-base-200 shadow-sm w-full lg:w-auto focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                        <Search size={18} className="text-base-content/40" />
                         <input 
                             type="text" 
                             placeholder="Rechercher..."
-                            className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-full lg:w-48"
+                            className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 w-full lg:w-48"
                             value={localSearch}
                             onChange={(e) => setLocalSearch(e.target.value)}
                         />
@@ -151,7 +151,7 @@ const SuppliersManager = ({ globalSearchQuery = "" }) => {
                     </button>
                     <button 
                         onClick={fetchSuppliers}
-                        className="p-3 bg-white text-slate-400 hover:text-primary rounded-2xl border border-slate-100 shadow-sm transition-all"
+                        className="p-3 bg-base-100 text-base-content/40 hover:text-primary rounded-2xl border border-base-200 shadow-sm transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw size={18} />
@@ -235,7 +235,7 @@ const SuppliersManager = ({ globalSearchQuery = "" }) => {
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     onClick={() => setSelectedForBoutique(supplier)}
-                                                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-md shadow-indigo-100 flex items-center gap-2"
+                                                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neutral transition-all shadow-md shadow-indigo-100 flex items-center gap-2"
                                                 >
                                                     <Plus size={14} /> Boutique
                                                 </button>

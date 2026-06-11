@@ -142,25 +142,25 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white w-full max-w-5xl max-h-[92vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-slate-100"
+        className="bg-base-100 w-full max-w-5xl max-h-[92vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-base-200"
       >
-        <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+        <div className="p-8 border-b border-base-200 flex items-center justify-between">
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center">
               <Plus className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tighter">Nouvel Article</h2>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+              <h2 className="text-2xl font-black text-base-content tracking-tighter">Nouvel Article</h2>
+              <p className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">
                 Pour: {boutique?.name || supplier?.name}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+          <button onClick={onClose} className="w-11 h-11 rounded-2xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -169,37 +169,37 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
           {currentStep === 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom de l'article</label>
-                <input {...register('name', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-lg font-black text-slate-900" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Nom de l'article</label>
+                <input {...register('name', { required: true })} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-lg font-black text-base-content" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Catégorie</label>
-                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-left font-bold text-slate-700">
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Catégorie</label>
+                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-left font-bold text-base-content/80">
                   {selectedCategory ? selectedCategory.name : 'Choisir une catégorie'}
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix (FCFA)</label>
-                  <input type="number" {...register('price')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-black" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix (FCFA)</label>
+                  <input type="number" {...register('price')} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-black" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix de vente </label>
-                  <input type="number" {...register('supplier_price')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-black text-indigo-600" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix de vente </label>
+                  <input type="number" {...register('supplier_price')} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-black text-indigo-600" />
                 </div>
               </div>
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</label>
-                <textarea {...register('description')} rows={3} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 resize-none" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Description</label>
+                <textarea {...register('description')} rows={3} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 resize-none" />
               </div>
             </div>
           )}
 
           {currentStep === 1 && (
             <div className="space-y-8">
-              <label className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-slate-100 rounded-[3rem] bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all group">
-                <Upload size={32} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                <span className="mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Importer des photos</span>
+              <label className="flex flex-col items-center justify-center p-12 border-4 border-dashed border-base-200 rounded-[3rem] bg-base-200 hover:bg-base-200 cursor-pointer transition-all group">
+                <Upload size={32} className="text-base-content/30 group-hover:text-indigo-500 transition-colors" />
+                <span className="mt-4 text-[10px] font-black uppercase tracking-widest text-base-content/40">Importer des photos</span>
                 <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
               </label>
               <div className="grid grid-cols-4 gap-4">
@@ -209,7 +209,7 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
                     <button onClick={() => removeImage(idx)} className="absolute top-2 right-2 w-6 h-6 bg-rose-500 text-white rounded-lg flex items-center justify-center">
                       <X size={12} />
                     </button>
-                    {!img.isMain && <button onClick={() => setMainImage(idx)} className="absolute bottom-2 left-2 px-2 py-1 bg-white/80 text-[8px] font-black uppercase rounded">Cover</button>}
+                    {!img.isMain && <button onClick={() => setMainImage(idx)} className="absolute bottom-2 left-2 px-2 py-1 bg-base-100/80 text-[8px] font-black uppercase rounded">Cover</button>}
                   </div>
                 ))}
               </div>
@@ -218,7 +218,7 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
 
           {currentStep === 2 && (
             <div className="space-y-8">
-              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white">
+              <div className="bg-neutral p-8 rounded-[2.5rem] text-white">
                 <h3 className="text-xl font-black mb-6">Générer des variantes</h3>
                 <div className="flex flex-wrap gap-2 mb-6">
                   {availableAttributes.map(attr => (
@@ -249,13 +249,13 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
 
               <div className="space-y-4">
                 {variantFields.map((field, idx) => (
-                  <div key={field.id} className="p-6 bg-slate-50 rounded-2xl flex items-center justify-between gap-4">
+                  <div key={field.id} className="p-6 bg-base-200 rounded-2xl flex items-center justify-between gap-4">
                     <div className="flex-1">
-                      <p className="text-xs font-black text-slate-900">{Object.values(field.combination).join(' / ')}</p>
+                      <p className="text-xs font-black text-base-content">{Object.values(field.combination).join(' / ')}</p>
                     </div>
                     <div className="flex gap-4">
-                      <input type="number" {...register(`variants.${idx}.price`)} placeholder="Prix" className="w-24 bg-white px-3 py-2 rounded-xl text-xs font-bold" />
-                      <input type="number" {...register(`variants.${idx}.stock`)} placeholder="Stock" className="w-24 bg-white px-3 py-2 rounded-xl text-xs font-bold" />
+                      <input type="number" {...register(`variants.${idx}.price`)} placeholder="Prix" className="w-24 bg-base-100 px-3 py-2 rounded-xl text-xs font-bold" />
+                      <input type="number" {...register(`variants.${idx}.stock`)} placeholder="Stock" className="w-24 bg-base-100 px-3 py-2 rounded-xl text-xs font-bold" />
                     </div>
                     <button onClick={() => removeVariant(idx)} className="text-rose-400 hover:text-rose-600"><Trash2 size={16} /></button>
                   </div>
@@ -265,8 +265,8 @@ export default function AdminAddProductModal({ supplier, boutique, onClose, onCr
           )}
         </div>
 
-        <div className="p-8 border-t border-slate-50 flex items-center justify-between">
-          <button onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-slate-50 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 disabled:opacity-0">Précédent</button>
+        <div className="p-8 border-t border-base-200 flex items-center justify-between">
+          <button onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-base-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/40 disabled:opacity-0">Précédent</button>
           <div className="flex gap-3">
             {currentStep < steps.length - 1 ? (
               <button onClick={nextStep} className="px-12 py-4 bg-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl shadow-indigo-200">Suivant</button>

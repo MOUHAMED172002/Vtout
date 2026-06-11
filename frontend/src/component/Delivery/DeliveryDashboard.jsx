@@ -344,7 +344,7 @@ export default function DeliveryDashboard() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-6 text-center"
+                        className="fixed inset-0 z-[100] bg-neutral/90 backdrop-blur-xl flex items-center justify-center p-6 text-center"
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
@@ -356,7 +356,7 @@ export default function DeliveryDashboard() {
                             </div>
                             <div className="space-y-4">
                                 <h2 className="text-3xl font-black text-base-content tracking-tighter">Compte Suspendu</h2>
-                                <p className="text-slate-500 font-bold leading-relaxed">
+                                <p className="text-base-content/50 font-bold leading-relaxed">
                                     Votre accès aux nouvelles courses est bloqué car vous avez un montant total de
                                     <span className="text-rose-500 font-black px-2">{unremittedCashAmount.toLocaleString()} F</span>
                                     en espèces non remis à l'administration.
@@ -379,7 +379,7 @@ export default function DeliveryDashboard() {
                             </a>
                             <button
                                 onClick={() => loadData()}
-                                className="w-full btn btn-ghost text-xs font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+                                className="w-full btn btn-ghost text-xs font-black uppercase tracking-widest text-base-content/40 hover:text-primary transition-colors"
                             >
                                 J'ai déjà payé (Actualiser)
                             </button>
@@ -391,7 +391,7 @@ export default function DeliveryDashboard() {
             {hasDebt && !isFullyBlocked && (
                 <div className="bg-rose-500 text-white px-6 py-4 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl shadow-rose-200 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="flex items-center gap-4 text-center md:text-left">
-                        <div className="p-3 bg-white/20 rounded-2xl">
+                        <div className="p-3 bg-base-100/20 rounded-2xl">
                             <Banknote size={24} />
                         </div>
                         <div>
@@ -399,7 +399,7 @@ export default function DeliveryDashboard() {
                             <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Veuillez solder votre compte pour éviter la suspension</p>
                         </div>
                     </div>
-                    <div className="bg-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/20">
+                    <div className="bg-base-100/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/20">
                         Attention : Suspension imminente
                     </div>
                 </div>
@@ -426,7 +426,7 @@ export default function DeliveryDashboard() {
                             onClick={handleToggleOnline}
                             className={`flex-1 sm:flex-none flex items-center justify-center gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${isOnline ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-base-200 text-base-content/40'}`}
                         >
-                            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-primary/20'}`}></div>
+                            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-base-100 animate-pulse' : 'bg-primary/20'}`}></div>
                             {isOnline ? "Disponible" : "Hors Ligne"}
                         </button>
                     </div>
@@ -553,7 +553,7 @@ export default function DeliveryDashboard() {
                                         </div>
                                     ) : (
                                         availableOrders.map(order => (
-                                            <div key={order.id} className="bg-base-200 rounded-3xl p-6 md:p-8 border border-base-content/10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 md:gap-8 group hover:bg-base-100 hover:shadow-xl transition-all duration-500">
+                                            <div key={order.id} className="bg-base-200 rounded-3xl p-6 md:p-8 border border-base-content/10 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 md:gap-8 group hover:bg-base-200 hover:shadow-xl transition-all duration-500">
                                                 <div className="flex items-center gap-6 w-full lg:w-auto">
                                                     <div className="w-16 h-16 bg-base-100 rounded-2xl flex items-center justify-center text-primary shadow-sm group-hover:rotate-12 transition-transform">
                                                         <Package size={28} />
@@ -834,7 +834,7 @@ export default function DeliveryDashboard() {
                                                                                                 Quantité : x{item.quantity}
                                                                                             </p>
                                                                                             {item.variant && (
-                                                                                                <p className="text-[8px] font-bold text-slate-400 truncate italic">
+                                                                                                <p className="text-[8px] font-bold text-base-content/40 truncate italic">
                                                                                                     {item.variant.attribute_values || item.variant.sku}
                                                                                                 </p>
                                                                                             )}
@@ -915,8 +915,8 @@ export default function DeliveryDashboard() {
                                 {tab === 'history' && (
                                     finishedOrders.length === 0 ? (
                                         <div className="py-20 text-center space-y-4">
-                                            <Package size={48} className="mx-auto text-slate-200" />
-                                            <p className="text-slate-500 font-bold">Votre historique est vide.</p>
+                                            <Package size={48} className="mx-auto text-base-content/20" />
+                                            <p className="text-base-content/50 font-bold">Votre historique est vide.</p>
                                         </div>
                                     ) : (
                                         finishedOrders.map(order => (
@@ -926,12 +926,12 @@ export default function DeliveryDashboard() {
                                                         {['livree', 'livrée'].includes(order.status) ? <CheckCircle2 size={24} /> : <Clock size={24} />}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-black text-slate-900">Commande #{order.id.slice(0, 8)}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
+                                                        <p className="text-sm font-black text-base-content">Commande #{order.id.slice(0, 8)}</p>
+                                                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-black text-slate-900 text-sm">{Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0)).toLocaleString()} F</p>
+                                                    <p className="font-black text-base-content text-sm">{Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0)).toLocaleString()} F</p>
                                                     <p className="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Gain encaissé</p>
                                                 </div>
                                             </div>
@@ -992,7 +992,7 @@ export default function DeliveryDashboard() {
                                                     {filteredDepts.map(dept => (
                                                         <div key={dept.departement}>
                                                             <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                                <span className="inline-block w-5 h-px bg-slate-200"></span>
+                                                                <span className="inline-block w-5 h-px bg-base-300"></span>
                                                                 {dept.departement}
                                                             </p>
                                                             <div className="flex flex-wrap gap-2">
@@ -1021,7 +1021,7 @@ export default function DeliveryDashboard() {
                                                         </div>
                                                     ))}
                                                     {filteredDepts.length === 0 && (
-                                                        <p className="text-slate-400 text-sm font-bold text-center py-4">Aucune commune trouvée.</p>
+                                                        <p className="text-base-content/40 text-sm font-bold text-center py-4">Aucune commune trouvée.</p>
                                                     )}
                                                 </div>
 
@@ -1057,8 +1057,8 @@ export default function DeliveryDashboard() {
                                                     {(walletStats?.payoutRequests || []).map(p => (
                                                         <div key={p.id} className="bg-base-200 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-base-content/10 flex justify-between items-center">
                                                             <div>
-                                                                <p className="font-black text-slate-900">{Number(p.amount).toLocaleString()} F</p>
-                                                                <p className="text-[9px] font-bold text-slate-400 uppercase">{new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
+                                                                <p className="font-black text-base-content">{Number(p.amount).toLocaleString()} F</p>
+                                                                <p className="text-[9px] font-bold text-base-content/40 uppercase">{new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
                                                             </div>
                                                             <span className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                                                                 {p.status}
@@ -1077,11 +1077,11 @@ export default function DeliveryDashboard() {
                                                                     <Banknote size={18} />
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-xs font-black text-slate-800">{t.description}</p>
+                                                                    <p className="text-xs font-black text-base-content/90">{t.description}</p>
                                                                         <p className="text-[9px] font-bold text-base-content/40 uppercase">{new Date(t.createdAt || t.created_at).toLocaleDateString()}</p>
                                                                 </div>
                                                             </div>
-                                                            <p className={`font-black ${t.type === 'earning' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                                                            <p className={`font-black ${t.type === 'earning' ? 'text-emerald-500' : 'text-base-content'}`}>
                                                                 {t.type === 'earning' ? '+' : '-'} {Number(t.amount).toLocaleString()} F
                                                             </p>
                                                         </div>
@@ -1125,15 +1125,15 @@ export default function DeliveryDashboard() {
                                         className="w-full bg-base-200 border-none rounded-2xl px-8 py-5 text-2xl font-black text-base-content outline-none focus:ring-4 focus:ring-primary/5 transition-all"
                                         placeholder="Ex: 5000"
                                     />
-                                    <p className="text-[10px] text-right font-bold text-slate-400">Solde max: {Number(walletStats?.balance || 0).toLocaleString()} F</p>
+                                    <p className="text-[10px] text-right font-bold text-base-content/40">Solde max: {Number(walletStats?.balance || 0).toLocaleString()} F</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <button type="button" onClick={() => setPayoutMethod('momo')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'momo' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                                    <button type="button" onClick={() => setPayoutMethod('momo')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'momo' ? 'border-primary bg-primary/5 text-primary' : 'border-base-200 text-base-content/40 hover:border-base-300'}`}>
                                         <Truck size={24} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Mobile Money</span>
                                     </button>
-                                    <button type="button" onClick={() => setPayoutMethod('bank')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'bank' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                                    <button type="button" onClick={() => setPayoutMethod('bank')} className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${payoutMethod === 'bank' ? 'border-primary bg-primary/5 text-primary' : 'border-base-200 text-base-content/40 hover:border-base-300'}`}>
                                         <Banknote size={24} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Banque</span>
                                     </button>
@@ -1178,7 +1178,7 @@ export default function DeliveryDashboard() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-neutral/60 backdrop-blur-md"
                     >
                         <motion.div 
                             initial={{ scale: 0.9, y: 20 }}
@@ -1261,7 +1261,7 @@ export default function DeliveryDashboard() {
                         className="fixed inset-0 z-[110] flex items-end md:items-center justify-center"
                         onClick={() => setPreviewOrder(null)}
                     >
-                        <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" />
+                        <div className="absolute inset-0 bg-neutral/70 backdrop-blur-sm" />
                         <motion.div
                             initial={{ y: "100%", opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}

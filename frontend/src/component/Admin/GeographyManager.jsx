@@ -112,7 +112,7 @@ const GeographyManager = () => {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-4">
                 <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                <p className="text-slate-500 font-semibold text-sm">Chargement...</p>
+                <p className="text-base-content/50 font-semibold text-sm">Chargement...</p>
             </div>
         );
     }
@@ -121,30 +121,30 @@ const GeographyManager = () => {
         <div className="space-y-4 pb-24">
 
             {/* ─── HEADER ──────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div className="bg-base-100 rounded-2xl border border-base-200 shadow-sm p-4">
                 {/* Title row */}
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                         <MapPin size={20} />
                     </div>
                     <div>
-                        <h1 className="text-base font-black text-slate-800 leading-none">Géographie</h1>
-                        <p className="text-xs text-slate-400 font-medium mt-0.5">Découpage territorial du Bénin</p>
+                        <h1 className="text-base font-black text-base-content/90 leading-none">Géographie</h1>
+                        <p className="text-xs text-base-content/40 font-medium mt-0.5">Découpage territorial du Bénin</p>
                     </div>
                 </div>
 
                 {/* Search bar */}
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={16} />
                     <input
                         type="text"
                         placeholder="Rechercher une zone..."
-                        className="w-full pl-9 pr-4 py-2.5 bg-slate-50 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 border border-slate-100"
+                        className="w-full pl-9 pr-4 py-2.5 bg-base-200 rounded-xl text-sm font-medium text-base-content/80 focus:outline-none focus:ring-2 focus:ring-indigo-200 border border-base-200"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                     />
                     {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40">
                             <X size={14} />
                         </button>
                     )}
@@ -161,16 +161,16 @@ const GeographyManager = () => {
             </div>
 
             {/* ─── HIERARCHY ───────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-50 bg-slate-50">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="bg-base-100 rounded-2xl border border-base-200 shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-base-200 bg-base-200">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-base-content/40">
                         <Globe size={12} /> Hiérarchie Territoriale · {filteredHierarchy.length} département{filteredHierarchy.length > 1 ? 's' : ''}
                     </div>
                 </div>
 
                 <div className="divide-y divide-slate-50">
                     {filteredHierarchy.length === 0 && (
-                        <div className="py-12 text-center text-slate-400 text-sm font-medium">
+                        <div className="py-12 text-center text-base-content/40 text-sm font-medium">
                             Aucun résultat pour « {searchQuery} »
                         </div>
                     )}
@@ -179,22 +179,22 @@ const GeographyManager = () => {
                         <div key={dep.id}>
                             {/* ── DEPARTMENT ROW ── */}
                             <div
-                                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors"
                                 onClick={() => toggle(dep.id, expandedDeps, setExpandedDeps)}
                             >
                                 {/* Chevron */}
                                 <ChevronDown
                                     size={16}
-                                    className={`text-slate-400 shrink-0 transition-transform duration-200 ${expandedDeps.has(dep.id) ? 'rotate-0' : '-rotate-90'}`}
+                                    className={`text-base-content/40 shrink-0 transition-transform duration-200 ${expandedDeps.has(dep.id) ? 'rotate-0' : '-rotate-90'}`}
                                 />
                                 {/* Icon */}
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${expandedDeps.has(dep.id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${expandedDeps.has(dep.id) ? 'bg-indigo-600 text-white' : 'bg-base-200 text-base-content/50'}`}>
                                     <Building2 size={14} />
                                 </div>
                                 {/* Name + Badge */}
                                 <div className="flex-1 min-w-0">
-                                    <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{dep.name}</span>
-                                    <span className="ml-2 text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                                    <span className="text-sm font-black text-base-content/90 uppercase tracking-tight">{dep.name}</span>
+                                    <span className="ml-2 text-[9px] font-bold text-base-content/40 bg-base-200 px-1.5 py-0.5 rounded-full">
                                         {dep.communes?.length || 0}
                                     </span>
                                 </div>
@@ -232,31 +232,31 @@ const GeographyManager = () => {
                                         transition={{ duration: 0.2 }}
                                         className="overflow-hidden"
                                     >
-                                        <div className="border-t border-slate-50 divide-y divide-slate-50/80">
+                                        <div className="border-t border-base-200 divide-y divide-slate-50/80">
                                             {dep.communes?.length === 0 && (
-                                                <div className="pl-14 pr-4 py-2 text-xs text-slate-400 italic">Aucune commune</div>
+                                                <div className="pl-14 pr-4 py-2 text-xs text-base-content/40 italic">Aucune commune</div>
                                             )}
                                             {dep.communes?.map(com => (
-                                                <div key={com.id} className="bg-slate-50/50">
+                                                <div key={com.id} className="bg-base-200/50">
                                                     {/* Commune row */}
                                                     <div
-                                                        className="flex items-center gap-3 pl-10 pr-4 py-2.5 cursor-pointer hover:bg-slate-100/50 transition-colors"
+                                                        className="flex items-center gap-3 pl-10 pr-4 py-2.5 cursor-pointer hover:bg-base-200/50 transition-colors"
                                                         onClick={() => toggle(com.id, expandedComs, setExpandedComs)}
                                                     >
                                                         <ChevronDown
                                                             size={14}
-                                                            className={`text-slate-300 shrink-0 transition-transform duration-200 ${expandedComs.has(com.id) ? 'rotate-0' : '-rotate-90'}`}
+                                                            className={`text-base-content/30 shrink-0 transition-transform duration-200 ${expandedComs.has(com.id) ? 'rotate-0' : '-rotate-90'}`}
                                                         />
                                                         <div className="flex-1 min-w-0">
-                                                            <span className="text-xs font-bold text-slate-600">{com.name}</span>
-                                                            <span className="ml-2 text-[9px] font-bold text-slate-400 bg-white px-1 py-0.5 rounded-full border border-slate-100">
+                                                            <span className="text-xs font-bold text-base-content/70">{com.name}</span>
+                                                            <span className="ml-2 text-[9px] font-bold text-base-content/40 bg-base-100 px-1 py-0.5 rounded-full border border-base-200">
                                                                 {com.arrondissements?.length || 0}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                                                             <button
                                                                 onClick={e => openAddModal('arrondissement', com.id, e)}
-                                                                className="w-6 h-6 flex items-center justify-center bg-slate-200 text-slate-500 rounded-md"
+                                                                className="w-6 h-6 flex items-center justify-center bg-base-300 text-base-content/50 rounded-md"
                                                             >
                                                                 <Plus size={11} />
                                                             </button>
@@ -285,28 +285,28 @@ const GeographyManager = () => {
                                                                 transition={{ duration: 0.15 }}
                                                                 className="overflow-hidden"
                                                             >
-                                                                <div className="border-t border-slate-100 divide-y divide-slate-100">
+                                                                <div className="border-t border-base-200 divide-y divide-base-200">
                                                                     {com.arrondissements?.map(arr => (
-                                                                        <div key={arr.id} className="bg-white">
+                                                                        <div key={arr.id} className="bg-base-100">
                                                                             {/* Arrondissement row */}
                                                                             <div
-                                                                                className="flex items-center gap-2 pl-16 pr-4 py-2 cursor-pointer hover:bg-slate-50 transition-colors"
+                                                                                className="flex items-center gap-2 pl-16 pr-4 py-2 cursor-pointer hover:bg-base-200 transition-colors"
                                                                                 onClick={() => toggle(arr.id, expandedArronds, setExpandedArronds)}
                                                                             >
                                                                                 <ChevronDown
                                                                                     size={12}
-                                                                                    className={`text-slate-300 shrink-0 transition-transform duration-200 ${expandedArronds.has(arr.id) ? 'rotate-0' : '-rotate-90'}`}
+                                                                                    className={`text-base-content/30 shrink-0 transition-transform duration-200 ${expandedArronds.has(arr.id) ? 'rotate-0' : '-rotate-90'}`}
                                                                                 />
                                                                                 <div className="flex-1 min-w-0">
-                                                                                    <span className="text-[11px] font-semibold text-slate-500">{arr.name}</span>
-                                                                                    <span className="ml-2 text-[8px] font-bold text-slate-400">
+                                                                                    <span className="text-[11px] font-semibold text-base-content/50">{arr.name}</span>
+                                                                                    <span className="ml-2 text-[8px] font-bold text-base-content/40">
                                                                                         {arr.quartiers?.length || 0} quartier{(arr.quartiers?.length || 0) > 1 ? 's' : ''}
                                                                                     </span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                                                                                     <button
                                                                                         onClick={e => openAddModal('quartier', arr.id, e)}
-                                                                                        className="w-6 h-6 flex items-center justify-center bg-slate-100 text-slate-500 rounded-md"
+                                                                                        className="w-6 h-6 flex items-center justify-center bg-base-200 text-base-content/50 rounded-md"
                                                                                     >
                                                                                         <Plus size={10} />
                                                                                     </button>
@@ -339,11 +339,11 @@ const GeographyManager = () => {
                                                                                             {arr.quartiers?.map(q => (
                                                                                                 <div
                                                                                                     key={q.id}
-                                                                                                    className="flex items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 min-w-0"
+                                                                                                    className="flex items-center justify-between bg-base-200 px-2.5 py-1.5 rounded-lg border border-base-200 min-w-0"
                                                                                                 >
                                                                                                     <div className="flex items-center gap-1.5 min-w-0">
-                                                                                                        <Home size={9} className="text-slate-300 shrink-0" />
-                                                                                                        <span className="text-[10px] font-medium text-slate-600 truncate">{q.name}</span>
+                                                                                                        <Home size={9} className="text-base-content/30 shrink-0" />
+                                                                                                        <span className="text-[10px] font-medium text-base-content/70 truncate">{q.name}</span>
                                                                                                     </div>
                                                                                                     <div className="flex gap-0.5 ml-1 shrink-0">
                                                                                                         <button
@@ -363,7 +363,7 @@ const GeographyManager = () => {
                                                                                             ))}
                                                                                             <button
                                                                                                 onClick={e => openAddModal('quartier', arr.id, e)}
-                                                                                                className="flex items-center justify-center gap-1 border border-dashed border-slate-200 rounded-lg py-2 text-[9px] font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-600 transition-colors col-span-1"
+                                                                                                className="flex items-center justify-center gap-1 border border-dashed border-base-300 rounded-lg py-2 text-[9px] font-bold text-base-content/40 hover:border-indigo-400 hover:text-indigo-600 transition-colors col-span-1"
                                                                                             >
                                                                                                 <Plus size={9} /> Quartier
                                                                                             </button>
@@ -407,26 +407,26 @@ const GeographyManager = () => {
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: '100%', opacity: 0 }}
                             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+                            className="relative bg-base-100 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
                         >
                             {/* Handle bar — mobile only */}
-                            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mt-3 sm:hidden" />
+                            <div className="w-10 h-1 bg-base-300 rounded-full mx-auto mt-3 sm:hidden" />
 
                             <div className="p-6 space-y-5">
                                 {/* Modal header */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-lg font-black text-slate-800">
+                                        <h2 className="text-lg font-black text-base-content/90">
                                             {modalMode === 'add' ? `Ajouter` : `Modifier`}{' '}
                                             <span className="text-indigo-600">{TYPE_LABELS[targetItem?.type]}</span>
                                         </h2>
                                         {targetItem?.parentId && (
-                                            <p className="text-xs text-slate-400 font-medium mt-0.5">Parent ID : {targetItem.parentId}</p>
+                                            <p className="text-xs text-base-content/40 font-medium mt-0.5">Parent ID : {targetItem.parentId}</p>
                                         )}
                                     </div>
                                     <button
                                         onClick={() => setShowModal(false)}
-                                        className="w-9 h-9 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500 hover:bg-slate-200 transition-colors"
+                                        className="w-9 h-9 flex items-center justify-center bg-base-200 rounded-xl text-base-content/50 hover:bg-base-300 transition-colors"
                                     >
                                         <X size={18} />
                                     </button>
@@ -435,14 +435,14 @@ const GeographyManager = () => {
                                 {/* Form */}
                                 <form onSubmit={handleUpsert} className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">
+                                        <label className="text-[10px] uppercase font-black tracking-widest text-base-content/40">
                                             Nom *
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             autoFocus
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all"
+                                            className="w-full px-4 py-3 bg-base-200 border border-base-200 rounded-xl text-sm font-semibold text-base-content/90 placeholder:text-base-content/30 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all"
                                             placeholder={`Nom du ${TYPE_LABELS[targetItem?.type] || ''}...`}
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -450,13 +450,13 @@ const GeographyManager = () => {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-                                            Identifiant <span className="normal-case text-slate-300">(optionnel, auto si vide)</span>
+                                        <label className="text-[10px] uppercase font-black tracking-widest text-base-content/40">
+                                            Identifiant <span className="normal-case text-base-content/30">(optionnel, auto si vide)</span>
                                         </label>
                                         <input
                                             type="number"
                                             disabled={modalMode === 'edit'}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-40 transition-all"
+                                            className="w-full px-4 py-3 bg-base-200 border border-base-200 rounded-xl text-sm font-semibold text-base-content/90 placeholder:text-base-content/30 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-40 transition-all"
                                             placeholder="Auto-généré"
                                             value={formData.id}
                                             onChange={e => setFormData({ ...formData, id: e.target.value })}

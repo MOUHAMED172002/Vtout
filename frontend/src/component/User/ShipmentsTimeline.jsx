@@ -137,7 +137,7 @@ export default function ShipmentsTimeline() {
               <button
                 key={s.id}
                 onClick={() => open(s)}
-                className={`w-full text-left p-3 bg-white rounded border ${selected?.id === s.id ? "ring-2 ring-primary" : ""}`}
+                className={`w-full text-left p-3 bg-base-100 rounded border ${selected?.id === s.id ? "ring-2 ring-primary" : ""}`}
               >
                 <div className="font-medium">{s.carrier || "Transporteur"}</div>
                 <div className="text-xs">{s.tracking_number || "—"}</div>
@@ -147,7 +147,7 @@ export default function ShipmentsTimeline() {
             ))}
           </div>
 
-          <div className="md:col-span-2 card bg-white p-4">
+          <div className="md:col-span-2 card bg-base-100 p-4">
             {selected ? (
               <>
                 <div className="flex items-center justify-between mb-3">

@@ -121,12 +121,12 @@ export default function MapboxPicker({
 
     if (noKey) {
         return (
-            <div className="p-5 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-slate-600 space-y-2">
+            <div className="p-5 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-base-content/70 space-y-2">
                 <p className="font-black text-xs flex items-center gap-2 text-primary">
                     <MapPin size={14} /> Mapbox non configuré
                 </p>
                 <p className="text-[10px] font-bold">
-                    Veuillez ajouter votre jeton Mapbox dans le fichier <code className="bg-white px-1 rounded">.env</code>.
+                    Veuillez ajouter votre jeton Mapbox dans le fichier <code className="bg-base-100 px-1 rounded">.env</code>.
                 </p>
             </div>
         );
@@ -140,10 +140,10 @@ export default function MapboxPicker({
                 onClick={() => !readOnly && setOpen(true)}
                 className={`w-full flex items-center gap-4 p-5 rounded-3xl border-2 transition-all ${position
                     ? "border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5"
-                    : "border-dashed border-slate-200 bg-slate-50 text-slate-500 hover:border-primary/40"
+                    : "border-dashed border-base-300 bg-base-200 text-base-content/50 hover:border-primary/40"
                     }`}
             >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${position ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-200 text-slate-400'}`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${position ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-base-300 text-base-content/40'}`}>
                     <MapPin size={22} />
                 </div>
                 <div className="flex-1 text-left">
@@ -151,18 +151,18 @@ export default function MapboxPicker({
                         {position ? "Position de livraison définie ✓" : label}
                     </p>
                     {resolving ? (
-                        <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                        <p className="text-[11px] font-bold text-base-content/40 flex items-center gap-1">
                             <Loader2 size={10} className="animate-spin" /> Recherche de l'adresse...
                         </p>
                     ) : resolvedAddress ? (
-                        <p className="text-[11px] font-bold text-slate-700 line-clamp-1">{resolvedAddress}</p>
+                        <p className="text-[11px] font-bold text-base-content/80 line-clamp-1">{resolvedAddress}</p>
                     ) : position ? (
-                        <p className="text-[11px] font-bold text-slate-400">Coordonnées: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>
+                        <p className="text-[11px] font-bold text-base-content/40">Coordonnées: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>
                     ) : (
-                        <p className="text-[11px] font-bold text-slate-300">Cliquez pour ouvrir la carte</p>
+                        <p className="text-[11px] font-bold text-base-content/30">Cliquez pour ouvrir la carte</p>
                     )}
                 </div>
-                {!readOnly && <Navigation2 size={16} className="text-slate-300" />}
+                {!readOnly && <Navigation2 size={16} className="text-base-content/30" />}
             </button>
 
             {/* Modal */}
@@ -172,40 +172,40 @@ export default function MapboxPicker({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6"
+                        className="fixed inset-0 z-[9999] bg-neutral/60 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-6"
                     >
                         <motion.div
                             initial={{ y: 100, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 100, opacity: 0 }}
-                            className="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[3rem] overflow-hidden shadow-2xl flex flex-col"
+                            className="bg-base-100 w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[3rem] overflow-hidden shadow-2xl flex flex-col"
                         >
                             {/* Header */}
-                            <div className="px-8 py-6 border-b flex items-center justify-between bg-white relative z-20">
+                            <div className="px-8 py-6 border-b flex items-center justify-between bg-base-100 relative z-20">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
                                         <Target size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Où vous livrer ?</h3>
-                                        <p className="text-xs text-slate-400 font-bold">Déplacez le marqueur ou recherchez votre lieu</p>
+                                        <h3 className="text-xl font-black text-base-content tracking-tight">Où vous livrer ?</h3>
+                                        <p className="text-xs text-base-content/40 font-bold">Déplacez le marqueur ou recherchez votre lieu</p>
                                     </div>
                                 </div>
-                                <button onClick={() => setOpen(false)} className="w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center transition-colors">
+                                <button onClick={() => setOpen(false)} className="w-12 h-12 bg-base-200 hover:bg-base-300 rounded-full flex items-center justify-center transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
 
                             {/* Search Component */}
-                            <div className="px-8 py-4 bg-slate-50 border-b relative z-10">
+                            <div className="px-8 py-4 bg-base-200 border-b relative z-10">
                                 <div className="relative">
-                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/40" size={18} />
                                     <input
                                         type="text"
                                         placeholder="Saisissez votre quartier, rue ou lieu..."
                                         value={searchQuery}
                                         onChange={(e) => handleSearch(e.target.value)}
-                                        className="w-full pl-14 pr-6 py-4 bg-white border-none rounded-2xl text-sm font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-primary/20"
+                                        className="w-full pl-14 pr-6 py-4 bg-base-100 border-none rounded-2xl text-sm font-bold text-base-content shadow-sm focus:ring-2 focus:ring-primary/20"
                                     />
                                     <AnimatePresence>
                                         {suggestions.length > 0 && (
@@ -213,13 +213,13 @@ export default function MapboxPicker({
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: 10 }}
-                                                className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                                                className="absolute top-full left-0 right-0 mt-2 bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden"
                                             >
                                                 {suggestions.map((f, i) => (
                                                     <button
                                                         key={f.id}
                                                         onClick={() => handleSuggestionClick(f)}
-                                                        className="w-full text-left px-6 py-4 text-sm font-bold text-slate-700 hover:bg-primary/5 hover:text-primary flex items-start gap-3 border-b border-slate-50 last:border-0 transition-colors"
+                                                        className="w-full text-left px-6 py-4 text-sm font-bold text-base-content/80 hover:bg-primary/5 hover:text-primary flex items-start gap-3 border-b border-base-200 last:border-0 transition-colors"
                                                     >
                                                         <MapPin size={16} className="mt-0.5 text-primary shrink-0" />
                                                         <span>{f.place_name}</span>
@@ -247,21 +247,21 @@ export default function MapboxPicker({
                                     )}
                                 </Map>
                                 {!position && (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/80 text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-full backdrop-blur-md pointer-events-none shadow-2xl">
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral/80 text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-full backdrop-blur-md pointer-events-none shadow-2xl">
                                         Cliquez sur la carte pour définir le point de livraison
                                     </div>
                                 )}
                             </div>
 
                             {/* Footer */}
-                            <div className="px-8 py-6 bg-white border-t flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="px-8 py-6 bg-base-100 border-t flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                    <div className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-base-content/40">
                                         <MapPin size={20} />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Lieu de livraison sélectionné</p>
-                                        <p className="text-sm font-bold text-slate-900 truncate">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mb-0.5">Lieu de livraison sélectionné</p>
+                                        <p className="text-sm font-bold text-base-content truncate">
                                             {resolving ? "Recherche en cours..." : (resolvedAddress || "Veuillez choisir un point sur la carte")}
                                         </p>
                                     </div>
@@ -269,7 +269,7 @@ export default function MapboxPicker({
                                 <button
                                     onClick={handleConfirm}
                                     disabled={!position || resolving}
-                                    className="w-full md:w-auto px-12 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
+                                    className="w-full md:w-auto px-12 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-neutral transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
                                 >
                                     Valider ce point de livraison
                                 </button>

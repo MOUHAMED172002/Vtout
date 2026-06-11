@@ -298,7 +298,7 @@ export default function CheckoutPage() {
 
         {/* Header Area */}
         <div className="text-center mb-8 md:mb-20 space-y-4 md:space-y-6">
-          <h1 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tightest">
+          <h1 className="text-3xl md:text-6xl font-black text-base-content tracking-tightest">
             Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
           </h1>
           <div className="flex items-center justify-center gap-2 md:gap-6">
@@ -308,13 +308,13 @@ export default function CheckoutPage() {
                     <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-base transition-all duration-500 ${
                         step >= s || (s === 1 && !isGuest)
                         ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110'
-                        : 'bg-white border-2 border-slate-100 text-slate-300'
+                        : 'bg-base-100 border-2 border-base-200 text-base-content/30'
                     }`}>
                         {(step > s || (s === 1 && !isGuest)) ? <Check size={16} strokeWidth={3} /> : s}
                     </div>
                 </div>
                 {s < 6 && <div className={`h-1 w-4 md:w-12 rounded-full transition-all duration-700 ${
-                    (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-slate-100'
+                    (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-base-200'
                 }`}></div>}
               </React.Fragment>
             ))}
@@ -337,29 +337,29 @@ export default function CheckoutPage() {
                       <ShieldCheck size={28} />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">Vos coordonnées</h2>
-                      <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Achat rapide · Invité</p>
+                      <h2 className="text-3xl font-black text-base-content tracking-tight">Vos coordonnées</h2>
+                      <p className="text-sm text-base-content/40 font-bold uppercase tracking-widest mt-1">Achat rapide · Invité</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Nom complet *</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2">Nom complet *</label>
                       <input
                         type="text"
                         placeholder="Jean Dupont"
                         value={guestInfo.name}
                         onChange={e => setGuestInfo(p => ({ ...p, name: e.target.value }))}
-                        className="input input-bordered w-full h-14 rounded-2xl bg-slate-50 border-slate-100 focus:border-primary font-bold text-sm"
+                        className="input input-bordered w-full h-14 rounded-2xl bg-base-200 border-base-200 focus:border-primary font-bold text-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Email *</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-2">Email *</label>
                       <input
                         type="email"
                         placeholder="jean@email.com"
                         value={guestInfo.email}
                         onChange={e => setGuestInfo(p => ({ ...p, email: e.target.value }))}
-                        className="input input-bordered w-full h-14 rounded-2xl bg-slate-50 border-slate-100 focus:border-primary font-bold text-sm"
+                        className="input input-bordered w-full h-14 rounded-2xl bg-base-200 border-base-200 focus:border-primary font-bold text-sm"
                       />
                     </div>
                   </div>
@@ -378,13 +378,13 @@ export default function CheckoutPage() {
               {step === 2 && (
                 <div
                   key="step2"
-                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                  className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-200 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-blue-50 text-blue-600 rounded-3xl shadow-sm"><MapPin size={28} /></div>
                     <div>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Où livrer ?</h2>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Sélectionnez votre quartier</p>
+                        <h2 className="text-3xl font-black text-base-content tracking-tight">Où livrer ?</h2>
+                        <p className="text-sm text-base-content/40 font-bold uppercase tracking-widest mt-1">Sélectionnez votre quartier</p>
                     </div>
                   </div>
                   <AddressSelector onChange={setAddress} requirePhone={true} requireQuartier={true} />
@@ -404,35 +404,35 @@ export default function CheckoutPage() {
               {step === 3 && (
                 <div
                   key="step3"
-                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                  className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-200 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-orange-50 text-orange-600 rounded-3xl shadow-sm"><ReceiptText size={28} /></div>
                     <div>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Vérification</h2>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Résumé de votre panier</p>
+                        <h2 className="text-3xl font-black text-base-content tracking-tight">Vérification</h2>
+                        <p className="text-sm text-base-content/40 font-bold uppercase tracking-widest mt-1">Résumé de votre panier</p>
                     </div>
                   </div>
 
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {itemsFromCart.map((it, idx) => (
-                      <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                        <div className="w-16 h-16 bg-white rounded-2xl p-2 border border-slate-100 flex-shrink-0">
+                      <div key={idx} className="flex items-center gap-4 p-4 bg-base-200 rounded-3xl border border-base-200">
+                        <div className="w-16 h-16 bg-base-100 rounded-2xl p-2 border border-base-200 flex-shrink-0">
                           <img src={it.image_url || it.product?.image_url} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-black text-sm text-slate-900 truncate">{it.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
+                          <p className="font-black text-sm text-base-content truncate">{it.name}</p>
+                          <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-black text-sm text-slate-900">{((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F</p>
+                          <p className="font-black text-sm text-base-content">{((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   {/* Summary Totals for Mobile Step */}
-                  <div className="p-6 bg-slate-900 rounded-[2rem] text-white space-y-4">
+                  <div className="p-6 bg-neutral rounded-[2rem] text-white space-y-4">
                     <div className="flex justify-between text-sm font-bold opacity-60">
                       <span>Sous-total</span>
                       <span>{totalFromCart.toLocaleString()} F</span>
@@ -447,7 +447,7 @@ export default function CheckoutPage() {
                       <span>Livraison</span>
                       <span>{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
                     </div>
-                    <div className="h-px bg-white/10 my-2"></div>
+                    <div className="h-px bg-base-100/10 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="font-black text-xs uppercase tracking-widest text-primary">Total à payer</span>
                       <span className="text-3xl font-black">{finalTotal.toLocaleString()} F</span>
@@ -469,13 +469,13 @@ export default function CheckoutPage() {
               {step === 4 && (
                 <div
                   key="step4"
-                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                  className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-200 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl shadow-sm"><CreditCard size={28} /></div>
                     <div>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Paiement</h2>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Choisissez votre méthode</p>
+                        <h2 className="text-3xl font-black text-base-content tracking-tight">Paiement</h2>
+                        <p className="text-sm text-base-content/40 font-bold uppercase tracking-widest mt-1">Choisissez votre méthode</p>
                     </div>
                   </div>
 
@@ -554,20 +554,20 @@ export default function CheckoutPage() {
               {step === 5 && !isWhatsAppUser && (
                 <div
                   key="step5"
-                  className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
+                  className="bg-base-100 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-base-200 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-8"
                 >
                   <div className="flex items-center gap-6">
                     <div className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl shadow-sm">
                       <Zap size={28} />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">Suivi WhatsApp</h2>
-                      <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Recevez vos notifications en temps réel</p>
+                      <h2 className="text-3xl font-black text-base-content tracking-tight">Suivi WhatsApp</h2>
+                      <p className="text-sm text-base-content/40 font-bold uppercase tracking-widest mt-1">Recevez vos notifications en temps réel</p>
                     </div>
                   </div>
 
                   <div className="p-8 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100/50 space-y-6">
-                    <p className="text-sm font-bold text-slate-600 leading-relaxed">
+                    <p className="text-sm font-bold text-base-content/70 leading-relaxed">
                       Pour vous tenir informé de l'avancée de votre livraison (Confirmation, Expédition, Arrivée), veuillez confirmer votre numéro WhatsApp ci-dessous.
                     </p>
                     
@@ -585,7 +585,7 @@ export default function CheckoutPage() {
                             const val = e.target.value.replace(/[^\d]/g, '');
                             setWhatsappNotifPhone(val.startsWith('229') ? `+${val}` : `+229${val}`);
                           }}
-                          className="input input-bordered w-full h-16 pl-16 rounded-2xl bg-white border-emerald-100 focus:border-emerald-500 font-black text-lg text-emerald-900"
+                          className="input input-bordered w-full h-16 pl-16 rounded-2xl bg-base-100 border-emerald-100 focus:border-emerald-500 font-black text-lg text-emerald-900"
                         />
                       </div>
                       <p className="text-[10px] font-bold text-emerald-500/60 ml-2 italic">📦 Un message de confirmation vous sera envoyé.</p>
@@ -608,7 +608,7 @@ export default function CheckoutPage() {
               {step === 6 ? (
                 <div
                   key="step6"
-                  className="bg-white p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
+                  className="bg-base-100 p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto md:scale-125 mb-2 md:mb-4">
                     <Check size={32} className="md:w-12 md:h-12" />
@@ -635,13 +635,13 @@ export default function CheckoutPage() {
 
               <div className="space-y-6 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar relative z-10">
                 {itemsFromCart.map((it, idx) => (
-                  <div key={idx} className="flex flex-col gap-1 py-2 border-b border-slate-50 last:border-0 group/item">
+                  <div key={idx} className="flex flex-col gap-1 py-2 border-b border-base-200 last:border-0 group/item">
                     <div className="flex justify-between items-start gap-4">
                         <div className="flex-1 min-w-0">
-                            <p className="font-black text-sm leading-tight text-slate-900 mb-1 truncate group-hover/item:text-primary transition-colors">{it.name || "Produit"}</p>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
+                            <p className="font-black text-sm leading-tight text-base-content mb-1 truncate group-hover/item:text-primary transition-colors">{it.name || "Produit"}</p>
+                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-[0.2em]">{it.quantity} x {Number(it.price_snapshot || it.price).toLocaleString()} F</p>
                         </div>
-                        <span className="font-black text-slate-900 text-sm bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 italic transition-transform group-hover/item:-translate-x-1">
+                        <span className="font-black text-base-content text-sm bg-base-200 px-3 py-1.5 rounded-xl border border-base-200 italic transition-transform group-hover/item:-translate-x-1">
                             {((it.price_snapshot || it.price) * it.quantity).toLocaleString()} F
                         </span>
                     </div>
@@ -650,8 +650,8 @@ export default function CheckoutPage() {
                         {(it.product?.boutique || it.boutique) && (
                             <div className="flex items-center gap-2">
                                 <MapPin size={10} className="text-primary" />
-                                <p className="text-[9px] font-bold text-slate-400 italic">
-                                    Expédié depuis : <span className="text-slate-600">
+                                <p className="text-[9px] font-bold text-base-content/40 italic">
+                                    Expédié depuis : <span className="text-base-content/70">
                                         {[
                                             (it.product?.boutique?.commune_label || it.boutique?.commune_label),
                                             ...(it.product?.free_delivery_communes || it.free_delivery_communes || [])
@@ -675,15 +675,15 @@ export default function CheckoutPage() {
 
               <div className="space-y-4 pt-8 border-t border-slate-800 relative z-10">
                 {/* Coupon Input */}
-                <div className="space-y-3 p-6 bg-slate-50 border border-slate-100 rounded-3xl relative">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Coupon de réduction</label>
+                <div className="space-y-3 p-6 bg-base-200 border border-base-200 rounded-3xl relative">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Coupon de réduction</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       placeholder="ENTRER LE CODE"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-white border-2 border-slate-100 rounded-2xl h-12 px-4 text-xs font-black tracking-widest focus:border-primary outline-none transition-all placeholder:text-slate-300"
+                      className="flex-1 bg-base-100 border-2 border-base-200 rounded-2xl h-12 px-4 text-xs font-black tracking-widest focus:border-primary outline-none transition-all placeholder:text-base-content/30"
                     />
                     <button
                       onClick={handleApplyCoupon}
@@ -697,7 +697,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4 pt-2">
-                    <div className="flex justify-between text-slate-400 font-bold text-sm">
+                    <div className="flex justify-between text-base-content/40 font-bold text-sm">
                         <span>Sous-total</span>
                         <span>{totalFromCart.toLocaleString()} F</span>
                     </div>
@@ -707,7 +707,7 @@ export default function CheckoutPage() {
                             <span>-{discount.toLocaleString()} F</span>
                         </div>
                     )}
-                    <div className="flex justify-between text-slate-400 font-bold text-sm">
+                    <div className="flex justify-between text-base-content/40 font-bold text-sm">
                         <div className="flex flex-col">
                             <span>Livraison</span>
                             {address?.is_valid && deliveryFee === 0 && (
@@ -719,30 +719,30 @@ export default function CheckoutPage() {
                         {address?.is_valid ? (
                             <div className="text-right">
                                 <span className="text-primary font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
-                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-slate-400">Simulation Max.</p>}
+                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-base-content/40">Simulation Max.</p>}
                             </div>
                         ) : (
-                            <span className="text-[10px] font-black uppercase text-slate-300 italic">Attente adresse</span>
+                            <span className="text-[10px] font-black uppercase text-base-content/30 italic">Attente adresse</span>
                         )}
                     </div>
                     {deliveryFee > 0 && (
-                        <p className="text-[9px] font-bold text-slate-400 leading-tight bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <p className="text-[9px] font-bold text-base-content/40 leading-tight bg-base-200 p-2 rounded-xl border border-base-200">
                             ✨ Notre système optimisera automatiquement le point de départ lors de la validation pour vous offrir le tarif de livraison le plus bas possible.
                         </p>
                     )}
                 </div>
 
-                <div className="pt-6 border-t border-slate-50">
+                <div className="pt-6 border-t border-base-200">
                     <div className="flex justify-between items-end">
-                        <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-1">À PAYER</span>
+                        <span className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40 mb-1">À PAYER</span>
                         <div className="text-right">
-                           {discount > 0 && <span className="block text-sm font-bold text-slate-300 line-through mb-[-4px]">{totalFromCart.toLocaleString()} F</span>}
+                           {discount > 0 && <span className="block text-sm font-bold text-base-content/30 line-through mb-[-4px]">{totalFromCart.toLocaleString()} F</span>}
                            {address?.is_valid ? (
-                               <span className="text-3xl md:text-5xl font-black text-slate-900 tracking-tightest">{finalTotal.toLocaleString()} <span className="text-base md:text-lg text-primary relative -top-2 md:-top-4 ml-1">F</span></span>
+                               <span className="text-3xl md:text-5xl font-black text-base-content tracking-tightest">{finalTotal.toLocaleString()} <span className="text-base md:text-lg text-primary relative -top-2 md:-top-4 ml-1">F</span></span>
                            ) : (
                                <div className="flex flex-col items-end">
-                                   <span className="text-3xl font-black text-slate-200 tracking-tighter">-- --- F</span>
-                                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Calculé après l'adresse</span>
+                                   <span className="text-3xl font-black text-base-content/20 tracking-tighter">-- --- F</span>
+                                   <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest mt-1">Calculé après l'adresse</span>
                                </div>
                            )}
                         </div>
@@ -751,7 +751,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="pt-6 border-t border-slate-800 relative z-10">
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
+                <div className="flex items-center gap-4 text-xs font-bold text-base-content/50">
                   <ShieldCheck size={20} className="text-primary" />
                   Paiement 100% sécurisé via serveurs cryptés.
                 </div>
@@ -764,9 +764,9 @@ export default function CheckoutPage() {
 
       {/* FedaPay Embed Modal */}
       <input type="checkbox" className="modal-toggle" checked={showFedaPayModal} readOnly />
-      <div className={`modal ${showFedaPayModal ? 'modal-open' : ''} bg-slate-900/95 backdrop-blur-xl p-4 md:p-6`}>
-        <div className="modal-box w-full max-w-2xl p-0 bg-white rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden relative shadow-2xl">
-          <div className="p-6 md:p-8 border-b flex justify-between items-center bg-slate-50">
+      <div className={`modal ${showFedaPayModal ? 'modal-open' : ''} bg-neutral/95 backdrop-blur-xl p-4 md:p-6`}>
+        <div className="modal-box w-full max-w-2xl p-0 bg-base-100 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden relative shadow-2xl">
+          <div className="p-6 md:p-8 border-b flex justify-between items-center bg-base-200">
             <div className="flex items-center gap-3 md:gap-4">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
                 <CreditCard size={20} className="md:w-6 md:h-6" />
@@ -777,7 +777,7 @@ export default function CheckoutPage() {
               </div>
             </div>
             <button
-              className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white rounded-full transition-all text-slate-400 hover:text-rose-500"
+              className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-base-200 rounded-full transition-all text-base-content/40 hover:text-rose-500"
               onClick={() => setShowFedaPayModal(false)}
             >
               <X size={20} className="md:w-6 md:h-6" />
