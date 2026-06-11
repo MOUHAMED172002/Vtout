@@ -23,16 +23,30 @@ export async function runMasterSeed() {
         // 1.5 Comprehensive Catalog Seed
         await runComprehensiveSeed();
 
-        // 2. Categories (via SQL - Optional if comprehensive seed covers it)
+        // 2. Categories V1 (Électronique, Informatique, Logiciels, Mode)
         const sqlPath = path.join(__dirname, 'import_categories.sql');
         if (fs.existsSync(sqlPath)) {
-            console.log('🌱 [SEED] Loading Categories...');
+            console.log('🌱 [SEED] Loading Categories V1...');
             const sql = fs.readFileSync(sqlPath, 'utf8');
             const queries = sql.split(';').map(q => q.trim()).filter(q => q.length > 0);
             for (let query of queries) {
                 try { await sequelize.query(query); } catch (err) {}
             }
-            console.log('✅ [SEED] Categories loaded.');
+            console.log('✅ [SEED] Categories V1 loaded.');
+        }
+
+        // 2b. Categories V2 (Maison, Beauté, Sport, Alimentation, Jouets, Auto,
+        //                    Livres, Art, Animalerie, Bébé, Musique, Énergie,
+        //                    Sécurité, Voyage, Bureau, Services)
+        const sqlPathV2 = path.join(__dirname, 'import_categories_v2.sql');
+        if (fs.existsSync(sqlPathV2)) {
+            console.log('🌱 [SEED] Loading Categories V2...');
+            const sqlV2 = fs.readFileSync(sqlPathV2, 'utf8');
+            const queriesV2 = sqlV2.split(';').map(q => q.trim()).filter(q => q.length > 0);
+            for (let query of queriesV2) {
+                try { await sequelize.query(query); } catch (err) {}
+            }
+            console.log('✅ [SEED] Categories V2 loaded.');
         }
 
         // 3. Contracts & Policies
