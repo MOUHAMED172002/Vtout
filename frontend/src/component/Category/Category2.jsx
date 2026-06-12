@@ -25,8 +25,8 @@ export default function Category2() {
     fetchCategories();
   }, []);
 
-  const rootIds = allCategories.filter(c => !c.parent_id).map(r => r.id);
-  const parents = allCategories.filter(c => rootIds.includes(c.parent_id));
+  // Level-1 (racines) → affichées comme cartes (27 cartes, pas 211)
+  const parents = allCategories.filter(c => !c.parent_id);
   const childrenByParent = allCategories.reduce((acc, c) => {
     if (c.parent_id) {
       acc[c.parent_id] = acc[c.parent_id] || [];
@@ -94,6 +94,7 @@ export default function Category2() {
                   <button
                     onClick={() => toggle(cat.id)}
                     className="w-full text-left flex items-center gap-5 p-8 group/btn"
+                    style={{ touchAction: 'manipulation' }}
                     aria-expanded={isOpen}
                   >
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl transition-all duration-500 shadow-inner ${isOpen ? 'bg-primary text-white scale-110 -rotate-6' : 'bg-base-200 text-white group-hover/btn:bg-primary/10 group-hover/btn:scale-105'}`}>
@@ -134,6 +135,7 @@ export default function Category2() {
                           {children.length === 0 ? (
                             <button
                               onClick={() => navigate(`/products-liste?category_id=${cat.id}`)}
+                              style={{ touchAction: 'manipulation' }}
                               className="w-full py-4 bg-neutral text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary transition-all shadow-lg shadow-slate-200"
                             >
                               Explorer la Collection
@@ -147,6 +149,7 @@ export default function Category2() {
                                   <button
                                     key={sub.id}
                                     onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
+                                    style={{ touchAction: 'manipulation' }}
                                     className="flex items-center gap-4 p-4 rounded-2xl border border-transparent hover:border-base-200 hover:bg-base-200 transition-all text-left group/sub"
                                   >
                                     <div className="w-10 h-10 rounded-xl bg-base-100 border border-base-200 flex items-center justify-center text-lg shadow-sm group-hover/sub:border-primary/20 group-hover/sub:text-primary transition-all">
