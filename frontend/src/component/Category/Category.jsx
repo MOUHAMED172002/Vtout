@@ -26,8 +26,7 @@ export default function Category() {
       try {
         const data = await getCategories();
         setAllCategories(data || []);
-        const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
-        const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
+        const parentCats = (data || []).filter(c => !c.parent_id);
         setParents(parentCats);
         if (parentCats.length > 0) setActiveParent(parentCats[0]);
       } catch (error) {

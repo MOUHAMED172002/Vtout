@@ -44,8 +44,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
         return tree.map(filterNode).filter(Boolean);
     }, [tree, searchTerm]);
 
-    const toggleExpand = (id, e) => {
-        e.stopPropagation();
+    const toggleExpand = (id) => {
         const newExpanded = new Set(expanded);
         if (newExpanded.has(id)) newExpanded.delete(id);
         else newExpanded.add(id);
@@ -60,18 +59,16 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
             <div key={node.id} className="select-none ">
                 <motion.div
                     initial={false}
-                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer hover:bg-slate-50 group ${depth === 0 ? 'mt-2' : ''
+                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer hover:bg-base-200 group ${depth === 0 ? 'mt-2' : ''
                         }`}
-                    onClick={() => onSelect(node)}
+                    style={{ touchAction: 'manipulation' }}
+                    onClick={() => hasChildren ? toggleExpand(node.id) : onSelect(node)}
                 >
                     <div style={{ paddingLeft: `${depth * 24}px` }} className="flex items-center gap-3 flex-1">
                         {hasChildren ? (
-                            <button
-                                onClick={(e) => toggleExpand(node.id, e)}
-                                className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-400 transition-colors"
-                            >
+                            <div className="w-6 h-6 flex items-center justify-center rounded-lg text-base-content/40">
                                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            </button>
+                            </div>
                         ) : (
                             <div className="w-6" />
                         )}
@@ -82,12 +79,12 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                         </div>
 
                         <div className="flex-1">
-                            <span className={`text-sm font-bold tracking-tight transition-colors ${isExpanded ? 'text-slate-900 font-black' : 'text-slate-600'
+                            <span className={`text-sm font-bold tracking-tight transition-colors ${isExpanded ? 'text-base-content font-black' : 'text-base-content/70'
                                 }`}>
                                 {node.name}
                             </span>
                             {node.parent_id && !searchTerm && (
-                                <span className="ml-2 text-[8px] font-black uppercase tracking-widest text-slate-300">Sous-catégorie</span>
+                                <span className="ml-2 text-[8px] font-black uppercase tracking-widest text-base-content/30">Sous-catégorie</span>
                             )}
                         </div>
 

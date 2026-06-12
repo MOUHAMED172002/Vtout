@@ -865,6 +865,7 @@ sequelize.authenticate()
                     { table: 'suppliers',             col: 'lng',                        def: { type: DataTypes.DECIMAL(11, 8), allowNull: true } },
                     // Marketplace updates (New)
                     { table: 'categories',            col: 'commission_rate',            def: { type: DataTypes.DECIMAL(5, 2),  allowNull: true } },
+                    { table: 'categories',            col: 'display_order',              def: { type: DataTypes.INTEGER,        defaultValue: 0, allowNull: true } },
                     { table: 'orders',                col: 'dispute_status',             def: { type: DataTypes.STRING(30),     allowNull: true } },
                     { table: 'orders',                col: 'is_parent',                  def: { type: DataTypes.BOOLEAN,        defaultValue: false } },
                     { table: 'orders',                col: 'parent_id',                  def: { type: DataTypes.CHAR(36),       allowNull: true } },

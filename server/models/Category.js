@@ -23,6 +23,11 @@ const Category = sequelize.define('Category', {
         allowNull: true,
         defaultValue: null,
         field: 'commission_rate' // Force mapping
+    },
+    display_order: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
     }
 }, {
     tableName: 'categories',

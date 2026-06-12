@@ -84,6 +84,13 @@ export const updateCategory = async (id, categoryData, token) => {
     return data;
 };
 
+export const reorderSubcategories = async (orderedIds, token) => {
+    const { data } = await api.post('/categories/reorder', { orderedIds }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};
+
 export const getAttributes = async () => {
     const { data } = await api.get('/attributes');
     return data;

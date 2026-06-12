@@ -1,13 +1,14 @@
-import { Category, Product } from '../models/index.js';
+import { Category, Product, sequelize } from '../models/index.js';
 
 
 export const getAllCategories = async (req, res) => {
     try {
         const categories = await Category.findAll({
             include: [
-                { model: Category, as: 'children', attributes: ['id'] },
-                { model: Product, as: 'products', attributes: ['id'] }
-            ]
+                { model: Category, as: 'children', attributes: ['id', 'name', 'display_order'], separate: true },
+                { model: Product, as: 'products', attributes: ['id'], separate: true }
+            ],
+            order: [['display_order', 'ASC'], ['id', 'ASC']]
         });
         res.json(categories);
     } catch (error) {
@@ -20,11 +21,11 @@ export const createCategory = async (req, res) => {
     try {
         const { name, parent_id, commission_rate } = req.body;
         // Use both to be safe with Sequelize underscored mode
-        const category = await Category.create({ 
-            name, 
-            parent_id, 
+        const category = await Category.create({
+            name,
+            parent_id,
             commission_rate: commission_rate,
-            commissionRate: commission_rate 
+            commissionRate: commission_rate
         });
         res.status(201).json(category);
     } catch (error) {
@@ -36,7 +37,7 @@ export const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, parent_id, commission_rate, icon } = req.body;
-        
+
         const category = await Category.findByPk(id);
         if (!category) return res.status(404).json({ error: 'Catégorie non trouvée' });
 
@@ -60,5 +61,23 @@ export const deleteCategory = async (req, res) => {
         res.json({ message: 'Catégorie supprimée' });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la suppression' });
+    }
+};
+
+export const reorderSubcategories = async (req, res) => {
+    try {
+        const { orderedIds } = req.body; // [{ id, display_order }]
+        if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+            return res.status(400).json({ error: 'orderedIds requis' });
+        }
+        for (const { id, display_order } of orderedIds) {
+            await sequelize.query(
+                'UPDATE categories SET display_order = :order WHERE id = :id',
+                { replacements: { order: display_order, id } }
+            );
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors du réordonnancement' });
     }
 };
