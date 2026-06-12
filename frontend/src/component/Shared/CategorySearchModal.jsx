@@ -44,12 +44,13 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
         return tree.map(filterNode).filter(Boolean);
     }, [tree, searchTerm]);
 
-    const toggleExpand = (id, e) => {
-        e.stopPropagation();
-        const newExpanded = new Set(expanded);
-        if (newExpanded.has(id)) newExpanded.delete(id);
-        else newExpanded.add(id);
-        setExpanded(newExpanded);
+    const toggleExpand = (id) => {
+        setExpanded(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
     };
 
     const renderNode = (node, depth = 0) => {
@@ -62,16 +63,13 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                     initial={false}
                     className={`flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer hover:bg-base-200 group ${depth === 0 ? 'mt-2' : ''
                         }`}
-                    onClick={() => onSelect(node)}
+                    onClick={() => hasChildren ? toggleExpand(node.id) : onSelect(node)}
                 >
                     <div style={{ paddingLeft: `${depth * 24}px` }} className="flex items-center gap-3 flex-1">
                         {hasChildren ? (
-                            <button
-                                onClick={(e) => toggleExpand(node.id, e)}
-                                className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-base-300 text-base-content/40 transition-colors"
-                            >
+                            <div className="w-6 h-6 flex items-center justify-center rounded-lg text-base-content/40">
                                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            </button>
+                            </div>
                         ) : (
                             <div className="w-6" />
                         )}
