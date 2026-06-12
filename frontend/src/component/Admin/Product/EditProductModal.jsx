@@ -211,8 +211,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
   const [selectedKitProductIds, setSelectedKitProductIds] = useState([]);
   const [kitSearchQuery, setKitSearchQuery] = useState('');
   const [volumePricingTiers, setVolumePricingTiers] = useState([
-    { qty: 3, discount: 10 },
-    { qty: 5, discount: 20 }
+    { min_qty: 3, discount: 10 },
+    { min_qty: 5, discount: 20 }
   ]);
 
   const [imageFiles, setImageFiles] = useState([]);
@@ -382,6 +382,11 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       try {
         parsedVolumePricing = typeof initialProduct.volume_pricing === 'string' ? JSON.parse(initialProduct.volume_pricing) : initialProduct.volume_pricing;
         if (Array.isArray(parsedVolumePricing) && parsedVolumePricing.length > 0) {
+          // Migrate legacy 'qty' key to 'min_qty'
+          parsedVolumePricing = parsedVolumePricing.map(t => ({
+            ...t,
+            min_qty: Math.max(1, t.min_qty ?? t.min ?? t.qty ?? 1),
+          }));
           setVolumePricingTiers(parsedVolumePricing);
           isVolumeEnabled = true;
         }
@@ -1094,16 +1099,16 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       const basePrice = parseFloat(watchPrice) || 0;
                       const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(basePrice * (1 - tier.discount / 100))) : 0;
                       const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
-                      const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.qty) : 0;
+                      const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.min_qty) : 0;
                       return (
                         <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                           <div className="space-y-3">
                             <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
-                              <input type="number" value={tier.qty} onChange={e => {
+                              <input type="number" min="1" value={tier.min_qty} onChange={e => {
                                 const copy = [...volumePricingTiers];
-                                copy[idx].qty = parseInt(e.target.value) || 0;
+                                copy[idx].min_qty = Math.max(1, parseInt(e.target.value) || 1);
                                 setVolumePricingTiers(copy);
                               }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
                             </div>
@@ -1123,14 +1128,14 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                                 <p className="uppercase tracking-widest text-slate-400">Prix unitaire après remise</p>
                                 <p className="text-sm text-slate-900 mt-1">{discountedUnitPrice.toLocaleString()} F</p>
                                 <p className="mt-2 text-[10px] text-slate-500">Économie par unité : {savings.toLocaleString()} F</p>
-                                <p className="text-[10px] text-slate-500">Économie totale à {tier.qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
+                                <p className="text-[10px] text-slate-500">Économie totale à {tier.min_qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
                                 {/* Seller revenue estimation */}
                                 <div className="mt-3 pt-3 border-t border-slate-100">
                                   <p className="uppercase tracking-widest text-slate-400">Revenu estimé & gains</p>
                                   <p className="text-sm text-slate-900 mt-1">Revenu estimé avant frais: {discountedUnitPrice.toLocaleString()} F</p>
                                   <p className="text-[10px] text-slate-500">Revenu après commission ({commissionRate}%): {Math.round(discountedUnitPrice * (1 - (commissionRate || 0) / 100)).toLocaleString()} F / unité</p>
                                   <p className="text-[10px] text-slate-500">Gain net estimé (après commission & livraison ≈ {currentDeliveryFee} F): {Math.max(0, Math.round((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee)).toLocaleString()} F / unité</p>
-                                  <p className="text-[10px] text-slate-500">Gain net estimé pour {tier.qty} unités : {Math.max(0, Math.round(((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee) * tier.qty)).toLocaleString()} F</p>
+                                  <p className="text-[10px] text-slate-500">Gain net estimé pour {tier.min_qty} unités : {Math.max(0, Math.round(((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee) * tier.min_qty)).toLocaleString()} F</p>
                                 </div>
                               </>
                             ) : (
@@ -1143,7 +1148,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       );
                     })}
                     </div>
-                    <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
+                    <button type="button" onClick={() => setVolumePricingTiers([...volumePricingTiers, { min_qty: 2, discount: 5 }])} className="btn btn-xs btn-outline btn-primary rounded-xl px-4 py-2 h-auto text-[9px] font-black uppercase tracking-widest">+ Ajouter un palier</button>
                   </motion.div>
                 )}
               </div>
