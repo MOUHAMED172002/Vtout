@@ -29,13 +29,15 @@ export default function CartPage() {
 
     if (item.product && item.product.volume_pricing) {
       try {
-        const tiers = typeof item.product.volume_pricing === 'string'
+        const raw = typeof item.product.volume_pricing === 'string'
           ? JSON.parse(item.product.volume_pricing)
           : item.product.volume_pricing;
-          
-        if (Array.isArray(tiers) && tiers.length > 0) {
-          const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
-          const metTier = sortedTiers.find(t => item.quantity >= t.qty);
+
+        if (Array.isArray(raw) && raw.length > 0) {
+          const normalizedTiers = raw
+            .map(t => ({ ...t, min_qty: Math.max(1, t.min_qty ?? t.min ?? t.qty ?? 1) }))
+            .sort((a, b) => b.min_qty - a.min_qty);
+          const metTier = normalizedTiers.find(t => item.quantity >= t.min_qty);
           if (metTier) {
             discountPercent = parseFloat(metTier.discount || 0);
             if (discountPercent > 0) {
