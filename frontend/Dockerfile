@@ -6,8 +6,10 @@ WORKDIR /app
 # On copie depuis le sous-dossier frontend
 COPY frontend/package*.json ./
 
-# Configuration pour rendre npm plus résistant aux coupures réseau
-RUN npm config set fetch-retries 5 && \
+# Supprime node_modules stale (évite ETXTBSY sur esbuild au redéploiement)
+# puis installe proprement
+RUN rm -rf node_modules && \
+    npm config set fetch-retries 5 && \
     npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm ci
