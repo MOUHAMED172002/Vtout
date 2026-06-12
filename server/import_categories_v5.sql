@@ -1035,8 +1035,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (2241,'Jouets Piscine Enfants',418,'🦆'),
 (2242,'Pompes à Piscine',418,'💧'),
 (2243,'Produits Traitement Eau Piscine',418,'🧪'),
-(2244,'Maillots de Bain Homme',418,'🩲'),
-(2245,'Maillots de Bain Femme',418,'🩱'),
 (2246,'Maillots de Bain Enfants',418,'🩱'),
 (2247,'Lunettes de Plongée',418,'🥽'),
 (2248,'Accessoires Aquagym',418,'🏋️');
@@ -1568,7 +1566,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (2684,'Housses de Protection Peinture',563,'🎨'),
 (2685,'Anti-mousse & Traitement Pneus',563,'🔵'),
 (2686,'Rénovateur Phares Ternis',563,'💡'),
-(2687,'Aspirateurs Auto',563,'🌀'),
 (2688,'Produits Anti-pluie Vitres',563,'🌧️');
 
 -- ── 567. OUTILS & ÉQUIPEMENTS AUTO (5→20, +15) ───────────────────────────────
@@ -2204,7 +2201,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (3207,'Groupes Bi-Fuel (essence + gaz)',747,'🔄'),
 (3208,'Groupes Diesel Monocylindre',747,'⛽'),
 (3209,'Groupes Triphasés Professionnels',747,'⚡'),
-(3210,'Stabilisateurs de Tension',747,'📊'),
 (3211,'Onduleurs On-line Double Conversion',747,'⚡'),
 (3212,'Onduleurs Line Interactive',747,'⚡'),
 (3213,'Batteries UPS & Remplacement',747,'🔋'),
@@ -3660,7 +3656,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (4411,'Ballons Handball',1195,'🤾'),
 (4412,'Buts Handball',1195,'🥅'),
 (4413,'Tenues Handball',1195,'👕'),
-(4414,'Chaussures Handball',1195,'👟'),
 (4415,'Genouillères Handball',1195,'🦵'),
 (4416,'Protège-poignets Handball',1195,'🤜'),
 (4417,'Gardien Handball (Équipement)',1195,'🧤'),
@@ -3703,7 +3698,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 (4448,'Plots & Marqueurs',1202,'🟠'),
 (4449,'Tapis Gym Scolaire',1202,'🟦'),
 (4450,'Haies Basses',1202,'🚧'),
-(4451,'Filets Multi-Sports',1202,'🕸️'),
 (4452,'Dossards Scolaires',1202,'🏷️'),
 (4453,'Ballons d\'EPS',1202,'🏈'),
 (4454,'Bancs de Musculation Légers',1202,'🏋️'),
@@ -3714,7 +3708,6 @@ INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
 
 -- ── 1205. BILLARD (5→20, +15)
 INSERT IGNORE INTO categories (id, name, parent_id, icon) VALUES
-(4459,'Tables de Billard',1205,'🎱'),
 (4460,'Queues de Billard',1205,'🎯'),
 (4461,'Boules de Billard (Set)',1205,'🎱'),
 (4462,'Triangle & Rack',1205,'🔺'),
