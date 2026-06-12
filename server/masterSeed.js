@@ -24,7 +24,7 @@ export async function runMasterSeed() {
         await runComprehensiveSeed();
 
         // 2. Categories (V1 → V4, idempotent INSERT IGNORE)
-        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql', 'import_categories_v4.sql', 'import_categories_v5.sql']) {
+        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql', 'import_categories_v4.sql', 'import_categories_v5.sql', 'import_categories_v6.sql']) {
             const p = path.join(__dirname, file);
             if (fs.existsSync(p)) {
                 console.log(`🌱 [SEED] Loading ${file}...`);
