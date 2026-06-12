@@ -154,7 +154,7 @@ export default function ProductPages() {
   }, [variants, selectedAttributes]);
 
   const isSaleActive = useMemo(() => {
-    return product?.old_price > product?.price;
+    return Number(product?.old_price) > Number(product?.price);
   }, [product]);
 
   const currentStock = useMemo(() => {
