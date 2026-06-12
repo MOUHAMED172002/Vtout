@@ -1,13 +1,14 @@
-import { Category, Product } from '../models/index.js';
+import { Category, Product, sequelize } from '../models/index.js';
 
 
 export const getAllCategories = async (req, res) => {
     try {
         const categories = await Category.findAll({
             include: [
-                { model: Category, as: 'children', attributes: ['id'] },
+                { model: Category, as: 'children', attributes: ['id', 'name', 'display_order'] },
                 { model: Product, as: 'products', attributes: ['id'] }
-            ]
+            ],
+            order: [['display_order', 'ASC'], ['id', 'ASC']]
         });
         res.json(categories);
     } catch (error) {
@@ -60,5 +61,23 @@ export const deleteCategory = async (req, res) => {
         res.json({ message: 'Catégorie supprimée' });
     } catch (error) {
         res.status(500).json({ error: 'Erreur lors de la suppression' });
+    }
+};
+
+export const reorderSubcategories = async (req, res) => {
+    try {
+        const { orderedIds } = req.body; // [{ id, display_order }]
+        if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+            return res.status(400).json({ error: 'orderedIds requis' });
+        }
+        for (const { id, display_order } of orderedIds) {
+            await sequelize.query(
+                'UPDATE categories SET display_order = :order WHERE id = :id',
+                { replacements: { order: display_order, id } }
+            );
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors du réordonnancement' });
     }
 };

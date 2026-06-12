@@ -14,6 +14,7 @@ import {
   Percent
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SubcategoryOrderModal from "./SubcategoryOrderModal";
 
 export default function CategorySelect() {
   const { getToken } = useAuth();
@@ -25,6 +26,7 @@ export default function CategorySelect() {
   const [newCommission, setNewCommission] = useState(15);
   const [newParent, setNewParent] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [orderModal, setOrderModal] = useState(null);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -106,6 +108,7 @@ export default function CategorySelect() {
   };
 
   return (
+    <>
     <div className="space-y-10 animate-in fade-in duration-700 pb-20 z-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
@@ -196,7 +199,8 @@ export default function CategorySelect() {
           categories.map((c) => {
             const parent = c.parent_id ? categoryMap[c.parent_id] : null;
             const prodCount = (c.products || []).length;
-            const hasChildren = (c.children || []).length > 0;
+            const childrenCount = (c.children || []).length;
+            const hasChildren = childrenCount > 0;
             return (
               <motion.div
                 key={c.id}
@@ -227,7 +231,7 @@ export default function CategorySelect() {
                 </div>
 
                 <div className="mt-8 grid grid-cols-2 gap-4 border-t border-base-200 pt-6">
-                  <button 
+                  <button
                     onClick={() => {
                         const rate = prompt("Nouvelle commission (%) pour " + c.name, c.commission_rate || 15);
                         if (rate !== null) {
@@ -248,6 +252,15 @@ export default function CategorySelect() {
                     <span className="text-[10px] font-black uppercase text-base-content/30 tracking-widest">Produits</span>
                     <span className="text-lg font-black text-base-content">{prodCount}</span>
                   </div>
+                  {hasChildren && (
+                    <button
+                      onClick={() => setOrderModal(c)}
+                      className="col-span-2 flex items-center justify-center gap-2 p-3 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-2xl text-primary font-black text-xs uppercase tracking-widest transition-colors"
+                    >
+                      <FolderPlus size={14} />
+                      Ordonner les sous-catégories ({childrenCount})
+                    </button>
+                  )}
                 </div>
               </motion.div>
             );
@@ -259,5 +272,14 @@ export default function CategorySelect() {
         )}
       </div>
     </div>
+
+    {orderModal && (
+      <SubcategoryOrderModal
+        parent={orderModal}
+        onClose={() => setOrderModal(null)}
+        onSaved={fetchAll}
+      />
+    )}
+    </>
   );
 }
