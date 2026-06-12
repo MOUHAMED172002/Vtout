@@ -26,8 +26,8 @@ export default function Category() {
       try {
         const data = await getCategories();
         setAllCategories(data || []);
-        const rootIds = (data || []).filter(c => !c.parent_id).map(r => r.id);
-        const parentCats = (data || []).filter(c => rootIds.includes(c.parent_id));
+        // Niveau-1 (racines) comme boutons du carousel — pas niveau-2
+        const parentCats = (data || []).filter(c => !c.parent_id);
         setParents(parentCats);
         if (parentCats.length > 0) setActiveParent(parentCats[0]);
       } catch (error) {
@@ -116,6 +116,7 @@ export default function Category() {
                 whileTap={{ scale: 0.95 }}
                 onMouseMove={(e) => handleMouseMove(e, cat.id)}
                 onClick={() => setActiveParent(cat)}
+                style={{ touchAction: 'manipulation' }}
                 className={`flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group ${isActive
                   ? 'bg-neutral border-neutral shadow-xl shadow-slate-200 text-white'
                   : 'bg-base-100 border-base-200 text-base-content/40 hover:border-primary/30 hover:bg-base-200'
@@ -183,6 +184,7 @@ export default function Category() {
                     transition={{ delay: idx * 0.05 }}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
+                    style={{ touchAction: 'manipulation' }}
                     className="flex-none min-w-[160px] md:min-w-[200px] bg-base-100 border border-base-200 rounded-2xl p-4 flex items-center gap-3 hover:bg-base-200 hover:border-primary/20 transition-all group"
                   >
                     <div className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-xl group-hover:bg-primary transition-all shadow-inner">
