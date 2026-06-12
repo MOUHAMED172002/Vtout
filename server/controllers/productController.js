@@ -126,23 +126,19 @@ export const getAllProducts = async (req, res) => {
         if (isFlashSale === 'true') {
             where.is_flash_sale = true;
             where.flash_sale_end = { [Op.gt]: new Date() };
-            where.supplier_id = { [Op.not]: null };
         }
 
         if (isKit === 'true') {
             where.is_kit = true;
-            where.supplier_id = { [Op.not]: null };
         }
 
         if (hasVolumePricing === 'true') {
             where.volume_pricing = { [Op.not]: null };
-            where.supplier_id = { [Op.not]: null };
         }
 
         if (isPromo === 'true') {
             where.is_flash_sale = false;
             where.is_kit = false;
-            where.supplier_id = { [Op.not]: null };
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push(
                 sequelize.where(sequelize.col('Product.old_price'), '>', 0)
@@ -153,7 +149,6 @@ export const getAllProducts = async (req, res) => {
         }
 
         if (isAnyPromo === 'true') {
-            where.supplier_id = { [Op.not]: null };
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push({
                 [Op.or]: [
@@ -548,8 +543,17 @@ export const createProduct = async (req, res) => {
 
         if (calculatedSupplierPrice !== undefined && calculatedSupplierPrice !== null && Number(calculatedSupplierPrice) > 0) {
             const supplierPrice = Number(calculatedSupplierPrice);
-            finalPrice = computePublicPrice(supplierPrice, tiers);
+            // Suppliers: always compute public price from supplier_price.
+            // Admins: only compute when no explicit price was provided (price=0/missing).
+            if (isSupplier || !finalPrice || Number(finalPrice) <= 0) {
+                finalPrice = computePublicPrice(supplierPrice, tiers);
+            }
             calculatedSupplierPrice = Math.round(supplierPrice);
+            // If this is a supplier flow AND an old_price was provided, treat it as an
+            // old supplier price and convert to public price so old_price > price holds.
+            if (isSupplier && old_price && Number(old_price) > 0) {
+                old_price = computePublicPrice(Number(old_price), tiers);
+            }
         } else if (finalPrice !== undefined && finalPrice > 0) {
             const decomposed = decomposePublicPrice(finalPrice, commissionRate, tiers);
             calculatedSupplierPrice = Math.round(decomposed.supplierPrice);
