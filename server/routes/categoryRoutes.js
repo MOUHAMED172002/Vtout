@@ -6,6 +6,7 @@ const router = express.Router();
 
 
 router.get('/', categoryController.getAllCategories);
+router.post('/reorder', requireAuth, requireAdmin, categoryController.reorderSubcategories);
 router.post('/', requireAuth, requireAdmin, categoryController.createCategory);
 router.put('/:id', requireAuth, requireAdmin, categoryController.updateCategory);
 router.delete('/:id', requireAuth, requireAdmin, categoryController.deleteCategory);
