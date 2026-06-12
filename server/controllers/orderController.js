@@ -380,8 +380,10 @@ export const createOrder = async (req, res) => {
                         ? JSON.parse(product.volume_pricing)
                         : product.volume_pricing;
                     if (Array.isArray(tiers) && tiers.length > 0) {
-                        const sortedTiers = [...tiers].sort((a, b) => b.qty - a.qty);
-                        const metTier = sortedTiers.find(t => item.quantity >= t.qty);
+                        const normalizedTiers = tiers
+                            .map(t => ({ ...t, min_qty: Math.max(1, t.min_qty ?? t.min ?? t.qty ?? 1) }))
+                            .sort((a, b) => b.min_qty - a.min_qty);
+                        const metTier = normalizedTiers.find(t => item.quantity >= t.min_qty);
                         if (metTier) {
                             const discountPercent = parseFloat(metTier.discount || 0);
                             if (discountPercent > 0) {
