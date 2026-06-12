@@ -392,13 +392,14 @@ function VolumeLayout({ product, isDark, navigate }) {
   const images = product.images || [];
   const mainImg = images[activeImg]?.image_url;
   const price = Number(product.price || 0);
-  const tiers = parseVolumePricing(product.volume_pricing).sort((a, b) => (a.min_qty ?? a.min ?? 0) - (b.min_qty ?? b.min ?? 0));
+  const tiers = parseVolumePricing(product.volume_pricing)
+    .map(t => ({ ...t, min_qty: Math.max(1, t.min_qty ?? t.min ?? t.qty ?? 1) }))
+    .sort((a, b) => a.min_qty - b.min_qty);
 
   const getActiveTier = (q) => {
     let active = null;
     for (const tier of tiers) {
-      const min = tier.min_qty ?? tier.min ?? 0;
-      if (q >= min) active = tier;
+      if (q >= tier.min_qty) active = tier;
     }
     return active;
   };
@@ -408,7 +409,7 @@ function VolumeLayout({ product, isDark, navigate }) {
   const unitPrice = discount > 0 ? Math.round(price * (1 - discount / 100)) : price;
   const totalPrice = unitPrice * qty;
   const savings = (price - unitPrice) * qty;
-  const nextTier = tiers.find(t => (t.min_qty ?? t.min ?? 0) > qty);
+  const nextTier = tiers.find(t => t.min_qty > qty);
   const bestDiscount = tiers.reduce((max, t) => Math.max(max, t.discount ?? 0), 0);
 
   const handleBuy = () => navigate("/checkout", {
@@ -476,7 +477,7 @@ function VolumeLayout({ product, isDark, navigate }) {
                 </div>
                 <div className="divide-y" style={{ borderColor: isDark ? '#334155' : '#dbeafe' }}>
                   {tiers.map((tier, i) => {
-                    const min = tier.min_qty ?? tier.min ?? 0;
+                    const min = tier.min_qty;
                     const disc = tier.discount ?? 0;
                     const isActive = activeTier === tier;
                     return (
@@ -549,7 +550,7 @@ function VolumeLayout({ product, isDark, navigate }) {
               {nextTier && (
                 <div className={`mt-3 flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                   <Package size={12} />
-                  Ajoutez {(nextTier.min_qty ?? nextTier.min ?? 0) - qty} article{(nextTier.min_qty ?? nextTier.min ?? 0) - qty > 1 ? 's' : ''} pour -{nextTier.discount ?? '?'}% !
+                  Ajoutez {nextTier.min_qty - qty} article{nextTier.min_qty - qty > 1 ? 's' : ''} pour -{nextTier.discount ?? '?'}% !
                 </div>
               )}
             </div>
