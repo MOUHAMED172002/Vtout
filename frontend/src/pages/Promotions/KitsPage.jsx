@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
-import { getProducts } from "../../services/productService";
+import { getProducts, getProductById } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
 import { Package, ShieldAlert, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -173,37 +173,32 @@ export default function KitsPage() {
         const realKitsData = await getProducts({ isKit: 'true', limit: 20 });
         const realKitProducts = realKitsData.products || realKitsData || [];
 
-        const allProductsData = await getProducts({ limit: 40 });
-        const allProducts = allProductsData.products || allProductsData || [];
+        // Bug 1 fix: fetch each component by its exact ID — never fish in a limited list
+        const builtKits = await Promise.all(realKitProducts.map(async (p) => {
+          let itemIds = [];
+          if (p.kit_items) {
+            try { itemIds = typeof p.kit_items === 'string' ? JSON.parse(p.kit_items) : p.kit_items; } catch (e) {}
+          }
 
-        let builtKits = [];
+          const resolvedItems = (
+            await Promise.all(itemIds.map(id => getProductById(id).catch(() => null)))
+          ).filter(Boolean);
 
-        if (realKitProducts.length > 0) {
-          builtKits = realKitProducts.map(p => {
-            let itemIds = [];
-            if (p.kit_items) {
-              try { itemIds = typeof p.kit_items === 'string' ? JSON.parse(p.kit_items) : p.kit_items; } catch (e) {}
-            }
-            const resolvedItems = Array.isArray(itemIds)
-              ? itemIds.map(id => allProducts.find(item => item.id === id)).filter(Boolean)
-              : [];
-            const items = resolvedItems.length > 0 ? resolvedItems : allProducts.slice(0, 2);
-            const originalPrice = items.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+          const originalPrice = resolvedItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
-            return {
-              id: p.id,
-              name: p.name,
-              description: p.description || "",
-              tag: "Offre Vendeur",
-              discountBadge: p.old_price && p.price ? `Économie de ${Math.round(p.old_price - p.price).toLocaleString()} F` : "Lot Économique",
-              items,
-              originalPrice: originalPrice || parseFloat(p.old_price || p.price),
-              kitPrice: parseFloat(p.price),
-              isReal: true,
-              productObj: p,
-            };
-          });
-        }
+          return {
+            id: p.id,
+            name: p.name,
+            description: p.description || "",
+            tag: "Offre Vendeur",
+            discountBadge: p.old_price && p.price ? `Économie de ${Math.round(p.old_price - p.price).toLocaleString()} F` : "Lot Économique",
+            items: resolvedItems,
+            originalPrice: originalPrice || parseFloat(p.old_price || p.price),
+            kitPrice: parseFloat(p.price),
+            isReal: true,
+            productObj: p,
+          };
+        }));
 
         setKits(builtKits);
       } catch (err) {
@@ -219,20 +214,20 @@ export default function KitsPage() {
     e.stopPropagation();
     if (!addToCart) return;
 
-    const items = kit.items.length > 0 ? kit.items : [kit.productObj];
-    const totalOriginal = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
-    const ratio = totalOriginal > 0 ? kit.kitPrice / totalOriginal : 1;
+    // Bug 3 fix: block if kit product is explicitly out of stock
+    const stock = kit.productObj.stock;
+    if (stock !== null && stock !== undefined && Number(stock) <= 0) {
+      toast.error("Ce kit est en rupture de stock.");
+      return;
+    }
 
-    items.forEach(item => {
-      const itemPrice = Math.round(Number(item.price || 0) * ratio);
-      addToCart({
-        ...item,
-        price: itemPrice,
-        price_snapshot: itemPrice,
-        image_url: item.image_url || item.images?.[0]?.image_url || null,
-      }, 1);
-    });
-    toast.success(`Pack "${kit.name}" ajouté au panier !`);
+    // Bug 2 fix: add the kit product itself (not its components one by one)
+    // The server reads product.price from DB which equals the kit price set by the admin —
+    // adding components individually with a client-computed ratio is ignored by the server.
+    addToCart({
+      ...kit.productObj,
+      image_url: kit.productObj.images?.[0]?.image_url || null,
+    }, 1);
   };
 
   const goToDetail = (kit) => {
