@@ -858,6 +858,7 @@ sequelize.authenticate()
                     { table: 'cart_items',            col: 'price_snapshot',             def: { type: DataTypes.DECIMAL(15, 2), allowNull: true } },
                     { table: 'cart_items',            col: 'image_url',                  def: { type: DataTypes.TEXT,            allowNull: true } },
                     { table: 'cart_items',            col: 'selected_attributes',        def: { type: DataTypes.JSON,            defaultValue: {} } },
+                    { table: 'cart_items',            col: 'kit_id',                     def: { type: DataTypes.CHAR(36),        allowNull: true } },
                     // supplier_products
                     { table: 'supplier_products',     col: 'available',                  def: { type: DataTypes.BOOLEAN,         defaultValue: true } },
                     { table: 'supplier_products',     col: 'approval_status',            def: { type: DataTypes.STRING,          defaultValue: 'En attente' } },

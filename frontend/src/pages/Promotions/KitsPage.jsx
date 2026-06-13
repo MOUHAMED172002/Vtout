@@ -214,20 +214,29 @@ export default function KitsPage() {
     e.stopPropagation();
     if (!addToCart) return;
 
-    // Bug 3 fix: block if kit product is explicitly out of stock
     const stock = kit.productObj.stock;
     if (stock !== null && stock !== undefined && Number(stock) <= 0) {
       toast.error("Ce kit est en rupture de stock.");
       return;
     }
 
-    // Bug 2 fix: add the kit product itself (not its components one by one)
-    // The server reads product.price from DB which equals the kit price set by the admin —
-    // adding components individually with a client-computed ratio is ignored by the server.
-    addToCart({
-      ...kit.productObj,
-      image_url: kit.productObj.images?.[0]?.image_url || null,
-    }, 1);
+    const components = kit.items.length > 0 ? kit.items : [kit.productObj];
+    const totalOriginal = components.reduce((sum, c) => sum + Number(c.price || 0), 0);
+    const ratio = totalOriginal > 0 ? kit.kitPrice / totalOriginal : 1;
+
+    // Add each component individually.
+    // kit_id lets the server recompute the ratio from DB prices at order time.
+    // price_snapshot (pro-rated) lets CartPage display the discounted price.
+    // Removing any one component clears kit_id on all siblings → prices revert to normal.
+    components.forEach(component => {
+      const proRatedPrice = Math.round(Number(component.price || 0) * ratio);
+      addToCart({
+        ...component,
+        kit_id: kit.productObj.id,
+        price_snapshot: proRatedPrice,
+        image_url: component.image_url || component.images?.[0]?.image_url || null,
+      }, 1);
+    });
   };
 
   const goToDetail = (kit) => {

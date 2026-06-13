@@ -26,6 +26,26 @@ export default function CartPage() {
     let discountedPrice = originalPrice;
     let discountPercent = 0;
     let isVolumeDiscount = false;
+    let isKitDiscount = false;
+
+    // Kit pricing: price_snapshot holds the pro-rated kit price stored at add time.
+    // kit_id is cleared by the server when any sibling component is removed,
+    // so this only triggers when the full kit is still in the cart.
+    if (item.kit_id && item.price_snapshot) {
+      const kitPrice = parseFloat(item.price_snapshot);
+      if (kitPrice > 0 && kitPrice < originalPrice) {
+        discountedPrice = kitPrice;
+        discountPercent = Math.round(((originalPrice - kitPrice) / originalPrice) * 100);
+        isKitDiscount = true;
+      }
+      return {
+        originalPrice,
+        discountedPrice: Math.round(discountedPrice),
+        discountPercent,
+        isVolumeDiscount,
+        isKitDiscount
+      };
+    }
 
     if (item.product && item.product.volume_pricing) {
       try {
@@ -54,7 +74,8 @@ export default function CartPage() {
       originalPrice,
       discountedPrice: Math.round(discountedPrice),
       discountPercent,
-      isVolumeDiscount
+      isVolumeDiscount,
+      isKitDiscount
     };
   };
 
@@ -207,8 +228,8 @@ export default function CartPage() {
                             })()}
                           </div>
                           {(() => {
-                            const { originalPrice, discountedPrice, discountPercent, isVolumeDiscount } = getDiscountInfo(item);
-                            if (isVolumeDiscount) {
+                            const { originalPrice, discountedPrice, discountPercent, isVolumeDiscount, isKitDiscount } = getDiscountInfo(item);
+                            if (isVolumeDiscount || isKitDiscount) {
                               return (
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-3 justify-center md:justify-start">
@@ -220,7 +241,7 @@ export default function CartPage() {
                                     </span>
                                   </div>
                                   <span className="inline-block text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full uppercase tracking-tighter">
-                                    🎉 Offre de Gros (-{discountPercent}%)
+                                    {isKitDiscount ? `📦 Prix Kit (-${discountPercent}%)` : `🎉 Offre de Gros (-${discountPercent}%)`}
                                   </span>
                                 </div>
                               );

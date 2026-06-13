@@ -396,6 +396,30 @@ export const createOrder = async (req, res) => {
                 }
             }
 
+            // Kit pricing: apply discount server-side from DB prices — never trust client ratio.
+            // Only applies when ALL kit components are present in this order.
+            if (item.kit_id) {
+                try {
+                    const kitProduct = await Product.findByPk(item.kit_id, { attributes: ['id', 'price', 'kit_items'], transaction });
+                    if (kitProduct && parseFloat(kitProduct.price) > 0) {
+                        let kitItemIds = [];
+                        try { kitItemIds = typeof kitProduct.kit_items === 'string' ? JSON.parse(kitProduct.kit_items) : (kitProduct.kit_items || []); } catch (_) {}
+                        const orderProductIds = items.map(i => String(i.product_id));
+                        const allPresent = kitItemIds.length > 0 && kitItemIds.every(id => orderProductIds.includes(String(id)));
+                        if (allPresent) {
+                            const kitComponents = await Product.findAll({ where: { id: kitItemIds }, attributes: ['id', 'price'], transaction });
+                            const totalOriginal = kitComponents.reduce((sum, c) => sum + parseFloat(c.price || 0), 0);
+                            if (totalOriginal > 0) {
+                                const ratio = parseFloat(kitProduct.price) / totalOriginal;
+                                unitPrice = Math.round(basePrice * ratio);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error applying kit pricing during order creation:", e);
+                }
+            }
+
             subtotal += unitPrice * item.quantity;
             enrichedItems.push({ product, item, unitPrice, basePrice, variantData });
         }

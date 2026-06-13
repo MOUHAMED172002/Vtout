@@ -36,7 +36,7 @@ export const getMyCart = async (req, res) => {
 export const addToCart = async (req, res) => {
     try {
         const { userId } = req.auth;
-        const { product_id, variant_id = null, quantity = 1, price_snapshot, image_url, selected_attributes = {} } = req.body;
+        const { product_id, variant_id = null, quantity = 1, price_snapshot, image_url, selected_attributes = {}, kit_id = null } = req.body;
 
         const [item, created] = await Cart.findOrCreate({
             where: { user_id: userId, product_id, variant_id },
@@ -44,7 +44,8 @@ export const addToCart = async (req, res) => {
                 quantity,
                 price_snapshot,
                 image_url,
-                selected_attributes
+                selected_attributes,
+                kit_id
             }
         });
 
@@ -53,6 +54,7 @@ export const addToCart = async (req, res) => {
             if (price_snapshot) item.price_snapshot = price_snapshot;
             if (image_url) item.image_url = image_url;
             if (selected_attributes) item.selected_attributes = selected_attributes;
+            if (kit_id !== undefined) item.kit_id = kit_id;
             await item.save();
         }
 
@@ -68,9 +70,17 @@ export const removeFromCart = async (req, res) => {
         const { userId } = req.auth;
         const { id } = req.params;
 
-        await Cart.destroy({
-            where: { id, user_id: userId }
-        });
+        // If this item belongs to a kit, invalidate all sibling kit items
+        // so their prices revert to normal (kit discount requires all components)
+        const item = await Cart.findOne({ where: { id, user_id: userId } });
+        if (item?.kit_id) {
+            await Cart.update(
+                { kit_id: null, price_snapshot: null },
+                { where: { user_id: userId, kit_id: item.kit_id } }
+            );
+        }
+
+        await Cart.destroy({ where: { id, user_id: userId } });
 
         res.json({ message: 'Article retiré du panier' });
     } catch (error) {
