@@ -52,7 +52,7 @@ export default function Favorites() {
           <Heart className="text-rose-500 w-8 h-8 fill-rose-500" />
         </div>
       </div>
-      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Récupération de vos envies...</p>
+      <p className="text-xs font-black text-base-content/40 uppercase tracking-[0.3em] animate-pulse">Récupération de vos envies...</p>
     </div>
   );
 
@@ -64,13 +64,13 @@ export default function Favorites() {
           <div className="flex items-center gap-2 text-rose-500 font-black uppercase text-[10px] tracking-[0.3em]">
             <Stars size={14} /> Wishlist
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Mes <span className="text-slate-400">Favoris.</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg leading-relaxed">Retrouvez tous les articles qui vous ont fait craquer et gérez votre liste de souhaits.</p>
+          <h1 className="text-3xl md:text-5xl font-black text-base-content tracking-tighter">Mes <span className="text-base-content/40">Favoris.</span></h1>
+          <p className="text-base-content/50 font-bold max-w-lg leading-relaxed">Retrouvez tous les articles qui vous ont fait craquer et gérez votre liste de souhaits.</p>
         </div>
 
         <button
           onClick={() => navigate('/products-liste')}
-          className="group flex items-center gap-3 px-8 py-4 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-600 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+          className="group flex items-center gap-3 px-8 py-4 bg-base-100 border border-base-200 rounded-2xl font-black text-xs uppercase tracking-widest text-base-content/70 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Retour shopping
@@ -84,7 +84,7 @@ export default function Favorites() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-[3rem] border border-slate-100 p-24 text-center space-y-8 relative overflow-hidden"
+            className="bg-base-100 rounded-[3rem] border border-base-200 p-24 text-center space-y-8 relative overflow-hidden"
           >
             {/* Decorative element */}
             <div className="absolute top-0 right-0 p-10 opacity-5 text-rose-500 rotate-12">
@@ -95,8 +95,8 @@ export default function Favorites() {
               <Heart size={40} className="group-hover:scale-110 transition-transform" />
             </div>
             <div className="space-y-3 relative z-10">
-              <h3 className="text-2xl font-black text-slate-900">Votre liste est vide</h3>
-              <p className="text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">Naviguez sur le site et ajoutez des produits à vos favoris pour les retrouver plus tard.</p>
+              <h3 className="text-2xl font-black text-base-content">Votre liste est vide</h3>
+              <p className="text-base-content/40 font-bold max-w-sm mx-auto leading-relaxed">Naviguez sur le site et ajoutez des produits à vos favoris pour les retrouver plus tard.</p>
             </div>
             <button
               onClick={() => navigate('/products-liste')}
@@ -137,7 +137,7 @@ export default function Favorites() {
                       e.preventDefault();
                       removeFavorite(product.id);
                     }}
-                    className="absolute top-4 right-4 w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-rose-500 hover:text-white border border-rose-50"
+                    className="absolute top-4 right-4 w-12 h-12 bg-base-100/90 backdrop-blur-md rounded-2xl shadow-2xl flex items-center justify-center text-rose-500 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-rose-500 hover:text-white border border-rose-50"
                   >
                     <Trash2 size={20} />
                   </motion.button>

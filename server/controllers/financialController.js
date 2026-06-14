@@ -243,51 +243,46 @@ export const adminProcessPayout = async (req, res) => {
 };
 
 
-export const adminSyncFinancials = async (req, res) => {
+// In-memory sync state so the admin can poll progress
+const syncState = { running: false, startedAt: null, stats: null, error: null };
+
+async function runSyncInBackground() {
+    const { processOrderFinancials } = await import('../services/financialService.js');
+    console.log("🚀 [AdminSync] Starting Global Financial Sync (background)...");
+
+    // 1. Normalize Statuses
+    const replacements = [
+        { from: 'confirmee', to: 'confirmée' },
+        { from: 'expediee', to: 'expédiée' },
+        { from: 'livree', to: 'livrée' },
+        { from: 'annulee', to: 'annulée' },
+        { from: 'assignee', to: 'assignée' }
+    ];
+    for (const r of replacements) {
+        await sequelize.query(
+            'UPDATE orders SET status = :to WHERE status = :from',
+            { replacements: { from: r.from, to: r.to }, type: sequelize.QueryTypes.UPDATE }
+        );
+    }
+
+    // 2. Tag old null-source transactions
+    const [taggedDeliverer] = await sequelize.query(
+        `UPDATE financial_transactions SET source = 'deliverer' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Course (Livreur)%'`,
+        { type: sequelize.QueryTypes.UPDATE }
+    );
+    const [taggedSupplier] = await sequelize.query(
+        `UPDATE financial_transactions SET source = 'supplier' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Vente (Boutique)%'`,
+        { type: sequelize.QueryTypes.UPDATE }
+    );
+    const [taggedAdmin] = await sequelize.query(
+        `UPDATE financial_transactions SET source = 'admin_commission' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Com. Vente (Admin)%'`,
+        { type: sequelize.QueryTypes.UPDATE }
+    );
+
+    // 3. Dedup deliverer earnings — MySQL 8.0+ only
+    let duplicatesRemoved = 0;
     try {
-        const { processOrderFinancials } = await import('../services/financialService.js');
-
-        console.log("🚀 [AdminSync] Starting Global Financial Sync...");
-        
-        // 1. Normalize Statuses (Aggressive)
-        const replacements = [
-            { from: 'confirmee', to: 'confirmée' },
-            { from: 'expediee', to: 'expédiée' },
-            { from: 'livree', to: 'livrée' },
-            { from: 'annulee', to: 'annulée' },
-            { from: 'assignee', to: 'assignée' }
-        ];
-
-        for (const r of replacements) {
-            await sequelize.query(
-                'UPDATE orders SET status = :to WHERE status = :from',
-                {
-                    replacements: { from: r.from, to: r.to },
-                    type: sequelize.QueryTypes.UPDATE
-                }
-            );
-        }
-
-        // 2. Tag old null-source transactions with correct source values
-        // This prevents the idempotency checks from missing old transactions
-        console.log("[AdminSync] Tagging old null-source transactions...");
-        const [taggedDeliverer] = await sequelize.query(
-            `UPDATE financial_transactions SET source = 'deliverer' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Course (Livreur)%'`,
-            { type: sequelize.QueryTypes.UPDATE }
-        );
-        const [taggedSupplier] = await sequelize.query(
-            `UPDATE financial_transactions SET source = 'supplier' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Vente (Boutique)%'`,
-            { type: sequelize.QueryTypes.UPDATE }
-        );
-        const [taggedAdmin] = await sequelize.query(
-            `UPDATE financial_transactions SET source = 'admin_commission' WHERE source IS NULL AND type = 'earning' AND description LIKE 'Com. Vente (Admin)%'`,
-            { type: sequelize.QueryTypes.UPDATE }
-        );
-        console.log(`[AdminSync] Tagged: ${taggedDeliverer} deliverer, ${taggedSupplier} supplier, ${taggedAdmin} admin_commission`);
-
-        // 3. Remove duplicate deliverer earnings (keep only the earliest per order+user)
-        console.log("[AdminSync] Removing duplicate deliverer earnings...");
-        const [duplicatesRemoved] = await sequelize.query(
+        const [result] = await sequelize.query(
             `DELETE FROM financial_transactions WHERE id IN (
                 SELECT id FROM (
                     SELECT id, ROW_NUMBER() OVER (PARTITION BY order_id, user_id, source ORDER BY created_at ASC) as rn
@@ -297,51 +292,84 @@ export const adminSyncFinancials = async (req, res) => {
             )`,
             { type: sequelize.QueryTypes.DELETE }
         );
-        console.log(`[AdminSync] Removed ${duplicatesRemoved || 0} duplicate deliverer transactions`);
+        duplicatesRemoved = result || 0;
+    } catch (dedupErr) {
+        console.warn('[AdminSync] Deduplication skipped:', dedupErr.message);
+    }
 
-        // 4. Mark all earnings as completed
-        await FinancialTransaction.update(
-            { status: 'completed' },
-            { where: { type: 'earning', status: { [Op.in]: ['pending', null] } } }
-        );
+    // 4. Mark pending earnings as completed
+    await FinancialTransaction.update(
+        { status: 'completed' },
+        { where: { type: 'earning', status: { [Op.in]: ['pending', null] } } }
+    );
 
-        // 5. Find ALL delivered orders
-        const orders = await Order.findAll({ 
-            where: { status: { [Op.in]: ['livrée', 'livree'] } } 
-        });
+    // 5. Process all delivered orders — one by one with individual error isolation
+    const orders = await Order.findAll({
+        where: { status: { [Op.in]: ['livrée', 'livree'] } }
+    });
 
-        let feesFixed = 0;
-        let processedCount = 0;
-        let skippedCount = 0;
+    let feesFixed = 0, processedCount = 0, skippedCount = 0;
+    const errors = [];
+    const tiers = await getDeliveryFeeTiers();
 
-        const tiers = await getDeliveryFeeTiers();
-
-        for (const order of orders) {
+    for (const order of orders) {
+        try {
             if (!order.delivery_fee || parseFloat(order.delivery_fee) === 0) {
                 const computedFee = computeDeliveryFee(parseFloat(order.total_amount || 0), tiers);
                 await order.update({ delivery_fee: computedFee });
                 feesFixed++;
             }
-
             await processOrderFinancials(order);
             processedCount++;
+        } catch (orderErr) {
+            skippedCount++;
+            const msg = `Order ${order.id}: ${orderErr.message}`;
+            errors.push(msg);
+            console.error(`[AdminSync] Skipped ${msg}`);
         }
-
-        res.json({ 
-            success: true,
-            message: 'Synchronisation terminée', 
-            stats: {
-                totalDeliveredOrdersFound: orders.length,
-                deliveryFeesRecalculated: feesFixed,
-                ordersProcessed: processedCount,
-                duplicatesRemoved: duplicatesRemoved || 0,
-                transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0)
-            }
-        });
-    } catch (error) {
-        console.error('AdminSyncFinancials error:', error);
-        res.status(500).json({ error: 'Erreur lors de la synchronisation: ' + error.message });
     }
+
+    return {
+        totalDeliveredOrdersFound: orders.length,
+        deliveryFeesRecalculated: feesFixed,
+        ordersProcessed: processedCount,
+        ordersSkipped: skippedCount,
+        duplicatesRemoved,
+        transactionsTagged: (taggedDeliverer || 0) + (taggedSupplier || 0) + (taggedAdmin || 0),
+        ...(errors.length > 0 && { errors })
+    };
+}
+
+export const adminSyncFinancials = async (req, res) => {
+    // GET → return current sync status
+    if (req.method === 'GET') {
+        return res.json(syncState);
+    }
+
+    if (syncState.running) {
+        return res.status(409).json({ error: 'Une synchronisation est déjà en cours.', startedAt: syncState.startedAt });
+    }
+
+    // Respond immediately — prevents HTTP proxy timeout (nginx default 60s)
+    syncState.running = true;
+    syncState.startedAt = new Date().toISOString();
+    syncState.stats = null;
+    syncState.error = null;
+
+    res.json({ success: true, message: 'Synchronisation démarrée en arrière-plan. Revenez dans quelques secondes.' });
+
+    // Process entirely outside the request/response cycle
+    setImmediate(async () => {
+        try {
+            syncState.stats = await runSyncInBackground();
+            console.log('✅ [AdminSync] Completed:', syncState.stats);
+        } catch (error) {
+            syncState.error = error.message;
+            console.error('❌ [AdminSync] Fatal error:', error);
+        } finally {
+            syncState.running = false;
+        }
+    });
 };
 
 export const adminGetSupplierFinancials = async (req, res) => {

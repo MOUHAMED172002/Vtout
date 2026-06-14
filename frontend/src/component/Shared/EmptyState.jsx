@@ -4,9 +4,9 @@ import { ShoppingBag, Search, PackageOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const icons = {
-    cart: <ShoppingBag size={64} className="text-slate-200" />,
-    search: <Search size={64} className="text-slate-200" />,
-    orders: <PackageOpen size={64} className="text-slate-200" />,
+    cart: <ShoppingBag size={64} className="text-base-content/20" />,
+    search: <Search size={64} className="text-base-content/20" />,
+    orders: <PackageOpen size={64} className="text-base-content/20" />,
 };
 
 export default function EmptyState({
@@ -22,12 +22,12 @@ export default function EmptyState({
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center text-center p-12 space-y-6 max-w-md mx-auto"
         >
-            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center shadow-inner">
+            <div className="w-24 h-24 bg-base-200 rounded-full flex items-center justify-center shadow-inner">
                 {icons[type] || icons.search}
             </div>
             <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{title}</h3>
-                <p className="text-slate-500 font-bold leading-relaxed whitespace-pre-wrap">{description}</p>
+                <h3 className="text-2xl font-black text-base-content tracking-tighter">{title}</h3>
+                <p className="text-base-content/50 font-bold leading-relaxed whitespace-pre-wrap">{description}</p>
             </div>
             {actionLabel && (
                 <Link

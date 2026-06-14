@@ -42,8 +42,8 @@ export default function FrequentlyBoughtTogether({ productId, limit = 4 }) {
           <PackagePlus size={24} />
         </div>
         <div>
-          <h3 className="text-xl md:text-2xl font-black text-slate-900">Souvent achetés ensemble</h3>
-          <p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Complétez votre achat</p>
+          <h3 className="text-xl md:text-2xl font-black text-base-content">Souvent achetés ensemble</h3>
+          <p className="text-xs md:text-sm text-base-content/50 font-bold uppercase tracking-widest mt-1">Complétez votre achat</p>
         </div>
       </div>
 

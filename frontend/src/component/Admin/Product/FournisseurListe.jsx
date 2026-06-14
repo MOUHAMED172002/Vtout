@@ -86,7 +86,7 @@ export default function FournisseurListe() {
   };
 
   return (
-    <div className="p-6 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-slate-100/50">
+    <div className="p-6 bg-base-100 rounded-3xl border border-gray-100 shadow-xl shadow-slate-100/50">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-xl">
@@ -94,7 +94,7 @@ export default function FournisseurListe() {
           </div>
           <div>
             <h3 className="text-xl font-black text-gray-900 tracking-tight">Fournisseurs & Produits</h3>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Gestion de la chaine logistique</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 italic">Gestion de la chaine logistique</p>
           </div>
         </div>
         <button
@@ -109,22 +109,22 @@ export default function FournisseurListe() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <span className="loading loading-bars loading-lg text-primary"></span>
-          <p className="text-sm font-bold text-slate-400 animate-pulse">Synchronisation des données...</p>
+          <p className="text-sm font-bold text-base-content/40 animate-pulse">Synchronisation des données...</p>
         </div>
       ) : Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-          <Truck className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-          <p className="text-sm font-bold text-slate-400">Aucune liaison fournisseur trouvée.</p>
+        <div className="text-center py-20 bg-base-200 rounded-3xl border-2 border-dashed border-base-300">
+          <Truck className="w-12 h-12 text-base-content/20 mx-auto mb-4" />
+          <p className="text-sm font-bold text-base-content/40">Aucune liaison fournisseur trouvée.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {Object.values(grouped).map((g) => (
-            <div key={g.supplier.id} className="group overflow-hidden bg-white border border-slate-100 rounded-3xl transition-all hover:border-primary/20 hover:shadow-2xl hover:shadow-slate-200/50">
-              <div className="p-6 border-b border-slate-50 bg-slate-50/50">
+            <div key={g.supplier.id} className="group overflow-hidden bg-base-100 border border-base-200 rounded-3xl transition-all hover:border-primary/20 hover:shadow-2xl hover:shadow-slate-200/50">
+              <div className="p-6 border-b border-base-200 bg-base-200/50">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <div className="text-lg font-black text-slate-900 tracking-tight">{g.supplier.name}</div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                    <div className="text-lg font-black text-base-content tracking-tight">{g.supplier.name}</div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-base-content/40">
                       {g.supplier.phone && <span>{g.supplier.phone}</span>}
                       {g.supplier.email && <span>• {g.supplier.email}</span>}
                     </div>
@@ -138,45 +138,45 @@ export default function FournisseurListe() {
               <div className="overflow-x-auto">
                 <table className="table w-full">
                   <thead>
-                    <tr className="border-b border-slate-50">
-                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-slate-400">Produit</th>
-                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-slate-400">Variante</th>
-                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-slate-400">Prix Fournisseur</th>
-                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                    <tr className="border-b border-base-200">
+                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-base-content/40">Produit</th>
+                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-base-content/40">Variante</th>
+                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix Fournisseur</th>
+                      <th className="bg-transparent text-[10px] font-black uppercase tracking-widest text-base-content/40 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {g.items.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group/row">
-                        <td className="font-bold text-slate-700 text-sm">
+                      <tr key={r.id} className="hover:bg-base-200/50 transition-colors group/row">
+                        <td className="font-bold text-base-content/80 text-sm">
                           {r.product?.name || "Produit inconnu"}
                         </td>
                         <td>
                           <div className="flex flex-wrap gap-1">
                             {r.variant?.combination ? (
                               Object.entries(typeof r.variant.combination === 'string' ? JSON.parse(r.variant.combination) : r.variant.combination).map(([attr, val], i) => (
-                                <span key={i} className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-bold rounded uppercase">
+                                <span key={i} className="px-2 py-0.5 bg-base-200 text-base-content/50 text-[9px] font-bold rounded uppercase">
                                   {attr}: {val}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[10px] text-slate-300 italic">Base</span>
+                              <span className="text-[10px] text-base-content/30 italic">Base</span>
                             )}
                           </div>
                         </td>
-                        <td className="font-black text-slate-900 text-sm">
+                        <td className="font-black text-base-content text-sm">
                           {r.supplier_price != null ? `${Number(r.supplier_price).toLocaleString()} F` : "—"}
                         </td>
                         <td>
                           <div className="flex justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
                             <button
-                              className="btn btn-ghost btn-xs btn-circle text-slate-400 hover:text-primary hover:bg-primary/10"
+                              className="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-primary hover:bg-primary/10"
                               onClick={() => handleEdit(r)}
                             >
                               <Edit2 size={14} />
                             </button>
                             <button
-                              className="btn btn-ghost btn-xs btn-circle text-slate-400 hover:text-error hover:bg-error/10"
+                              className="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-error hover:bg-error/10"
                               onClick={() => handleDelete(r)}
                             >
                               <Trash2 size={14} />

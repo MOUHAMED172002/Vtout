@@ -6,7 +6,8 @@ WORKDIR /app
 # On copie depuis le sous-dossier frontend
 COPY frontend/package*.json ./
 
-# Force clean install to avoid ETXTBSY on cached esbuild binary
+# Supprime node_modules stale (évite ETXTBSY sur esbuild au redéploiement)
+# puis installe proprement
 RUN rm -rf node_modules && \
     npm config set fetch-retries 5 && \
     npm config set fetch-retry-mintimeout 20000 && \

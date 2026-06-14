@@ -5,8 +5,8 @@ export const getAllCategories = async (req, res) => {
     try {
         const categories = await Category.findAll({
             include: [
-                { model: Category, as: 'children', attributes: ['id', 'name', 'display_order'], separate: true },
-                { model: Product, as: 'products', attributes: ['id'], separate: true }
+                { model: Category, as: 'children', attributes: ['id', 'name', 'display_order'] },
+                { model: Product, as: 'products', attributes: ['id'] }
             ],
             order: [['display_order', 'ASC'], ['id', 'ASC']]
         });
@@ -21,11 +21,11 @@ export const createCategory = async (req, res) => {
     try {
         const { name, parent_id, commission_rate } = req.body;
         // Use both to be safe with Sequelize underscored mode
-        const category = await Category.create({
-            name,
-            parent_id,
+        const category = await Category.create({ 
+            name, 
+            parent_id, 
             commission_rate: commission_rate,
-            commissionRate: commission_rate
+            commissionRate: commission_rate 
         });
         res.status(201).json(category);
     } catch (error) {
@@ -37,7 +37,7 @@ export const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, parent_id, commission_rate, icon } = req.body;
-
+        
         const category = await Category.findByPk(id);
         if (!category) return res.status(404).json({ error: 'Catégorie non trouvée' });
 

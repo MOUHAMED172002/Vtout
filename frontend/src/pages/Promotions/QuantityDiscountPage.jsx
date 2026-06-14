@@ -47,13 +47,13 @@ export default function QuantityDiscountPage() {
   return (
     <>
       <Navbar />
-      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className={`min-h-screen pb-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-slate-950 text-white' : 'bg-base-200 text-base-content'}`}>
         
         {/* Glow Decor */}
         <div className={`absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none ${isDark ? 'bg-blue-500/10' : 'bg-blue-500/5'}`} />
 
         {/* Premium Header */}
-        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-slate-900 bg-slate-950/40' : 'border-slate-200 bg-white'}`}>
+        <div className={`relative pt-20 md:pt-28 pb-16 border-b transition-colors duration-500 ${isDark ? 'border-neutral bg-slate-950/40' : 'border-base-300 bg-base-100'}`}>
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8 z-10 relative">
             <div className="space-y-4 text-center md:text-left">
               <div className={`inline-flex items-center gap-2 font-black uppercase text-xs tracking-[0.2em] px-4 py-2 rounded-full shadow-sm border ${
@@ -66,26 +66,26 @@ export default function QuantityDiscountPage() {
               <h1 className={`text-4xl md:text-7xl font-black tracking-tighter leading-none ${
                 isDark 
                   ? 'bg-gradient-to-r from-white via-slate-100 to-blue-400 bg-clip-text text-transparent' 
-                  : 'text-slate-900'
+                  : 'text-base-content'
               }`}>
                 REMISES DE <span className="text-blue-600">QUANTITÉ</span>
               </h1>
-              <p className={`font-medium text-sm md:text-lg max-w-xl ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`font-medium text-sm md:text-lg max-w-xl ${isDark ? 'text-base-content/40' : 'text-base-content/70'}`}>
                 Plus votre panier grandit, plus les prix diminuent ! Profitez de réductions automatiques exclusives par paliers d'achat.
               </p>
             </div>
 
             <div className={`rounded-3xl p-6 md:p-8 shadow-2xl max-w-sm shrink-0 flex items-center gap-4 border transition-colors ${
               isDark 
-                ? 'bg-slate-900/60 border-blue-500/30 shadow-blue-950/10' 
-                : 'bg-white border-blue-100 shadow-blue-100'
+                ? 'bg-neutral/60 border-blue-500/30 shadow-blue-950/10' 
+                : 'bg-base-100 border-blue-100 shadow-blue-100'
             }`}>
               <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-black shrink-0 shadow-lg shadow-blue-500/20">
                 %
               </div>
               <div>
-                <h4 className={`font-black text-sm uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-800'}`}>Économie Automatique</h4>
-                <p className={`text-xs mt-1 font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>La réduction s'applique directement lors de l'ajout au panier.</p>
+                <h4 className={`font-black text-sm uppercase tracking-wider ${isDark ? 'text-white' : 'text-base-content/90'}`}>Économie Automatique</h4>
+                <p className={`text-xs mt-1 font-medium ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>La réduction s'applique directement lors de l'ajout au panier.</p>
               </div>
             </div>
           </div>
@@ -96,23 +96,23 @@ export default function QuantityDiscountPage() {
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-900/30 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <div className={`aspect-square animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                <div key={i} className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-neutral/30 border-slate-800' : 'bg-base-100 border-base-300 shadow-sm'}`}>
+                  <div className={`aspect-square animate-pulse ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`} />
                   <div className="p-3 space-y-2">
-                    <div className={`h-4 rounded w-3/4 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
-                    <div className={`h-4 rounded w-1/2 animate-pulse ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                    <div className={`h-4 rounded w-3/4 animate-pulse ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`} />
+                    <div className={`h-4 rounded w-1/2 animate-pulse ${isDark ? 'bg-neutral/90' : 'bg-base-200'}`} />
                   </div>
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
             <div className="py-24 flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
-              <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'}`}>
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 ${isDark ? 'bg-neutral border-slate-800 text-base-content/50' : 'bg-base-100 border-base-300 text-base-content/40 shadow-sm'}`}>
                 <ShieldAlert size={40} />
               </div>
               <div className="space-y-2">
-                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>Aucune remise de quantité active</h3>
-                <p className={`font-medium text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Revenez bientôt !</p>
+                <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-base-content/90'}`}>Aucune remise de quantité active</h3>
+                <p className={`font-medium text-sm ${isDark ? 'text-base-content/40' : 'text-base-content/50'}`}>Revenez bientôt !</p>
               </div>
             </div>
           ) : (
@@ -131,16 +131,16 @@ export default function QuantityDiscountPage() {
                     onClick={() => navigate(`/promotions/produit/${p.id}?type=volume`)}
                     className={`group rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col ${
                       isDark
-                        ? 'bg-slate-900/40 border-slate-800 hover:border-blue-500/40'
-                        : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm'
+                        ? 'bg-neutral/40 border-slate-800 hover:border-blue-500/40'
+                        : 'bg-base-100 border-base-300 hover:border-blue-300 shadow-sm'
                     }`}
                   >
                     {/* Image */}
-                    <div className={`relative aspect-square overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+                    <div className={`relative aspect-square overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-base-200'}`}>
                       {p.images?.[0] ? (
                         <img src={p.images[0].image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold">Pas d'image</div>
+                        <div className="w-full h-full flex items-center justify-center text-base-content/30 text-xs font-bold">Pas d'image</div>
                       )}
                       {bestTier?.discount > 0 && (
                         <span className="absolute top-2 left-2 bg-blue-600 text-white font-black text-[10px] uppercase px-2 py-1 rounded-full shadow">
@@ -158,8 +158,8 @@ export default function QuantityDiscountPage() {
                           </span>
                         </div>
                       )}
-                      <h3 className={`text-xs sm:text-sm font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{p.name}</h3>
-                      <p className={`text-xs sm:text-sm font-black mt-auto pt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <h3 className={`text-xs sm:text-sm font-black line-clamp-2 leading-tight ${isDark ? 'text-white' : 'text-base-content/90'}`}>{p.name}</h3>
+                      <p className={`text-xs sm:text-sm font-black mt-auto pt-1 ${isDark ? 'text-white' : 'text-base-content'}`}>
                         {basePrice.toLocaleString()} F
                       </p>
                     </div>

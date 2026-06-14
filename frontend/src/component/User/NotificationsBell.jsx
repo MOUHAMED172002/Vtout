@@ -28,7 +28,7 @@ export default function NotificationsBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 p-3 shadow rounded z-50">
+        <div className="absolute right-0 mt-2 w-80 bg-base-100 dark:bg-gray-800 p-3 shadow rounded z-50">
           <div className="flex items-center justify-between mb-2">
             <div className="font-semibold">Notifications</div>
           </div>

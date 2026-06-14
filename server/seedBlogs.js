@@ -19,7 +19,7 @@ const seedBlogs = async () => {
                     <p>ECG, taux d'oxygène, suivi du sommeil... Ces fonctions sont devenues la norme pour un suivi proactif de votre bien-être.</p>
                     <p>Retrouvez notre sélection exclusive dans la section électronique !</p>
                 `,
-                image_url: "https://images.unsplash.com/photo-1544117518-30dd5978bbbe?q=80&w=2000&auto=format&fit=crop",
+                image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2000&auto=format&fit=crop",
                 category: "Électronique",
                 tags: "tech, smartwatch, guide",
                 is_published: true,

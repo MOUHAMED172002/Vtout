@@ -71,7 +71,7 @@ const StatusBadge = ({ status }) => {
     approved: { label: 'Approuvé', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200', Icon: CheckCircle2 },
     rejected: { label: 'Rejeté', cls: 'bg-rose-100    text-rose-700    border-rose-200', Icon: XCircle },
     'En attente': { label: 'En attente', cls: 'bg-amber-100  text-amber-700   border-amber-200', Icon: Clock },
-    draft: { label: 'Brouillon', cls: 'bg-slate-100   text-slate-600   border-slate-200', Icon: Clock },
+    draft: { label: 'Brouillon', cls: 'bg-base-200   text-base-content/70   border-base-300', Icon: Clock },
   };
   const { label, cls, Icon } = map[status] || map['En attente'];
   return (
@@ -84,11 +84,11 @@ const StatusBadge = ({ status }) => {
 // ─── Carte fournisseur ─────────────────────────────────────────────────────────
 const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
   if (!supplier) return (
-    <div className="p-10 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center gap-4 text-center">
-      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-        <Store size={28} className="text-slate-300" />
+    <div className="p-10 bg-base-200 rounded-[2.5rem] border-2 border-dashed border-base-300 flex flex-col items-center gap-4 text-center">
+      <div className="w-16 h-16 bg-base-100 rounded-2xl flex items-center justify-center shadow-sm">
+        <Store size={28} className="text-base-content/30" />
       </div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+      <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
         Aucun fournisseur lié à ce produit
       </p>
     </div>
@@ -100,16 +100,16 @@ const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-6 p-8 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2.5rem] border border-indigo-100">
-        <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 border border-indigo-100 shrink-0">
+        <div className="w-20 h-20 bg-base-100 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 border border-indigo-100 shrink-0">
           <Store size={32} className="text-indigo-500" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Fournisseur soumis</p>
-          <h3 className="text-2xl font-black text-slate-900 tracking-tighter truncate">{supplier.name}</h3>
+          <h3 className="text-2xl font-black text-base-content tracking-tighter truncate">{supplier.name}</h3>
           <StatusBadge status={supplier.status} />
         </div>
         <div className="text-right shrink-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix demandé</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix demandé</p>
           <p className="text-3xl font-black text-indigo-600">{Number(supplierPrice || 0).toLocaleString()}<span className="text-sm ml-1">F</span></p>
         </div>
       </div>
@@ -117,17 +117,17 @@ const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
       {/* Contacts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: Phone, label: 'Téléphone', value: supplier.phone, cls: 'text-slate-700' },
+          { icon: Phone, label: 'Téléphone', value: supplier.phone, cls: 'text-base-content/80' },
           { icon: MessageCircle, label: 'WhatsApp', value: supplier.whatsapp, cls: 'text-emerald-600' },
           { icon: CreditCard, label: 'Momo Pay', value: supplier.momo_number, cls: 'text-amber-600' },
         ].map(({ icon: Icon, label, value, cls }) => (
-          <div key={label} className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
+          <div key={label} className="flex items-center gap-4 p-5 bg-base-100 rounded-2xl border border-base-200 shadow-sm">
+            <div className="w-10 h-10 bg-base-200 rounded-xl flex items-center justify-center shrink-0">
               <Icon size={18} className={cls} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-              <p className="text-sm font-black text-slate-800 truncate">{value || '—'}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-base-content/40">{label}</p>
+              <p className="text-sm font-black text-base-content/90 truncate">{value || '—'}</p>
             </div>
           </div>
         ))}
@@ -135,18 +135,18 @@ const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
 
       {/* Boutique / localisation */}
       {firstBoutique && (
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
-          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+        <div className="p-6 bg-base-100 rounded-2xl border border-base-200 shadow-sm flex items-start gap-4">
+          <div className="w-10 h-10 bg-base-200 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
             <MapPin size={18} className="text-rose-500" />
           </div>
           <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Boutique principale</p>
-            <p className="text-sm font-black text-slate-900">{firstBoutique.name}</p>
-            <p className="text-xs font-bold text-slate-500 mt-1">
+            <p className="text-[9px] font-black uppercase tracking-widest text-base-content/40 mb-1">Boutique principale</p>
+            <p className="text-sm font-black text-base-content">{firstBoutique.name}</p>
+            <p className="text-xs font-bold text-base-content/50 mt-1">
               {[firstBoutique.quartier_label, firstBoutique.commune_label, firstBoutique.departement_label].filter(Boolean).join(', ')}
             </p>
             {firstBoutique.address_line && (
-              <p className="text-xs text-slate-400 mt-0.5 italic">« {firstBoutique.address_line} »</p>
+              <p className="text-xs text-base-content/40 mt-0.5 italic">« {firstBoutique.address_line} »</p>
             )}
           </div>
         </div>
@@ -156,7 +156,7 @@ const SupplierCard = ({ supplier, boutiques = [], supplierPrice }) => {
       {supplier.supplier_note && (
         <div className="p-6 bg-amber-50 border border-amber-100 rounded-2xl">
           <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 mb-2">Note du fournisseur</p>
-          <p className="text-sm font-bold text-slate-700">« {supplier.supplier_note} »</p>
+          <p className="text-sm font-bold text-base-content/80">« {supplier.supplier_note} »</p>
         </div>
       )}
     </div>
@@ -574,46 +574,46 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 30 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      className="bg-white w-full max-w-5xl max-h-[92vh] rounded-[2.5rem] shadow-[0_20px_100px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-slate-100 z-10"
+      className="bg-base-100 w-full max-w-5xl max-h-[92vh] rounded-[2.5rem] shadow-[0_20px_100px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-base-200 z-10"
     >
       {/* Header */}
-      <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
+      <div className="p-8 border-b border-base-200 flex items-center justify-between bg-base-100">
         <div className="flex items-center gap-5">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Package className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tighter truncate max-w-xs">
+            <h2 className="text-2xl font-black text-base-content tracking-tighter truncate max-w-xs">
               {initialProduct.name}
             </h2>
             <div className="flex items-center gap-3 mt-1">
               <StatusBadge status={initialProduct.approval_status} />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
                 Étape {currentStep + 1} / {steps.length} — {steps[currentStep].title}
               </span>
             </div>
           </div>
         </div>
         <button onClick={onClose}
-          className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+          className="w-11 h-11 rounded-2xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Stepper */}
-      <div className="px-8 py-4 bg-slate-50/30 flex justify-between items-center gap-4 overflow-x-auto border-b border-slate-50">
+      <div className="px-8 py-4 bg-base-200/30 flex justify-between items-center gap-4 overflow-x-auto border-b border-base-200">
         {steps.map((step, idx) => (
           <React.Fragment key={step.id}>
             <button type="button" onClick={() => idx < currentStep && setCurrentStep(idx)}
-              className={`flex items-center gap-3 transition-all ${idx <= currentStep ? 'text-blue-500' : 'text-slate-300'}`}>
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : idx < currentStep ? 'bg-blue-100 text-blue-500' : 'bg-white border border-slate-100 text-slate-300'}`}>
+              className={`flex items-center gap-3 transition-all ${idx <= currentStep ? 'text-blue-500' : 'text-base-content/30'}`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : idx < currentStep ? 'bg-blue-100 text-blue-500' : 'bg-base-100 border border-base-200 text-base-content/30'}`}>
                 {idx < currentStep ? <Check size={16} /> : <step.icon size={16} />}
               </div>
-              <span className={`text-[9px] font-black uppercase tracking-widest hidden sm:inline ${idx === currentStep ? 'text-slate-900' : 'text-slate-400'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-widest hidden sm:inline ${idx === currentStep ? 'text-base-content' : 'text-base-content/40'}`}>
                 {step.title}
               </span>
             </button>
-            {idx < steps.length - 1 && <div className={`h-px flex-1 min-w-[16px] ${idx < currentStep ? 'bg-blue-200' : 'bg-slate-100'}`} />}
+            {idx < steps.length - 1 && <div className={`h-px flex-1 min-w-[16px] ${idx < currentStep ? 'bg-blue-200' : 'bg-base-200'}`} />}
           </React.Fragment>
         ))}
       </div>
@@ -628,77 +628,77 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom de l'article</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Nom de l'article</label>
                 <input {...register('name', { required: true })}
-                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-5 text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-blue-500/20 outline-none" />
+                  className="w-full bg-base-100 border border-base-200 rounded-3xl px-8 py-5 text-xl font-black text-base-content shadow-sm focus:ring-4 focus:ring-blue-500/20 outline-none" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Catégorie</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Catégorie</label>
                 <button type="button" onClick={() => setShowCategoryModal(true)}
-                  className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-left flex items-center justify-between hover:border-blue-500/20 transition-all shadow-sm">
+                  className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 text-left flex items-center justify-between hover:border-blue-500/20 transition-all shadow-sm">
                   <div className="flex flex-col">
-                    <span className={`text-sm font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>
+                    <span className={`text-sm font-bold ${selectedCategory ? 'text-base-content' : 'text-base-content/30'}`}>
                       {selectedCategory ? selectedCategory.name : 'Sélectionner une catégorie'}
                     </span>
-                    {categoryPath && <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{categoryPath}</span>}
+                    {categoryPath && <span className="text-[9px] font-black text-base-content/40 uppercase tracking-widest">{categoryPath}</span>}
                   </div>
-                  <ChevronRight size={16} className="text-slate-300" />
+                  <ChevronRight size={16} className="text-base-content/30" />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix public (FCFA)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix public (FCFA)</label>
                   <input type="number" {...register('price')}
-                    className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-500 shadow-sm outline-none" />
+                    className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 text-xl font-black text-blue-500 shadow-sm outline-none" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ancien prix</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Ancien prix</label>
                   <input type="number" {...register('old_price')}
-                    className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-400 outline-none" />
+                    className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 text-xl font-black text-base-content/40 outline-none" />
                 </div>
               </div>
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Description</label>
                 <textarea {...register('description')} rows={4}
-                  className="w-full bg-white border border-slate-100 rounded-3xl px-8 py-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/20 outline-none resize-none" />
+                  className="w-full bg-base-100 border border-base-200 rounded-3xl px-8 py-6 text-sm font-bold text-base-content/80 focus:ring-4 focus:ring-blue-500/20 outline-none resize-none" />
               </div>
 
 
               {/* Modération */}
-              <div className="md:col-span-2 p-8 bg-slate-900 rounded-[2.5rem] border border-slate-800 space-y-6 text-white shadow-2xl">
+              <div className="md:col-span-2 p-8 bg-neutral rounded-[2.5rem] border border-slate-800 space-y-6 text-white shadow-2xl">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                    <ShieldCheck size={18} className="text-slate-900" />
+                    <ShieldCheck size={18} className="text-base-content" />
                   </div>
                   <div>
                     <h4 className="text-sm font-black uppercase tracking-widest">Modération / Approbation</h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Contrôlez la visibilité du produit</p>
+                    <p className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest">Contrôlez la visibilité du produit</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Statut</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Statut</label>
                     <select {...register('approval_status')}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/25">
-                      <option value="En attente" className="bg-slate-900 text-amber-500">⏳ En attente</option>
-                      <option value="approved" className="bg-slate-900 text-emerald-500">✅ Approuvé</option>
-                      <option value="rejected" className="bg-slate-900 text-rose-500">❌ Rejeté</option>
+                      className="w-full bg-base-100/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-4 focus:ring-amber-500/25">
+                      <option value="En attente" className="bg-neutral text-amber-500">⏳ En attente</option>
+                      <option value="approved" className="bg-neutral text-emerald-500">✅ Approuvé</option>
+                      <option value="rejected" className="bg-neutral text-rose-500">❌ Rejeté</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">ID Fournisseur</label>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-mono text-slate-500 select-all truncate">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">ID Fournisseur</label>
+                    <div className="bg-base-100/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-mono text-base-content/50 select-all truncate">
                       {initialProduct.supplier_id || '—'}
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Feedback pour le fournisseur</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Feedback pour le fournisseur</label>
                     <textarea {...register('admin_feedback')} rows={3}
                       placeholder="Expliquez pourquoi ce produit est approuvé, rejeté, ou ce qui doit être corrigé..."
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:ring-4 focus:ring-amber-500/25 resize-none" />
+                      className="w-full bg-base-100/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:ring-4 focus:ring-amber-500/25 resize-none" />
                   </div>
                 </div>
               </div>
@@ -709,28 +709,28 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
           {currentStep === 1 && (
             <motion.div key="images" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Galerie <span className="text-slate-400">Visuelle.</span></h3>
-                <label className="flex items-center gap-2 px-8 py-4 bg-blue-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white cursor-pointer hover:bg-slate-900 transition-all shadow-lg">
+                <h3 className="text-2xl font-black text-base-content tracking-tighter">Galerie <span className="text-base-content/40">Visuelle.</span></h3>
+                <label className="flex items-center gap-2 px-8 py-4 bg-blue-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white cursor-pointer hover:bg-neutral transition-all shadow-lg">
                   <Upload size={14} /> Ajouter
                   <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
                 </label>
               </div>
               {imageFiles.length === 0 ? (
-                <div className="border-4 border-dashed border-slate-100 rounded-[3rem] p-20 flex flex-col items-center gap-6 bg-slate-50/30">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
-                    <ImageIcon size={36} className="text-slate-200" />
+                <div className="border-4 border-dashed border-base-200 rounded-[3rem] p-20 flex flex-col items-center gap-6 bg-base-200/30">
+                  <div className="w-20 h-20 bg-base-100 rounded-full flex items-center justify-center shadow-inner">
+                    <ImageIcon size={36} className="text-base-content/20" />
                   </div>
-                  <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Aucun visuel importé</p>
+                  <p className="text-base-content/40 font-black uppercase text-[10px] tracking-widest">Aucun visuel importé</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                   {imageFiles.map((img, idx) => (
                     <motion.div layout key={idx}
-                      className={`group relative aspect-square rounded-3xl overflow-hidden border-4 transition-all ${img.isMain ? 'border-blue-500 shadow-2xl shadow-blue-500/20' : 'border-white hover:border-slate-200'}`}>
+                      className={`group relative aspect-square rounded-3xl overflow-hidden border-4 transition-all ${img.isMain ? 'border-blue-500 shadow-2xl shadow-blue-500/20' : 'border-white hover:border-base-300'}`}>
                       <img src={img.preview} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                      <div className="absolute inset-0 bg-neutral/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
                         <button type="button" onClick={() => setMainImage(idx)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${img.isMain ? 'bg-white text-blue-500' : 'bg-white/20 text-white'}`}>
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${img.isMain ? 'bg-base-100 text-blue-500' : 'bg-base-100/20 text-white'}`}>
                           {img.isMain ? 'Cover' : 'Définir'} <Star size={10} className={img.isMain ? 'fill-current' : ''} />
                         </button>
                         <button type="button" onClick={() => removeImage(idx)}
@@ -757,7 +757,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               <div className="flex items-center gap-4 p-6 bg-blue-50 rounded-3xl border border-blue-100">
                 <Truck size={20} className="text-blue-500 shrink-0" />
                 <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Fiche Fournisseur</h3>
+                  <h3 className="text-sm font-black text-base-content uppercase tracking-widest">Fiche Fournisseur</h3>
                   <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mt-0.5">
                     Informations soumises automatiquement depuis le portail partenaire
                   </p>
@@ -771,37 +771,37 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               />
 
               {/* Prix de vente  modifiable par l'admin */}
-              <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+              <div className="p-8 bg-base-200 rounded-[2.5rem] border border-base-200 space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50 flex items-center gap-2">
                   <CreditCard size={14} className="text-indigo-500" /> Prix de vente  convenu (modifiable)
                 </label>
                 <div className="relative">
                   <input type="number" {...register('supplier_price')}
-                    className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-2xl font-black text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/25 transition-all" />
-                  <span className="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-black text-slate-300">FCFA</span>
+                    className="w-full bg-base-100 border border-base-200 rounded-2xl px-8 py-5 text-2xl font-black text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/25 transition-all" />
+                  <span className="absolute right-8 top-1/2 -translate-y-1/2 text-sm font-black text-base-content/30">FCFA</span>
                 </div>
 
                 {/* Breakdown Visualizer */}
                 {watchSupplierPrice && (
-                  <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
+                  <div className="p-6 bg-base-100/50 rounded-3xl border border-indigo-100 space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles size={16} className="text-indigo-500" />
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/70">Calcul du prix public (Transparence)</h4>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gain Net Fourn. ({Math.round(100 - commissionRate)}%)</p>
+                        <p className="text-[9px] font-bold text-base-content/40 uppercase">Gain Net Fourn. ({Math.round(100 - commissionRate)}%)</p>
                         <p className="text-sm font-black">{Math.round((watchSupplierPrice || 0) * (1 - commissionRate / 100)).toLocaleString()} F</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison</p>
+                        <p className="text-[9px] font-bold text-base-content/40 uppercase">+ Livraison</p>
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-black text-emerald-600">{currentDeliveryFee.toLocaleString()} F</p>
                           <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter">Marketing</span>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase">- Com. ({commissionRate}%)</p>
+                        <p className="text-[9px] font-bold text-base-content/40 uppercase">- Com. ({commissionRate}%)</p>
                         <p className="text-sm font-black text-orange-500">{Math.round((watchSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
                       </div>
                       <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
@@ -811,14 +811,14 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     </div>
                     <div className="pt-2 flex items-start gap-2">
                       <Info size={12} className="text-indigo-500 mt-0.5 shrink-0" />
-                      <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
+                      <p className="text-[9px] font-bold text-base-content/50 leading-relaxed italic">
                         Les <span className="text-emerald-600">{currentDeliveryFee.toLocaleString()} F de livraison</span> sont automatiquement calculés selon la grille admin et inclus pour afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span>, boostant l'attractivité du produit sans impacter le gain net.
                       </p>
                     </div>
                   </div>
                 )}
 
-                <p className="text-[10px] font-bold text-slate-400">
+                <p className="text-[10px] font-bold text-base-content/40">
                   ✏️ Modifiez ce montant pour corriger le prix négocié avec le fournisseur.
                 </p>
               </div>
@@ -830,17 +830,17 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
             <motion.div key="variantes" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
 
               {/* Générateur */}
-              <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white space-y-8">
+              <div className="bg-neutral rounded-[2.5rem] p-10 text-white space-y-8">
                 <div>
                   <h3 className="text-2xl font-black tracking-tighter">Générateur <span className="text-blue-400">de Variantes.</span></h3>
-                  <p className="text-slate-400 text-sm mt-1">Sélectionnez les attributs et générez les combinaisons.</p>
+                  <p className="text-base-content/40 text-sm mt-1">Sélectionnez les attributs et générez les combinaisons.</p>
                 </div>
 
                 <div className="relative">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/50" size={18} />
                   <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)}
                     placeholder="Chercher un attribut (Couleur, Taille...)"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-white outline-none" />
+                    className="w-full bg-base-100/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-white outline-none" />
                 </div>
 
                 <div className="flex flex-wrap gap-2 items-center">
@@ -849,7 +849,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       onClick={() => setSelectedAttributes(prev =>
                         prev.find(a => a.id === attr.id) ? prev.filter(a => a.id !== attr.id) : [...prev, attr]
                       )}
-                      className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-blue-500 text-white border-blue-500 shadow-lg' : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'}`}>
+                      className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-blue-500 text-white border-blue-500 shadow-lg' : 'bg-base-100/5 text-base-content/40 border-white/10 hover:bg-base-200/10'}`}>
                       {attr.name}
                     </button>
                   ))}
@@ -864,7 +864,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                 {selectedAttributes.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedAttributes.map(attr => (
-                      <div key={attr.id} className="p-5 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+                      <div key={attr.id} className="p-5 bg-base-100/5 rounded-2xl border border-white/10 space-y-3">
                         <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{attr.name}</span>
                         <div className="flex flex-wrap gap-2">
                           {attr.values?.map(v => (
@@ -873,7 +873,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                                 const cur = selectedValuesMap[attr.id] || [];
                                 setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: cur.includes(v.id) ? cur.filter(id => id !== v.id) : [...cur, v.id] });
                               }}
-                              className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${(selectedValuesMap[attr.id] || []).includes(v.id) ? 'bg-blue-500/20 text-blue-400 border-blue-400/30' : 'bg-white/5 text-slate-400 border-white/10'}`}>
+                              className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${(selectedValuesMap[attr.id] || []).includes(v.id) ? 'bg-blue-500/20 text-blue-400 border-blue-400/30' : 'bg-base-100/5 text-base-content/40 border-white/10'}`}>
                               {v.value}
                             </button>
                           ))}
@@ -893,11 +893,11 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               {/* Liste des variantes */}
               {variantFields.length > 0 && (
                 <div className="space-y-4">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-base-content/40">
                     {variantFields.length} variante{variantFields.length > 1 ? 's' : ''}
                   </h4>
                   {variantFields.map((field, idx) => (
-                    <div key={field.id} className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm">
+                    <div key={field.id} className="p-6 bg-base-100 border border-base-200 rounded-3xl shadow-sm">
                       <div className="flex items-center justify-between mb-5">
                         <div className="flex flex-wrap gap-2">
                           {field.combination && Object.entries(field.combination).map(([a, v], i) => (
@@ -905,21 +905,21 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                           ))}
                         </div>
                         <button type="button" onClick={() => removeVariant(idx)}
-                          className="w-8 h-8 rounded-xl bg-slate-50 text-slate-300 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all">
+                          className="w-8 h-8 rounded-xl bg-base-200 text-base-content/30 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all">
                           <Trash2 size={14} />
                         </button>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
                           { label: 'Prix', field: `variants.${idx}.price`, cls: 'text-blue-500' },
-                          { label: 'Ancien prix', field: `variants.${idx}.old_price`, cls: 'text-slate-400' },
-                          { label: 'Stock', field: `variants.${idx}.stock`, cls: 'text-slate-700' },
-                          { label: 'SKU', field: `variants.${idx}.sku`, cls: 'font-mono text-slate-600', type: 'text' },
+                          { label: 'Ancien prix', field: `variants.${idx}.old_price`, cls: 'text-base-content/40' },
+                          { label: 'Stock', field: `variants.${idx}.stock`, cls: 'text-base-content/80' },
+                          { label: 'SKU', field: `variants.${idx}.sku`, cls: 'font-mono text-base-content/70', type: 'text' },
                         ].map(({ label, field: f, cls, type = 'number' }) => (
                           <div key={f} className="space-y-1">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{label}</label>
+                            <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">{label}</label>
                             <input type={type} {...register(f)} placeholder="0"
-                              className={`w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-black outline-none ${cls}`} />
+                              className={`w-full bg-base-200 border border-base-200 rounded-xl px-4 py-3 text-sm font-black outline-none ${cls}`} />
                           </div>
                         ))}
                       </div>
@@ -941,30 +941,30 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               </div>
 
               {/* 1. Vente Flash Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Sparkles size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Vente Flash</h4>
-                      <p className="text-xs text-slate-400 font-bold">Activer une vente flash à durée limitée sur ce produit</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Vente Flash</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Activer une vente flash à durée limitée sur ce produit</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('is_flash_sale')} className="toggle toggle-rose" />
                 </div>
 
                 {watch('is_flash_sale') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-slate-100">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-base-200">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix promo</label>
-                        <input type="number" {...register('price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix promo</label>
+                        <input type="number" {...register('price', { required: watch('is_flash_sale') })} className="w-full bg-base-200 border border-base-200 rounded-2xl px-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix normal</label>
-                        <input type="number" {...register('old_price', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix normal</label>
+                        <input type="number" {...register('old_price', { required: watch('is_flash_sale') })} className="w-full bg-base-200 border border-base-200 rounded-2xl px-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                       </div>
                     </div>
 
@@ -974,54 +974,54 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                           <span>Réduction flash appliquée</span>
                           <span>{Math.round(((watchOldPrice - watchPrice) / watchOldPrice) * 100)}% de réduction</span>
                         </div>
-                        <div className="text-slate-500 text-xs">Économie de {Math.round(watchOldPrice - watchPrice).toLocaleString()} F sur ce produit</div>
+                        <div className="text-base-content/50 text-xs">Économie de {Math.round(watchOldPrice - watchPrice).toLocaleString()} F sur ce produit</div>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
-                      <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Date et heure de fin</label>
+                      <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-base-200 border border-base-200 rounded-2xl px-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                     </div>
                   </motion.div>
                 )}
               </div>
 
               {/* 2. Packs & Kits Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Package size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Pack / Kit Complémentaire</h4>
-                      <p className="text-xs text-slate-400 font-bold">Associer ce produit à d'autres articles pour former un kit complet</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Pack / Kit Complémentaire</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Associer ce produit à d'autres articles pour former un kit complet</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('is_kit')} className="toggle toggle-success" />
                 </div>
 
                 {watch('is_kit') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-slate-100">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-base-200">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter des articles complémentaires</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Ajouter des articles complémentaires</label>
                       <div className="relative">
-                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
+                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/40" />
+                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-base-200 border border-base-200 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
                       </div>
                     </div>
 
                     {kitSearchQuery && (
-                      <div className="max-h-48 overflow-y-auto bg-white border border-slate-100 rounded-2xl divide-y divide-slate-50 shadow-lg relative z-20">
+                      <div className="max-h-48 overflow-y-auto bg-base-100 border border-base-200 rounded-2xl divide-y divide-slate-50 shadow-lg relative z-20">
                         {allProductsList.filter(p => p.name.toLowerCase().includes(kitSearchQuery.toLowerCase()) && p.id !== initialProduct?.id).slice(0, 10).map(p => (
                           <button key={p.id} type="button" onClick={() => {
                             if (!selectedKitProductIds.includes(p.id)) {
                               setSelectedKitProductIds([...selectedKitProductIds, p.id]);
                             }
                             setKitSearchQuery('');
-                          }} className="w-full text-left px-5 py-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between transition-colors">
+                          }} className="w-full text-left px-5 py-3.5 text-xs font-bold text-base-content/80 hover:bg-base-200 flex items-center justify-between transition-colors">
                             <span>{p.name}</span>
-                            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black">{Number(p.price).toLocaleString()} F</span>
+                            <span className="text-[10px] bg-base-200 text-base-content/50 px-2 py-0.5 rounded font-black">{Number(p.price).toLocaleString()} F</span>
                           </button>
                         ))}
                       </div>
@@ -1029,27 +1029,27 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
 
                     {selectedKitProductIds.length > 0 && (
                       <>
-                        <div className="grid gap-4 md:grid-cols-3 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                        <div className="grid gap-4 md:grid-cols-3 bg-base-200 p-4 rounded-3xl border border-base-200">
                           <div className="space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles sélectionnés</span>
-                            <span className="text-sm font-black text-slate-900">{selectedKitProductIds.length}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Articles sélectionnés</span>
+                            <span className="text-sm font-black text-base-content">{selectedKitProductIds.length}</span>
                           </div>
                           <div className="space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Somme des prix</span>
-                            <span className="text-sm font-black text-slate-900">{kitItemsTotal.toLocaleString()} F</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Somme des prix</span>
+                            <span className="text-sm font-black text-base-content">{kitItemsTotal.toLocaleString()} F</span>
                           </div>
                           <div className="space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prix kit actuel</span>
-                            <span className="text-sm font-black text-slate-900">{Number(watchPrice || 0).toLocaleString()} F</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix kit actuel</span>
+                            <span className="text-sm font-black text-base-content">{Number(watchPrice || 0).toLocaleString()} F</span>
                           </div>
                         </div>
                         <div className="mt-4">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Définir le prix du kit (F)</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Définir le prix du kit (F)</label>
                           <input
                             type="number"
                             value={watchPrice || ''}
                             onChange={e => setValue('price', Number(e.target.value || 0))}
-                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none mt-2"
+                            className="w-full bg-base-100 border border-base-200 rounded-2xl px-4 py-3 text-sm font-black text-base-content/80 outline-none mt-2"
                           />
                         </div>
                         {watchPrice && kitItemsTotal > Number(watchPrice || 0) && (
@@ -1058,7 +1058,7 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                           </div>
                         )}
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles du lot ({selectedKitProductIds.length})</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Articles du lot ({selectedKitProductIds.length})</label>
                           <div className="flex flex-wrap gap-2">
                             {selectedKitProductIds.map(id => {
                               const p = allProductsList.find(x => x.id === id);
@@ -1078,22 +1078,22 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
               </div>
 
               {/* 3. Remise de quantité Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Percent size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Remises sur quantité (De Gros)</h4>
-                      <p className="text-xs text-slate-400 font-bold">Tarification dégressive automatique basée sur le volume acheté</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Remises sur quantité (De Gros)</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Tarification dégressive automatique basée sur le volume acheté</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('volume_pricing_enabled')} className="toggle toggle-primary" />
                 </div>
 
                 {watch('volume_pricing_enabled') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-slate-100">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-base-200">
                     <div className="space-y-2">
                       {volumePricingTiers.map((tier, idx) => {
                       const basePrice = parseFloat(watchPrice) || 0;
@@ -1101,45 +1101,45 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                       const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
                       const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.min_qty) : 0;
                       return (
-                        <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-base-200 p-4 rounded-2xl border border-base-200">
                           <div className="space-y-3">
-                            <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
+                            <span className="text-xs font-black text-base-content/50 uppercase tracking-widest">Palier {idx + 1}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
+                              <span className="text-[9px] uppercase font-black text-base-content/40 tracking-widest">Quantité ≥</span>
                               <input type="number" min="1" value={tier.min_qty} onChange={e => {
                                 const copy = [...volumePricingTiers];
                                 copy[idx].min_qty = Math.max(1, parseInt(e.target.value) || 1);
                                 setVolumePricingTiers(copy);
-                              }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                              }} className="w-20 bg-base-100 border border-base-200 rounded-xl px-3 py-1.5 text-xs font-black text-base-content/80 outline-none" />
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
+                              <span className="text-[9px] uppercase font-black text-base-content/40 tracking-widest">Remise (%)</span>
                               <input type="number" value={tier.discount} onChange={e => {
                                 const copy = [...volumePricingTiers];
                                 copy[idx].discount = parseInt(e.target.value) || 0;
                                 setVolumePricingTiers(copy);
-                              }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                              }} className="w-20 bg-base-100 border border-base-200 rounded-xl px-3 py-1.5 text-xs font-black text-base-content/80 outline-none" />
                             </div>
                           </div>
 
-                          <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs font-black text-slate-700">
+                          <div className="rounded-3xl border border-base-300 bg-base-100 p-4 text-xs font-black text-base-content/80">
                             {basePrice > 0 ? (
                               <>
-                                <p className="uppercase tracking-widest text-slate-400">Prix unitaire après remise</p>
-                                <p className="text-sm text-slate-900 mt-1">{discountedUnitPrice.toLocaleString()} F</p>
-                                <p className="mt-2 text-[10px] text-slate-500">Économie par unité : {savings.toLocaleString()} F</p>
-                                <p className="text-[10px] text-slate-500">Économie totale à {tier.min_qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
+                                <p className="uppercase tracking-widest text-base-content/40">Prix unitaire après remise</p>
+                                <p className="text-sm text-base-content mt-1">{discountedUnitPrice.toLocaleString()} F</p>
+                                <p className="mt-2 text-[10px] text-base-content/50">Économie par unité : {savings.toLocaleString()} F</p>
+                                <p className="text-[10px] text-base-content/50">Économie totale à {tier.min_qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
                                 {/* Seller revenue estimation */}
-                                <div className="mt-3 pt-3 border-t border-slate-100">
-                                  <p className="uppercase tracking-widest text-slate-400">Revenu estimé & gains</p>
-                                  <p className="text-sm text-slate-900 mt-1">Revenu estimé avant frais: {discountedUnitPrice.toLocaleString()} F</p>
-                                  <p className="text-[10px] text-slate-500">Revenu après commission ({commissionRate}%): {Math.round(discountedUnitPrice * (1 - (commissionRate || 0) / 100)).toLocaleString()} F / unité</p>
-                                  <p className="text-[10px] text-slate-500">Gain net estimé (après commission & livraison ≈ {currentDeliveryFee} F): {Math.max(0, Math.round((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee)).toLocaleString()} F / unité</p>
-                                  <p className="text-[10px] text-slate-500">Gain net estimé pour {tier.min_qty} unités : {Math.max(0, Math.round(((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee) * tier.min_qty)).toLocaleString()} F</p>
+                                <div className="mt-3 pt-3 border-t border-base-200">
+                                  <p className="uppercase tracking-widest text-base-content/40">Revenu estimé & gains</p>
+                                  <p className="text-sm text-base-content mt-1">Revenu estimé avant frais: {discountedUnitPrice.toLocaleString()} F</p>
+                                  <p className="text-[10px] text-base-content/50">Revenu après commission ({commissionRate}%): {Math.round(discountedUnitPrice * (1 - (commissionRate || 0) / 100)).toLocaleString()} F / unité</p>
+                                  <p className="text-[10px] text-base-content/50">Gain net estimé (après commission & livraison ≈ {currentDeliveryFee} F): {Math.max(0, Math.round((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee)).toLocaleString()} F / unité</p>
+                                  <p className="text-[10px] text-base-content/50">Gain net estimé pour {tier.min_qty} unités : {Math.max(0, Math.round(((discountedUnitPrice * (1 - (commissionRate || 0) / 100)) - currentDeliveryFee) * tier.min_qty)).toLocaleString()} F</p>
                                 </div>
                               </>
                             ) : (
-                              <p className="text-slate-400">Définissez le prix du produit pour voir le prix final par palier.</p>
+                              <p className="text-base-content/40">Définissez le prix du produit pour voir le prix final par palier.</p>
                             )}
                           </div>
 
@@ -1159,20 +1159,20 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
       </div>
 
       {/* Footer */}
-      <div className="p-8 border-t border-slate-50 flex items-center justify-between bg-white">
+      <div className="p-8 border-t border-base-200 flex items-center justify-between bg-base-100">
         <button type="button" onClick={prevStep} disabled={currentStep === 0}
-          className="flex items-center gap-2 px-8 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all disabled:opacity-0">
+          className="flex items-center gap-2 px-8 py-4 bg-base-200 border border-base-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/40 hover:text-base-content transition-all disabled:opacity-0">
           <ChevronLeft size={16} /> Précédent
         </button>
         <div className="flex gap-3">
           {currentStep < steps.length - 1 ? (
             <button type="button" onClick={nextStep}
-              className="flex items-center gap-2 px-12 py-4 bg-blue-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl shadow-blue-500/20 hover:bg-slate-900 transition-all">
+              className="flex items-center gap-2 px-12 py-4 bg-blue-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl shadow-blue-500/20 hover:bg-neutral transition-all">
               Continuer <ChevronRight size={16} />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit(onSubmit)} disabled={loading}
-              className="flex items-center gap-2 px-16 py-4 bg-emerald-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 hover:bg-slate-900 transition-all disabled:opacity-50">
+              className="flex items-center gap-2 px-16 py-4 bg-emerald-500 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 hover:bg-neutral transition-all disabled:opacity-50">
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (

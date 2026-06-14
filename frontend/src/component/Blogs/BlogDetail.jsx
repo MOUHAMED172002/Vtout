@@ -63,7 +63,7 @@ const BlogDetail = () => {
     },
     {
       name: 'X',
-      color: 'bg-black hover:bg-slate-800',
+      color: 'bg-black hover:bg-neutral/90',
       url: () => `https://twitter.com/intent/tweet?text=${encodeURIComponent((blog?.title || '') + ' via @vtout_benin')}&url=${encodeURIComponent(articleUrl)}`,
       icon: (
         <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
@@ -75,16 +75,16 @@ const BlogDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-base-100">
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 py-20 animate-pulse">
-           <div className="h-4 w-24 bg-slate-100 mb-8 rounded"></div>
-           <div className="h-12 w-3/4 bg-slate-100 mb-6 rounded"></div>
-           <div className="h-[400px] bg-slate-100 rounded-[2.5rem] mb-10"></div>
+           <div className="h-4 w-24 bg-base-200 mb-8 rounded"></div>
+           <div className="h-12 w-3/4 bg-base-200 mb-6 rounded"></div>
+           <div className="h-[400px] bg-base-200 rounded-[2.5rem] mb-10"></div>
            <div className="space-y-4">
-             <div className="h-4 w-full bg-slate-50 rounded"></div>
-             <div className="h-4 w-full bg-slate-50 rounded"></div>
-             <div className="h-4 w-2/3 bg-slate-50 rounded"></div>
+             <div className="h-4 w-full bg-base-200 rounded"></div>
+             <div className="h-4 w-full bg-base-200 rounded"></div>
+             <div className="h-4 w-2/3 bg-base-200 rounded"></div>
            </div>
         </div>
         <Footer />
@@ -95,7 +95,7 @@ const BlogDetail = () => {
   if (!blog) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <h2 className="text-2xl font-black text-slate-900">Article non trouvé</h2>
+        <h2 className="text-2xl font-black text-base-content">Article non trouvé</h2>
         <Link to="/mag" className="mt-4 text-primary font-bold">Retour au Mag</Link>
       </div>
     );
@@ -106,7 +106,7 @@ const BlogDetail = () => {
   const metaImage = blog.image_url || 'https://vtout.com/og-default.jpg';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-base-100">
       {/* Open Graph & Twitter Card pour partage social */}
       <Helmet>
         <title>{metaTitle} | Vtout Mag</title>
@@ -130,7 +130,7 @@ const BlogDetail = () => {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-6 py-12 md:py-20">
-        <Link to="/mag" className="inline-flex items-center gap-2 text-slate-400 hover:text-primary transition-colors font-bold text-xs uppercase tracking-widest mb-10 group">
+        <Link to="/mag" className="inline-flex items-center gap-2 text-base-content/40 hover:text-primary transition-colors font-bold text-xs uppercase tracking-widest mb-10 group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Retour au Mag
         </Link>
 
@@ -141,37 +141,37 @@ const BlogDetail = () => {
         >
           <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
             <span className="bg-primary/10 px-4 py-1.5 rounded-full">{blog.category}</span>
-            <span className="text-slate-300">•</span>
-            <div className="flex items-center gap-2 text-slate-400">
+            <span className="text-base-content/30">•</span>
+            <div className="flex items-center gap-2 text-base-content/40">
                <Calendar size={14} />
                {new Date(blog.published_at || blog.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 leading-[1.1]">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-base-content leading-[1.1]">
             {blog.title}
           </h1>
 
-          <p className="text-xl text-slate-500 font-medium leading-relaxed italic border-l-4 border-indigo-500 pl-6 whitespace-pre-wrap">
+          <p className="text-xl text-base-content/50 font-medium leading-relaxed italic border-l-4 border-indigo-500 pl-6 whitespace-pre-wrap">
             {blog.summary}
           </p>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-100">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-base-200">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 bg-base-200 rounded-full flex items-center justify-center overflow-hidden">
                 {blog.author?.avatar_url
                   ? <img src={blog.author.avatar_url} alt={blog.author.fullname} className="w-full h-full object-cover" />
-                  : <User size={20} className="text-slate-400" />}
+                  : <User size={20} className="text-base-content/40" />}
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 leading-none">Auteur</p>
-                <p className="text-sm font-bold text-slate-900 mt-1">{blog.author?.fullname || 'Rédaction Vtout'}</p>
+                <p className="text-[10px] font-black uppercase text-base-content/40 leading-none">Auteur</p>
+                <p className="text-sm font-bold text-base-content mt-1">{blog.author?.fullname || 'Rédaction Vtout'}</p>
               </div>
             </div>
 
             {/* Boutons de partage en haut */}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest hidden sm:block">Partager</span>
+              <span className="text-[10px] font-black uppercase text-base-content/40 tracking-widest hidden sm:block">Partager</span>
               {shareOptions.map((s) => (
                 <a key={s.name} href={s.url()} target="_blank" rel="noopener noreferrer" title={`Partager sur ${s.name}`}
                   className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center transition-all hover:scale-110 shadow-md`}>
@@ -179,8 +179,8 @@ const BlogDetail = () => {
                 </a>
               ))}
               <button onClick={handleCopy} title="Copier le lien"
-                className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center justify-center transition-all hover:scale-110">
-                {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-slate-500" />}
+                className="w-10 h-10 bg-base-200 hover:bg-base-300 rounded-xl flex items-center justify-center transition-all hover:scale-110">
+                {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} className="text-base-content/50" />}
               </button>
             </div>
           </div>
@@ -199,14 +199,14 @@ const BlogDetail = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="prose prose-indigo prose-lg max-w-none prose-headings:font-black prose-headings:tracking-tighter prose-p:text-slate-600 prose-p:leading-relaxed"
+          className="prose prose-indigo prose-lg max-w-none prose-headings:font-black prose-headings:tracking-tighter prose-p:text-base-content/70 prose-p:leading-relaxed"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
 
         {blog.tags && (
-          <div className="mt-16 pt-8 border-t border-slate-100 flex flex-wrap gap-3">
+          <div className="mt-16 pt-8 border-t border-base-200 flex flex-wrap gap-3">
             {blog.tags.split(',').map((tag, idx) => (
-              <span key={idx} className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-50 text-slate-500 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-all">
+              <span key={idx} className="inline-flex items-center gap-1.5 px-4 py-2 bg-base-200 text-base-content/50 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-all">
                 <Tag size={14} /> {tag.trim()}
               </span>
             ))}
@@ -215,8 +215,8 @@ const BlogDetail = () => {
 
         {/* CTA partage en bas de l'article */}
         <div className="mt-16 bg-gradient-to-br from-indigo-50 to-orange-50 rounded-[2rem] p-10 text-center border border-indigo-100">
-          <h3 className="text-xl font-black text-slate-900 mb-2">Cet article vous a plu ?</h3>
-          <p className="text-slate-500 font-medium mb-6">Partagez-le avec vos proches !</p>
+          <h3 className="text-xl font-black text-base-content mb-2">Cet article vous a plu ?</h3>
+          <p className="text-base-content/50 font-medium mb-6">Partagez-le avec vos proches !</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             {shareOptions.map((s) => (
               <a key={s.name} href={s.url()} target="_blank" rel="noopener noreferrer"
@@ -226,7 +226,7 @@ const BlogDetail = () => {
               </a>
             ))}
             <button onClick={handleCopy}
-              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all hover:scale-105">
+              className="flex items-center gap-2 px-6 py-3 bg-base-100 border border-base-300 text-base-content/80 rounded-2xl font-black text-sm hover:bg-base-200 transition-all hover:scale-105">
               {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} />}
               Copier le lien
             </button>

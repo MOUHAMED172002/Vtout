@@ -77,79 +77,79 @@ export default function AddSupplierModal({ onClose, onCreated }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-sm">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-slate-100"
+                className="bg-base-100 w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden border border-base-200"
             >
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <div className="p-8 border-b border-base-200 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
                             <User size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Nouveau Marchand</h2>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Créer un compte partenaire ou votre propre profil vendeur</p>
+                            <h2 className="text-xl font-black text-base-content tracking-tight">Nouveau Marchand</h2>
+                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">Créer un compte partenaire ou votre propre profil vendeur</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nom Complet / Raison Sociale</label>
-                        <input {...register('name', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Vtout Officiel ou Nom du Partenaire" />
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Nom Complet / Raison Sociale</label>
+                        <input {...register('name', { required: true })} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Vtout Officiel ou Nom du Partenaire" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Téléphone de Gestion</label>
-                            <input type="tel" {...register('phone', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Téléphone de Gestion</label>
+                            <input type="tel" {...register('phone', { required: true })} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">WhatsApp</label>
-                            <input type="tel" {...register('whatsapp')} className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">WhatsApp</label>
+                            <input type="tel" {...register('whatsapp')} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="+229 00 00 00 00" />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Numéro MoMo (pour les retraits)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Numéro MoMo (pour les retraits)</label>
                         <div className="relative">
-                            <CreditCard className="absolute left-6 top-4 text-slate-300" size={18} />
-                            <input {...register('momo_number')} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="01XXXXXXXX" />
+                            <CreditCard className="absolute left-6 top-4 text-base-content/30" size={18} />
+                            <input {...register('momo_number')} className="w-full bg-base-200 border-none rounded-2xl pl-14 pr-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="01XXXXXXXX" />
                         </div>
                     </div>
 
                     {/* Zone Géographique */}
-                    <div className="space-y-4 pt-4 border-t border-slate-50">
+                    <div className="space-y-4 pt-4 border-t border-base-200">
                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Siège Social / Zone Principale</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Département</label>
-                                <select {...register('departement_id', { required: true })} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Département</label>
+                                <select {...register('departement_id', { required: true })} className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
                                     <option value="">Département</option>
                                     {hierarchy.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Commune</label>
-                                <select {...register('commune_id', { required: true })} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Commune</label>
+                                <select {...register('commune_id', { required: true })} className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
                                     <option value="">Commune</option>
                                     {communes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Quartier</label>
+                                <label className="text-[9px] font-black uppercase tracking-widest text-base-content/40">Quartier</label>
                                 <select 
                                     {...register('quartier_id', { required: true })} 
                                     onChange={(e) => {
                                         register('quartier_id').onChange(e);
                                         handleQuartierChange(e.target.value);
                                     }}
-                                    className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    className="w-full bg-base-200 border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
                                 >
                                     <option value="">Quartier</option>
                                     {quartiers.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
@@ -159,16 +159,16 @@ export default function AddSupplierModal({ onClose, onCreated }) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Adresse Siège</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Adresse Siège</label>
                         <div className="relative">
-                            <MapPin className="absolute left-6 top-5 text-slate-300" size={18} />
-                            <textarea {...register('address_line', { required: true })} className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Indiquez l'emplacement du siège..." />
+                            <MapPin className="absolute left-6 top-5 text-base-content/30" size={18} />
+                            <textarea {...register('address_line', { required: true })} className="w-full bg-base-200 border-none rounded-2xl pl-14 pr-6 py-5 text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-indigo-500/20" rows={2} placeholder="Indiquez l'emplacement du siège..." />
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-50 flex gap-4">
-                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-100 transition-colors">Annuler</button>
-                        <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+                    <div className="pt-4 border-t border-base-200 flex gap-4">
+                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-base-200 text-base-content/40 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-base-200 transition-colors">Annuler</button>
+                        <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:bg-neutral transition-all flex items-center justify-center gap-2">
                             <Save size={16} /> Créer le Marchand
                         </button>
                     </div>

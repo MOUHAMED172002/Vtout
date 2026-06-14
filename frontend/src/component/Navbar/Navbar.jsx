@@ -186,7 +186,7 @@ export default function Navbar() {
             >
               <div className="flex justify-between items-center mb-12">
                 <img src={getConfig('site_logo') || logo} alt={appName} className="h-10 w-auto object-contain mix-blend-multiply" />
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-row items-center gap-2">
                      <PortalSwitcher />
                      <ThemeSelector />
                   </div>

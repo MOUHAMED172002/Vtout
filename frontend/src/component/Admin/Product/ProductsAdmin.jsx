@@ -84,29 +84,29 @@ export default function ProductsAdmin({ globalSearchQuery = "" }) {
             <Package size={14} /> Inventaire
           </div>
           <h1 className="text-3xl lg:text-5xl font-black text-gray-900 tracking-tighter">
-            Gestion des <span className="text-slate-400">Produits</span>
+            Gestion des <span className="text-base-content/40">Produits</span>
           </h1>
-          <p className="text-xs lg:text-base text-slate-500 font-bold max-w-lg">
+          <p className="text-xs lg:text-base text-base-content/50 font-bold max-w-lg">
             Gérez votre catalogue, mettez à jour les stocks et contrôlez vos prix.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 lg:gap-4">
-          <div className="flex items-center gap-3 bg-white px-4 lg:px-6 py-2 lg:py-3 rounded-2xl border border-slate-100 shadow-sm w-full lg:w-auto">
-            <Search size={18} className="text-slate-400" />
+          <div className="flex items-center gap-3 bg-base-100 px-4 lg:px-6 py-2 lg:py-3 rounded-2xl border border-base-200 shadow-sm w-full lg:w-auto">
+            <Search size={18} className="text-base-content/40" />
             <input
               type="text"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchProducts()}
               placeholder="Chercher un produit..."
-              className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 flex-1 lg:w-48"
+              className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 flex-1 lg:w-48"
             />
           </div>
           <div className="flex items-center gap-3 w-full lg:w-auto">
             <button
               onClick={fetchProducts}
-              className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400"
+              className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-base-100 rounded-2xl border border-base-200 shadow-sm hover:bg-base-200 transition-all text-base-content/40"
             >
               <RefreshCcw size={18} />
             </button>
@@ -124,7 +124,7 @@ export default function ProductsAdmin({ globalSearchQuery = "" }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-gray-100 p-2 shadow-xl shadow-slate-200/50 overflow-hidden"
+        className="bg-base-100/50 backdrop-blur-sm rounded-[2.5rem] border border-gray-100 p-2 shadow-xl shadow-slate-200/50 overflow-hidden"
       >
         <ProductTable
           products={products}
@@ -151,7 +151,7 @@ export default function ProductsAdmin({ globalSearchQuery = "" }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
               onClick={() => setShowAddModal(false)}
             />
             <AddProductModal
@@ -179,7 +179,7 @@ export default function ProductsAdmin({ globalSearchQuery = "" }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
               onClick={() => { setShowEditModal(false); setEditingProduct(null); }}
             />
             <EditProductModal

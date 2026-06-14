@@ -144,23 +144,23 @@ export const AuthUI = ({ mode = 'signIn' }) => {
         }
     };
 
-    const inputBase = "block w-full py-3 border border-slate-200 rounded-xl bg-white text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none focus:ring-2 transition-all";
+    const inputBase = "block w-full py-3 border border-base-300 rounded-xl bg-base-100 text-base-content placeholder-slate-400 text-sm font-medium focus:outline-none focus:ring-2 transition-all";
     const inputEmail = `${inputBase} pl-10 pr-4 focus:ring-[#f37021]/20 focus:border-[#f37021]`;
     const inputWa = `${inputBase} pl-10 pr-4 focus:ring-emerald-500/20 focus:border-emerald-500`;
     const inputWaPwd = `${inputBase} pl-10 pr-10 focus:ring-emerald-500/20 focus:border-emerald-500`;
     const inputEmailPwd = `${inputBase} pl-10 pr-10 focus:ring-[#f37021]/20 focus:border-[#f37021]`;
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+        <div className="bg-base-100 rounded-2xl border border-base-200 shadow-sm p-8">
 
             {/* Header */}
             <div className="mb-7">
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-2xl font-black text-base-content tracking-tight">
                     {isForgotPath
                         ? "Mot de passe oublié"
                         : (isSign ? "Connexion" : "Créer un compte")}
                 </h2>
-                <p className="text-sm text-slate-500 mt-1.5 font-medium leading-relaxed">
+                <p className="text-sm text-base-content/50 mt-1.5 font-medium leading-relaxed">
                     {isForgotPath
                         ? (isWhatsapp
                             ? "Entrez votre numéro WhatsApp pour réinitialiser"
@@ -179,7 +179,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                         {!isSign && !isForgotPath && (
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <UserIcon size={17} className="text-slate-400" />
+                                    <UserIcon size={17} className="text-base-content/40" />
                                 </span>
                                 <input
                                     type="text"
@@ -195,7 +195,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
 
                         <div className="relative">
                             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <Mail size={17} className="text-slate-400" />
+                                <Mail size={17} className="text-base-content/40" />
                             </span>
                             <input
                                 type="email"
@@ -211,7 +211,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                         {!isForgotPath && (
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Lock size={17} className="text-slate-400" />
+                                    <Lock size={17} className="text-base-content/40" />
                                 </span>
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -224,7 +224,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-base-content/40 hover:text-base-content/70 transition-colors"
                                 >
                                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                                 </button>
@@ -253,7 +253,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 {!isSign && (
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                            <UserIcon size={17} className="text-slate-400" />
+                                            <UserIcon size={17} className="text-base-content/40" />
                                         </span>
                                         <input
                                             type="text"
@@ -268,14 +268,14 @@ export const AuthUI = ({ mode = 'signIn' }) => {
 
                                 <div className="relative">
                                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
-                                        <Smartphone size={17} className="text-slate-400" />
+                                        <Smartphone size={17} className="text-base-content/40" />
                                     </span>
                                     <PhoneInput
                                         international
                                         defaultCountry="BJ"
                                         value={phone}
                                         onChange={setPhone}
-                                        className="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl bg-white text-sm font-medium focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full [&>input]:text-sm [&>input]:font-medium [&>input]:text-slate-900"
+                                        className="block w-full pl-10 pr-4 py-3 border border-base-300 rounded-xl bg-base-100 text-sm font-medium focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full [&>input]:text-sm [&>input]:font-medium [&>input]:text-base-content"
                                         placeholder="+229 00 00 00 00"
                                     />
                                 </div>
@@ -283,7 +283,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 {!isForgotPath && (
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
-                                            <Lock size={17} className="text-slate-400" />
+                                            <Lock size={17} className="text-base-content/40" />
                                         </span>
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -296,7 +296,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-base-content/40 hover:text-base-content/70 transition-colors"
                                         >
                                             {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                                         </button>
@@ -319,8 +319,8 @@ export const AuthUI = ({ mode = 'signIn' }) => {
 
                         {waStep === 'otp' && (
                             <div className="space-y-3">
-                                <p className="text-xs text-center text-slate-500 font-medium">
-                                    Code envoyé au <span className="font-black text-slate-800">{phone}</span>
+                                <p className="text-xs text-center text-base-content/50 font-medium">
+                                    Code envoyé au <span className="font-black text-base-content/90">{phone}</span>
                                 </p>
                                 <input
                                     type="text"
@@ -329,7 +329,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                     autoFocus
                                     value={otp}
                                     onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                                    className="block w-full text-center tracking-[0.8em] text-2xl py-3.5 border-2 border-emerald-200 rounded-xl bg-emerald-50/50 text-slate-900 focus:outline-none focus:border-emerald-500 transition-all font-black"
+                                    className="block w-full text-center tracking-[0.8em] text-2xl py-3.5 border-2 border-emerald-200 rounded-xl bg-emerald-50/50 text-base-content focus:outline-none focus:border-emerald-500 transition-all font-black"
                                     placeholder="000000"
                                 />
                             </div>
@@ -338,7 +338,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                         {waStep === 'reset_password' && (
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
-                                    <Lock size={17} className="text-slate-400" />
+                                    <Lock size={17} className="text-base-content/40" />
                                 </span>
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -351,7 +351,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-base-content/40 hover:text-base-content/70 transition-colors"
                                 >
                                     {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                                 </button>
@@ -381,7 +381,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                     <button
                         type="button"
                         onClick={() => { setIsWhatsapp(false); setWaStep('form'); setIsForgotPath(false); }}
-                        className="w-full flex justify-center items-center gap-1.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                        className="w-full flex justify-center items-center gap-1.5 py-2 text-xs font-bold text-base-content/40 hover:text-base-content/70 transition-colors"
                     >
                         <ChevronLeft size={14} /> Revenir à l'e-mail
                     </button>
@@ -392,15 +392,15 @@ export const AuthUI = ({ mode = 'signIn' }) => {
             {!isForgotPath && !isWhatsapp && (
                 <div className="mt-6">
                     <div className="relative flex items-center gap-4">
-                        <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest shrink-0">ou continuer avec</span>
-                        <div className="flex-1 h-px bg-slate-100" />
+                        <div className="flex-1 h-px bg-base-200" />
+                        <span className="text-[11px] text-base-content/40 font-semibold uppercase tracking-widest shrink-0">ou continuer avec</span>
+                        <div className="flex-1 h-px bg-base-200" />
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-3">
                         <button
                             type="button"
                             onClick={() => socialLogin('google')}
-                            className="flex justify-center items-center gap-2 py-2.5 px-4 border border-slate-200 rounded-xl bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+                            className="flex justify-center items-center gap-2 py-2.5 px-4 border border-base-300 rounded-xl bg-base-100 text-sm font-semibold text-base-content/80 hover:bg-base-200 transition-colors shadow-sm"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-4 w-4" alt="Google" />
                             Google
@@ -418,7 +418,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
             )}
 
             {/* ── Switch signin / signup ── */}
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <div className="mt-6 pt-5 border-t border-base-200 text-center">
                 <button
                     type="button"
                     onClick={() => {

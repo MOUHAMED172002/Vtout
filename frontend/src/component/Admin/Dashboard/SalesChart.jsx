@@ -196,11 +196,11 @@ const StatCard = ({ config, total, trend, delay = 0 }) => {
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/50">
             {config.label}
           </p>
-          <p className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
-            {Number(total).toLocaleString()} <span className="text-base font-bold text-slate-400">F</span>
+          <p className="text-2xl lg:text-3xl font-black text-base-content tracking-tight">
+            {Number(total).toLocaleString()} <span className="text-base font-bold text-base-content/40">F</span>
           </p>
         </div>
         <div className={`w-12 h-12 rounded-2xl ${config.badge} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
@@ -217,7 +217,7 @@ const StatCard = ({ config, total, trend, delay = 0 }) => {
           <span className={`text-xs font-black ${trend >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
             {Math.abs(trend).toFixed(1)}%
           </span>
-          <span className="text-[10px] font-bold text-slate-400">vs période préc.</span>
+          <span className="text-[10px] font-bold text-base-content/40">vs période préc.</span>
         </div>
       )}
     </motion.div>
@@ -310,10 +310,10 @@ const RoleTimelineChart = ({ timeline, config, chartType = "line" }) => {
       {timeline.length > 0 ? (
         <ChartComponent ref={chartRef} data={chartData} options={options} />
       ) : (
-        <div className="h-full flex items-center justify-center text-slate-300">
+        <div className="h-full flex items-center justify-center text-base-content/30">
           <div className="text-center space-y-3">
             <Activity size={32} className="mx-auto opacity-40" />
-            <p className="text-xs font-bold text-slate-400">Pas de données pour cette période</p>
+            <p className="text-xs font-bold text-base-content/40">Pas de données pour cette période</p>
           </div>
         </div>
       )}
@@ -499,25 +499,25 @@ const SalesChart = ({ data: propData }) => {
           <div className="flex items-center gap-2 text-indigo-600 font-black uppercase text-[10px] tracking-[0.3em]">
             <BarChart3 size={14} /> Analytics Centre
           </div>
-          <h1 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tighter">
-            Analyses <span className="text-slate-400">des Ventes</span>
+          <h1 className="text-3xl lg:text-5xl font-black text-base-content tracking-tighter">
+            Analyses <span className="text-base-content/40">des Ventes</span>
           </h1>
-          <p className="text-xs lg:text-sm text-slate-500 font-bold max-w-lg">
+          <p className="text-xs lg:text-sm text-base-content/50 font-bold max-w-lg">
             Performance détaillée par profil — Admin, Vendeurs, Livreurs & Acheteurs.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:gap-3">
           {/* Period Selector */}
-          <div className="flex bg-white rounded-2xl p-1 lg:p-1.5 border border-slate-100 shadow-sm">
+          <div className="flex bg-base-100 rounded-2xl p-1 lg:p-1.5 border border-base-200 shadow-sm">
             {["7J", "30J", "12M"].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 lg:px-6 py-1.5 lg:py-2 rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest transition-all ${
                   period === p
-                    ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10"
-                    : "text-slate-400 hover:text-slate-900"
+                    ? "bg-neutral text-white shadow-lg shadow-slate-900/10"
+                    : "text-base-content/40 hover:text-base-content"
                 }`}
               >
                 {p}
@@ -526,7 +526,7 @@ const SalesChart = ({ data: propData }) => {
           </div>
           <button
             onClick={() => fetchData()}
-            className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all text-slate-500"
+            className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-base-100 rounded-2xl border border-base-200 shadow-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all text-base-content/50"
           >
             <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
           </button>
@@ -545,7 +545,7 @@ const SalesChart = ({ data: propData }) => {
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-slate-100 rounded-3xl animate-pulse" />
+            <div key={i} className="h-32 bg-base-200 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : (
@@ -558,9 +558,9 @@ const SalesChart = ({ data: propData }) => {
       )}
 
       {/* ─── Tab Navigation ─── */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/50 overflow-hidden">
+      <div className="bg-base-100 rounded-3xl border border-base-200 shadow-xl shadow-slate-100/50 overflow-hidden">
         {/* Tabs */}
-        <div className="flex overflow-x-auto border-b border-slate-100 px-4 lg:px-8 pt-4 gap-1">
+        <div className="flex overflow-x-auto border-b border-base-200 px-4 lg:px-8 pt-4 gap-1">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -570,8 +570,8 @@ const SalesChart = ({ data: propData }) => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 px-4 lg:px-6 py-3 rounded-t-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-lg"
-                    : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
+                    ? "bg-neutral text-white shadow-lg"
+                    : "text-base-content/40 hover:text-base-content/80 hover:bg-base-200"
                 }`}
               >
                 <Icon size={14} />
@@ -587,7 +587,7 @@ const SalesChart = ({ data: propData }) => {
             <div className="h-[350px] flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest">
                   Chargement des données...
                 </p>
               </div>
@@ -604,14 +604,14 @@ const SalesChart = ({ data: propData }) => {
                 {activeTab === "combined" && dashData && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center">
+                      <div className="w-8 h-8 bg-neutral rounded-xl flex items-center justify-center">
                         <Activity size={16} className="text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-black text-base-content tracking-tight">
                           Vue Combinée
                         </h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           Tous les profils sur un même graphique
                         </p>
                       </div>
@@ -627,10 +627,10 @@ const SalesChart = ({ data: propData }) => {
                         <Crown size={16} className="text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-black text-base-content tracking-tight">
                           Commissions Admin
                         </h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           Profits de la plateforme par jour
                         </p>
                       </div>
@@ -650,10 +650,10 @@ const SalesChart = ({ data: propData }) => {
                         <BarChart3 size={16} className="text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-black text-base-content tracking-tight">
                           Revenus Vendeurs
                         </h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           Gains journaliers des marchands partenaires
                         </p>
                       </div>
@@ -672,10 +672,10 @@ const SalesChart = ({ data: propData }) => {
                         <Truck size={16} className="text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-black text-base-content tracking-tight">
                           Revenus Livreurs
                         </h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           Gains de courses par jour
                         </p>
                       </div>
@@ -694,10 +694,10 @@ const SalesChart = ({ data: propData }) => {
                         <ShoppingCart size={16} className="text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-black text-base-content tracking-tight">
                           Dépenses Acheteurs
                         </h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           Total dépensé par les clients par jour
                         </p>
                       </div>
@@ -734,7 +734,7 @@ const SalesChart = ({ data: propData }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.08 }}
-                className={`bg-white rounded-[2rem] border border-slate-100 p-6 lg:p-8 shadow-xl shadow-slate-100/40 hover:shadow-2xl transition-shadow`}
+                className={`bg-base-100 rounded-[2rem] border border-base-200 p-6 lg:p-8 shadow-xl shadow-slate-100/40 hover:shadow-2xl transition-shadow`}
               >
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -742,15 +742,15 @@ const SalesChart = ({ data: propData }) => {
                       <Icon size={18} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-slate-900">{cfg.label}</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <h3 className="text-sm font-black text-base-content">{cfg.label}</h3>
+                      <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                         Derniers {period}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-black text-slate-900">
-                      {Number(total).toLocaleString()} <span className="text-sm font-bold text-slate-400">F</span>
+                    <p className="text-xl font-black text-base-content">
+                      {Number(total).toLocaleString()} <span className="text-sm font-bold text-base-content/40">F</span>
                     </p>
                   </div>
                 </div>

@@ -122,17 +122,17 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       className="w-full flex items-center justify-between py-4 group"
     >
       <div className="flex items-center gap-3">
-        <Icon size={16} className="text-slate-400 group-hover:text-primary transition-colors" />
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">{title}</span>
+        <Icon size={16} className="text-base-content/40 group-hover:text-primary transition-colors" />
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-base-content/90">{title}</span>
       </div>
-      {openSections[sectionKey] ? <ChevronDown size={14} className="text-slate-300" /> : <Plus size={14} className="text-slate-300" />}
+      {openSections[sectionKey] ? <ChevronDown size={14} className="text-base-content/30" /> : <Plus size={14} className="text-base-content/30" />}
     </button>
   );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-8">
-        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Configuration</h4>
+        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-base-content/40">Configuration</h4>
         <button onClick={clearFilters} className="flex items-center gap-1.5 text-xs font-black text-primary hover:underline">
           <RotateCcw size={12} /> Reset
         </button>
@@ -141,7 +141,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
 
 
       {/* Promotion Types */}
-      <div className="border-b border-slate-50">
+      <div className="border-b border-base-200">
         <SectionHeader title="Promotions & Offres" sectionKey="promo" icon={Sparkles} />
         <AnimatePresence>
           {openSections.promo && (
@@ -192,7 +192,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                     <button
                       key={p.id}
                       onClick={handleSelect}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${isCurrentlyActive ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'}`}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${isCurrentlyActive ? 'bg-neutral text-white shadow-lg' : 'text-base-content/50 hover:bg-base-200'}`}
                     >
                       {p.label}
                     </button>
@@ -205,7 +205,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       </div>
 
       {/* Sorting */}
-      <div className="border-b border-slate-50">
+      <div className="border-b border-base-200">
         <SectionHeader title="Tri" sectionKey="sort" icon={LayoutGrid} />
         <AnimatePresence>
           {openSections.sort && (
@@ -215,7 +215,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                   <button
                     key={s}
                     onClick={() => updateFilters({ sort: s })}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${filters.sort === s ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'}`}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${filters.sort === s ? 'bg-neutral text-white shadow-lg' : 'text-base-content/50 hover:bg-base-200'}`}
                   >
                     {s === "recent" ? "Plus récents" : s === "price_asc" ? "Prix croissant" : "Prix décroissant"}
                   </button>
@@ -227,7 +227,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       </div>
 
       {/* Category Selection (New Premium Style) */}
-      <div className="border-b border-slate-50">
+      <div className="border-b border-base-200">
         <SectionHeader title="Catégorie" sectionKey="category" icon={Tag} />
         <AnimatePresence>
           {openSections.category && (
@@ -235,10 +235,10 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
               <button
                 type="button"
                 onClick={() => setShowCategoryModal(true)}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
+                className="w-full bg-base-200 border border-base-200 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
               >
                 <div className="flex flex-col">
-                  <span className={`text-xs font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-400'}`}>
+                  <span className={`text-xs font-bold ${selectedCategory ? 'text-base-content' : 'text-base-content/40'}`}>
                     {selectedCategory ? selectedCategory.name : "Toutes les catégories"}
                   </span>
                   {selectedCategory && (
@@ -247,7 +247,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                     </span>
                   )}
                 </div>
-                <ChevronRight size={16} className="text-slate-300 group-hover:text-primary transition-colors" />
+                <ChevronRight size={16} className="text-base-content/30 group-hover:text-primary transition-colors" />
               </button>
             </motion.div>
           )}
@@ -255,47 +255,47 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       </div>
 
       {/* Price */}
-      <div className="border-b border-slate-50">
+      <div className="border-b border-base-200">
         <SectionHeader title="Bilan Prix" sectionKey="price" icon={DollarSign} />
         <AnimatePresence>
           {openSections.price && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-8 overflow-hidden space-y-6">
               <div className="flex flex-wrap gap-2">
                 {[["< 10k", "low"], ["10k-50k", "mid"], ["> 50k", "high"]].map(([label, val]) => (
-                  <button key={val} onClick={() => handlePricePreset(val)} className="px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black uppercase text-slate-500 hover:bg-primary/10 hover:text-primary transition-all border border-slate-100">{label}</button>
+                  <button key={val} onClick={() => handlePricePreset(val)} className="px-4 py-2 bg-base-200 rounded-full text-[10px] font-black uppercase text-base-content/50 hover:bg-primary/10 hover:text-primary transition-all border border-base-200">{label}</button>
                 ))}
               </div>
 
               <div className="space-y-6 px-2">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Min (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">Min (FCFA)</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs text-bold">CFA</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">CFA</span>
                       <input 
                         type="number" 
                         value={filters.minPrice} 
                         onChange={(e) => updateFilters({ minPrice: Math.max(0, Number(e.target.value)) })}
-                        className="w-full bg-slate-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                        className="w-full bg-base-200 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-base-content focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Max (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">Max (FCFA)</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs text-bold">CFA</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">CFA</span>
                       <input 
                         type="number" 
                         value={filters.maxPrice} 
                         onChange={(e) => updateFilters({ maxPrice: Math.max(0, Number(e.target.value)) })}
-                        className="w-full bg-slate-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                        className="w-full bg-base-200 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-base-content focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="relative h-6 flex items-center">
-                  <div className="absolute w-full h-1.5 bg-slate-100 rounded-full">
+                  <div className="absolute w-full h-1.5 bg-base-200 rounded-full">
                     <div 
                       className="absolute h-full bg-orange-400 rounded-full" 
                       style={{ 
@@ -311,7 +311,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                     step={1000} 
                     value={filters.minPrice} 
                     onChange={(e) => updateFilters({ minPrice: Math.min(Number(e.target.value), filters.maxPrice - 1000) })} 
-                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
                   />
                   <input 
                     type="range" 
@@ -320,7 +320,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                     step={1000} 
                     value={filters.maxPrice} 
                     onChange={(e) => updateFilters({ maxPrice: Math.max(Number(e.target.value), filters.minPrice + 1000) })} 
-                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
                   />
                 </div>
               </div>
@@ -330,13 +330,13 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       </div>
 
       {/* Attributes */}
-      <div className="border-b border-slate-50">
+      <div className="border-b border-base-200">
         <SectionHeader title="Propriétés" sectionKey="attributes" icon={Box} />
         <AnimatePresence>
           {openSections.attributes && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden space-y-4">
               <select
-                className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                className="w-full h-12 px-4 bg-base-100 border border-base-300 rounded-xl text-xs font-black text-base-content shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                 value={selectedAttrId}
                 onChange={(e) => setSelectedAttrId(e.target.value)}
               >
@@ -346,7 +346,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
 
               {selectedAttrId && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Valeurs disponibles</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Valeurs disponibles</div>
                   <div className="flex flex-wrap gap-2">
                     {attributes.find(a => String(a.id) === String(selectedAttrId))?.values?.map((v) => {
                       const isSelected = (filters.attributes[selectedAttrId] || []).includes(v.value);
@@ -354,7 +354,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                         <button
                           key={v.id}
                           onClick={() => toggleAttributeValue(selectedAttrId, v.value)}
-                          className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-50 text-slate-500 border border-slate-100 hover:border-primary/30'}`}
+                          className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-base-200 text-base-content/50 border border-base-200 hover:border-primary/30'}`}
                         >
                           {v.value}
                         </button>
@@ -365,20 +365,20 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
               )}
 
               {Object.entries(filters.attributes).length > 0 && (
-                <div className="pt-4 border-t border-slate-50 space-y-2">
+                <div className="pt-4 border-t border-base-200 space-y-2">
                   {Object.entries(filters.attributes).map(([attrId, vals]) => {
                     const attrName = attributes.find(a => String(a.id) === String(attrId))?.name || "Attribut";
                     return (
-                      <div key={attrId} className="bg-slate-50 p-3 rounded-xl border border-slate-100 relative group">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{attrName}</p>
-                        <p className="text-xs font-bold text-slate-700 truncate pr-6">{vals.join(", ")}</p>
+                      <div key={attrId} className="bg-base-200 p-3 rounded-xl border border-base-200 relative group">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">{attrName}</p>
+                        <p className="text-xs font-bold text-base-content/80 truncate pr-6">{vals.join(", ")}</p>
                         <button
                           onClick={() => {
                             const nextAttrs = { ...filters.attributes };
                             delete nextAttrs[attrId];
                             updateFilters({ attributes: nextAttrs });
                           }}
-                          className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 flex items-center justify-center bg-white border border-slate-100 rounded-full text-slate-300 hover:text-red-400 transition-all"
+                          className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 flex items-center justify-center bg-base-100 border border-base-200 rounded-full text-base-content/30 hover:text-red-400 transition-all"
                         >
                           ×
                         </button>

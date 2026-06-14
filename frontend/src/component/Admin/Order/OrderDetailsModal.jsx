@@ -136,7 +136,7 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+        className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
         onClick={onClose}
       />
 
@@ -144,20 +144,20 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="bg-white w-full max-w-5xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-base-100 w-full max-w-5xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-20">
+        <div className="p-8 border-b border-base-200 flex items-center justify-between bg-base-100 sticky top-0 z-20">
           <div className="flex items-center gap-6">
             <div className="w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center">
               <Package size={28} />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Commande #{order.id?.slice(0, 8).toUpperCase() || "..."}</h3>
+                <h3 className="text-2xl font-black text-base-content tracking-tighter">Commande #{order.id?.slice(0, 8).toUpperCase() || "..."}</h3>
                 <OrderStatusBadge status={order.status} />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 flex items-center gap-2">
                 <Calendar size={12} />
                 {(() => {
                   const d = new Date(order.created_at || order.createdAt);
@@ -168,63 +168,63 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
           </div>
           <div className="flex items-center gap-3">
             <InvoiceButton order={order} />
-            <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center">
+            <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-base-200 text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center">
               <X size={24} />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/30">
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-base-200/30">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <span className="loading loading-spinner loading-lg text-primary"></span>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Chargement des données...</p>
+              <p className="text-base-content/40 font-bold uppercase tracking-widest text-xs">Chargement des données...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Details & Items */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Articles List */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-8 flex items-center gap-3">
+                <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-sm">
+                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40 mb-8 flex items-center gap-3">
                     <Package size={14} /> Contenu du colis
                   </h4>
                   <div className="space-y-6">
                     {(order.items || []).map((it) => (
                       <div key={it.id} className="flex items-center gap-6 group">
-                        <div className="w-20 h-20 rounded-2xl bg-slate-50 flex-shrink-0 overflow-hidden border border-slate-100 group-hover:border-primary transition-colors">
+                        <div className="w-20 h-20 rounded-2xl bg-base-200 flex-shrink-0 overflow-hidden border border-base-200 group-hover:border-primary transition-colors">
                           {it.product?.image_url || it.product?.images?.[0]?.image_url ? (
                             <img src={it.product.image_url || it.product.images[0].image_url} alt={it.product.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                            <div className="w-full h-full flex items-center justify-center text-base-content/30">
                               <Package size={32} />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h5 className="font-black text-slate-900 truncate leading-tight mb-1">{it.product?.name || `Produit #${it.product_id}`}</h5>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                          <h5 className="font-black text-base-content truncate leading-tight mb-1">{it.product?.name || `Produit #${it.product_id}`}</h5>
+                          <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest">
                             {it.variant?.name || "Taille Unique"} · {it.quantity} unité{it.quantity > 1 ? 's' : ''}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-black text-slate-900 leading-none mb-1">{(it.price * it.quantity).toLocaleString()} F</p>
+                          <p className="font-black text-base-content leading-none mb-1">{(it.price * it.quantity).toLocaleString()} F</p>
                           {it.original_price && Number(it.original_price) > Number(it.price) ? (
-                            <p className="text-[10px] font-bold text-slate-400 line-through">{Number(it.original_price).toLocaleString()} F / u</p>
+                            <p className="text-[10px] font-bold text-base-content/40 line-through">{Number(it.original_price).toLocaleString()} F / u</p>
                           ) : null}
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{Number(it.price).toLocaleString()} F / u</p>
+                          <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{Number(it.price).toLocaleString()} F / u</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-10 pt-8 border-t border-dashed border-slate-100 flex items-center justify-between gap-8 flex-wrap">
+                  <div className="mt-10 pt-8 border-t border-dashed border-base-200 flex items-center justify-between gap-8 flex-wrap">
                     {/* Financial Breakdown (Marketplace Engine) */}
                     <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                       <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Gain Fournisseur</p>
-                          <p className="text-xl font-black text-slate-900">
+                       <div className="p-5 bg-base-200 rounded-3xl border border-base-200">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mb-2">Gain Fournisseur</p>
+                          <p className="text-xl font-black text-base-content">
                             {Number(order.supplier_earnings !== undefined ? order.supplier_earnings : (order.items || []).reduce((acc, it) => acc + ((Number(it.supplier_price) || 0) * (Number(it.quantity) || 1)), 0)).toLocaleString()} F
                           </p>
                        </div>
@@ -250,13 +250,13 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                         </div>
                     )}
                     {order.parent_id && (
-                        <div className="w-full mb-6 p-4 bg-slate-100 rounded-2xl border border-slate-200 flex items-center gap-4">
-                            <p className="text-xs font-bold text-slate-500 italic">Sous-commande liée à #{order.parent_id.slice(0,8)}</p>
+                        <div className="w-full mb-6 p-4 bg-base-200 rounded-2xl border border-base-300 flex items-center gap-4">
+                            <p className="text-xs font-bold text-base-content/50 italic">Sous-commande liée à #{order.parent_id.slice(0,8)}</p>
                         </div>
                     )}
 
                     <div className="flex-1 min-w-[200px]">
-                      <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Nombre de colis à récupérer</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-base-content/40 block mb-2">Nombre de colis à récupérer</span>
                       <div className="flex items-center gap-4">
                         <button 
                           onClick={async () => {
@@ -265,7 +265,7 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                             await updateOrder(order.id, { colis_count: newCount }, token);
                             fetchDetails();
                           }}
-                          className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200 transition-colors"
+                          className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center font-bold hover:bg-base-300 transition-colors"
                         > - </button>
                         <span className="text-xl font-black">{order.colis_count || 1}</span>
                         <button 
@@ -275,14 +275,14 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                             await updateOrder(order.id, { colis_count: newCount }, token);
                             fetchDetails();
                           }}
-                          className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold hover:bg-slate-200 transition-colors"
+                          className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center font-bold hover:bg-base-300 transition-colors"
                         > + </button>
                       </div>
                     </div>
                     <div className="text-right space-y-4">
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Somme Articles</span>
-                        <span className="font-bold text-slate-900">{(Number(order.total_amount) + Number(order.discount_amount || 0) - Number(order.delivery_fee || 0)).toLocaleString()} F</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Somme Articles</span>
+                        <span className="font-bold text-base-content">{(Number(order.total_amount) + Number(order.discount_amount || 0) - Number(order.delivery_fee || 0)).toLocaleString()} F</span>
                       </div>
                       {order.discount_amount > 0 && (
                         <div className="flex flex-col items-end text-emerald-500">
@@ -291,7 +291,7 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                         </div>
                       )}
                       <div>
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-1">Total à payer</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-base-content/40 block mb-1">Total à payer</span>
                         <span className="text-3xl font-black text-primary tracking-tighter">{(order.total_amount || 0).toLocaleString()} F</span>
                       </div>
                     </div>
@@ -299,8 +299,8 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                 </div>
 
                 {/* Actions Bar */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-8 flex items-center gap-3">
+                <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-sm">
+                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40 mb-8 flex items-center gap-3">
                     <AlertCircle size={14} /> Action Rapide
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -327,20 +327,20 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
               {/* Right Column: Customer, Shipping & Assignment */}
               <div className="space-y-8">
                 {/* Customer Card */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-6 flex items-center gap-3">
+                <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-sm">
+                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40 mb-6 flex items-center gap-3">
                     <User size={14} /> Informations Client
                   </h4>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 font-black">
+                    <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 font-black">
                       {(order.guest_name || order.user_id || "?").slice(0, 1).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-900 leading-none line-clamp-1">
+                      <p className="text-sm font-black text-base-content leading-none line-clamp-1">
                         {order.guest_name || order.user_id || "Client Inconnu"}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
                           {order.user_id ? "Client Enregistré" : "Achat Invité"}
                         </p>
                         {order.delivery_code && (
@@ -349,20 +349,20 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                           </span>
                         )}
                       </div>
-                      {order.guest_email && <p className="text-[10px] text-slate-400 mt-1">{order.guest_email}</p>}
+                      {order.guest_email && <p className="text-[10px] text-base-content/40 mt-1">{order.guest_email}</p>}
                     </div>
                   </div>
-                  <div className="space-y-4 pt-4 border-t border-slate-50">
+                  <div className="space-y-4 pt-4 border-t border-base-200">
                     <div className="flex items-center gap-3 text-sm">
-                      <CreditCard size={14} className="text-slate-300" />
-                      <span className="text-slate-500">Paiement :</span>
-                      <span className="font-bold text-slate-900 uppercase tracking-tight ml-auto">{order.payment_method === 'delivery' ? 'Cash' : 'FedaPay'}</span>
+                      <CreditCard size={14} className="text-base-content/30" />
+                      <span className="text-base-content/50">Paiement :</span>
+                      <span className="font-bold text-base-content uppercase tracking-tight ml-auto">{order.payment_method === 'delivery' ? 'Cash' : 'FedaPay'}</span>
                     </div>
 
                     {order.payment_method === 'delivery' && (
-                      <div className="flex items-center justify-between mt-4 p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                      <div className="flex items-center justify-between mt-4 p-4 rounded-2xl border border-base-200 bg-base-200">
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Statut Caisse</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Statut Caisse</p>
                           <p className={`text-sm font-black ${order.payment_status === 'payé' ? 'text-emerald-500' : 'text-rose-500'}`}>
                             {order.payment_status === 'payé' ? 'ENCAISSÉ' : 'NON REMIS'}
                           </p>
@@ -379,28 +379,28 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
 
                 {/* Shipping Card */}
                 <div className="bg-primary rounded-[2.5rem] p-8 shadow-xl shadow-primary/20 text-white">
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-900/60 mb-8 flex items-center gap-3">
+                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-base-content/60 mb-8 flex items-center gap-3">
                     <MapPin size={14} /> Livraison
                   </h4>
                   {order.address ? (
                     <div className="space-y-6">
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900/40 mb-1">Label d'adresse</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mb-1">Label d'adresse</p>
                         <p className="font-black text-lg">{order.address.label}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900/40 mb-1">Destination</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mb-1">Destination</p>
                         <p className="text-sm font-bold opacity-90 leading-relaxed">
                           {order.address.address_line}<br />
                           {order.address.commune_label || order.address.commune}, {order.address.departement_label || order.address.departement}
                         </p>
                       </div>
-                      <div className="bg-white/10 rounded-2xl p-4 flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                      <div className="bg-base-100/10 rounded-2xl p-4 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-base-100/10 flex items-center justify-center">
                           <Truck size={18} />
                         </div>
                         <div>
-                          <p className="text-[8px] font-black uppercase tracking-widest text-slate-900/40">Contact téléphonique</p>
+                          <p className="text-[8px] font-black uppercase tracking-widest text-base-content/40">Contact téléphonique</p>
                           <p className="font-black tracking-widest">{order.address.phone}</p>
                         </div>
                       </div>
@@ -413,16 +413,16 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                 </div>
 
                 {/* --- ASSIGNMENT SECTION --- */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm space-y-8">
-                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+                <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-sm space-y-8">
+                  <h4 className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40 flex items-center gap-3">
                     <UserCheck size={14} /> Gestion Logistique
                   </h4>
 
                   {/* Boutique / Supplier Info (Fixed in Marketplace) */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Boutique d'origine</p>
-                      <span className="badge badge-success badge-sm text-[8px] font-bold text-slate-900">AUTO-ASSIGNÉ</span>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Boutique d'origine</p>
+                      <span className="badge badge-success badge-sm text-[8px] font-bold text-base-content">AUTO-ASSIGNÉ</span>
                     </div>
                     {order.boutique || order.supplier ? (
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
@@ -430,7 +430,7 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                           <Store size={20} />
                         </div>
                         <div className="flex-1">
-                          <p className="font-black text-slate-900 text-sm">{(order.boutique?.name || order.supplier?.name)}</p>
+                          <p className="font-black text-base-content text-sm">{(order.boutique?.name || order.supplier?.name)}</p>
                           <p className="text-[10px] font-bold text-emerald-600">
                             {(order.boutique?.phone || order.supplier?.phone)} · {(order.boutique?.commune_label || order.boutique?.commune || order.supplier?.commune)}
                           </p>
@@ -445,10 +445,10 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                   </div>
 
                   {/* Deliverer Assignment */}
-                  <div className="space-y-4 pt-4 border-t border-slate-50">
+                  <div className="space-y-4 pt-4 border-t border-base-200">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Livreur</p>
-                      {order.deliveryPerson && <span className="badge badge-info badge-sm text-[8px] font-bold text-slate-900">ASSIGNÉ</span>}
+                      <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Livreur</p>
+                      {order.deliveryPerson && <span className="badge badge-info badge-sm text-[8px] font-bold text-base-content">ASSIGNÉ</span>}
                     </div>
                     {order.deliveryPerson ? (
                       <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-4">
@@ -460,10 +460,10 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-black text-slate-900 text-sm">{order.deliveryPerson.profile?.fullname || 'Livreur'}</p>
+                          <p className="font-black text-base-content text-sm">{order.deliveryPerson.profile?.fullname || 'Livreur'}</p>
                           <p className="text-[10px] font-bold text-blue-600">{order.deliveryPerson.profile?.phone} · {order.deliveryPerson.vehicle_type}</p>
                         </div>
-                        <button onClick={() => handleAssignLivreur(null)} className="text-xs font-bold text-slate-400 hover:text-rose-500">Changer</button>
+                        <button onClick={() => handleAssignLivreur(null)} className="text-xs font-bold text-base-content/40 hover:text-rose-500">Changer</button>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -490,8 +490,8 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
         </div>
 
         {/* Footer */}
-        <div className="p-8 bg-white border-t border-slate-50 sticky bottom-0 z-20 flex justify-end">
-          <button onClick={onClose} className="btn h-14 rounded-2xl px-12 font-black uppercase tracking-widest text-xs bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+        <div className="p-8 bg-base-100 border-t border-base-200 sticky bottom-0 z-20 flex justify-end">
+          <button onClick={onClose} className="btn h-14 rounded-2xl px-12 font-black uppercase tracking-widest text-xs bg-neutral text-white hover:bg-neutral/90 transition-all shadow-xl shadow-slate-200">
             Fermer la vue
           </button>
         </div>

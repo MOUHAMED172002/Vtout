@@ -95,9 +95,9 @@ export default function LiveDeliveryMap({ orderId, clientLat, clientLng, supplie
             </MapContainer>
 
             {/* Live Indicator */}
-            <div className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-blue-100">
-                <div className={`w-2 h-2 rounded-full ${driverPos ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">
+            <div className="absolute top-4 right-4 z-[1000] bg-base-100/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-blue-100">
+                <div className={`w-2 h-2 rounded-full ${driverPos ? 'bg-emerald-500 animate-pulse' : 'bg-base-300'}`} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-base-content">
                     {driverPos ? "En Direct" : "En attente du signal"}
                 </span>
             </div>

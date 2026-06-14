@@ -147,7 +147,7 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                         className="w-full pl-12 pr-4 py-4 rounded-3xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 bg-white transition-shadow text-sm font-bold text-slate-700 placeholder:font-medium"
                     />
                 </div>
-                <div className="flex flex-wrap gap-2 bg-white p-2 rounded-full ring-1 ring-slate-200 overflow-x-auto hide-scrollbar">
+                <div className="flex gap-1 bg-white p-2 rounded-full ring-1 ring-slate-200 overflow-x-auto no-scrollbar flex-nowrap">
                     {['all', 'en_attente', 'confirmée', 'expédiée', 'livrée', 'annulée'].map(status => (
                         <button
                             key={status}

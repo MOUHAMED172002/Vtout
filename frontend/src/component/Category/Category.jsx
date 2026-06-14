@@ -26,6 +26,7 @@ export default function Category() {
       try {
         const data = await getCategories();
         setAllCategories(data || []);
+        // Niveau-1 (racines) comme boutons du carousel — pas niveau-2
         const parentCats = (data || []).filter(c => !c.parent_id);
         setParents(parentCats);
         if (parentCats.length > 0) setActiveParent(parentCats[0]);
@@ -63,8 +64,8 @@ export default function Category() {
           >
             <div className="w-8 h-[1px] bg-primary" /> Explorer nos Univers
           </motion.div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
-            Par <span className="text-slate-300 italic font-serif">Catégories.</span>
+          <h2 className="text-4xl font-black text-base-content tracking-tighter">
+            Par <span className="text-base-content/30 italic font-serif">Catégories.</span>
           </h2>
         </div>
         <div className="flex items-center gap-3">
@@ -76,7 +77,7 @@ export default function Category() {
           </button>
           <button
             onClick={() => navigate("/categories")}
-            className="group flex items-center gap-3 px-6 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+            className="group flex items-center gap-3 px-6 py-3 bg-base-200 border border-base-200 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-base-content/50 hover:bg-neutral hover:text-white transition-all shadow-sm"
           >
             Voir tout <LucideIcons.ArrowRight className="group-hover:translate-x-1 transition-transform" size={14} />
           </button>
@@ -115,9 +116,10 @@ export default function Category() {
                 whileTap={{ scale: 0.95 }}
                 onMouseMove={(e) => handleMouseMove(e, cat.id)}
                 onClick={() => setActiveParent(cat)}
+                style={{ touchAction: 'manipulation' }}
                 className={`flex-none w-24 h-24 md:w-28 md:h-28 rounded-3xl p-3 flex flex-col items-center justify-center gap-2 border transition-all duration-500 snap-start relative overflow-hidden group ${isActive
-                  ? 'bg-slate-900 border-slate-900 shadow-xl shadow-slate-200 text-white'
-                  : 'bg-white border-slate-100 text-slate-400 hover:border-primary/30 hover:bg-slate-50'
+                  ? 'bg-neutral border-neutral shadow-xl shadow-slate-200 text-white'
+                  : 'bg-base-100 border-base-200 text-base-content/40 hover:border-primary/30 hover:bg-base-200'
                   }`}
               >
                 {/* Effect 4: Spotlight Overlay */}
@@ -129,9 +131,9 @@ export default function Category() {
                 />
 
                 <div className={`text-2xl md:text-3xl transition-transform duration-500 relative z-10 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
-                  {isEmoji ? cat.icon : <Icon size={isActive ? 28 : 24} className={isActive ? 'text-slate-900' : 'text-slate-300'} />}
+                  {isEmoji ? cat.icon : <Icon size={isActive ? 28 : 24} className={isActive ? 'text-base-content' : 'text-base-content/30'} />}
                 </div>
-                <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-tight text-center line-clamp-1 px-1 relative z-10 ${isActive ? 'text-white' : 'text-slate-500'}`}>
+                <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-tight text-center line-clamp-1 px-1 relative z-10 ${isActive ? 'text-white' : 'text-base-content/50'}`}>
                   {cat.name}
                 </span>
                 {isActive && (
@@ -147,12 +149,12 @@ export default function Category() {
 
         {/* Scroll Indicators (Desktop) */}
         <div className="hidden md:flex absolute inset-y-0 -left-4 items-center opacity-0 group-hover/carousel:opacity-100 transition-opacity">
-          <div className="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-400 border border-slate-50">
+          <div className="w-8 h-8 rounded-full bg-base-100 shadow-lg flex items-center justify-center text-base-content/40 border border-base-200">
             <LucideIcons.ChevronLeft size={16} />
           </div>
         </div>
         <div className="hidden md:flex absolute inset-y-0 -right-4 items-center opacity-0 group-hover/carousel:opacity-100 transition-opacity">
-          <div className="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-slate-400 border border-slate-50">
+          <div className="w-8 h-8 rounded-full bg-base-100 shadow-lg flex items-center justify-center text-base-content/40 border border-base-200">
             <LucideIcons.ChevronRight size={16} />
           </div>
         </div>
@@ -182,16 +184,17 @@ export default function Category() {
                     transition={{ delay: idx * 0.05 }}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
-                    className="flex-none min-w-[160px] md:min-w-[200px] bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3 hover:bg-slate-50 hover:border-primary/20 transition-all group"
+                    style={{ touchAction: 'manipulation' }}
+                    className="flex-none min-w-[160px] md:min-w-[200px] bg-base-100 border border-base-200 rounded-2xl p-4 flex items-center gap-3 hover:bg-base-200 hover:border-primary/20 transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-xl group-hover:bg-primary transition-all shadow-inner">
-                      {isSubEmoji ? sub.icon : <IconSub size={18} className="text-slate-400 group-hover:text-slate-900" />}
+                    <div className="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-xl group-hover:bg-primary transition-all shadow-inner">
+                      {isSubEmoji ? sub.icon : <IconSub size={18} className="text-base-content/40 group-hover:text-base-content" />}
                     </div>
                     <div className="text-left">
-                      <p className="text-[11px] font-black text-slate-900 group-hover:text-primary transition-colors leading-tight">
+                      <p className="text-[11px] font-black text-base-content group-hover:text-primary transition-colors leading-tight">
                         {sub.name}
                       </p>
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Découvrir</span>
+                      <span className="text-[8px] font-bold text-base-content/40 uppercase tracking-widest mt-1">Découvrir</span>
                     </div>
                   </motion.button>
                 );
@@ -201,7 +204,7 @@ export default function Category() {
             <div className="text-center py-6">
               <button
                 onClick={() => navigate(`/products-liste?category_id=${activeParent.id}`)}
-                className="inline-flex items-center gap-4 px-8 py-4 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-primary/20"
+                className="inline-flex items-center gap-4 px-8 py-4 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-neutral transition-all shadow-xl shadow-primary/20"
               >
                 Explorer tout dans {activeParent.name} <LucideIcons.ArrowUpRight size={16} />
               </button>

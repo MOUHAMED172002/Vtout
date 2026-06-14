@@ -24,7 +24,7 @@ const SupplierBlockModal = ({
            animate={{ opacity: 1 }}
            exit={{ opacity: 0 }}
            onClick={onClose}
-           className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+           className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
         />
 
         {/* Modal Card */}
@@ -33,30 +33,30 @@ const SupplierBlockModal = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100"
+          className="relative w-full max-w-sm bg-base-100 rounded-[2.5rem] shadow-2xl overflow-hidden border border-base-200"
         >
           {/* Header/Banner */}
-          <div className={`h-32 ${variant === 'primary' ? 'bg-slate-900' : 'bg-emerald-600'} flex items-center justify-center relative`}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-xl border border-white/10">
+          <div className={`h-32 ${variant === 'primary' ? 'bg-neutral' : 'bg-emerald-600'} flex items-center justify-center relative`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-base-100/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="w-16 h-16 bg-base-100/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-xl border border-white/10">
               <Icon size={32} />
             </div>
           </div>
 
           <div className="p-8 pt-10 text-center space-y-6">
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-slate-900 tracking-tighter">{title}</h3>
+              <h3 className="text-xl font-black text-base-content tracking-tighter">{title}</h3>
               <p className={`${variant === 'primary' ? 'text-primary' : 'text-emerald-600'} font-bold uppercase tracking-widest text-[10px]`}>{subtitle}</p>
             </div>
 
-            <p className="text-xs font-medium text-slate-500 leading-relaxed px-4">
+            <p className="text-xs font-medium text-base-content/50 leading-relaxed px-4">
               {message}
             </p>
 
             <div className="grid grid-cols-1 gap-3 pt-4">
               <button
                 onClick={onAction}
-                className={`group w-full py-4 ${variant === 'primary' ? 'bg-primary' : 'bg-emerald-600'} text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 transition-all flex items-center justify-center gap-3 shadow-xl ${variant === 'primary' ? 'shadow-primary/20' : 'shadow-emerald-200'}`}
+                className={`group w-full py-4 ${variant === 'primary' ? 'bg-primary' : 'bg-emerald-600'} text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral transition-all flex items-center justify-center gap-3 shadow-xl ${variant === 'primary' ? 'shadow-primary/20' : 'shadow-emerald-200'}`}
               >
                 <UserPlus size={18} />
                 {actionText}
@@ -65,7 +65,7 @@ const SupplierBlockModal = ({
               
               <button
                 onClick={onClose}
-                className="w-full py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all"
+                className="w-full py-4 bg-base-200 text-base-content/40 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-base-200 transition-all"
               >
                 Me déconnecter
               </button>

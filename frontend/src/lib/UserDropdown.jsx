@@ -19,7 +19,7 @@ export const UserDropdown = () => {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-56 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-2 z-50 transform origin-top-right transition-all animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 mt-2 w-56 bg-base-100/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-2 z-50 transform origin-top-right transition-all animate-in fade-in zoom-in-95">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
@@ -70,14 +70,14 @@ export const UserDropdown = () => {
                                 {isAdmin && (
                                     <button
                                         onClick={() => window.location.href = (import.meta.env.VITE_MAIN_SITE_URL || '') + '/admin/dashboard'}
-                                        className="w-full text-left px-2 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/20 rounded-lg transition-colors"
+                                        className="w-full text-left px-2 py-1.5 text-xs font-bold text-base-content/70 hover:bg-base-200 dark:hover:bg-neutral/20 rounded-lg transition-colors"
                                     >
                                         🛡️ Administration
                                     </button>
                                 )}
                             </>
                         ) : (
-                            <p className="px-2 py-1.5 text-[10px] font-bold text-slate-400 italic">Aucun autre rôle actif</p>
+                            <p className="px-2 py-1.5 text-[10px] font-bold text-base-content/40 italic">Aucun autre rôle actif</p>
                         )}
                     </div>
 

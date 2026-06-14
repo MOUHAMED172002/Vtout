@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 export default function PlatformReviewModal({ isOpen, onClose }) {
-  const { getToken, user } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
@@ -56,12 +56,12 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-            className="relative bg-white rounded-[2.5rem] shadow-2xl shadow-slate-900/20 w-full max-w-md overflow-hidden"
+            className="relative bg-base-100 rounded-[2.5rem] shadow-2xl shadow-slate-900/20 w-full max-w-md overflow-hidden"
           >
             {/* Close */}
             <button
               onClick={handleClose}
-              className="absolute top-5 right-5 z-10 w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-slate-500"
+              className="absolute top-5 right-5 z-10 w-9 h-9 flex items-center justify-center bg-base-200 hover:bg-base-300 rounded-xl transition-colors text-base-content/50"
             >
               <X size={16} />
             </button>
@@ -80,8 +80,8 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                     <CheckCircle2 size={40} className="text-emerald-500" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Merci pour votre avis !</h3>
-                    <p className="text-slate-500 font-medium text-sm max-w-xs">
+                    <h3 className="text-2xl font-black text-base-content tracking-tight">Merci pour votre avis !</h3>
+                    <p className="text-base-content/50 font-medium text-sm max-w-xs">
                       Votre témoignage aide des milliers de béninois à découvrir Vtout.
                     </p>
                   </div>
@@ -97,7 +97,7 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                 <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   {/* Header gradient */}
                   <div className="bg-gradient-to-br from-primary to-orange-400 px-10 pt-10 pb-8">
-                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-base-100/20 rounded-2xl flex items-center justify-center mb-4">
                       <ShoppingBag size={22} className="text-white" />
                     </div>
                     <h2 className="text-2xl font-black text-white tracking-tight leading-tight">
@@ -109,9 +109,9 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                   </div>
 
                   <div className="px-10 py-8 space-y-6">
-                    {!user ? (
+                    {!isSignedIn ? (
                       <div className="text-center py-4 space-y-3">
-                        <p className="text-slate-600 font-bold text-sm">Connectez-vous pour laisser un avis.</p>
+                        <p className="text-base-content/70 font-bold text-sm">Connectez-vous pour laisser un avis.</p>
                         <Link
                           to="/auth/connexion"
                           onClick={handleClose}
@@ -124,7 +124,7 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                       <>
                         {/* Star rating */}
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
                             Votre note
                           </label>
                           <div className="flex items-center gap-2">
@@ -142,13 +142,13 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                                   className={`transition-colors ${
                                     star <= (hovered || rating)
                                       ? 'fill-amber-400 text-amber-400'
-                                      : 'text-slate-200 fill-slate-100'
+                                      : 'text-base-content/20 fill-base-200'
                                   }`}
                                 />
                               </button>
                             ))}
                             {rating > 0 && (
-                              <span className="ml-1 text-xs font-black text-slate-400">
+                              <span className="ml-1 text-xs font-black text-base-content/40">
                                 {['', 'Décevant', 'Passable', 'Bien', 'Très bien', 'Excellent !'][rating]}
                               </span>
                             )}
@@ -157,7 +157,7 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
 
                         {/* Comment */}
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
                             Votre commentaire
                           </label>
                           <textarea
@@ -166,9 +166,9 @@ export default function PlatformReviewModal({ isOpen, onClose }) {
                             rows={4}
                             maxLength={500}
                             placeholder="Dites-nous ce que vous pensez de Vtout : la livraison, les produits, le service client..."
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-medium text-slate-700 placeholder-slate-300 focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 resize-none transition-all"
+                            className="w-full bg-base-200 border border-base-200 rounded-2xl px-5 py-4 text-sm font-medium text-base-content/80 placeholder-slate-300 focus:outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10 resize-none transition-all"
                           />
-                          <p className="text-right text-[10px] text-slate-300 font-bold">{comment.length}/500</p>
+                          <p className="text-right text-[10px] text-base-content/30 font-bold">{comment.length}/500</p>
                         </div>
 
                         {/* Submit */}

@@ -3,7 +3,6 @@ import { Instagram, Facebook, MapPin, Phone, Mail, ArrowRight, ShieldCheck } fro
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppConfig } from '../context/ConfigContext';
 import { FaTiktok, FaWhatsapp } from 'react-icons/fa';
-import ThemeSelector from '../context/ThemeSelector';
 import LogoText from '../Shared/LogoText';
 import { getPolicies } from '../../services/contentService';
 
@@ -63,7 +62,7 @@ const Footer = () => {
     return (
         <footer className="bg-base-100 border-t border-base-200 pt-12 pb-6 overflow-hidden relative">
             {/* Background Accent */}
-            <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-50 rounded-full blur-3xl opacity-70"></div>
+            <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-70"></div>
 
             <div className="container px-6 md:px-12 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 pb-8">
@@ -107,7 +106,7 @@ const Footer = () => {
 
                     {/* Quick Links */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Navigation</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/60">Navigation</h3>
                         <ul className="space-y-3">
                             {FooterLinks.map((data, index) => (
                                 <li key={index}>
@@ -129,7 +128,7 @@ const Footer = () => {
 
                     {/* Service Links */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Assistance</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/60">Assistance</h3>
                         <ul className="space-y-3">
                             {FooterNav.map((data, index) => (
                                 <li key={index}>
@@ -154,7 +153,7 @@ const Footer = () => {
 
                     {/* Contact Info */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/50">Contact</h3>
+                        <h3 className="text-sm font-black uppercase tracking-widest text-base-content/60">Contact</h3>
                         <div className="space-y-3">
                             <div className="flex items-start gap-4">
                                 <div className="p-3 bg-base-200 text-primary rounded-2xl">
@@ -199,11 +198,11 @@ const Footer = () => {
                         <div className="flex flex-col items-center lg:flex-row gap-3 lg:gap-4">
                             <LogoText className="text-2xl" />
                             <div className="hidden lg:block w-px h-4 bg-base-300"></div>
-                            <p className="text-base-content/50 text-sm font-medium">
+                            <p className="text-base-content/60 text-sm font-medium">
                                 © {new Date().getFullYear()} Tous droits réservés.
                             </p>
                         </div>
-                        <div className="flex items-center gap-3 px-4 py-2 bg-base-200/50 border border-base-300/50 rounded-2xl text-base-content/60 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-3 px-4 py-2 bg-base-200 border border-base-300 rounded-2xl text-base-content/70 text-[10px] font-black uppercase tracking-[0.2em]">
                             <ShieldCheck size={16} className="text-success" />
                             <span>Paiements 100% sécurisés</span>
                         </div>
@@ -216,12 +215,12 @@ const Footer = () => {
                                 <Link
                                     to={item.link}
                                     onClick={handleLinkClick}
-                                    className="text-base-content/40 hover:text-primary text-[10px] font-bold uppercase tracking-widest transition-all text-center lg:text-right"
+                                    className="text-base-content/60 hover:text-primary text-[10px] font-bold uppercase tracking-widest transition-all text-center lg:text-right"
                                 >
                                     {item.title}
                                 </Link>
                                 {index < policyLinks.length - 1 && (
-                                    <div className="hidden lg:block w-1 h-1 rounded-full bg-base-content/20"></div>
+                                    <div className="hidden lg:block w-1 h-1 rounded-full bg-base-content/30"></div>
                                 )}
                             </React.Fragment>
                         ))}

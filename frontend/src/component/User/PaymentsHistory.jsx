@@ -133,7 +133,7 @@ export default function PaymentsHistory() {
       ) : (
         <div className="space-y-2">
           {items.map((p) => (
-            <div key={p.id} className="card bg-white p-3 flex justify-between items-center">
+            <div key={p.id} className="card bg-base-100 p-3 flex justify-between items-center">
               <div>
                 <div className="font-medium">{p.method || "Méthode inconnue"} • {p.status || "—"}</div>
                 <div className="text-xs text-gray-500">Réf: {p.transaction_ref || "—"}</div>

@@ -62,7 +62,7 @@ export default function DashboardLayout() {
               V
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight text-slate-800">TOUT</span>
+              <span className="text-xl font-black tracking-tight text-base-content/90">TOUT</span>
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary -mt-1">Dashboard</span>
             </div>
           </Link>
@@ -71,7 +71,7 @@ export default function DashboardLayout() {
         {/* Portal Switcher moved to header */}
 
         <div className="flex-1 px-6 space-y-1 overflow-y-auto custom-scrollbar pt-4">
-          <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Compte Client</p>
+          <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-4">Compte Client</p>
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.to;
             return (
@@ -83,7 +83,7 @@ export default function DashboardLayout() {
                   : "text-base-content/70 hover:text-base-content hover:bg-base-200"
                   }`}
               >
-                <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-primary" : "text-slate-400"}`}>
+                <div className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-primary" : "text-base-content/40"}`}>
                   {item.icon}
                 </div>
                 <span className="text-sm">{item.label}</span>
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
 
         </div>
 
-        <div className="p-6 border-t border-slate-50">
+        <div className="p-6 border-t border-base-200">
           <Link 
             to="/"
             className="flex items-center justify-center gap-3 w-full py-3.5 mb-4 bg-primary/5 text-primary hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 rounded-2xl font-black transition-all group border border-primary/10"
@@ -110,15 +110,15 @@ export default function DashboardLayout() {
             <ShoppingBag size={18} className="group-hover:-translate-y-1 transition-transform" />
             Aller à la boutique
           </Link>
-          <div className="bg-slate-50 rounded-[2rem] p-6 space-y-4">
-            <p className="text-xs font-bold text-slate-500 text-center">Besoin d'aide ?</p>
-            <button className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+          <div className="bg-base-200 rounded-[2rem] p-6 space-y-4">
+            <p className="text-xs font-bold text-base-content/50 text-center">Besoin d'aide ?</p>
+            <button className="w-full py-3 bg-base-100 border border-base-300 rounded-xl text-xs font-bold text-base-content/80 hover:bg-base-200 transition-colors shadow-sm">
               <Link to="/faq">Consulter la FAQ</Link>
             </button>
           </div>
           <button
             onClick={signOut}
-            className="flex items-center gap-4 px-6 py-4 w-full mt-4 rounded-2xl font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all group"
+            className="flex items-center gap-4 px-6 py-4 w-full mt-4 rounded-2xl font-bold text-base-content/40 hover:text-red-500 hover:bg-red-50 transition-all group"
           >
             <div className="group-hover:translate-x-1 transition-transform">
               <LogOut size={18} />
@@ -171,7 +171,7 @@ export default function DashboardLayout() {
               </div>
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl p-0.5 md:p-1 bg-white shadow-lg border border-base-content/5"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl p-0.5 md:p-1 bg-base-100 shadow-lg border border-base-content/5"
               >
                 <img
                   src={user?.avatar_url || avartar}
@@ -208,7 +208,7 @@ export default function DashboardLayout() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md lg:hidden"
+              className="fixed inset-0 z-[100] bg-neutral/40 backdrop-blur-md lg:hidden"
               onClick={() => setIsSidebarOpen(false)}
             />
             <motion.div
@@ -216,16 +216,16 @@ export default function DashboardLayout() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 bottom-0 w-[85%] max-w-sm bg-white z-[101] flex flex-col shadow-2xl overflow-hidden lg:hidden"
+              className="fixed left-0 top-0 bottom-0 w-[85%] max-w-sm bg-base-100 z-[101] flex flex-col shadow-2xl overflow-hidden lg:hidden"
             >
-              <div className="p-8 flex justify-between items-center border-b border-slate-50">
+              <div className="p-8 flex justify-between items-center border-b border-base-200">
                 <Link to="/" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-primary/30">
                     V
                   </div>
-                  <span className="text-xl font-black tracking-tight text-slate-800 uppercase">TOUT</span>
+                  <span className="text-xl font-black tracking-tight text-base-content/90 uppercase">TOUT</span>
                 </Link>
-                <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-base-content/40 hover:text-base-content">
                   <CloseIcon size={24} />
                 </button>
               </div>
@@ -241,11 +241,11 @@ export default function DashboardLayout() {
                       to={item.to}
                       onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center gap-4 px-6 py-5 rounded-2xl font-bold transition-all ${isActive
-                        ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
-                        : "text-slate-500"
+                        ? "bg-neutral text-white shadow-xl shadow-slate-900/10"
+                        : "text-base-content/50"
                         }`}
                     >
-                      <div className={isActive ? "text-primary" : "text-slate-400"}>
+                      <div className={isActive ? "text-primary" : "text-base-content/40"}>
                         {item.icon}
                       </div>
                       <span className="text-sm">{item.label}</span>
@@ -254,7 +254,7 @@ export default function DashboardLayout() {
                 })}
               </div>
 
-              <div className="p-8 border-t border-slate-50 space-y-4 bg-slate-50/50">
+              <div className="p-8 border-t border-base-200 space-y-4 bg-base-200/50">
                 <Link 
                   to="/"
                   onClick={() => setIsSidebarOpen(false)}
@@ -266,7 +266,7 @@ export default function DashboardLayout() {
                 <div className="flex items-center gap-4 mb-4">
                   <img src={user?.avatar_url || avartar} className="w-12 h-12 rounded-xl object-cover" alt="user" />
                   <div>
-                    <p className="text-sm font-black text-slate-900 line-clamp-1">{user?.fullname || "Client Vtout"}</p>
+                    <p className="text-sm font-black text-base-content line-clamp-1">{user?.fullname || "Client Vtout"}</p>
                     <p className="text-[10px] font-black uppercase text-primary uppercase tracking-widest">Connecté</p>
                   </div>
                 </div>

@@ -38,7 +38,7 @@ export default function FaqList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-20 px-4 md:px-8">
+    <div className="min-h-screen bg-base-200 py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto space-y-16">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -49,40 +49,40 @@ export default function FaqList() {
           >
             <HelpCircle size={14} /> Centre d'assistance
           </motion.div>
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter leading-[1.1]">
+          <h1 className="text-4xl md:text-6xl font-black text-base-content tracking-tighter leading-[1.1]">
             Comment pouvons-nous <br /> vous <span className="text-primary italic">aider ?</span>
           </h1>
-          <p className="text-slate-500 font-bold max-w-xl mx-auto">
+          <p className="text-base-content/50 font-bold max-w-xl mx-auto">
             Retrouvez ici les réponses aux questions les plus fréquentes.
           </p>
         </div>
 
         {/* Questions List */}
-        <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 border border-slate-100">
+        <div className="bg-base-100 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 border border-base-200">
           {loading ? (
             <div className="py-20 flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Récupération des réponses...</p>
+              <p className="text-xs font-black text-base-content/40 uppercase tracking-widest">Récupération des réponses...</p>
             </div>
           ) : faqs.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-slate-400 font-bold">Aucune question trouvée.</p>
+              <p className="text-base-content/40 font-bold">Aucune question trouvée.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {faqs.map((item, idx) => (
                 <div
                   key={item.id}
-                  className={`rounded-2xl border transition-all ${openIndex === idx ? 'border-primary bg-primary/5' : 'border-slate-50 bg-slate-50/30'}`}
+                  className={`rounded-2xl border transition-all ${openIndex === idx ? 'border-primary bg-primary/5' : 'border-base-200 bg-base-200/30'}`}
                 >
                   <button
                     onClick={() => toggleAccordion(idx)}
                     className="w-full text-left px-8 py-6 flex items-center justify-between group"
                   >
-                    <span className={`font-black text-sm md:text-base tracking-tight ${openIndex === idx ? 'text-primary' : 'text-slate-800'}`}>
+                    <span className={`font-black text-sm md:text-base tracking-tight ${openIndex === idx ? 'text-primary' : 'text-base-content/90'}`}>
                       {item.question}
                     </span>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${openIndex === idx ? 'bg-primary text-white rotate-180' : 'bg-white text-slate-300 group-hover:text-slate-900 shadow-sm'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${openIndex === idx ? 'bg-primary text-white rotate-180' : 'bg-base-100 text-base-content/30 group-hover:text-base-content shadow-sm'}`}>
                       <ChevronDown size={16} />
                     </div>
                   </button>
@@ -94,7 +94,7 @@ export default function FaqList() {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="whitespace-pre-wrap px-8 pb-8 text-slate-600 text-sm md:text-base leading-relaxed font-medium">
+                        <div className="whitespace-pre-wrap px-8 pb-8 text-base-content/70 text-sm md:text-base leading-relaxed font-medium">
                           {item.answer}
                         </div>
                       </motion.div>

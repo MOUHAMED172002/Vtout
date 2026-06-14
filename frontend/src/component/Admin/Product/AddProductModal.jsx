@@ -622,44 +622,44 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
   const formatPrice = (price) => Number(price || 0).toLocaleString();
 
   return (
-    <div className={layout === 'modal' ? "fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/40 backdrop-blur-sm" : ""}>
+    <div className={layout === 'modal' ? "fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-neutral/40 backdrop-blur-sm" : ""}>
       <motion.div
         initial={layout === 'modal' ? { opacity: 0, scale: 0.95, y: 30 } : { opacity: 1 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className={`${layout === 'modal'
-          ? "bg-white w-full md:max-w-5xl h-full md:h-auto md:max-h-[92vh] md:rounded-[2.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden border border-slate-100 relative"
-          : "bg-white w-full min-h-screen flex flex-col"
+          ? "bg-base-100 w-full md:max-w-5xl h-full md:h-auto md:max-h-[92vh] md:rounded-[2.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden border border-base-200 relative"
+          : "bg-base-100 w-full min-h-screen flex flex-col"
           }`}
       >
-      <div className="p-6 md:p-10 border-b border-slate-50 flex items-center justify-between bg-white relative">
+      <div className="p-6 md:p-10 border-b border-base-200 flex items-center justify-between bg-base-100 relative">
         <div className="flex items-center gap-4 md:gap-6 relative z-10">
           <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-primary/20">
             <Package className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h2 className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter">Nouveau <span className="text-slate-400">Produit.</span></h2>
-            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-0.5 md:mt-1">Etape {currentStep + 1} • {steps[currentStep].title}</p>
+            <h2 className="text-xl md:text-3xl font-black text-base-content tracking-tighter">Nouveau <span className="text-base-content/40">Produit.</span></h2>
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-base-content/40 mt-0.5 md:mt-1">Etape {currentStep + 1} • {steps[currentStep].title}</p>
           </div>
         </div>
-        <button onClick={onClose} className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
+        <button onClick={onClose} className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
           <X className="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
 
-      <div className="px-6 md:px-10 py-4 md:py-6 bg-slate-50/30 flex justify-start md:justify-between items-center gap-4 overflow-x-auto border-b border-slate-50 no-scrollbar">
+      <div className="px-6 md:px-10 py-4 md:py-6 bg-base-200/30 flex justify-start md:justify-between items-center gap-4 overflow-x-auto border-b border-base-200 no-scrollbar">
         {steps.map((step, idx) => (
           <React.Fragment key={step.id}>
             <button
               type="button"
               onClick={() => currentStep > idx && setCurrentStep(idx)}
-              className={`flex items-center gap-3 md:gap-4 group shrink-0 transition-all ${idx <= currentStep ? 'text-primary' : 'text-slate-300'}`}
+              className={`flex items-center gap-3 md:gap-4 group shrink-0 transition-all ${idx <= currentStep ? 'text-primary' : 'text-base-content/30'}`}
             >
-              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-primary text-white shadow-lg' : idx < currentStep ? 'bg-emerald-50 text-emerald-500' : 'bg-white border border-slate-100'}`}>
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all ${idx === currentStep ? 'bg-primary text-white shadow-lg' : idx < currentStep ? 'bg-emerald-50 text-emerald-500' : 'bg-base-100 border border-base-200'}`}>
                 {idx < currentStep ? <Check size={14} /> : <step.icon size={14} />}
               </div>
-              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${idx === currentStep ? 'text-slate-900' : 'text-slate-400'}`}>{step.title}</span>
+              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${idx === currentStep ? 'text-base-content' : 'text-base-content/40'}`}>{step.title}</span>
             </button>
-            {idx < steps.length - 1 && <div className={`h-px w-4 md:w-8 shrink-0 ${idx < currentStep ? 'bg-emerald-200' : 'bg-slate-100'}`} />}
+            {idx < steps.length - 1 && <div className={`h-px w-4 md:w-8 shrink-0 ${idx < currentStep ? 'bg-emerald-200' : 'bg-base-200'}`} />}
           </React.Fragment>
         ))}
       </div>
@@ -670,7 +670,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
             <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
               
               {/* Product Identity Section */}
-              <div className="p-6 md:p-10 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 space-y-8">
+              <div className="p-6 md:p-10 bg-base-200/50 rounded-[2.5rem] border border-base-200 space-y-8">
                 <div className="flex items-center gap-3 text-primary">
                   <Info size={20} />
                   <h4 className="text-[11px] font-black uppercase tracking-widest">Identité du Produit</h4>
@@ -678,30 +678,30 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="md:col-span-2 space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
-                    <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-lg md:text-xl font-black text-slate-900 shadow-sm focus:ring-4 focus:ring-primary/20 outline-none transition-all" placeholder="Ex: iPhone 15 Pro Max..." />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Nom de l'article</label>
+                    <input {...register("name", { required: "Requis" })} autoFocus className="w-full bg-base-100 border border-base-200 rounded-2xl px-8 py-5 text-lg md:text-xl font-black text-base-content shadow-sm focus:ring-4 focus:ring-primary/20 outline-none transition-all" placeholder="Ex: iPhone 15 Pro Max..." />
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between px-4">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Catégorie</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Catégorie</label>
                       <InlineAdder label="catégorie" onAdd={handleAddCategory} loading={inlineLoading} />
                     </div>
-                    <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm">
+                    <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm">
                       <div className="flex flex-col">
-                        <span className={`text-sm font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>{selectedCategory ? selectedCategory.name : "Sélectionner une catégorie"}</span>
-                        {categoryPath && <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest line-clamp-1">{categoryPath}</span>}
+                        <span className={`text-sm font-bold ${selectedCategory ? 'text-base-content' : 'text-base-content/30'}`}>{selectedCategory ? selectedCategory.name : "Sélectionner une catégorie"}</span>
+                        {categoryPath && <span className="text-[9px] font-black text-base-content/40 uppercase tracking-widest line-clamp-1">{categoryPath}</span>}
                       </div>
-                      <ChevronRight size={18} className="text-slate-300 group-hover:text-primary transition-colors" />
+                      <ChevronRight size={18} className="text-base-content/30 group-hover:text-primary transition-colors" />
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Description Section */}
-              <div className="p-6 md:p-10 bg-white rounded-[2.5rem] border border-slate-100 space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description complète</label>
-                <textarea {...register("description")} className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary/20 transition-all" placeholder="Décrivez les points forts du produit..." rows={4} />
+              <div className="p-6 md:p-10 bg-base-100 rounded-[2.5rem] border border-base-200 space-y-6">
+                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Description complète</label>
+                <textarea {...register("description")} className="w-full bg-base-200/50 border border-base-200 rounded-2xl px-6 py-5 text-sm font-bold text-base-content/70 outline-none focus:ring-4 focus:ring-primary/20 transition-all" placeholder="Décrivez les points forts du produit..." rows={4} />
               </div>
 
               {/* Pricing Section (if Admin) */}
@@ -714,17 +714,17 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Prix de vente base (FCFA)</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Prix de vente base (FCFA)</label>
                       <div className="relative">
-                        <input type="number" {...register("price", { required: !isSupplier })} className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-xl font-black text-primary shadow-sm" />
+                        <input type="number" {...register("price", { required: !isSupplier })} className="w-full bg-base-100 border border-base-200 rounded-2xl px-8 py-5 text-xl font-black text-primary shadow-sm" />
                         <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-primary/30">FCFA</span>
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ancien Prix (FCFA)</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Ancien Prix (FCFA)</label>
                       <div className="relative">
-                        <input type="number" {...register("old_price")} className="w-full bg-white border border-slate-100 rounded-2xl px-8 py-5 text-xl font-black text-slate-400 line-through opacity-60" />
-                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-200">FCFA</span>
+                        <input type="number" {...register("old_price")} className="w-full bg-base-100 border border-base-200 rounded-2xl px-8 py-5 text-xl font-black text-base-content/40 line-through opacity-60" />
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-base-content/20">FCFA</span>
                       </div>
                     </div>
                   </div>
@@ -734,7 +734,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               {isSupplier && (
                 <div className="p-6 md:p-10 bg-amber-50/30 rounded-[2.5rem] border border-amber-100/50 space-y-4">
                   <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 ml-4">Note pour l'admin (Privé)</label>
-                  <textarea {...register("supplier_note")} className="w-full bg-white border border-amber-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-600 outline-none" placeholder="Infos utiles pour l'admin..." rows={3} />
+                  <textarea {...register("supplier_note")} className="w-full bg-base-100 border border-amber-100 rounded-2xl px-6 py-4 text-sm font-bold text-base-content/70 outline-none" placeholder="Infos utiles pour l'admin..." rows={3} />
                 </div>
               )}
             </motion.div>
@@ -743,7 +743,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
           {steps[currentStep].id === 'images' && (
             <motion.div key="images" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
               <div className="flex justify-between items-center">
-                <h3 className="text-3xl font-black text-slate-900">Galerie <span className="text-slate-400">Visuelle.</span></h3>
+                <h3 className="text-3xl font-black text-base-content">Galerie <span className="text-base-content/40">Visuelle.</span></h3>
                 <label className="flex items-center gap-3 px-8 py-4 bg-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white cursor-pointer">
                   <Upload size={14} /> Ajouter des photos
                   <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
@@ -765,14 +765,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
           {steps[currentStep].id === 'variants' && (
             <motion.div key="variants" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-12">
-              <div className="bg-slate-900 rounded-[3rem] p-10 text-white space-y-10">
+              <div className="bg-neutral rounded-[3rem] p-10 text-white space-y-10">
                 <div className="space-y-6">
                   <h3 className="text-2xl font-black">Générateur <span className="text-primary">Intelligent.</span></h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                        <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/50" size={18} />
+                        <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher attribut..." className="w-full bg-base-100/5 border border-white/10 rounded-2xl pl-16 pr-8 py-5" />
                       </div>
                       {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (
                         <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-8 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] whitespace-nowrap shadow-xl shadow-primary/20">
@@ -785,7 +785,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         <button key={attr.id} type="button" onClick={() => {
                           if (selectedAttributes.find(a => a.id === attr.id)) setSelectedAttributes(selectedAttributes.filter(a => a.id !== attr.id));
                           else setSelectedAttributes([...selectedAttributes, attr]);
-                        }} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-primary text-white border-primary' : 'bg-white/5 text-slate-400 border-white/10'}`}>
+                        }} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-primary text-white border-primary' : 'bg-base-100/5 text-base-content/40 border-white/10'}`}>
                           {attr.name}
                         </button>
                       ))}
@@ -796,7 +796,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 {selectedAttributes.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {selectedAttributes.map(attr => (
-                      <div key={attr.id} className="p-5 bg-white/5 rounded-[2rem] border border-white/10 space-y-4">
+                      <div key={attr.id} className="p-5 bg-base-100/5 rounded-[2rem] border border-white/10 space-y-4">
                         <span className="text-[10px] font-black uppercase text-primary">{attr.name}</span>
                         <div className="flex flex-wrap gap-2">
                           {attr.values.map(v => (
@@ -804,7 +804,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                               const current = selectedValuesMap[attr.id] || [];
                               if (current.includes(v.id)) setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: current.filter(id => id !== v.id) });
                               else setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: [...current, v.id] });
-                            }} className={`px-3 py-1 rounded-lg text-[10px] border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-primary border-primary' : 'bg-white/5 border-white/10'}`}>
+                            }} className={`px-3 py-1 rounded-lg text-[10px] border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-primary border-primary' : 'bg-base-100/5 border-white/10'}`}>
                               {v.value}
                             </button>
                           ))}
@@ -822,14 +822,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               {variantFields.length > 0 && (
                 <div className="grid grid-cols-1 gap-6">
                   {variantFields.map((field, index) => (
-                    <div key={field.id} className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                    <div key={field.id} className="p-6 bg-base-100 border border-base-200 rounded-[2rem] shadow-sm">
                       <div className="flex justify-between items-center mb-6">
                         <div className="flex gap-2">
                           {field.combination && Object.entries(field.combination).map(([a, v], i) => (
-                            <span key={i} className="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded-lg uppercase">{a}: {v}</span>
+                            <span key={i} className="px-3 py-1 bg-base-200 text-[10px] font-bold rounded-lg uppercase">{a}: {v}</span>
                           ))}
                         </div>
-                        <button type="button" onClick={() => removeVariant(index)} className="text-slate-300 hover:text-rose-500"><Trash2 size={16} /></button>
+                        <button type="button" onClick={() => removeVariant(index)} className="text-base-content/30 hover:text-rose-500"><Trash2 size={16} /></button>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {!isSupplier && <input type="number" {...register(`variants.${index}.price`)} className="input input-bordered rounded-xl text-xs" placeholder="Prix" />}
@@ -860,7 +860,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         <option value="new">+ Nouveau</option>
                       </select>
                     ) : (
-                      <div className="p-4 bg-white rounded-2xl flex items-center gap-3 w-full border border-slate-100">
+                      <div className="p-4 bg-base-100 rounded-2xl flex items-center gap-3 w-full border border-base-200">
                         <Truck className="text-primary" />
                         <span className="font-black text-sm">Fournisseur Connecté</span>
                       </div>
@@ -877,9 +877,9 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Prix Vendeur (avant commission)</label>
+                    <label className="text-[10px] font-black uppercase text-base-content/40">Prix Vendeur (avant commission)</label>
                     <div className="relative">
-                      <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Prix Vendeur (FCFA)" />
+                      <input type="number" value={globalSupplierPrice} onChange={e => setGlobalSupplierPrice(e.target.value)} className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 font-black" placeholder="Prix Vendeur (FCFA)" />
                       <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-indigo-300">FCFA</span>
                     </div>
                   </div>
@@ -887,22 +887,22 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
                 {/* Breakdown Visualizer */}
                 {globalSupplierPrice && (
-                  <div className="p-6 bg-white/50 rounded-3xl border border-indigo-100 space-y-4">
+                  <div className="p-6 bg-base-100/50 rounded-3xl border border-indigo-100 space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Sparkles size={16} className="text-primary" />
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-600">Calcul du prix public (Transparence)</h4>
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/70">Calcul du prix public (Transparence)</h4>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">Commission ({commissionRate}%)</p>
+                            <p className="text-[9px] font-bold text-base-content/40 uppercase">Commission ({commissionRate}%)</p>
                             <p className="text-sm font-black text-orange-500">-{Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</p>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Votre Gain Net</p>
+                            <p className="text-[10px] font-black uppercase text-base-content/40 mb-1">Votre Gain Net</p>
                             <p className="text-base font-black text-emerald-600 tracking-tighter">{formatPrice(Math.round((globalSupplierPrice || 0) * (1 - commissionRate / 100)))} F</p>
                           </div>
                         <div className="space-y-1">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">+ Livraison (Marketing)</p>
+                            <p className="text-[9px] font-bold text-base-content/40 uppercase">+ Livraison (Marketing)</p>
                             <div className="flex items-center gap-1.5">
                                 <p className="text-sm font-black text-emerald-600">+{currentDeliveryFee.toLocaleString()} F</p>
                                 <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tighter\">Offerte Client</span>
@@ -915,7 +915,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     </div>
                     <div className="pt-2 flex items-start gap-2">
                         <Info size={12} className="text-primary mt-0.5 shrink-0" />
-                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed italic">
+                        <p className="text-[9px] font-bold text-base-content/50 leading-relaxed italic">
                             Les <span className="text-emerald-600">{currentDeliveryFee.toLocaleString()} F de livraison</span> sont automatiquement calculés selon la grille admin et inclus pour afficher <span className="text-emerald-600 uppercase font-black">"Livraison Offerte"</span>, boostant vos ventes sans impacter votre gain net.
                         </p>
                     </div>
@@ -925,8 +925,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 {isSupplier && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Stock Disponible</label>
-                      <input type="number" {...register("stock", { required: "Stock requis" })} className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-4 font-black" placeholder="Quantité requise *" />
+                      <label className="text-[10px] font-black uppercase text-base-content/40">Stock Disponible</label>
+                      <input type="number" {...register("stock", { required: "Stock requis" })} className="w-full bg-base-100 border border-base-200 rounded-2xl px-6 py-4 font-black" placeholder="Quantité requise *" />
                     </div>
                   </div>
                 )}
@@ -934,14 +934,14 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                 {!isSupplier && (
                   <div className="space-y-6">
                     {variantFields.map((field, vIdx) => (
-                      <div key={field.id} className="p-6 bg-white rounded-3xl border border-slate-100 flex flex-col gap-4">
+                      <div key={field.id} className="p-6 bg-base-100 rounded-3xl border border-base-200 flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-black uppercase">Variante {vIdx + 1}</span>
                           <span className="text-[10px] font-mono opacity-50">{watch(`variants.${vIdx}.sku`)}</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[8px] font-black uppercase text-slate-400">Prix d'Achat</label>
+                            <label className="text-[8px] font-black uppercase text-base-content/40">Prix d'Achat</label>
                             <input type="number" onChange={e => {
                               const val = parseFloat(e.target.value) || 0;
                               const current = [...variants];
@@ -952,7 +952,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                             }} className="input input-bordered rounded-xl text-xs w-full" placeholder="0" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[8px] font-black uppercase text-slate-400">Réf Interne</label>
+                            <label className="text-[8px] font-black uppercase text-base-content/40">Réf Interne</label>
                             <input type="text" onChange={e => {
                               const current = [...variants];
                               if (current[vIdx].supplierLinks?.[0]) current[vIdx].supplierLinks[0].supplier_sku = e.target.value;
@@ -979,64 +979,64 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               </div>
 
               {/* 1. Vente Flash Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Sparkles size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Vente Flash</h4>
-                      <p className="text-xs text-slate-400 font-bold">Activer une vente flash à durée limitée sur ce produit</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Vente Flash</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Activer une vente flash à durée limitée sur ce produit</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('is_flash_sale')} className="toggle toggle-rose" />
                 </div>
 
                 {watch('is_flash_sale') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-6 border-t border-slate-100">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Date et heure de fin</label>
-                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-6 border-t border-base-200">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Date et heure de fin</label>
+                    <input type="datetime-local" {...register('flash_sale_end', { required: watch('is_flash_sale') })} className="w-full bg-base-200 border border-base-200 rounded-2xl px-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-rose-500/20 transition-all" />
                   </motion.div>
                 )}
               </div>
 
               {/* 2. Packs & Kits Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Package size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Pack / Kit Complémentaire</h4>
-                      <p className="text-xs text-slate-400 font-bold">Associer ce produit à d'autres articles pour former un kit complet</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Pack / Kit Complémentaire</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Associer ce produit à d'autres articles pour former un kit complet</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('is_kit')} className="toggle toggle-success" />
                 </div>
 
                 {watch('is_kit') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-slate-100">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5 pt-6 border-t border-base-200">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ajouter des articles complémentaires</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Ajouter des articles complémentaires</label>
                       <div className="relative">
-                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
+                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-base-content/40" />
+                        <input type="text" value={kitSearchQuery} onChange={e => setKitSearchQuery(e.target.value)} placeholder="Rechercher par nom..." className="w-full bg-base-200 border border-base-200 rounded-2xl pl-14 pr-6 py-4 text-sm font-bold text-base-content/80 outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all" />
                       </div>
                     </div>
 
                     {kitSearchQuery && (
-                      <div className="max-h-48 overflow-y-auto bg-white border border-slate-100 rounded-2xl divide-y divide-slate-50 shadow-lg relative z-20">
+                      <div className="max-h-48 overflow-y-auto bg-base-100 border border-base-200 rounded-2xl divide-y divide-slate-50 shadow-lg relative z-20">
                         {allProductsList.filter(p => p.name.toLowerCase().includes(kitSearchQuery.toLowerCase())).slice(0, 10).map(p => (
                           <button key={p.id} type="button" onClick={() => {
                             if (!selectedKitProductIds.includes(p.id)) {
                               setSelectedKitProductIds([...selectedKitProductIds, p.id]);
                             }
                             setKitSearchQuery('');
-                          }} className="w-full text-left px-5 py-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between transition-colors">
+                          }} className="w-full text-left px-5 py-3.5 text-xs font-bold text-base-content/80 hover:bg-base-200 flex items-center justify-between transition-colors">
                             <span>{p.name}</span>
-                            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black">{Number(p.price).toLocaleString()} F</span>
+                            <span className="text-[10px] bg-base-200 text-base-content/50 px-2 py-0.5 rounded font-black">{Number(p.price).toLocaleString()} F</span>
                           </button>
                         ))}
                       </div>
@@ -1044,7 +1044,7 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
 
                     {selectedKitProductIds.length > 0 && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Articles du lot ({selectedKitProductIds.length})</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Articles du lot ({selectedKitProductIds.length})</label>
                         <div className="flex flex-wrap gap-2">
                           {selectedKitProductIds.map(id => {
                             const p = allProductsList.find(x => x.id === id);
@@ -1058,12 +1058,12 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         </div>
 
                         <div className="mt-3">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Définir le prix du kit (F)</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Définir le prix du kit (F)</label>
                           <input
                             type="number"
                             value={watchPrice || ''}
                             onChange={e => setValue('price', Number(e.target.value || 0))}
-                            className="w-full bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 outline-none mt-2"
+                            className="w-full bg-base-100 border border-base-200 rounded-2xl px-4 py-3 text-sm font-black text-base-content/80 outline-none mt-2"
                           />
                         </div>
                       </div>
@@ -1073,22 +1073,22 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
               </div>
 
               {/* 3. Remise de quantité Section */}
-              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="p-8 bg-base-100 border border-base-200 rounded-[2.5rem] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shadow-inner">
                       <Percent size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">Remises sur quantité (De Gros)</h4>
-                      <p className="text-xs text-slate-400 font-bold">Tarification dégressive automatique basée sur le volume acheté</p>
+                      <h4 className="text-sm font-black uppercase text-base-content/90 tracking-tight">Remises sur quantité (De Gros)</h4>
+                      <p className="text-xs text-base-content/40 font-bold">Tarification dégressive automatique basée sur le volume acheté</p>
                     </div>
                   </div>
                   <input type="checkbox" {...register('volume_pricing_enabled')} className="toggle toggle-primary" />
                 </div>
 
                 {watch('volume_pricing_enabled') && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-slate-100">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-6 border-t border-base-200">
                     <div className="space-y-2">
                       {volumePricingTiers.map((tier, idx) => {
                         const basePrice = parseFloat(watchPrice) || 0;
@@ -1096,36 +1096,36 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                         const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
                         const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.min_qty) : 0;
                         return (
-                          <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                          <div key={idx} className="grid gap-4 md:grid-cols-[auto_1fr_auto] items-center bg-base-200 p-4 rounded-2xl border border-base-200">
                             <div className="space-y-3">
-                              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Palier {idx + 1}</span>
+                              <span className="text-xs font-black text-base-content/50 uppercase tracking-widest">Palier {idx + 1}</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Quantité ≥</span>
+                                <span className="text-[9px] uppercase font-black text-base-content/40 tracking-widest">Quantité ≥</span>
                                 <input type="number" min="1" value={tier.min_qty} onChange={e => {
                                   const copy = [...volumePricingTiers];
                                   copy[idx].min_qty = Math.max(1, parseInt(e.target.value) || 1);
                                   setVolumePricingTiers(copy);
-                                }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                                }} className="w-20 bg-base-100 border border-base-200 rounded-xl px-3 py-1.5 text-xs font-black text-base-content/80 outline-none" />
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Remise (%)</span>
+                                <span className="text-[9px] uppercase font-black text-base-content/40 tracking-widest">Remise (%)</span>
                                 <input type="number" value={tier.discount} onChange={e => {
                                   const copy = [...volumePricingTiers];
                                   copy[idx].discount = parseInt(e.target.value) || 0;
                                   setVolumePricingTiers(copy);
-                                }} className="w-20 bg-white border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 outline-none" />
+                                }} className="w-20 bg-base-100 border border-base-200 rounded-xl px-3 py-1.5 text-xs font-black text-base-content/80 outline-none" />
                               </div>
                             </div>
-                            <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs font-black text-slate-700">
+                            <div className="rounded-3xl border border-base-300 bg-base-100 p-4 text-xs font-black text-base-content/80">
                               {basePrice > 0 ? (
                                 <>
-                                  <p className="uppercase tracking-widest text-slate-400">Prix unitaire après remise</p>
-                                  <p className="text-sm text-slate-900 mt-1">{discountedUnitPrice.toLocaleString()} F</p>
-                                  <p className="mt-2 text-[10px] text-slate-500">Économie par unité : {savings.toLocaleString()} F</p>
-                                  <p className="text-[10px] text-slate-500">Économie totale à {tier.min_qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
+                                  <p className="uppercase tracking-widest text-base-content/40">Prix unitaire après remise</p>
+                                  <p className="text-sm text-base-content mt-1">{discountedUnitPrice.toLocaleString()} F</p>
+                                  <p className="mt-2 text-[10px] text-base-content/50">Économie par unité : {savings.toLocaleString()} F</p>
+                                  <p className="text-[10px] text-base-content/50">Économie totale à {tier.min_qty} unités : {totalSavingsAtTier.toLocaleString()} F</p>
                                 </>
                               ) : (
-                                <p className="text-slate-400">Définissez le prix du produit pour voir le prix final par palier.</p>
+                                <p className="text-base-content/40">Définissez le prix du produit pour voir le prix final par palier.</p>
                               )}
                             </div>
                             <button type="button" onClick={() => setVolumePricingTiers(volumePricingTiers.filter((_, i) => i !== idx))} className="text-rose-500 hover:text-rose-700 text-xs font-black md:justify-self-end uppercase tracking-widest">Supprimer</button>
@@ -1144,17 +1144,17 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
         </AnimatePresence>
       </div>
 
-      <div className="p-6 md:p-10 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 bg-white relative z-10 mt-auto">
-        <button type="button" onClick={prevStep} disabled={currentStep === 0} className="w-full md:w-auto px-8 py-4 bg-slate-50 rounded-2xl font-black text-xs uppercase text-slate-400 hover:text-slate-900 flex items-center justify-center gap-2 disabled:opacity-50">
+      <div className="p-6 md:p-10 border-t border-base-200 flex flex-col md:flex-row justify-between items-center gap-4 bg-base-100 relative z-10 mt-auto">
+        <button type="button" onClick={prevStep} disabled={currentStep === 0} className="w-full md:w-auto px-8 py-4 bg-base-200 rounded-2xl font-black text-xs uppercase text-base-content/40 hover:text-base-content flex items-center justify-center gap-2 disabled:opacity-50">
           <ChevronLeft size={18} /> Précédent
         </button>
         <div className="flex w-full md:w-auto gap-4">
           {currentStep < steps.length - 1 ? (
-            <button type="button" onClick={nextStep} className="w-full md:w-auto px-12 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+            <button type="button" onClick={nextStep} className="w-full md:w-auto px-12 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-neutral transition-all flex items-center justify-center gap-2">
               Continuer <ChevronRight size={18} />
             </button>
           ) : (
-            <button type="submit" onClick={handleSubmit(onSubmit)} disabled={loading} className="w-full md:w-auto px-16 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+            <button type="submit" onClick={handleSubmit(onSubmit)} disabled={loading} className="w-full md:w-auto px-16 py-5 bg-primary rounded-2xl font-black text-xs uppercase text-white shadow-xl shadow-primary/20 hover:bg-neutral transition-all flex items-center justify-center gap-2">
               {loading ? 'Publication...' : 'Finaliser'} <Check size={18} />
             </button>
           )}

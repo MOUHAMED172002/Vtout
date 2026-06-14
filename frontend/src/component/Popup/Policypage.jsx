@@ -63,14 +63,14 @@ export default function PolicyPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-white">
+      <div className="h-screen flex items-center justify-center bg-base-100">
         <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-20 px-4 md:px-8">
+    <div className="min-h-screen bg-base-100 py-20 px-4 md:px-8">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
         <div className="space-y-4">
@@ -81,10 +81,10 @@ export default function PolicyPage() {
           >
             <ShieldCheck size={16} /> Engagement & Sécurité
           </motion.div>
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter leading-[1.1]">
+          <h1 className="text-4xl md:text-6xl font-black text-base-content tracking-tighter leading-[1.1]">
             Nos <span className="text-primary">Politiques</span> & <br />Conditions d'utilisation.
           </h1>
-          <p className="text-slate-500 font-bold max-w-2xl text-lg">
+          <p className="text-base-content/50 font-bold max-w-2xl text-lg">
             Transparence et confiance sont les piliers de notre relation. Découvrez comment nous gérons vos commandes, vos données et vos retours.
           </p>
         </div>
@@ -101,10 +101,10 @@ export default function PolicyPage() {
                     setActiveTab(p.id);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`w-full flex items-center justify-between p-6 rounded-[2rem] transition-all group ${activeTab === p.id ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/20 scale-[1.02]' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                  className={`w-full flex items-center justify-between p-6 rounded-[2rem] transition-all group ${activeTab === p.id ? 'bg-neutral text-neutral-content shadow-2xl shadow-neutral/20 scale-[1.02]' : 'bg-base-200 text-base-content/40 hover:bg-base-200'}`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${activeTab === p.id ? 'bg-primary text-white' : 'bg-white text-slate-300 shadow-sm'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${activeTab === p.id ? 'bg-primary text-white' : 'bg-base-100 text-base-content/30 shadow-sm'}`}>
                       <Icon size={20} />
                     </div>
                     <span className="font-black text-xs uppercase tracking-widest text-left">{p.title}</span>
@@ -134,7 +134,7 @@ export default function PolicyPage() {
                 key={activeTab}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-slate-50 rounded-[3.5rem] p-10 md:p-16 border border-white shadow-inner relative overflow-hidden"
+                className="bg-base-200 rounded-[3.5rem] p-10 md:p-16 border border-white shadow-inner relative overflow-hidden"
               >
                 <div className="relative z-10 space-y-8">
                   <div className="flex items-center gap-6">
@@ -142,20 +142,20 @@ export default function PolicyPage() {
                       {React.createElement(getIcon(activePolicy.title), { size: 28 })}
                     </div>
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">{activePolicy.title}</h2>
+                      <h2 className="text-2xl md:text-3xl font-black text-base-content tracking-tight leading-tight">{activePolicy.title}</h2>
                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Dernière mise à jour : Février 2026</p>
                     </div>
                   </div>
 
                   <div className="prose prose-lg max-w-none">
-                    <p className="text-slate-600 font-medium text-lg leading-relaxed whitespace-pre-wrap">
+                    <p className="text-base-content/70 font-medium text-lg leading-relaxed whitespace-pre-wrap">
                       {activePolicy.content}
                     </p>
                   </div>
                 </div>
               </motion.div>
             ) : (
-              <div className="py-20 text-center text-slate-400 font-bold">
+              <div className="py-20 text-center text-base-content/40 font-bold">
                 Sélectionnez une politique pour afficher le contenu.
               </div>
             )}

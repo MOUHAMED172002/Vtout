@@ -32,6 +32,11 @@ const Cart = sequelize.define('Cart', {
     selected_attributes: {
         type: DataTypes.JSON,
         defaultValue: {}
+    },
+    kit_id: {
+        type: DataTypes.CHAR(36),
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: 'cart_items',

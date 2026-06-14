@@ -71,7 +71,7 @@ export default function ResetPassword() {
         <div className="flex items-center justify-center py-20 px-4 min-h-[70vh]">
             <div className="max-w-md w-full relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl opacity-30"></div>
-                <div className="relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 shadow-xl rounded-3xl p-8 sm:p-10 border border-white/20">
+                <div className="relative backdrop-blur-xl bg-base-100/80 dark:bg-gray-900/80 shadow-xl rounded-3xl p-8 sm:p-10 border border-white/20">
                     <div className="text-center mb-8">
                         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
                             Nouveau mot de passe

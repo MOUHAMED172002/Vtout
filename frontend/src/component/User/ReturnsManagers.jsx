@@ -201,7 +201,7 @@ export default function ReturnsManager() {
         <div>Chargement...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="card bg-white p-4">
+          <div className="card bg-base-100 p-4">
             <h3 className="font-medium mb-2">Mes commandes récentes</h3>
             {orders.length === 0 ? (
               <div>Aucune commande.</div>
@@ -222,7 +222,7 @@ export default function ReturnsManager() {
             )}
           </div>
 
-          <div className="card bg-white p-4">
+          <div className="card bg-base-100 p-4">
             <h3 className="font-medium mb-2">Historique des retours</h3>
             {returnsList.length === 0 ? (
               <div>Aucun retour.</div>

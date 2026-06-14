@@ -7,7 +7,6 @@ import { getCategories } from '../../services/productService';
 export default function Category2() {
   const [allCategories, setAllCategories] = useState([]);
   const [expanded, setExpanded] = useState(null);
-  const [expandedSub, setExpandedSub] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -26,7 +25,7 @@ export default function Category2() {
     fetchCategories();
   }, []);
 
-  // Level-1 roots only (27 cards)
+  // Level-1 (racines) → affichées comme cartes (27 cartes, pas 211)
   const parents = allCategories.filter(c => !c.parent_id);
   const childrenByParent = allCategories.reduce((acc, c) => {
     if (c.parent_id) {
@@ -36,11 +35,7 @@ export default function Category2() {
     return acc;
   }, {});
 
-  const toggle = (id) => {
-    setExpanded(prev => (prev === id ? null : id));
-    setExpandedSub(null);
-  };
-  const toggleSub = (id) => setExpandedSub(prev => (prev === id ? null : id));
+  const toggle = (id) => setExpanded(prev => (prev === id ? null : id));
 
   if (loading) {
     return (
@@ -56,6 +51,7 @@ export default function Category2() {
   return (
     <div className="bg-base-200/50 min-h-screen pb-20">
       <div className="container mx-auto px-4 md:px-8 max-w-7xl pt-24">
+        {/* Refined Header */}
         <div className="mb-16 space-y-4 px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -78,6 +74,7 @@ export default function Category2() {
           </p>
         </div>
 
+        {/* Categories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {parents.map((cat, index) => {
             const isEmoji = /\p{Emoji}/u.test(cat.icon);
@@ -144,72 +141,24 @@ export default function Category2() {
                               Explorer la Collection
                             </button>
                           ) : (
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-1 gap-3">
                               {children.map((sub) => {
                                 const isSubEmoji = /\p{Emoji}/u.test(sub.icon);
                                 const IconSub = !isSubEmoji && LucideIcons[sub.icon] ? LucideIcons[sub.icon] : LucideIcons.CornerDownRight;
-                                const subChildren = childrenByParent[sub.id] || [];
-                                const hasSubChildren = subChildren.length > 0;
-                                const isSubOpen = expandedSub === sub.id;
-
                                 return (
-                                  <div key={sub.id}>
-                                    <button
-                                      style={{ touchAction: 'manipulation' }}
-                                      onClick={() => hasSubChildren ? toggleSub(sub.id) : navigate(`/products-liste?category_id=${sub.id}`)}
-                                      className="w-full flex items-center gap-4 p-4 rounded-2xl border border-transparent hover:border-base-200 hover:bg-base-200 transition-all text-left group/sub"
-                                    >
-                                      <div className="w-10 h-10 rounded-xl bg-base-100 border border-base-200 flex items-center justify-center text-lg shadow-sm group-hover/sub:border-primary/20 group-hover/sub:text-primary transition-all">
-                                        {isSubEmoji ? <span>{sub.icon}</span> : <IconSub size={16} />}
-                                      </div>
-                                      <span className="flex-1 text-sm font-bold text-base-content/70 group-hover/sub:text-primary transition-colors">
-                                        {sub.name}
-                                      </span>
-                                      {hasSubChildren && (
-                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSubOpen ? 'bg-primary text-white rotate-180' : 'bg-base-200 text-base-content/40'}`}>
-                                          <LucideIcons.ChevronDown size={12} />
-                                        </div>
-                                      )}
-                                    </button>
-
-                                    <AnimatePresence>
-                                      {hasSubChildren && isSubOpen && (
-                                        <motion.div
-                                          initial={{ height: 0, opacity: 0 }}
-                                          animate={{ height: 'auto', opacity: 1 }}
-                                          exit={{ height: 0, opacity: 0 }}
-                                          transition={{ duration: 0.25 }}
-                                          className="overflow-hidden"
-                                        >
-                                          <div className="ml-14 mb-2 grid grid-cols-1 gap-1">
-                                            {subChildren.map((sub2) => (
-                                              <button
-                                                key={sub2.id}
-                                                style={{ touchAction: 'manipulation' }}
-                                                onClick={() => navigate(`/products-liste?category_id=${sub2.id}`)}
-                                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 hover:text-primary transition-all text-left group/sub2"
-                                              >
-                                                <LucideIcons.Dot size={16} className="text-base-content/30 group-hover/sub2:text-primary shrink-0" />
-                                                <span className="text-xs font-bold text-base-content/60 group-hover/sub2:text-primary transition-colors">
-                                                  {sub2.name}
-                                                </span>
-                                              </button>
-                                            ))}
-                                            <button
-                                              style={{ touchAction: 'manipulation' }}
-                                              onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
-                                              className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-base-200 transition-all text-left mt-1"
-                                            >
-                                              <LucideIcons.ArrowRight size={12} className="text-primary" />
-                                              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
-                                                Tout voir dans {sub.name}
-                                              </span>
-                                            </button>
-                                          </div>
-                                        </motion.div>
-                                      )}
-                                    </AnimatePresence>
-                                  </div>
+                                  <button
+                                    key={sub.id}
+                                    onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
+                                    style={{ touchAction: 'manipulation' }}
+                                    className="flex items-center gap-4 p-4 rounded-2xl border border-transparent hover:border-base-200 hover:bg-base-200 transition-all text-left group/sub"
+                                  >
+                                    <div className="w-10 h-10 rounded-xl bg-base-100 border border-base-200 flex items-center justify-center text-lg shadow-sm group-hover/sub:border-primary/20 group-hover/sub:text-primary transition-all">
+                                      {isSubEmoji ? <span>{sub.icon}</span> : <IconSub size={16} />}
+                                    </div>
+                                    <span className='text-sm font-bold text-base-content/70 group-hover/sub:text-primary group-hover/sub:translate-x-1 transition-all'>
+                                      {sub.name}
+                                    </span>
+                                  </button>
                                 );
                               })}
                             </div>

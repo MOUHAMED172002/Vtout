@@ -77,19 +77,19 @@ export default function SupportAdmin() {
     };
 
     return (
-        <div className="bg-white rounded-[2rem] lg:rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col lg:flex-row h-auto lg:h-[700px]">
+        <div className="bg-base-100 rounded-[2rem] lg:rounded-[3rem] border border-base-200 shadow-xl overflow-hidden flex flex-col lg:flex-row h-auto lg:h-[700px]">
             {/* Sidebar: Conversations */}
-            <div className="w-full lg:w-[350px] border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col h-[300px] lg:h-full">
-                <div className="p-5 sm:p-8 border-b border-slate-50 space-y-3">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tighter">Messages Support</h3>
+            <div className="w-full lg:w-[350px] border-b lg:border-b-0 lg:border-r border-base-200 flex flex-col h-[300px] lg:h-full">
+                <div className="p-5 sm:p-8 border-b border-base-200 space-y-3">
+                    <h3 className="text-lg sm:text-xl font-black text-base-content tracking-tighter">Messages Support</h3>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={14} />
                         <input
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                            className="w-full pl-10 pr-4 py-2.5 bg-base-200 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20"
                         />
                     </div>
                 </div>
@@ -107,15 +107,15 @@ export default function SupportAdmin() {
                             className={`w-full p-4 rounded-[1.5rem] text-left transition-all flex items-center gap-3 ${
                                 selectedConv?.conversation_id === conv.conversation_id
                                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                : 'hover:bg-slate-50'
+                                : 'hover:bg-base-200'
                             }`}
                         >
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0 text-base">
+                            <div className="w-10 h-10 bg-base-100/20 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0 text-base">
                                 {getRoleBadge(conv.sender?.role)}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-black truncate">{conv.sender?.fullname || "Utilisateur"}</p>
-                                <p className={`text-[10px] font-bold truncate opacity-70 ${selectedConv?.conversation_id === conv.conversation_id ? 'text-white' : 'text-slate-400'}`}>
+                                <p className={`text-[10px] font-bold truncate opacity-70 ${selectedConv?.conversation_id === conv.conversation_id ? 'text-white' : 'text-base-content/40'}`}>
                                     {conv.content || "Aucun message"}
                                 </p>
                             </div>
@@ -125,23 +125,23 @@ export default function SupportAdmin() {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-slate-50/30 h-[400px] lg:h-full">
+            <div className="flex-1 flex flex-col bg-base-200/30 h-[400px] lg:h-full">
                 {selectedConv ? (
                     <>
                         {/* Chat Header */}
-                        <div className="p-5 sm:p-8 border-b border-white bg-white/50 flex items-center justify-between">
+                        <div className="p-5 sm:p-8 border-b border-white bg-base-100/50 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-base">
+                                <div className="w-10 h-10 bg-neutral text-white rounded-xl flex items-center justify-center text-base">
                                     {getRoleBadge(selectedConv.sender?.role)}
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-black text-slate-900">{selectedConv.sender?.fullname || "Utilisateur"}</h4>
-                                    <p className="text-[10px] font-bold text-slate-400 capitalize">{selectedConv.sender?.role || "Inconnu"}</p>
+                                    <h4 className="text-sm font-black text-base-content">{selectedConv.sender?.fullname || "Utilisateur"}</h4>
+                                    <p className="text-[10px] font-bold text-base-content/40 capitalize">{selectedConv.sender?.role || "Inconnu"}</p>
                                 </div>
                             </div>
                             {selectedConv.order_id && (
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Commande liée</span>
+                                    <span className="text-[10px] font-black text-base-content/30 uppercase tracking-widest mb-1">Commande liée</span>
                                     <div className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black border border-indigo-100 flex items-center gap-2">
                                         <Package size={12} />
                                         #{selectedConv.order_id.slice(0, 8)}
@@ -158,13 +158,13 @@ export default function SupportAdmin() {
                                     <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[75%] p-4 rounded-[1.5rem] shadow-sm ${
                                             isMe
-                                            ? 'bg-slate-900 text-white rounded-br-none'
-                                            : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+                                            ? 'bg-neutral text-white rounded-br-none'
+                                            : 'bg-base-100 text-base-content/80 border border-base-200 rounded-bl-none'
                                         }`}>
                                             {!isMe && (
                                                 <div className="flex items-center gap-1 mb-1.5">
                                                     <Shield size={9} className="text-primary opacity-50" />
-                                                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest">{msg.sender?.role || 'user'}</p>
+                                                    <p className="text-[9px] uppercase font-black text-base-content/40 tracking-widest">{msg.sender?.role || 'user'}</p>
                                                 </div>
                                             )}
                                             <p className="text-[13px] leading-relaxed font-semibold">{msg.content}</p>
@@ -178,15 +178,15 @@ export default function SupportAdmin() {
                         </div>
 
                         {/* Input */}
-                        <div className="p-4 sm:p-6 bg-white border-t border-slate-50">
-                            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-[2rem] border border-slate-100">
+                        <div className="p-4 sm:p-6 bg-base-100 border-t border-base-200">
+                            <div className="flex items-center gap-2 bg-base-200 p-2 rounded-[2rem] border border-base-200">
                                 <input
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                                     placeholder="Écrivez votre réponse..."
-                                    className="flex-1 bg-transparent border-none px-4 py-2 text-sm font-bold text-slate-700 focus:ring-0"
+                                    className="flex-1 bg-transparent border-none px-4 py-2 text-sm font-bold text-base-content/80 focus:ring-0"
                                 />
                                 <button
                                     onClick={handleSend}

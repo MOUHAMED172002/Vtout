@@ -120,23 +120,23 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
           <div className="flex items-center gap-3 text-primary font-black uppercase text-xs tracking-[0.3em]">
             <ShoppingBag size={14} /> Ventes
           </div>
-          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-slate-400">Commandes</span></h1>
-          <p className="text-slate-500 font-bold max-w-lg">Suivez les expéditions, validez les paiements et gérez les retours clients.</p>
+          <h1 className="text-5xl font-black text-gray-900 tracking-tighter">Gestion des <span className="text-base-content/40">Commandes</span></h1>
+          <p className="text-base-content/50 font-bold max-w-lg">Suivez les expéditions, validez les paiements et gérez les retours clients.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           {/* Search */}
-          <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
-            <Search size={18} className="text-slate-400" />
+          <div className="flex items-center gap-4 bg-base-100 px-6 py-3 rounded-2xl border border-base-200 shadow-sm">
+            <Search size={18} className="text-base-content/40" />
             <input
               type="text"
               placeholder="Référence ou Client..."
-              className="bg-transparent border-none text-sm font-bold text-slate-600 focus:ring-0 w-48"
+              className="bg-transparent border-none text-sm font-bold text-base-content/70 focus:ring-0 w-48"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="text-slate-300 hover:text-rose-500 transition-colors">
+              <button onClick={() => setSearchTerm("")} className="text-base-content/30 hover:text-rose-500 transition-colors">
                 <X size={16} />
               </button>
             )}
@@ -168,7 +168,7 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
             <Download size={16} /> Export CSV
           </button>
 
-          <button onClick={fetchOrders} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-slate-400">
+          <button onClick={fetchOrders} className="w-12 h-12 flex items-center justify-center bg-base-100 rounded-2xl border border-base-200 shadow-sm hover:bg-base-200 transition-all text-base-content/40">
             <RefreshCcw size={18} />
           </button>
         </div>
@@ -212,11 +212,11 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
                 >
                   <div className="px-8 pb-6 space-y-3">
                     {pendingOrders.map(order => (
-                      <div key={order.id} className="bg-white rounded-2xl px-4 py-3 border border-amber-100 shadow-sm grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
+                      <div key={order.id} className="bg-base-100 rounded-2xl px-4 py-3 border border-amber-100 shadow-sm grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 items-center">
                         {/* Row 1: ref + client | confirm button */}
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">#{order.id.slice(0, 8).toUpperCase()}</span>
-                          <span className="text-sm font-bold text-slate-700 truncate">{order.customer_name || order.guest_name || "Client"}</span>
+                          <span className="text-[10px] font-black text-base-content/40 uppercase tracking-widest shrink-0">#{order.id.slice(0, 8).toUpperCase()}</span>
+                          <span className="text-sm font-bold text-base-content/80 truncate">{order.customer_name || order.guest_name || "Client"}</span>
                         </div>
                         <div className="flex items-center gap-2 row-span-2">
                           <button
@@ -227,14 +227,14 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
                             {confirming[order.id] ? <span className="loading loading-spinner loading-xs" /> : <CheckCircle2 size={13} />}
                             Confirmer
                           </button>
-                          <button onClick={() => setOpenOrder(order)} className="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all shrink-0" title="Détails">
+                          <button onClick={() => setOpenOrder(order)} className="w-9 h-9 flex items-center justify-center bg-base-200 hover:bg-base-300 text-base-content/50 rounded-xl transition-all shrink-0" title="Détails">
                             <Eye size={14} />
                           </button>
                         </div>
                         {/* Row 2: date + amount */}
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-slate-400">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                          <span className="text-[11px] font-black text-slate-700">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
+                          <span className="text-[11px] font-bold text-base-content/40">{new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="text-[11px] font-black text-base-content/80">{Number(order.total_amount).toLocaleString('fr-FR')} F</span>
                         </div>
                       </div>
                     ))}
@@ -254,11 +254,11 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
             onClick={() => setActiveFilter(tab.id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === tab.id
               ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105'
-              : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'
+              : 'bg-base-100 text-base-content/40 border border-base-200 hover:border-base-300'
               }`}
           >
             {tab.label}
-            <span className={`px-2 py-0.5 rounded-lg text-[8px] ${activeFilter === tab.id ? 'bg-white/20 text-slate-900' : 'bg-slate-50 text-slate-400'}`}>
+            <span className={`px-2 py-0.5 rounded-lg text-[8px] ${activeFilter === tab.id ? 'bg-base-100/20 text-base-content' : 'bg-base-200 text-base-content/40'}`}>
               {tab.count}
             </span>
           </button>
@@ -270,7 +270,7 @@ export default function OrdersAdmin({ globalSearchQuery = "" }) {
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-gray-100 p-2 shadow-xl shadow-slate-200/50 overflow-hidden"
+        className="bg-base-100/50 backdrop-blur-sm rounded-[2.5rem] border border-gray-100 p-2 shadow-xl shadow-slate-200/50 overflow-hidden"
       >
         <OrderTable orders={filteredOrders} loading={loading} onView={(o) => setOpenOrder(o)} />
       </motion.div>

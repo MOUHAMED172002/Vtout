@@ -59,7 +59,8 @@ export function CartProvider({ children }) {
           quantity,
           price_snapshot: productData.price_snapshot || productData.price,
           image_url: productData.image_url || (productData.images?.[0]?.image_url),
-          selected_attributes: productData.selected_attributes || {}
+          selected_attributes: productData.selected_attributes || {},
+          kit_id: productData.kit_id || null
         }, token);
         toast.success("Ajouté au panier !");
         await refreshCart(true); // Silent refresh

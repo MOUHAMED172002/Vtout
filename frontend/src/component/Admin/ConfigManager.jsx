@@ -1301,7 +1301,7 @@ const ConfigManager = () => {
         about: <Users className="text-indigo-500" />,
         supplier: <Store className="text-emerald-500" />,
         messages: <Mail className="text-fuchsia-500" />,
-        general: <Settings className="text-slate-500" />
+        general: <Settings className="text-base-content/50" />
     };
 
     const groupLabels = {
@@ -1323,7 +1323,7 @@ const ConfigManager = () => {
         return (
             <div className="flex flex-col items-center justify-center h-96 space-y-4">
                 <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                <p className="text-slate-500 font-bold text-sm tracking-widest uppercase">Initialisation du panneau de contrôle...</p>
+                <p className="text-base-content/50 font-bold text-sm tracking-widest uppercase">Initialisation du panneau de contrôle...</p>
             </div>
         );
     }
@@ -1331,18 +1331,18 @@ const ConfigManager = () => {
     return (
         <div className="max-w-5xl mx-auto space-y-12 pb-20">
             {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-base-100 p-10 rounded-[3rem] shadow-sm border border-base-200">
                 <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
                         <Settings size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Configuration Royale</h1>
-                        <p className="text-slate-400 font-bold text-sm mt-1">Personnalisez votre boutique sans toucher au code</p>
+                        <h1 className="text-3xl font-black text-base-content tracking-tight">Configuration Royale</h1>
+                        <p className="text-base-content/40 font-bold text-sm mt-1">Personnalisez votre boutique sans toucher au code</p>
                     </div>
                 </div>
-                <div className="flex bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                    <div className="px-4 py-2 text-xs font-black text-slate-400 uppercase tracking-widest">Global Status: Online</div>
+                <div className="flex bg-base-200 p-2 rounded-2xl border border-base-200">
+                    <div className="px-4 py-2 text-xs font-black text-base-content/40 uppercase tracking-widest">Global Status: Online</div>
                 </div>
             </header>
 
@@ -1352,10 +1352,10 @@ const ConfigManager = () => {
                     groups[groupKey] && (
                         <section key={groupKey} className="space-y-6">
                             <div className="flex items-center gap-4 ml-6">
-                                <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100">
+                                <div className="p-2 bg-base-100 rounded-xl shadow-sm border border-base-200">
                                     {groupIcons[groupKey]}
                                 </div>
-                                <h2 className="text-lg font-black text-slate-800 uppercase tracking-widest">{groupLabels[groupKey]}</h2>
+                                <h2 className="text-lg font-black text-base-content/90 uppercase tracking-widest">{groupLabels[groupKey]}</h2>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1363,17 +1363,17 @@ const ConfigManager = () => {
                                     <motion.div 
                                         key={cfg.key}
                                         whileHover={{ y: -5 }}
-                                        className={`bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' || cfg.key === 'promotions_carousel' ? 'md:col-span-2' : ''}`}
+                                        className={`bg-base-100 p-8 rounded-[2.5rem] shadow-sm border border-base-200 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' || cfg.key === 'promotions_carousel' ? 'md:col-span-2' : ''}`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <div className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
+                                            <div className="px-3 py-1 bg-base-200 rounded-lg text-[10px] font-black text-base-content/40 uppercase tracking-widest border border-base-200">
                                                 {cfg.key}
                                             </div>
                                             {saving && <Loader2 size={14} className="animate-spin text-primary" />}
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-xs font-black text-slate-600 ml-1 block">{cfg.description}</label>
+                                            <label className="text-xs font-black text-base-content/70 ml-1 block">{cfg.description}</label>
                                             
                                             {cfg.key === 'hero_carousel' ? (
                                                 <HeroManager 
@@ -1405,12 +1405,12 @@ const ConfigManager = () => {
                                             ) : cfg.key.toLowerCase().includes('logo') || cfg.key.toLowerCase().includes('image') || cfg.key.toLowerCase().includes('avatar') ? (
                                                 <div className="space-y-4">
                                                     {cfg.value && (
-                                                        <div className="w-24 h-24 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex items-center justify-center">
+                                                        <div className="w-24 h-24 bg-base-200 rounded-2xl border border-base-200 overflow-hidden flex items-center justify-center">
                                                             <img src={cfg.value} alt="Preview" className="max-w-full max-h-full object-contain" />
                                                         </div>
                                                     )}
-                                                    <label className="flex flex-col items-center justify-center w-full px-6 py-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                                                        <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
+                                                    <label className="flex flex-col items-center justify-center w-full px-6 py-4 bg-base-200 border-2 border-dashed border-base-300 rounded-2xl cursor-pointer hover:bg-base-200 transition-all">
+                                                        <div className="flex items-center gap-2 text-base-content/40 font-bold text-xs">
                                                             <Plus size={16} />
                                                             {cfg.value ? 'Changer l\'image' : 'Choisir une image'}
                                                         </div>
@@ -1425,7 +1425,7 @@ const ConfigManager = () => {
                                                         type="text"
                                                         value={cfg.value || ''}
                                                         onChange={(e) => handleChange(groupKey, cfg.key, e.target.value)}
-                                                        className="w-full px-4 py-2 bg-slate-50 text-[10px] font-mono text-slate-400 border-none rounded-xl"
+                                                        className="w-full px-4 py-2 bg-base-200 text-[10px] font-mono text-base-content/40 border-none rounded-xl"
                                                         placeholder="URL manuelle (optionnel)"
                                                     />
                                                 </div>
@@ -1434,7 +1434,7 @@ const ConfigManager = () => {
                                                     rows={6}
                                                     value={cfg.value || ''}
                                                     onChange={(e) => handleChange(groupKey, cfg.key, e.target.value)}
-                                                    className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-vertical"
+                                                    className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-medium text-base-content/90 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-vertical"
                                                     placeholder="Saisissez un texte ou un template avec {{orderId}}, {{status}}, etc..."
                                                 />
                                             ) : (
@@ -1442,7 +1442,7 @@ const ConfigManager = () => {
                                                     type="text"
                                                     value={cfg.value || ''}
                                                     onChange={(e) => handleChange(groupKey, cfg.key, e.target.value)}
-                                                    className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner group-hover:bg-slate-100"
+                                                    className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-bold text-base-content/90 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner group-hover:bg-base-200"
                                                     placeholder="Saisissez une valeur..."
                                                 />
                                             )}
@@ -1451,7 +1451,7 @@ const ConfigManager = () => {
                                         {cfg.key !== 'about_team' && cfg.key !== 'about_stats' && cfg.key !== 'hero_carousel' && (
                                             <button 
                                                 onClick={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
-                                                className="w-full flex items-center justify-center gap-2 py-3 bg-white border-2 border-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:border-primary/30 hover:text-primary hover:bg-primary/5 active:scale-95"
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-base-100 border-2 border-base-200 text-base-content/40 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:border-primary/30 hover:text-primary hover:bg-primary/5 active:scale-95"
                                             >
                                                 <Save size={14} /> Enregistrer
                                             </button>
@@ -1465,12 +1465,12 @@ const ConfigManager = () => {
             </div>
 
             {/* Custom Config Add (Advanced) */}
-            <div className="bg-slate-900 p-12 rounded-[4rem] text-white space-y-8 relative overflow-hidden">
+            <div className="bg-neutral p-12 rounded-[4rem] text-white space-y-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -mr-20 -mt-20"></div>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="space-y-2 text-center md:text-left">
                         <h3 className="text-2xl font-black tracking-tight italic">Envie d'ajouter un nouveau paramètre ?</h3>
-                        <p className="text-slate-400 font-bold">Vous pouvez créer vos propres variables de configuration à la volée.</p>
+                        <p className="text-base-content/40 font-bold">Vous pouvez créer vos propres variables de configuration à la volée.</p>
                     </div>
                     <button 
                         onClick={() => setShowAddModal(true)}
@@ -1489,17 +1489,17 @@ const ConfigManager = () => {
                             animate={{ opacity: 1 }} 
                             exit={{ opacity: 0 }}
                             onClick={() => setShowAddModal(false)}
-                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            className="absolute inset-0 bg-neutral/60 backdrop-blur-sm"
                         />
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl relative z-10 space-y-8"
+                            className="bg-base-100 w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl relative z-10 space-y-8"
                         >
                             <div className="flex justify-between items-center">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Nouvelle Variable</h3>
-                                <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600"><Trash2 size={20}/></button>
+                                <h3 className="text-2xl font-black text-base-content tracking-tight">Nouvelle Variable</h3>
+                                <button onClick={() => setShowAddModal(false)} className="text-base-content/40 hover:text-base-content/70"><Trash2 size={20}/></button>
                             </div>
 
                             <form onSubmit={(e) => {
@@ -1509,45 +1509,45 @@ const ConfigManager = () => {
                                 setNewConfig({ key: '', value: '', group: 'general', description: '' });
                             }} className="space-y-6">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Clé (Unique, sans espace)</label>
+                                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2">Clé (Unique, sans espace)</label>
                                     <input 
                                         required
                                         type="text" 
                                         placeholder="ex: commission_rate, site_title..."
                                         value={newConfig.key}
                                         onChange={e => setNewConfig({...newConfig, key: e.target.value.toLowerCase().replace(/\s+/g, '_')})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
+                                        className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Valeur</label>
+                                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2">Valeur</label>
                                     <input 
                                         required
                                         type="text" 
                                         placeholder="Valeur initiale"
                                         value={newConfig.value}
                                         onChange={e => setNewConfig({...newConfig, value: e.target.value})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
+                                        className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Groupe</label>
+                                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2">Groupe</label>
                                     <select 
                                         value={newConfig.group}
                                         onChange={e => setNewConfig({...newConfig, group: e.target.value})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-black outline-none focus:ring-2 focus:ring-primary/20"
+                                        className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-black outline-none focus:ring-2 focus:ring-primary/20"
                                     >
                                         {Object.keys(groupLabels).map(k => <option key={k} value={k}>{groupLabels[k]}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Description locale</label>
+                                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2">Description locale</label>
                                     <input 
                                         type="text" 
                                         placeholder="À quoi sert cette variable ?"
                                         value={newConfig.description}
                                         onChange={e => setNewConfig({...newConfig, description: e.target.value})}
-                                        className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
+                                        className="w-full px-6 py-4 bg-base-200 border-none rounded-2xl text-sm font-bold outline-none ring-2 ring-transparent focus:ring-primary/20"
                                     />
                                 </div>
 
@@ -1604,12 +1604,12 @@ const TeamManager = ({ value, onChange, onSave, uploadImage }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((member, i) => (
-                    <div key={i} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3 relative group">
+                    <div key={i} className="bg-base-200 p-4 rounded-2xl border border-base-200 space-y-3 relative group">
                         <button onClick={() => removeItem(i)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 size={12} />
                         </button>
-                        <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-2 bg-white relative border-2 border-white shadow-md">
-                            {uploadingObj === i && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10"><Loader2 className="animate-spin text-primary" size={20}/></div>}
+                        <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-2 bg-base-100 relative border-2 border-white shadow-md">
+                            {uploadingObj === i && <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center z-10"><Loader2 className="animate-spin text-primary" size={20}/></div>}
                             <img src={member.avatar} alt="Avatar" className="w-full h-full object-cover" />
                             <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-10">
                                 <Plus size={20} className="text-white"/>
@@ -1632,19 +1632,19 @@ const TeamManager = ({ value, onChange, onSave, uploadImage }) => {
                             value={member.role}
                             onChange={e => updateItem(i, 'role', e.target.value)}
                             placeholder="Rôle"
-                            className="w-full bg-transparent text-[10px] text-slate-400 font-bold text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
+                            className="w-full bg-transparent text-[10px] text-base-content/40 font-bold text-center focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                         />
                         <input
                             value={member.avatar}
                             onChange={e => updateItem(i, 'avatar', e.target.value)}
                             placeholder="URL Avatar manuelle"
-                            className="w-full bg-white/50 p-1 rounded text-[8px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            className="w-full bg-base-100/50 p-1 rounded text-[8px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                         />
                     </div>
                 ))}
                 <button 
                     onClick={addItem}
-                    className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-4 hover:bg-slate-50 transition-all text-slate-400 hover:text-primary min-h-[160px]"
+                    className="border-2 border-dashed border-base-300 rounded-2xl flex flex-col items-center justify-center p-4 hover:bg-base-200 transition-all text-base-content/40 hover:text-primary min-h-[160px]"
                 >
                     <Plus size={24} />
                     <span className="text-[10px] font-black uppercase tracking-widest mt-2">Ajouter</span>
@@ -1683,7 +1683,7 @@ const StatsManager = ({ value, onChange, onSave }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {items.map((stat, i) => (
-                    <div key={i} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 relative group">
+                    <div key={i} className="flex items-center gap-4 bg-base-200 p-4 rounded-2xl border border-base-200 relative group">
                         <button onClick={() => removeItem(i)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 size={12} />
                         </button>
@@ -1692,20 +1692,20 @@ const StatsManager = ({ value, onChange, onSave }) => {
                                 value={stat.value} 
                                 onChange={e => updateItem(i, 'value', e.target.value)}
                                 placeholder="Valeur (ex: 12k+)"
-                                className="w-full bg-transparent font-black text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
+                                className="w-full bg-transparent font-black text-base-content focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
                             <input
                                 value={stat.label}
                                 onChange={e => updateItem(i, 'label', e.target.value)}
                                 placeholder="Libellé"
-                                className="w-full bg-transparent text-[10px] font-black uppercase text-slate-400 tracking-widest focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
+                                className="w-full bg-transparent text-[10px] font-black uppercase text-base-content/40 tracking-widest focus:outline-none focus:ring-1 focus:ring-primary/30 rounded"
                             />
                         </div>
                     </div>
                 ))}
                 <button 
                     onClick={addItem}
-                    className="border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center p-4 hover:bg-slate-50 transition-all text-slate-400 hover:text-primary min-h-[80px]"
+                    className="border-2 border-dashed border-base-300 rounded-2xl flex items-center justify-center p-4 hover:bg-base-200 transition-all text-base-content/40 hover:text-primary min-h-[80px]"
                 >
                     <Plus size={20} />
                     <span className="text-[10px] font-black uppercase tracking-widest ml-2">Ajouter</span>
@@ -1767,16 +1767,16 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((slide, i) => (
-                    <div key={i} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
+                    <div key={i} className="bg-base-200 p-6 rounded-3xl border border-base-200 space-y-4 relative group">
                         <button onClick={() => removeItem(i)} className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
                             <Trash2 size={14} />
                         </button>
                         
-                        <div className="h-40 rounded-2xl overflow-hidden mx-auto bg-white relative flex items-center justify-center border-2 border-dashed border-slate-200 group-hover:border-primary/30 transition-colors">
-                            {uploadingObj === i && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20"><Loader2 className="animate-spin text-primary" size={24}/></div>}
+                        <div className="h-40 rounded-2xl overflow-hidden mx-auto bg-base-100 relative flex items-center justify-center border-2 border-dashed border-base-300 group-hover:border-primary/30 transition-colors">
+                            {uploadingObj === i && <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center z-20"><Loader2 className="animate-spin text-primary" size={24}/></div>}
                             <img src={slide.img} alt="Slide Preview" className="w-full h-full object-contain p-2" />
                             <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-10">
-                                <span className="bg-white/20 px-4 py-2 rounded-xl text-white text-[10px] font-black backdrop-blur-md flex items-center gap-2 border border-white/20">
+                                <span className="bg-base-100/20 px-4 py-2 rounded-xl text-white text-[10px] font-black backdrop-blur-md flex items-center gap-2 border border-white/20">
                                     <Plus size={16}/> Remplacer l'image
                                 </span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, i)} />
@@ -1794,19 +1794,19 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                                 value={slide.subtitle} 
                                 onChange={e => updateItem(i, 'subtitle', e.target.value)}
                                 placeholder="Sous-titre (ex: Nouveauté)"
-                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
                             />
                             <input 
                                 value={slide.title} 
                                 onChange={e => updateItem(i, 'title', e.target.value)}
                                 placeholder="Titre Principal"
-                                className="w-full bg-white px-3 py-2 rounded-xl text-sm font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-sm font-black focus:ring-2 focus:ring-primary/20 outline-none"
                             />
                             <input 
                                 value={slide.title2} 
                                 onChange={e => updateItem(i, 'title2', e.target.value)}
                                 placeholder="Texte Secondaire"
-                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-bold text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold text-base-content/50 focus:ring-2 focus:ring-primary/20 outline-none"
                             />
                         </div>
                         
@@ -1815,13 +1815,13 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                                 value={slide.color} 
                                 onChange={e => updateItem(i, 'color', e.target.value)}
                                 placeholder="Couleur BG (from-X to-Y)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                             <input 
                                 value={slide.textColor} 
                                 onChange={e => updateItem(i, 'textColor', e.target.value)}
                                 placeholder="Couleur Texte (text-X)"
-                                className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
                         </div>
                     </div>
@@ -1829,9 +1829,9 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                 
                 <button 
                     onClick={addItem}
-                    className="border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-6 hover:bg-slate-50 transition-all text-slate-400 hover:text-primary min-h-[350px] group"
+                    className="border-2 border-dashed border-base-300 rounded-3xl flex flex-col items-center justify-center p-6 hover:bg-base-200 transition-all text-base-content/40 hover:text-primary min-h-[350px] group"
                 >
-                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
+                    <div className="w-16 h-16 rounded-full bg-base-100 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
                         <Plus size={24} />
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest">Ajouter un Slide</span>
@@ -1899,16 +1899,16 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((slide, i) => (
-                    <div key={i} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
+                    <div key={i} className="bg-base-200 p-6 rounded-3xl border border-base-200 space-y-4 relative group">
                         <button onClick={() => removeItem(i)} className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
                             <Trash2 size={14} />
                         </button>
                         
-                        <div className="h-40 rounded-2xl overflow-hidden mx-auto bg-white relative flex items-center justify-center border-2 border-dashed border-slate-200 group-hover:border-primary/30 transition-colors">
-                            {uploadingObj === i && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20"><Loader2 className="animate-spin text-primary" size={24}/></div>}
+                        <div className="h-40 rounded-2xl overflow-hidden mx-auto bg-base-100 relative flex items-center justify-center border-2 border-dashed border-base-300 group-hover:border-primary/30 transition-colors">
+                            {uploadingObj === i && <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center z-20"><Loader2 className="animate-spin text-primary" size={24}/></div>}
                             <img src={slide.img} alt="Promo Preview" className="w-full h-full object-contain p-2" />
                             <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-10">
-                                <span className="bg-white/20 px-4 py-2 rounded-xl text-white text-[10px] font-black backdrop-blur-md flex items-center gap-2 border border-white/20">
+                                <span className="bg-base-100/20 px-4 py-2 rounded-xl text-white text-[10px] font-black backdrop-blur-md flex items-center gap-2 border border-white/20">
                                     <Plus size={16}/> Remplacer l'image
                                 </span>
                                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, i)} />
@@ -1920,40 +1920,40 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                 value={slide.badge} 
                                 onChange={e => updateItem(i, 'badge', e.target.value)}
                                 placeholder="Badge (ex: Vente Flash)"
-                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
                             />
                             <div className="grid grid-cols-2 gap-2">
                                 <input 
                                     value={slide.title} 
                                     onChange={e => updateItem(i, 'title', e.target.value)}
                                     placeholder="Titre de début"
-                                    className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                                 <input 
                                     value={slide.titleAccent} 
                                     onChange={e => updateItem(i, 'titleAccent', e.target.value)}
                                     placeholder="Titre accentué"
-                                    className="w-full bg-white px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                             <textarea 
                                 value={slide.subtitle} 
                                 onChange={e => updateItem(i, 'subtitle', e.target.value)}
                                 placeholder="Description"
-                                className="w-full bg-white px-3 py-2 rounded-xl text-xs font-bold text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none h-16 resize-none"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold text-base-content/50 focus:ring-2 focus:ring-primary/20 outline-none h-16 resize-none"
                             />
                             <div className="grid grid-cols-2 gap-2">
                                 <input 
                                     value={slide.circleBadgeText} 
                                     onChange={e => updateItem(i, 'circleBadgeText', e.target.value)}
                                     placeholder="Texte Rond (Jusqu'à)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                    className="w-full bg-base-100 px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.circleBadgeVal} 
                                     onChange={e => updateItem(i, 'circleBadgeVal', e.target.value)}
                                     placeholder="Valeur Rond (-50%)"
-                                    className="w-full bg-white px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                    className="w-full bg-base-100 px-2 py-1 rounded text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -1961,13 +1961,13 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                                     value={slide.buttonText} 
                                     onChange={e => updateItem(i, 'buttonText', e.target.value)}
                                     placeholder="Texte Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                    className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-bold focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                                 <input 
                                     value={slide.link} 
                                     onChange={e => updateItem(i, 'link', e.target.value)}
                                     placeholder="Lien Bouton 1"
-                                    className="w-full bg-slate-200/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                    className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                                 />
                             </div>
                         </div>
@@ -1976,9 +1976,9 @@ const PromotionsManager = ({ value, onChange, onSave, uploadImage }) => {
                 
                 <button 
                     onClick={addItem}
-                    className="border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-6 hover:bg-slate-50 transition-all text-slate-400 hover:text-primary min-h-[350px] group"
+                    className="border-2 border-dashed border-base-300 rounded-3xl flex flex-col items-center justify-center p-6 hover:bg-base-200 transition-all text-base-content/40 hover:text-primary min-h-[350px] group"
                 >
-                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
+                    <div className="w-16 h-16 rounded-full bg-base-100 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
                         <Plus size={24} />
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest">Ajouter une Promo</span>

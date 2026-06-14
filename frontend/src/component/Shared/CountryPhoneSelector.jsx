@@ -83,24 +83,24 @@ export default function CountryPhoneSelector({ value, onChange, label, error, re
   return (
     <div className="space-y-2 w-full">
       {label && (
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 flex items-center gap-1">
+        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 px-4 flex items-center gap-1">
           <Phone size={12} /> {label} {required && <span className="text-rose-500">*</span>}
         </label>
       )}
       
-      <div className={`flex gap-2 rounded-3xl border-2 overflow-hidden bg-slate-50 ${error ? 'border-rose-400' : 'border-transparent'}`}>
+      <div className={`flex gap-2 rounded-3xl border-2 overflow-hidden bg-base-200 ${error ? 'border-rose-400' : 'border-transparent'}`}>
         
         {/* Country Selector */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="px-4 py-3.5 font-black text-sm min-w-fit hover:bg-slate-100 transition-colors flex items-center gap-2 group"
+            className="px-4 py-3.5 font-black text-sm min-w-fit hover:bg-base-200 transition-colors flex items-center gap-2 group"
           >
             {selectedCountry && (
               <>
                 <span className="text-lg">{selectedCountry.flag}</span>
-                <span className="text-slate-600 font-black text-xs uppercase tracking-widest hidden sm:inline">
+                <span className="text-base-content/70 font-black text-xs uppercase tracking-widest hidden sm:inline">
                   {selectedCountry.indicatif}
                 </span>
               </>
@@ -110,18 +110,18 @@ export default function CountryPhoneSelector({ value, onChange, label, error, re
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-96 overflow-hidden flex flex-col">
+            <div className="absolute top-full left-0 mt-2 w-64 bg-base-100 border border-base-300 rounded-2xl shadow-2xl z-50 max-h-96 overflow-hidden flex flex-col">
               <input
                 type="text"
                 placeholder="Rechercher un pays..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-2.5 border-b border-slate-100 focus:outline-none bg-slate-50 font-bold text-sm"
+                className="px-4 py-2.5 border-b border-base-200 focus:outline-none bg-base-200 font-bold text-sm"
               />
               
               <div className="overflow-y-auto flex-1">
                 {filteredCountries.length === 0 ? (
-                  <div className="p-4 text-center text-slate-400 text-sm font-bold">
+                  <div className="p-4 text-center text-base-content/40 text-sm font-bold">
                     Aucun pays trouvé
                   </div>
                 ) : (
@@ -130,7 +130,7 @@ export default function CountryPhoneSelector({ value, onChange, label, error, re
                       key={country.code}
                       type="button"
                       onClick={() => handleCountrySelect(country)}
-                      className={`w-full px-4 py-2.5 text-left text-sm font-bold hover:bg-primary/10 transition-colors flex items-center gap-3 border-b border-slate-50 ${
+                      className={`w-full px-4 py-2.5 text-left text-sm font-bold hover:bg-primary/10 transition-colors flex items-center gap-3 border-b border-base-200 ${
                         selectedCountry?.code === country.code ? 'bg-primary/5 border-l-4 border-l-primary' : ''
                       }`}
                     >
@@ -164,7 +164,7 @@ export default function CountryPhoneSelector({ value, onChange, label, error, re
       
       {/* Helper */}
       {selectedCountry && (
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">
+        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest px-4">
           Format: {selectedCountry.indicatif} + numéro local
         </p>
       )}

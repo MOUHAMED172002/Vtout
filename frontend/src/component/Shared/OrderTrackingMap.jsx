@@ -63,7 +63,7 @@ export default function OrderTrackingMap({ orderId, customerPos, supplierPos }) 
     const center = customerPos || supplierPos || [6.3667, 2.4333]; // Default to Cotonou
 
     return (
-        <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border border-slate-100 shadow-inner bg-slate-50 relative">
+        <div className="h-[400px] w-full rounded-[2rem] overflow-hidden border border-base-200 shadow-inner bg-base-200 relative">
             <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -89,7 +89,7 @@ export default function OrderTrackingMap({ orderId, customerPos, supplierPos }) 
                 )}
             </MapContainer>
             
-            <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur px-4 py-2 rounded-xl border border-slate-200 shadow-lg text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <div className="absolute bottom-4 left-4 z-[1000] bg-base-100/90 backdrop-blur px-4 py-2 rounded-xl border border-base-300 shadow-lg text-[10px] font-bold uppercase tracking-widest text-base-content/50">
                 Légende : 
                 <span className="ml-2 inline-flex items-center gap-1 text-blue-500"><div className="w-2 h-2 bg-blue-500 rounded-full"/> Livreur</span>
                 <span className="ml-2 inline-flex items-center gap-1 text-red-500"><div className="w-2 h-2 bg-red-500 rounded-full"/> Vous</span>
