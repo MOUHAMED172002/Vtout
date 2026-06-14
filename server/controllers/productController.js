@@ -567,6 +567,13 @@ export const createProduct = async (req, res) => {
 
         // 1. Create base product (NEW)
         const productId = crypto.randomUUID();
+        // Randomly seed total_sold for visual demo (admin only, ~30% chance popular ≥100)
+        const demoTotalSold = isAdmin
+            ? (Math.random() < 0.3
+                ? Math.floor(Math.random() * 400) + 100
+                : Math.floor(Math.random() * 80))
+            : 0;
+
         const product = await Product.create({
             id: productId,
             name,
@@ -586,7 +593,8 @@ export const createProduct = async (req, res) => {
             admin_feedback: admin_feedback || null,
             in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true,
             boutique_id: boutique_id || null,
-            secondary_boutique_ids: secondary_boutique_ids || null
+            secondary_boutique_ids: secondary_boutique_ids || null,
+            total_sold: demoTotalSold
         }, { transaction });
 
         // 2. Insert Images

@@ -177,7 +177,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const navState = cheapestVariantId ? { selectedVariantId: cheapestVariantId } : undefined;
 
   return (
-    <div className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
+    <div className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500 flex flex-col">
       <Link
         to={`/products/${product.id}`}
         state={navState}
@@ -288,73 +288,78 @@ export default function ProductCard({ product, onFavoriteChange }) {
       </Link>
 
       {/* ── Info Section ── */}
-      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-2">
+      <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between">
 
-        {/* Rating */}
-        {product.review_count > 0 && (
-          <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-orange-400 font-bold uppercase tracking-widest">
-            <Star size={9} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-            <span className="text-base-content/30">•</span>
-            <span className="text-base-content/50">Certifié</span>
-          </div>
-        )}
+        {/* Top: Rating + Name + Free delivery */}
+        <div className="space-y-1.5 sm:space-y-2">
+          {/* Rating */}
+          {product.review_count > 0 && (
+            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-orange-400 font-bold uppercase tracking-widest">
+              <Star size={9} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
+              <span className="text-base-content/30">•</span>
+              <span className="text-base-content/50">Certifié</span>
+            </div>
+          )}
 
-        {/* Name */}
-        <Link to={`/products/${product.id}`} state={navState} className="block">
-          <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 sm:line-clamp-1 hover:text-primary transition-colors leading-tight">
-            {product.name}
-          </h3>
-        </Link>
+          {/* Name */}
+          <Link to={`/products/${product.id}`} state={navState} className="block">
+            <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 hover:text-primary transition-colors leading-tight">
+              {product.name}
+            </h3>
+          </Link>
 
-        {/* Free delivery badge — single truncated line, never wraps */}
-        {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
-          <div className="flex items-center gap-1 min-w-0">
-            <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
-            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate min-w-0">
-              Livraison gratuite · {product.free_delivery_communes.join(' · ')}
-            </span>
-          </div>
-        )}
-
-        {/* Price row */}
-        <div className="flex items-baseline gap-1.5 sm:gap-2">
-          <span className="text-base sm:text-xl md:text-2xl font-black text-base-content tracking-tighter leading-none">
-            {formatPrice(currentPrice)}
-            <span className="text-[9px] sm:text-xs text-primary font-black uppercase ml-0.5">F</span>
-          </span>
-          {showOldPrice && (
-            <span className="text-[9px] sm:text-xs text-base-content/40 line-through font-bold">
-              {formatPrice(basePrice)} F
-            </span>
+          {/* Free delivery badge — single truncated line, never wraps */}
+          {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
+            <div className="flex items-center gap-1 min-w-0">
+              <MapPin size={8} strokeWidth={3} className="text-emerald-500 shrink-0" />
+              <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-emerald-500 truncate min-w-0">
+                Livraison gratuite · {product.free_delivery_communes.join(' · ')}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Sales bar + Mobile quick-buy button */}
-        <div className="flex items-center gap-2">
-          {/* Sales bar */}
-          {isPopular && (
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-base-content/50 mb-1 uppercase tracking-tighter">
-              <span className="flex items-center gap-0.5 text-orange-500">
-                <Zap size={8} fill="currentColor" /> {salesCount} vendus
+        {/* Bottom: Price + Sales bar + Mobile button */}
+        <div className="mt-2 space-y-1.5">
+          {/* Price row */}
+          <div className="flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-base sm:text-xl md:text-2xl font-black text-base-content tracking-tighter leading-none">
+              {formatPrice(currentPrice)}
+              <span className="text-[9px] sm:text-xs text-primary font-black uppercase ml-0.5">F</span>
+            </span>
+            {showOldPrice && (
+              <span className="text-[9px] sm:text-xs text-base-content/40 line-through font-bold">
+                {formatPrice(basePrice)} F
               </span>
-              <span className="text-primary">Populaire</span>
-            </div>
-            <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min((salesCount / 100) * 100, 100)}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-primary rounded-full"
-              />
-            </div>
+            )}
           </div>
-          )}
 
-          {/* Mobile: always-visible quick buy button (hidden on desktop where hover buttons show) */}
-          {!isOutOfStock && (
-            <button
-              className="md:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-200 active:scale-90"
+          {/* Sales bar + Mobile quick-buy button — fixed height so all cards align */}
+          <div className="flex items-center gap-2 h-8">
+            {/* Sales bar */}
+            {isPopular && (
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-base-content/50 mb-1 uppercase tracking-tighter">
+                <span className="flex items-center gap-0.5 text-orange-500">
+                  <Zap size={8} fill="currentColor" /> {salesCount} vendus
+                </span>
+                <span className="text-primary">Populaire</span>
+              </div>
+              <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((salesCount / 100) * 100, 100)}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
+            </div>
+            )}
+
+            {/* Mobile: always-visible quick buy button (hidden on desktop where hover buttons show) */}
+            {!isOutOfStock && (
+              <button
+                className="md:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-200 active:scale-90"
               onClick={(e) => {
                 e.preventDefault();
                 navigate('/checkout', {
@@ -378,6 +383,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
               <Zap size={14} fill="currentColor" />
             </button>
           )}
+          </div>
         </div>
 
       </div>
