@@ -21,7 +21,7 @@ const Category = sequelize.define('Category', {
     commission_rate: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: true,
-        defaultValue: null,
+        defaultValue: 10.00,
         field: 'commission_rate'
     },
     display_order: {

@@ -146,4 +146,7 @@ INSERT INTO categories (name, icon, parent_id, display_order) VALUES
 ('Armoires',          '🗄️', 12, 5),
 ('Décoration murale', '🖼️', 12, 6),
 ('Rideaux',           '🪟', 12, 7),
-('Tapis',             '🪵', 12, 8)
+('Tapis',             '🪵', 12, 8);
+
+-- Set default commission rate of 10% for all categories that don't have one yet
+UPDATE categories SET commission_rate = 10.00 WHERE commission_rate IS NULL;
