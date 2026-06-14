@@ -19,7 +19,8 @@ export default function AddressSelector({
   const [phoneRaw, setPhoneRaw] = useState(initial?.phone || "");
   const [phoneError, setPhoneError] = useState(null);
   const [addressDetails, setAddressDetails] = useState("");
-  
+  const [editedQuartier, setEditedQuartier] = useState("");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -103,12 +104,20 @@ export default function AddressSelector({
           formattedAddress: formatted
         });
         setSearchQuery(formatted);
+        setEditedQuartier(initial.quartier_label || '');
       }
       if (initial.address_line) {
          setAddressDetails(initial.address_line);
       }
     }
   }, [initial]);
+
+  // Pre-fill editable quartier when a location is picked from the dropdown
+  useEffect(() => {
+    if (selectedLocation?.quartier_label && !editedQuartier) {
+      setEditedQuartier(selectedLocation.quartier_label);
+    }
+  }, [selectedLocation]);
 
   const filteredLocations = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -147,12 +156,13 @@ export default function AddressSelector({
 
   const digitsOnly = phoneRaw.replace(/[^\d]/g, "");
   const isPhoneValid = digitsOnly.length >= 8 && digitsOnly.length <= 15;
-  const isValidForSave = !!selectedLocation && (!requirePhone || isPhoneValid);
+  const isValidForSave = !!selectedLocation && editedQuartier.trim().length > 0 && (!requirePhone || isPhoneValid);
 
   useEffect(() => {
     if (onChange) {
       onChange({
         ...selectedLocation,
+        quartier_label: editedQuartier.trim() || selectedLocation?.quartier_label || '',
         address_line: currentAddressLine,
         phone: phoneRaw,
         is_valid: isValidForSave,
@@ -160,7 +170,7 @@ export default function AddressSelector({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLocation, addressDetails, phoneRaw, requirePhone, currentAddressLine, isValidForSave, initial?.label]);
+  }, [selectedLocation, editedQuartier, addressDetails, phoneRaw, requirePhone, currentAddressLine, isValidForSave, initial?.label]);
 
   const handleManualSave = () => {
     if (onSave && isValidForSave) {
@@ -179,55 +189,84 @@ export default function AddressSelector({
     <div className="space-y-6">
       <div className="space-y-2 relative" ref={wrapperRef}>
         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
-          <MapPin size={14} className="text-primary" /> Localité (Rechercher votre quartier) *
+          <MapPin size={14} className="text-primary" /> Localité *
         </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:font-medium placeholder:text-slate-300"
-            placeholder="Ex: Akassato, Godomey..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowSuggestions(true);
-              if (selectedLocation) setSelectedLocation(null);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-          />
-          {selectedLocation && (
-             <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-               <Check className="h-5 w-5 text-emerald-500" />
-             </div>
-          )}
-        </div>
 
-        {showSuggestions && searchQuery && filteredLocations.length > 0 && (
-             <div 
-               className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar"
-             >
+        {/* Once a commune is selected: show locked badge + editable quartier */}
+        {selectedLocation ? (
+          <div className="space-y-3">
+            {/* Locked commune row */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl">
+              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+              <span className="flex-1 text-sm font-bold text-slate-700 truncate">
+                {selectedLocation.commune_label}, {selectedLocation.departement_label}
+              </span>
+              <button
+                type="button"
+                onClick={() => { setSelectedLocation(null); setSearchQuery(''); setEditedQuartier(''); }}
+                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline shrink-0"
+              >
+                Modifier
+              </button>
+            </div>
+
+            {/* Editable quartier/neighborhood */}
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2 mb-1 block">
+                Quartier / Localité exacte *
+              </label>
+              <input
+                type="text"
+                value={editedQuartier}
+                onChange={(e) => setEditedQuartier(e.target.value)}
+                placeholder="Ex: Akpakpa, Sènadé, Tokpota Davi..."
+                className="w-full h-12 bg-white border border-slate-200 rounded-2xl px-4 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:text-slate-300"
+              />
+            </div>
+          </div>
+        ) : (
+          /* Search input — before any selection */
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:font-medium placeholder:text-slate-300"
+              placeholder="Rechercher votre ville / commune..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+            />
+
+            {showSuggestions && searchQuery && filteredLocations.length > 0 && (
+              <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar">
                 {filteredLocations.map((loc) => (
-                   <div 
-                     key={loc.id || Object.values(loc).join('')}
-                     onClick={() => {
-                        setSelectedLocation(loc);
-                        setSearchQuery(loc.formattedAddress);
-                        setShowSuggestions(false);
-                     }}
-                     className="px-5 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
-                   >
-                      <div className="font-bold text-sm text-slate-900">{loc.quartier_label}</div>
-                      <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
-                   </div>
+                  <div
+                    key={loc.id || Object.values(loc).join('')}
+                    onClick={() => {
+                      setSelectedLocation(loc);
+                      setEditedQuartier(loc.quartier_label || '');
+                      setSearchQuery(loc.formattedAddress);
+                      setShowSuggestions(false);
+                    }}
+                    className="px-5 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                  >
+                    <div className="font-bold text-sm text-slate-900">{loc.quartier_label}</div>
+                    <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
+                  </div>
                 ))}
-             </div>
-          )}
-        
-        {showSuggestions && searchQuery && filteredLocations.length === 0 && (
-          <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
-             <p className="text-sm font-bold text-slate-500">Aucune localité trouvée.</p>
+              </div>
+            )}
+
+            {showSuggestions && searchQuery && filteredLocations.length === 0 && (
+              <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
+                <p className="text-sm font-bold text-slate-500">Aucune localité trouvée.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -304,15 +343,17 @@ export default function AddressSelector({
         </div>
       )}
 
-      {selectedLocation && !onSave && (
-        <div className="p-5 bg-slate-900 rounded-[1.5rem] text-white flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
+      {selectedLocation && editedQuartier.trim() && !onSave && (
+        <div className="p-5 bg-neutral rounded-[1.5rem] text-neutral-content flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
           <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary shrink-0 z-10">
             <ShieldCheck size={24} />
           </div>
           <div className="min-w-0 z-10">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">Livraison garantie</p>
-            <p className="text-xs font-bold text-slate-300 truncate">{currentAddressLine || 'Localité vérifiée'}</p>
+            <p className="text-xs font-bold text-neutral-content/70 truncate">
+              {editedQuartier}, {selectedLocation.commune_label}
+            </p>
           </div>
         </div>
       )}

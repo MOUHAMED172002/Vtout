@@ -62,7 +62,6 @@ const SupplierRegister = () => {
     const validateStep2 = () => {
         const e = {};
         if (!formData.shopName?.trim()) e.shopName = 'Le nom de la boutique est obligatoire';
-        if (!formData.phone) e.phone = 'Le numéro de téléphone est obligatoire';
         if (!formData.whatsapp) e.whatsapp = 'Le numéro WhatsApp est obligatoire — vous recevrez vos alertes commandes ici';
         if (!formData.momoNumber) e.momoNumber = 'Le numéro MoMo est obligatoire pour recevoir vos paiements';
         setErrors(e);
@@ -200,25 +199,14 @@ const SupplierRegister = () => {
                                     {errors.shopName && <p className="text-rose-500 text-[11px] font-bold px-4">{errors.shopName}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    {/* Phone */}
-                                    <CountryPhoneSelector 
-                                        label={getConfig('supplier_register_phone_label', 'Téléphone')} 
-                                        value={formData.phone} 
-                                        onChange={val => set('phone', val)} 
-                                        error={errors.phone}
-                                        required={true}
-                                    />
-
-                                    {/* WhatsApp */}
-                                    <CountryPhoneSelector 
-                                        label={getConfig('supplier_register_whatsapp_label', 'WhatsApp')} 
-                                        value={formData.whatsapp} 
-                                        onChange={val => set('whatsapp', val)} 
-                                        error={errors.whatsapp}
-                                        required={true}
-                                    />
-                                </div>
+                                {/* WhatsApp — sert aussi de numéro de contact principal */}
+                                <CountryPhoneSelector
+                                    label={getConfig('supplier_register_whatsapp_label', 'Numéro de contact (WhatsApp)')}
+                                    value={formData.whatsapp}
+                                    onChange={val => { set('whatsapp', val); set('phone', val); }}
+                                    error={errors.whatsapp}
+                                    required={true}
+                                />
 
                                 {/* MoMo */}
                                 <CountryPhoneSelector
