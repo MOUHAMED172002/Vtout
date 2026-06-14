@@ -148,11 +148,8 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   const showOldPrice = isSaleActive;
 
-  const salesCount = useMemo(() => {
-    if (!product?.id) return 0;
-    const seed = String(product.id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return 8 + (seed % 43);
-  }, [product?.id]);
+  const salesCount = Number(product?.total_sold || 0);
+  const isPopular = salesCount >= 100;
 
   const navState = cheapestVariantId ? { selectedVariantId: cheapestVariantId } : undefined;
 
@@ -321,23 +318,25 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
         {/* Sales bar + Mobile quick-buy button */}
         <div className="flex items-center gap-2">
-          {/* Sales bar */}
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-gray-400 mb-1 uppercase tracking-tighter">
-              <span className="flex items-center gap-0.5 text-orange-500">
-                <Zap size={8} fill="currentColor" /> {salesCount} vendus
-              </span>
-              <span className="text-primary">Populaire</span>
+          {/* Sales bar — only shown when product has 100+ real sales */}
+          {isPopular && (
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-base-content/50 mb-1 uppercase tracking-tighter">
+                <span className="flex items-center gap-0.5 text-orange-500">
+                  <Zap size={8} fill="currentColor" /> {salesCount} vendus
+                </span>
+                <span className="text-primary">Populaire</span>
+              </div>
+              <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((salesCount / 100) * 100, 100)}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
             </div>
-            <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min((salesCount / 60) * 100, 100)}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-primary rounded-full"
-              />
-            </div>
-          </div>
+          )}
 
           {/* Mobile: always-visible quick buy button (hidden on desktop where hover buttons show) */}
           {!isOutOfStock && (

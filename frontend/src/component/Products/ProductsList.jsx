@@ -6,7 +6,7 @@ import FiltersPanel from "../../component/Products/FiltersPanel";
 import FiltersPanelDrawer from "../../component/Products/FiltersPanelDrawer";
 import { getProducts } from "../../services/productService";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, PackageSearch, X, Loader2, CheckCircle2 } from "lucide-react";
+import { SlidersHorizontal, PackageSearch, Loader2, CheckCircle2 } from "lucide-react";
 
 const LIMIT = 20;
 
@@ -100,48 +100,6 @@ export default function ProductsList() {
   return (
     <div className="bg-slate-50 min-h-screen">
 
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 pt-8 md:pt-16 pb-8 md:pb-12">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
-            <div className="space-y-3 md:space-y-4">
-              <div className="flex items-center gap-3 text-primary font-black uppercase text-[10px] md:text-xs tracking-[0.3em]">
-                <SlidersHorizontal size={14} /> Collection Complète
-              </div>
-              <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tighter leading-tight">
-                Notre <span className="text-slate-400">Boutique</span>
-              </h1>
-              <p className="text-slate-500 font-bold max-w-xl text-sm md:text-lg">
-                Découvrez une sélection rigoureuse d'articles premium.
-              </p>
-            </div>
-
-            {/* Search bar - sticky on mobile */}
-            <div className="sticky top-20 md:relative z-40 md:top-0 -mx-6 px-6 py-4 md:p-0 bg-white/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none transition-all">
-              <div className="relative w-full md:w-[450px] group">
-                <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
-                  <Search size={20} className="text-slate-400 group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Rechercher un article..."
-                  value={filters.search || ""}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl md:rounded-[2.5rem] py-4 md:py-5 pl-16 pr-12 text-base md:text-lg font-bold text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/30 focus:ring-8 focus:ring-primary/5 transition-all outline-none shadow-sm group-hover:shadow-md"
-                />
-                {filters.search && (
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, search: "" }))}
-                    className="absolute inset-y-0 right-6 flex items-center text-slate-300 hover:text-rose-500 transition-colors"
-                  >
-                    <X size={20} strokeWidth={3} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 flex flex-col lg:flex-row gap-12">
 

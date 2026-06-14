@@ -3,29 +3,19 @@ import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
 import { getProducts } from "../../services/productService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
-import { Flame, Clock, ShieldAlert, Star, MapPin } from "lucide-react";
+import { Flame, Eye, ShieldAlert, Star, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 
 export default function FlashSalePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(21600); // 6 hours initial countdown
   const { theme } = useTheme();
   const navigate = useNavigate();
 
   const darkThemes = ["dark", "synthwave", "cyberpunk", "luxury", "dracula"];
   const isDark = darkThemes.includes(theme);
-
-  // Tick timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 21600));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const fetchFlashSales = async () => {
@@ -41,13 +31,6 @@ export default function FlashSalePage() {
     };
     fetchFlashSales();
   }, []);
-
-  const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}h : ${mins.toString().padStart(2, '0')}m : ${secs.toString().padStart(2, '0')}s`;
-  };
 
   return (
     <>
@@ -85,26 +68,6 @@ export default function FlashSalePage() {
               </p>
             </div>
 
-            {/* Premium Countdown Clock */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`backdrop-blur-xl border px-8 py-6 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-2 shrink-0 ${
-                isDark 
-                  ? 'bg-slate-900/60 border-rose-500/30 shadow-rose-950/20' 
-                  : 'bg-white border-rose-200 shadow-rose-100'
-              }`}
-            >
-              <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                <Clock size={12} className="text-rose-500 animate-spin" style={{ animationDuration: '4s' }} /> Temps Restant
-              </span>
-              <span className="font-mono text-2xl md:text-4xl font-black text-rose-500 tracking-wider drop-shadow-[0_0_8px_rgba(244,63,94,0.2)]">
-                {formatTime(timeLeft)}
-              </span>
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1 animate-pulse">
-                Expédition Prioritaire 24h
-              </span>
-            </motion.div>
           </div>
         </div>
 
@@ -236,13 +199,6 @@ export default function FlashSalePage() {
                       </div>
                     </div>
 
-                    {/* Countdown */}
-                    <div className="mt-4 px-1">
-                      <span className={`flex items-center gap-1.5 text-[10px] font-black text-rose-500 tracking-widest`}>
-                        <Clock size={10} className="animate-spin shrink-0" style={{ animationDuration: '4s' }} />
-                        {formatTime(timeLeft)}
-                      </span>
-                    </div>
                   </motion.div>
                 );
               })}

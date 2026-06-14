@@ -23,18 +23,13 @@ export async function runMasterSeed() {
         // 1.5 Comprehensive Catalog Seed
         await runComprehensiveSeed();
 
-        // 2. Categories V1–V6 (all 27 parents + 4220 subcategories)
-        for (const file of ['import_categories.sql', 'import_categories_v2.sql', 'import_categories_v3.sql', 'import_categories_v4.sql', 'import_categories_v5.sql', 'import_categories_v6.sql']) {
-            const sqlPath = path.join(__dirname, file);
-            if (fs.existsSync(sqlPath)) {
-                console.log(`🌱 [SEED] Loading ${file}...`);
-                const sql = fs.readFileSync(sqlPath, 'utf8');
-                const queries = sql.split(';').map(q => q.trim()).filter(q => q.length > 0);
-                for (const query of queries) {
-                    try { await sequelize.query(query); } catch (err) {}
-                }
-                console.log(`✅ [SEED] ${file} loaded.`);
-            }
+        // 2. Categories — replace entire tree with the clean new structure
+        const replaceFile = path.join(__dirname, 'import_categories_replace.sql');
+        if (fs.existsSync(replaceFile)) {
+            console.log('🌱 [SEED] Replacing categories with new structure...');
+            const queries = fs.readFileSync(replaceFile, 'utf8').split(';').map(q => q.trim()).filter(q => q.length > 0);
+            for (const q of queries) { try { await sequelize.query(q); } catch (err) { console.warn('[SEED] Category query:', err.message); } }
+            console.log('✅ [SEED] Categories replaced.');
         }
 
         // 3. Contracts & Policies

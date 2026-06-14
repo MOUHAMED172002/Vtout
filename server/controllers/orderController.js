@@ -607,6 +607,9 @@ export const createOrder = async (req, res) => {
                     await product.decrement('stock', { by: item.quantity, transaction });
                     await product.reload({ transaction });
                 }
+
+                // Track real sales count for POPULAIRE badge
+                await product.increment('total_sold', { by: item.quantity, transaction });
             }
             createdOrders.push(order);
 

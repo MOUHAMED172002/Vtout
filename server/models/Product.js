@@ -110,6 +110,10 @@ const Product = sequelize.define('Product', {
         set(val) {
             this.setDataValue('volume_pricing', val ? JSON.stringify(val) : null);
         }
+    },
+    total_sold: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
 }, {
     tableName: 'products',
