@@ -336,25 +336,25 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
           {/* Sales bar + Mobile quick-buy button — fixed height so all cards align */}
           <div className="flex items-center gap-2 h-8">
-            {/* Sales bar */}
-            {isPopular && (
+            {/* Sales bar — always visible, grayed when < 100 sales */}
             <div className="flex-1 min-w-0">
-              <div className="flex justify-between text-[8px] sm:text-[10px] font-black text-base-content/50 mb-1 uppercase tracking-tighter">
-                <span className="flex items-center gap-0.5 text-orange-500">
+              <div className="flex justify-between text-[8px] sm:text-[10px] font-black mb-1 uppercase tracking-tighter">
+                <span className={`flex items-center gap-0.5 ${isPopular ? 'text-orange-500' : 'text-base-content/25'}`}>
                   <Zap size={8} fill="currentColor" /> {salesCount} vendus
                 </span>
-                <span className="text-primary">Populaire</span>
+                <span className={isPopular ? 'text-primary' : 'text-base-content/20'}>Populaire</span>
               </div>
               <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((salesCount / 100) * 100, 100)}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-primary rounded-full"
-                />
+                {isPopular && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((salesCount / 100) * 100, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-primary rounded-full"
+                  />
+                )}
               </div>
             </div>
-            )}
 
             {/* Mobile: always-visible quick buy button (hidden on desktop where hover buttons show) */}
             {!isOutOfStock && (
