@@ -65,23 +65,32 @@ export default function SupplierLanding() {
                             Vtout Business est le partenaire technologique des marques et commerçants. Nous gérons la visibilité, les paiements et la livraison, vous gérez vos stocks.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-6">
-                            <SignedOut>
-                                <button
-                                    onClick={() => navigate('/inscription')}
-                                    className="group w-full sm:w-auto px-12 py-6 bg-indigo-600 hover:bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-4 hover:-translate-y-1"
-                                >
-                                    Ouvrir ma boutique <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                </button>
-                            </SignedOut>
-                            <SignedIn>
-                                <button
-                                    onClick={() => navigate('/dashboard')}
-                                    className="w-full sm:w-auto px-12 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/20 transition-all flex items-center justify-center gap-4 hover:-translate-y-1"
-                                >
-                                    Accéder au Dashboard <BarChart3 size={18} />
-                                </button>
-                            </SignedIn>
+                        <div className="flex flex-col items-center justify-center gap-4 pt-6">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full">
+                                <SignedOut>
+                                    <button
+                                        onClick={() => navigate('/inscription')}
+                                        className="group w-full sm:w-auto px-12 py-6 bg-indigo-600 hover:bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-4 hover:-translate-y-1"
+                                    >
+                                        Ouvrir ma boutique <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </SignedOut>
+                                <SignedIn>
+                                    <button
+                                        onClick={() => navigate('/dashboard')}
+                                        className="w-full sm:w-auto px-12 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/20 transition-all flex items-center justify-center gap-4 hover:-translate-y-1"
+                                    >
+                                        Accéder au Dashboard <BarChart3 size={18} />
+                                    </button>
+                                </SignedIn>
+                            </div>
+                            <button
+                                onClick={() => navigate('/comment-ca-marche')}
+                                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 text-[11px] font-black uppercase tracking-[0.2em] transition-colors"
+                            >
+                                <Zap size={13} className="text-indigo-400" />
+                                Comment ça marche ? <ChevronRight size={14} />
+                            </button>
                         </div>
 
                         <div className="flex items-center justify-center gap-8 pt-12 border-t border-slate-50">
@@ -101,28 +110,6 @@ export default function SupplierLanding() {
                             </div>
                         </div>
                     </motion.div>
-                </section>
-
-                {/* Comment ça marche — CTA vers page dédiée */}
-                <section className="py-16 bg-slate-50 border-t border-slate-100">
-                    <div className="max-w-5xl mx-auto px-6 text-center space-y-6">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full">
-                            <Zap size={12} className="text-indigo-500" fill="currentColor" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Simple & Rapide</span>
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900">
-                            Comment ça <span className="text-indigo-600">marche ?</span>
-                        </h2>
-                        <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
-                            En 4 étapes, votre boutique est ouverte et vos premières commandes arrivent.
-                        </p>
-                        <button
-                            onClick={() => navigate('/comment-ca-marche')}
-                            className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-600 transition-all"
-                        >
-                            Voir comment ça marche <ChevronRight size={16} />
-                        </button>
-                    </div>
                 </section>
 
                 {/* Value Propositions */}
