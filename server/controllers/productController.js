@@ -567,12 +567,8 @@ export const createProduct = async (req, res) => {
 
         // 1. Create base product (NEW)
         const productId = crypto.randomUUID();
-        // Randomly seed total_sold for visual demo (admin only, ~30% chance popular ≥100)
-        const demoTotalSold = isAdmin
-            ? (Math.random() < 0.3
-                ? Math.floor(Math.random() * 400) + 100
-                : Math.floor(Math.random() * 80))
-            : 0;
+        // Seed a random starting sales count (0–20) before any real orders come in
+        const demoTotalSold = Math.floor(Math.random() * 21);
 
         const product = await Product.create({
             id: productId,
