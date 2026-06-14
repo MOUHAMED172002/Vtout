@@ -8,7 +8,7 @@ import { getProducts } from "../../services/productService";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, PackageSearch, Loader2, CheckCircle2 } from "lucide-react";
 
-const LIMIT = 20;
+const LIMIT = 24;
 
 export default function ProductsList() {
   const [products, setProducts] = useState([]);
