@@ -22,6 +22,7 @@ import SupplierPolicies from './pages/SupplierPolicies';
 import SupplierBoutiques from './pages/SupplierBoutiques';
 import SupplierPromotions from './pages/SupplierPromotions';
 import SupplierDisputes from './pages/SupplierDisputes';
+import HowItWorksVendeur from './pages/HowItWorksVendeur';
 
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
@@ -91,6 +92,7 @@ function App() {
         <Routes>
             {/* Public Routes */}
             <Route path="/" element={<SupplierLanding />} />
+            <Route path="/comment-ca-marche" element={<HowItWorksVendeur />} />
             <Route path="/connexion" element={<SupplierLogin />} />
             <Route path="/inscription" element={<SupplierRegister />} />
 
