@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { MapPin, Check, Search, ShieldCheck, Phone, X } from "lucide-react";
+import { MapPin, Check, Search, ShieldCheck, Phone, X, Edit2 } from "lucide-react";
 import { getHierarchy } from "../../services/locationService";
 import territories_fallback from "../../data/decoupage-territorial-benin.json";
 
@@ -8,18 +8,17 @@ const removeAccents = (str) => {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 };
 
-export default function AddressSelector({ 
-  onChange, 
-  requirePhone = false, 
-  requireQuartier = false, 
+export default function AddressSelector({
+  onChange,
+  requirePhone = false,
+  requireQuartier = false,
   initial = null,
-  onSave, 
-  onCancel 
+  onSave,
+  onCancel
 }) {
   const [phoneRaw, setPhoneRaw] = useState(initial?.phone || "");
   const [phoneError, setPhoneError] = useState(null);
   const [addressDetails, setAddressDetails] = useState("");
-  const [editedQuartier, setEditedQuartier] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -44,8 +43,6 @@ export default function AddressSelector({
         rawData.forEach((dep) => {
           const communes = dep.communes || [];
           communes.forEach((com) => {
-            // My API returns arrondissements which contain quartiers
-            // Or directly quartiers if configured differently
             const arrs = com.arrondissements || [];
             if (arrs.length > 0) {
               arrs.forEach((arr) => {
@@ -98,33 +95,31 @@ export default function AddressSelector({
       if (initial.quartier_label && initial.commune_label) {
         const formatted = `${initial.quartier_label}, ${initial.commune_label}, ${initial.departement_label || ''}`;
         setSelectedLocation({
+          departement_id: initial.departement_id,
           departement_label: initial.departement_label,
+          commune_id: initial.commune_id,
           commune_label: initial.commune_label,
+          quartier_id: initial.quartier_id,
           quartier_label: initial.quartier_label,
           formattedAddress: formatted
         });
         setSearchQuery(formatted);
-        setEditedQuartier(initial.quartier_label || '');
       }
       if (initial.address_line) {
          setAddressDetails(initial.address_line);
       }
+      if (initial.phone) {
+        setPhoneRaw(initial.phone);
+      }
     }
   }, [initial]);
-
-  // Pre-fill editable quartier when a location is picked from the dropdown
-  useEffect(() => {
-    if (selectedLocation?.quartier_label && !editedQuartier) {
-      setEditedQuartier(selectedLocation.quartier_label);
-    }
-  }, [selectedLocation]);
 
   const filteredLocations = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = removeAccents(searchQuery.trim());
-    return allLocations.filter(loc => 
+    return allLocations.filter(loc =>
       loc.searchStr.includes(query)
-    ).slice(0, 50); // limit for performance
+    ).slice(0, 50);
   }, [searchQuery, allLocations]);
 
   useEffect(() => {
@@ -139,10 +134,7 @@ export default function AddressSelector({
 
   const handlePhoneBlur = () => {
     const s = String(phoneRaw).trim();
-    if (s.length === 0) {
-      setPhoneError(null);
-      return;
-    }
+    if (s.length === 0) { setPhoneError(null); return; }
     const digits = s.replace(/[^\d]/g, "");
     if (digits.length >= 8 && digits.length <= 15) {
       setPhoneError(null);
@@ -151,18 +143,21 @@ export default function AddressSelector({
     }
   };
 
-  // We only keep standard address details in currentAddressLine, preventing duplication.
-  const currentAddressLine = addressDetails || selectedLocation?.formattedAddress || "";
+  const handleReset = () => {
+    setSelectedLocation(null);
+    setSearchQuery("");
+    setShowSuggestions(false);
+  };
 
+  const currentAddressLine = addressDetails || selectedLocation?.formattedAddress || "";
   const digitsOnly = phoneRaw.replace(/[^\d]/g, "");
   const isPhoneValid = digitsOnly.length >= 8 && digitsOnly.length <= 15;
-  const isValidForSave = !!selectedLocation && editedQuartier.trim().length > 0 && (!requirePhone || isPhoneValid);
+  const isValidForSave = !!selectedLocation && (!requirePhone || isPhoneValid);
 
   useEffect(() => {
     if (onChange) {
       onChange({
         ...selectedLocation,
-        quartier_label: editedQuartier.trim() || selectedLocation?.quartier_label || '',
         address_line: currentAddressLine,
         phone: phoneRaw,
         is_valid: isValidForSave,
@@ -170,12 +165,12 @@ export default function AddressSelector({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLocation, editedQuartier, addressDetails, phoneRaw, requirePhone, currentAddressLine, isValidForSave, initial?.label]);
+  }, [selectedLocation, addressDetails, phoneRaw, requirePhone, currentAddressLine, isValidForSave, initial?.label]);
 
   const handleManualSave = () => {
     if (onSave && isValidForSave) {
       onSave({
-        id: initial?.id, 
+        id: initial?.id,
         ...selectedLocation,
         address_line: currentAddressLine,
         phone: phoneRaw,
@@ -188,52 +183,44 @@ export default function AddressSelector({
   return (
     <div className="space-y-6">
       <div className="space-y-2 relative" ref={wrapperRef}>
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
-          <MapPin size={14} className="text-primary" /> Localité *
+        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50 ml-2 flex items-center gap-2">
+          <MapPin size={14} className="text-primary" /> Localité (Rechercher votre quartier) *
         </label>
 
-        {/* Once a commune is selected: show locked badge + editable quartier */}
+        {/* ── Selected state: confirmed address + Modifier button ── */}
         {selectedLocation ? (
-          <div className="space-y-3">
-            {/* Locked commune row */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl">
-              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span className="flex-1 text-sm font-bold text-slate-700 truncate">
-                {selectedLocation.commune_label}, {selectedLocation.departement_label}
-              </span>
-              <button
-                type="button"
-                onClick={() => { setSelectedLocation(null); setSearchQuery(''); setEditedQuartier(''); }}
-                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline shrink-0"
-              >
-                Modifier
-              </button>
+          <div className="flex items-center gap-3 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+            <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+              <Check className="h-4 w-4 text-emerald-600" />
             </div>
-
-            {/* Editable quartier/neighborhood */}
-            <div>
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2 mb-1 block">
-                Quartier / Localité exacte *
-              </label>
-              <input
-                type="text"
-                value={editedQuartier}
-                onChange={(e) => setEditedQuartier(e.target.value)}
-                placeholder="Ex: Akpakpa, Sènadé, Tokpota Davi..."
-                className="w-full h-12 bg-white border border-slate-200 rounded-2xl px-4 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:text-slate-300"
-              />
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-sm text-base-content truncate">
+                {selectedLocation.quartier_label}
+              </p>
+              <p className="text-xs text-base-content/50 font-medium truncate">
+                {selectedLocation.arrondissement_label ? `${selectedLocation.arrondissement_label}, ` : ''}
+                {selectedLocation.commune_label}
+                {selectedLocation.departement_label ? ` · ${selectedLocation.departement_label}` : ''}
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-emerald-200 text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0"
+            >
+              <Edit2 size={11} /> Modifier
+            </button>
           </div>
         ) : (
-          /* Search input — before any selection */
+          /* ── Search state: customer-identical search flow ── */
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-base-content/30" />
             </div>
             <input
               type="text"
-              className="w-full h-14 bg-white border border-slate-200 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900 placeholder:font-medium placeholder:text-slate-300"
-              placeholder="Rechercher votre ville / commune..."
+              className="w-full h-14 bg-base-100 border border-base-300 rounded-2xl pl-12 pr-6 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-base-content placeholder:font-medium placeholder:text-base-content/30"
+              placeholder="Ex: Akassato, Godomey, Tokpota..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -243,28 +230,29 @@ export default function AddressSelector({
             />
 
             {showSuggestions && searchQuery && filteredLocations.length > 0 && (
-              <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar">
+              <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl shadow-base-content/10 border border-base-200 max-h-64 overflow-y-auto">
                 {filteredLocations.map((loc) => (
                   <div
-                    key={loc.id || Object.values(loc).join('')}
+                    key={loc.quartier_id || Object.values(loc).join('')}
                     onClick={() => {
                       setSelectedLocation(loc);
-                      setEditedQuartier(loc.quartier_label || '');
                       setSearchQuery(loc.formattedAddress);
                       setShowSuggestions(false);
                     }}
-                    className="px-5 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                    className="px-5 py-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
                   >
-                    <div className="font-bold text-sm text-slate-900">{loc.quartier_label}</div>
-                    <div className="text-xs text-slate-400 font-medium">{loc.arrondissement_label}, {loc.commune_label} ({loc.departement_label})</div>
+                    <div className="font-bold text-sm text-base-content">{loc.quartier_label}</div>
+                    <div className="text-xs text-base-content/50 font-medium">
+                      {loc.arrondissement_label && `${loc.arrondissement_label}, `}{loc.commune_label} ({loc.departement_label})
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {showSuggestions && searchQuery && filteredLocations.length === 0 && (
-              <div className="absolute z-50 mt-1 w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 text-center">
-                <p className="text-sm font-bold text-slate-500">Aucune localité trouvée.</p>
+            {showSuggestions && searchQuery && filteredLocations.length === 0 && !loading && (
+              <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl border border-base-200 p-4 text-center">
+                <p className="text-sm font-bold text-base-content/50">Aucune localité trouvée.</p>
               </div>
             )}
           </div>
@@ -272,22 +260,23 @@ export default function AddressSelector({
       </div>
 
       {selectedLocation && (
-          <div
-            className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6"
-          >
+        <div className="p-6 bg-base-200 rounded-[2rem] border border-base-300 space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50 ml-2">
+              Détails (Rue, Maison, Repère) — Optionnel
+            </label>
+            <input
+              type="text"
+              value={addressDetails}
+              onChange={(e) => setAddressDetails(e.target.value)}
+              placeholder="Ex: Portail noir, près de la pharmacie..."
+              className="w-full h-12 bg-base-100 border border-base-300 rounded-xl px-5 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-base-content"
+            />
+          </div>
+
+          {requirePhone && (
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Détails (Rue, Maison, Repère) - Optionnel</label>
-              <input
-                type="text"
-                value={addressDetails}
-                onChange={(e) => setAddressDetails(e.target.value)}
-                placeholder="Ex: Portail noir, près de la pharmacie..."
-                className="w-full h-12 bg-white border border-slate-200 rounded-xl px-5 font-bold text-sm focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none text-slate-900"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50 ml-2 flex items-center gap-2">
                 <Phone size={14} className="text-primary" /> Numéro de téléphone *
               </label>
               <div className="relative">
@@ -297,36 +286,36 @@ export default function AddressSelector({
                   onChange={(e) => {
                     const val = e.target.value;
                     setPhoneRaw(val);
-                    // Validation simple : 8 chiffres minimum sans l'indicateur, ou format international complet
                     const digits = val.replace(/[^\d]/g, "");
                     if (digits.length >= 8) setPhoneError(null);
                   }}
                   onBlur={handlePhoneBlur}
-                  placeholder="Ex: 61000000 ou +228..."
-                  className={`w-full h-14 bg-white border rounded-2xl pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-slate-900 ${
+                  placeholder="Ex: 61000000 ou +229..."
+                  className={`w-full h-14 bg-base-100 border rounded-2xl pr-6 font-bold text-sm focus:ring-4 outline-none transition-all text-base-content ${
                     phoneRaw.startsWith('+') ? 'pl-6' : 'pl-16'
-                  } ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-slate-200 focus:border-primary focus:ring-primary/5'}`}
+                  } ${phoneError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' : 'border-base-300 focus:border-primary focus:ring-primary/5'}`}
                 />
                 {!phoneRaw.startsWith('+') && (
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                    <span className="text-slate-400 font-bold">+229</span>
+                    <span className="text-base-content/40 font-bold">+229</span>
                   </div>
                 )}
                 {isPhoneValid && !phoneError && <Check size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500" />}
               </div>
               {phoneError && <p className="text-[10px] font-bold text-rose-500 ml-2">{phoneError}</p>}
-              <p className="text-[9px] font-medium text-slate-400 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter la livraison.</p>
+              <p className="text-[9px] font-medium text-base-content/40 ml-2 italic">Ce numéro pourra être utilisé pour vous contacter lors de la livraison.</p>
             </div>
-          </div>
-        )}
-      
-      {/* Settings for Address Manager mode */}
+          )}
+        </div>
+      )}
+
+      {/* Save / Cancel buttons (Address Manager mode) */}
       {(onSave || onCancel) && (
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6 md:mt-2">
+        <div className="flex justify-end gap-3 pt-4 border-t border-base-200 mt-6 md:mt-2">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2 transition-all outline-none"
+              className="px-6 py-3 rounded-2xl bg-base-100 border border-base-300 text-base-content/70 text-sm font-black uppercase tracking-widest hover:bg-base-200 hover:text-base-content flex items-center gap-2 transition-all outline-none"
             >
               <X size={16} /> Annuler
             </button>
@@ -335,24 +324,25 @@ export default function AddressSelector({
             <button
               onClick={handleManualSave}
               disabled={!isValidForSave}
-              className="px-6 py-3 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:brightness-110 flex items-center gap-2 transition-all outline-none disabled:opacity-50 disabled:grayscale shadow-lg shadow-primary/20"
+              className="px-6 py-3 rounded-2xl bg-primary text-primary-content text-sm font-black uppercase tracking-widest hover:brightness-110 flex items-center gap-2 transition-all outline-none disabled:opacity-50 disabled:grayscale shadow-lg shadow-primary/20"
             >
-              <Check size={16} /> {initial ? "Mettre à jour" : "Enregistrer"}
+              <Check size={16} /> {initial?.quartier_label ? "Mettre à jour" : "Enregistrer"}
             </button>
           )}
         </div>
       )}
 
-      {selectedLocation && editedQuartier.trim() && !onSave && (
-        <div className="p-5 bg-neutral rounded-[1.5rem] text-neutral-content flex items-center gap-5 shadow-xl relative overflow-hidden mt-4">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
+      {/* Delivery guarantee badge (inline mode only) */}
+      {selectedLocation && !onSave && (
+        <div className="p-5 bg-neutral rounded-[1.5rem] text-neutral-content flex items-center gap-5 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary shrink-0 z-10">
             <ShieldCheck size={24} />
           </div>
           <div className="min-w-0 z-10">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">Livraison garantie</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">Zone livrable</p>
             <p className="text-xs font-bold text-neutral-content/70 truncate">
-              {editedQuartier}, {selectedLocation.commune_label}
+              {selectedLocation.quartier_label}, {selectedLocation.commune_label}
             </p>
           </div>
         </div>
