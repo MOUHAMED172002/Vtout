@@ -14,6 +14,14 @@ const initialConfigs = [
     // Feature flags
     { key: 'show_how_it_works', value: 'true', group: 'features', description: 'Afficher la page "Comment ça marche" (true/false)' },
 
+    // Supplier portal landing — "Comment ça marche" steps (editable from admin)
+    { key: 'supplier_how_it_works_steps', value: JSON.stringify([
+        { icon: 'Store',      title: 'Créez votre boutique',   desc: 'Inscrivez-vous gratuitement, complétez votre profil et obtenez votre espace vendeur validé en moins de 24h.' },
+        { icon: 'Package',    title: 'Ajoutez vos produits',   desc: 'Publiez vos articles avec photos et prix vendeur. Vtout calcule automatiquement le prix client final.' },
+        { icon: 'Truck',      title: 'On gère la logistique',  desc: 'Nos livreurs récupèrent vos commandes chez vous et les livrent chez le client. Vous ne bougez pas.' },
+        { icon: 'CreditCard', title: 'Soyez payé rapidement',  desc: 'Vos gains sont crédités sur votre portefeuille Vtout après chaque livraison confirmée.' }
+    ]), group: 'supplier_landing', description: 'Étapes "Comment ça marche" vendeur — JSON [{icon, title, desc}]. Icônes: Store, Package, Truck, CreditCard, BarChart3, Zap, ShieldCheck' },
+
     // Contact Info
     { key: 'CONTACT_EMAIL', value: 'contact@vtout.com', group: 'contact', description: 'Email de support' },
     { key: 'CONTACT_PHONE', value: '+229 61 00 00 00', group: 'contact', description: 'Téléphone de support' },
