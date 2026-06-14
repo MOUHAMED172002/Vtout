@@ -105,7 +105,7 @@ export default function About() {
                   </button>
                   <button
                     onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
-                    className="btn btn-ghost rounded-2xl px-12 h-16 font-black text-lg border-2 border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all"
+                    className="btn btn-ghost rounded-2xl px-12 h-16 font-black text-lg border-2 border-base-200 hover:border-base-300 hover:bg-base-200 transition-all"
                   >
                     Contactez-nous
                   </button>

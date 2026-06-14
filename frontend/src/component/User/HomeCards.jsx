@@ -428,14 +428,14 @@ export default function HomeCards() {
           </div>
 
 
-          <div className="bg-slate-900 p-10 rounded-[3rem] text-white space-y-8 relative overflow-hidden group">
+          <div className="bg-neutral p-10 rounded-[3rem] text-neutral-content space-y-8 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
               <MessageCircle size={100} />
             </div>
 
             <div className="space-y-3 relative z-10">
               <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
-              <p className="text-slate-400 text-sm font-bold leading-relaxed">
+              <p className="text-neutral-content/60 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
                 Nos experts vous répondent en moins de 5 minutes.
               </p>

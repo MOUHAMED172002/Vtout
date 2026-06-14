@@ -107,14 +107,14 @@ export default function FaqList() {
         </div>
 
         {/* CTA */}
-        <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-center space-y-8 relative overflow-hidden">
+        <div className="bg-neutral rounded-[3rem] p-10 md:p-16 text-center space-y-8 relative overflow-hidden">
           <div className="relative z-10 space-y-4">
-            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">Vous avez toujours des questions ?</h3>
-            <p className="text-slate-400 font-bold max-w-md mx-auto">Notre service client est disponible pour répondre à tous vos besoins spécifiques.</p>
+            <h3 className="text-2xl md:text-3xl font-black text-neutral-content tracking-tight">Vous avez toujours des questions ?</h3>
+            <p className="text-neutral-content/60 font-bold max-w-md mx-auto">Notre service client est disponible pour répondre à tous vos besoins spécifiques.</p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <button
                 onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
-                className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+                className="btn btn-primary px-8 h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 border-none"
               >
                 <MessageCircle size={16} /> Nous contacter
               </button>
