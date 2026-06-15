@@ -59,7 +59,7 @@ export default function ProductsList() {
         const data = await getProducts({ ...filters, page, limit: LIMIT });
         const newProducts = data?.products || data || [];
         const pages = data?.totalPages || 1;
-        const count = data?.total || newProducts.length;
+        const count = data?.totalCount ?? data?.total ?? newProducts.length;
 
         setProducts(prev => page === 1 ? newProducts : [...prev, ...newProducts]);
         setTotalPages(pages);
