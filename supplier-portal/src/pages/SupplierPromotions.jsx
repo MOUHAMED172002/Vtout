@@ -236,8 +236,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       }
     }
 
-    // Validate kit/flash: the promo supplier price must be lower than the original
-    if ((promoForm.is_kit || promoForm.is_flash_sale) && !promoForm.is_promo) {
+    // Validate flash sale: promo price must be strictly lower than original price
+    if (promoForm.is_flash_sale && !promoForm.is_promo) {
       const promoSup = parseFloat(promoForm.supplier_price) || 0;
       const originalSup = parseFloat(activePromoProduct.supplier_price) || 0;
       if (promoSup <= 0) {
@@ -245,7 +245,16 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
         return;
       }
       if (promoSup >= originalSup) {
-        toast.error("Le prix vendeur promo doit être inférieur au prix vendeur original.");
+        toast.error("Le prix vendeur flash doit être inférieur au prix vendeur original.");
+        return;
+      }
+    }
+
+    // Validate kit: just needs a positive bundle price
+    if (promoForm.is_kit && !promoForm.is_promo) {
+      const promoSup = parseFloat(promoForm.supplier_price) || 0;
+      if (promoSup <= 0) {
+        toast.error("Veuillez saisir le prix vendeur du kit.");
         return;
       }
     }
