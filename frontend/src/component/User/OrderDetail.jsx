@@ -664,14 +664,14 @@ export default function OrderDetail() {
             {/* Adresse de livraison */}
             <div className="space-y-4">
               <h3 className="text-xl font-black text-base-content tracking-tight">Livraison.</h3>
-              <div className="bg-neutral rounded-[2.5rem] text-white p-8 space-y-5 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-[0.06] group-hover:scale-125 transition-transform duration-700 pointer-events-none">
+              <div className="bg-base-100 border border-base-200 rounded-[2.5rem] p-8 space-y-5 relative overflow-hidden group shadow-sm">
+                <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:scale-125 transition-transform duration-700 pointer-events-none">
                   <MapPin size={80} />
                 </div>
 
                 <div className="space-y-1 relative z-10">
                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Destinataire</p>
-                  <h4 className="text-lg font-black leading-tight">
+                  <h4 className="text-lg font-black leading-tight text-base-content">
                     {order.address?.address_line || order.guest_name || "Client Vtout"}
                   </h4>
                 </div>
@@ -681,7 +681,7 @@ export default function OrderDetail() {
                     {order.address.quartier_label && (
                       <div className="flex items-start gap-3">
                         <Navigation size={13} className="text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-base-content/30 font-bold text-sm">
+                        <span className="text-base-content/50 font-bold text-sm">
                           {order.address.quartier_label}, {order.address.commune_label}
                         </span>
                       </div>
@@ -689,13 +689,13 @@ export default function OrderDetail() {
                     {order.address.departement_label && (
                       <div className="flex items-start gap-3">
                         <MapPin size={13} className="text-primary mt-0.5 flex-shrink-0" />
-                        <span className="text-base-content/30 font-bold text-sm">{order.address.departement_label}</span>
+                        <span className="text-base-content/50 font-bold text-sm">{order.address.departement_label}</span>
                       </div>
                     )}
                     {order.address.phone && (
                       <div className="flex items-center gap-3">
                         <Phone size={13} className="text-primary flex-shrink-0" />
-                        <span className="text-base-content/30 font-bold text-sm">{order.address.phone}</span>
+                        <span className="text-base-content/50 font-bold text-sm">{order.address.phone}</span>
                       </div>
                     )}
                   </div>
@@ -703,7 +703,7 @@ export default function OrderDetail() {
                   <p className="text-base-content/40 text-sm font-bold italic relative z-10">Adresse non renseignée.</p>
                 )}
 
-                <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest relative z-10">
+                <div className="flex items-center gap-2 text-emerald-600 text-[10px] font-black uppercase tracking-widest relative z-10">
                   <ShieldCheck size={13} /> Livraison sécurisée
                 </div>
               </div>
