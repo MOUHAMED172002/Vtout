@@ -263,10 +263,7 @@ export default function ProductPages() {
       selected_attributes: selectedAttributes,
     };
     await addToCart(payload, quantity);
-    toast.success("Ajouté au panier !");
-    if (isSignedIn) {
-      navigate("/user/dashboard/cart");
-    }
+    // CartContext already shows "Ajouté au panier!" — no duplicate toast or redirect here.
   };
 
   const toggleFav = async () => {
