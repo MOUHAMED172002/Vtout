@@ -327,6 +327,12 @@ export const createOrder = async (req, res) => {
 
             // Always derive price from DB — never trust client-sent price for computation.
             let basePrice = parseFloat(product.price) > 0 ? parseFloat(product.price) : parseFloat(product.supplier_price || 0);
+
+            // If flash sale has expired, revert to old_price (the original price before the sale)
+            if (product.is_flash_sale && product.flash_sale_end && new Date(product.flash_sale_end) < new Date()) {
+                const originalPrice = parseFloat(product.old_price);
+                if (originalPrice > 0) basePrice = originalPrice;
+            }
             let variantData = null;
 
             // Support both variant_price_id (direct) and variant_id (lookup)

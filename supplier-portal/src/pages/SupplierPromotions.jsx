@@ -132,7 +132,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       volume_pricing_enabled: false,
       volume_pricing: [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }],
       is_promo: false,
-      old_supplier_price: '',
+      old_supplier_price: product.supplier_price || '',
       discount_percent: '',
       supplier_price: product.supplier_price || '',
       kit_price: product.price || ''
@@ -148,9 +148,10 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     let parsedVolumePricing = [{ qty: 3, discount: 10 }, { qty: 5, discount: 20 }];
     if (product.volume_pricing) {
       try {
-        parsedVolumePricing = typeof product.volume_pricing === 'string' 
-          ? JSON.parse(product.volume_pricing) 
+        const raw = typeof product.volume_pricing === 'string'
+          ? JSON.parse(product.volume_pricing)
           : product.volume_pricing;
+        parsedVolumePricing = raw.map(t => ({ qty: t.qty ?? t.min_qty ?? t.min ?? 1, discount: t.discount ?? 0 }));
       } catch (e) {}
     }
     
@@ -163,13 +164,16 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       } catch (e) {}
     }
 
-    const oldSupPrice = product.old_price && parseFloat(product.old_price) > parseFloat(product.price)
-      ? reverseSupplierPrice(product.old_price, deliveryTiers)
-      : '';
-    const isPromoActive = !!oldSupPrice;
+    const currentSupPrice = parseFloat(product.supplier_price) || 0;
+    const hasPromo = product.old_price && parseFloat(product.old_price) > parseFloat(product.price);
+    const oldSupPrice = hasPromo
+      ? (reverseSupplierPrice(product.old_price, deliveryTiers) || currentSupPrice)
+      : currentSupPrice;
+    const isPromoActive = !!hasPromo;
     let calculatedDiscountPercent = '';
-    if (oldSupPrice && product.supplier_price) {
-      calculatedDiscountPercent = Math.round(((parseFloat(oldSupPrice) - parseFloat(product.supplier_price)) / parseFloat(oldSupPrice)) * 100);
+    if (isPromoActive && oldSupPrice > currentSupPrice && currentSupPrice > 0) {
+      const pct = Math.round(((oldSupPrice - currentSupPrice) / oldSupPrice) * 100);
+      if (pct > 0) calculatedDiscountPercent = pct;
     }
 
     setPromoForm({
@@ -195,6 +199,57 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     if (!promoForm.is_flash_sale && !promoForm.volume_pricing_enabled && !promoForm.is_kit && !promoForm.is_promo) {
       toast.error("Veuillez activer au moins un type de promotion.");
       return;
+    }
+
+    // Validate flash sale end date
+    if (promoForm.is_flash_sale) {
+      if (!promoForm.flash_sale_end) {
+        toast.error("Veuillez définir une date de fin pour la vente flash.");
+        return;
+      }
+      if (new Date(promoForm.flash_sale_end) <= new Date()) {
+        toast.error("La date de fin de la vente flash doit être dans le futur.");
+        return;
+      }
+    }
+
+    // Validate promo price
+    if (promoForm.is_promo) {
+      const oldSup = parseFloat(promoForm.old_supplier_price) || 0;
+      const newSup = parseFloat(promoForm.supplier_price) || 0;
+      if (oldSup <= 0) {
+        toast.error("Veuillez saisir l'ancien prix vendeur.");
+        return;
+      }
+      if (newSup <= 0) {
+        toast.error("Veuillez saisir le prix vendeur promo.");
+        return;
+      }
+      if (oldSup <= newSup) {
+        toast.error("L'ancien prix doit être supérieur au prix promo.");
+        return;
+      }
+    }
+
+    // Validate volume pricing tiers
+    if (promoForm.volume_pricing_enabled) {
+      const tiers = promoForm.volume_pricing;
+      for (let i = 0; i < tiers.length; i++) {
+        const qty = parseInt(tiers[i].qty) || 0;
+        const disc = parseInt(tiers[i].discount) || 0;
+        if (qty < 1) {
+          toast.error(`Palier ${i + 1} : la quantité minimum doit être ≥ 1.`);
+          return;
+        }
+        if (disc <= 0 || disc >= 100) {
+          toast.error(`Palier ${i + 1} : la remise doit être entre 1% et 99%.`);
+          return;
+        }
+      }
+      if (tiers.length > 1 && parseInt(tiers[0].qty) >= parseInt(tiers[1].qty)) {
+        toast.error("Le palier 1 doit avoir une quantité inférieure au palier 2.");
+        return;
+      }
     }
 
     setSavingPromo(true);
@@ -237,7 +292,9 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
         flash_sale_end: promoForm.is_flash_sale ? promoForm.flash_sale_end : null,
         is_kit: promoForm.is_kit,
         kit_items: promoForm.is_kit ? promoForm.kit_items : null,
-        volume_pricing: promoForm.volume_pricing_enabled ? promoForm.volume_pricing : null
+        volume_pricing: promoForm.volume_pricing_enabled
+          ? promoForm.volume_pricing.map(t => ({ min_qty: parseInt(t.qty) || parseInt(t.min_qty) || 1, discount: parseInt(t.discount) || 0 }))
+          : null
       };
 
       await updateProduct(activePromoProduct.id, payload, token);

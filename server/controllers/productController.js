@@ -571,6 +571,23 @@ export const createProduct = async (req, res) => {
             finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
         }
 
+        // Validate flash sale end date
+        if (is_flash_sale) {
+            if (!flash_sale_end) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Une date de fin est requise pour une vente flash.' });
+            }
+            if (new Date(flash_sale_end) <= new Date()) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'La date de fin de la vente flash doit être dans le futur.' });
+            }
+        }
+        // Validate old_price > price (old_price is already in public format at this point)
+        if (old_price && Number(old_price) > 0 && finalPrice && Number(old_price) <= Number(finalPrice)) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'L\'ancien prix barré doit être supérieur au prix actuel.' });
+        }
+
         // 1. Create base product (NEW)
         const productId = crypto.randomUUID();
         // Seed a random starting sales count (0–20) before any real orders come in
@@ -776,6 +793,24 @@ export const updateProduct = async (req, res) => {
         let finalStock = stock;
         if (variants && variants.length > 0) {
             finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+        }
+
+        // Validate flash sale end date on update
+        if (is_flash_sale === true) {
+            const endDate = flash_sale_end || productToEdit.flash_sale_end;
+            if (!endDate) {
+                return res.status(400).json({ error: 'Une date de fin est requise pour une vente flash.' });
+            }
+            if (new Date(endDate) <= new Date()) {
+                return res.status(400).json({ error: 'La date de fin de la vente flash doit être dans le futur.' });
+            }
+        }
+        // Validate old_price > effective price on update
+        if (old_price !== undefined && Number(old_price) > 0) {
+            const effectivePrice = finalPrice || productToEdit.price;
+            if (Number(old_price) <= Number(effectivePrice)) {
+                return res.status(400).json({ error: 'L\'ancien prix barré doit être supérieur au prix actuel.' });
+            }
         }
 
         // 1. Update base product
