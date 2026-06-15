@@ -604,32 +604,26 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
   const oldPrice = Number(product.old_price || 0);
   const items = Array.isArray(kitItems) && kitItems.length > 0 ? kitItems : [];
   const companionsTotal = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  // old_price stores total bundle original value (main + companions) when correctly set.
-  // Fall back to companions-only total for kits saved before this fix.
-  const effectiveDenominator = oldPrice > price ? oldPrice : companionsTotal;
-  const ratio = effectiveDenominator > 0 ? price / effectiveDenominator : 1;
+  // Ratio distributes bundle price across companions only (main product is promo host, not a cart item).
+  const ratio = companionsTotal > 0 ? price / companionsTotal : 1;
 
   const handleBuy = () => {
     if (!addToCart) return;
     const kitId = product.id;
-    // Add companions first and accumulate their proportional shares
-    let companionSharesTotal = 0;
-    items.forEach(item => {
-      const share = Math.round(Number(item.price || 0) * ratio);
-      companionSharesTotal += share;
+    // Main product is the promo host — only companions go into the cart.
+    // Last item absorbs rounding remainder so cart total = bundle price exactly.
+    let sharesTotal = 0;
+    items.forEach((item, idx) => {
+      const isLast = idx === items.length - 1;
+      const share = isLast ? price - sharesTotal : Math.round(Number(item.price || 0) * ratio);
+      sharesTotal += share;
       addToCart({
         ...item,
         kit_id: kitId,
-        price_snapshot: share,
+        price_snapshot: Math.max(0, share),
         image_url: item.image_url || item.images?.[0]?.image_url || null,
       }, 1);
     });
-    // Main product gets the remainder so cart total = bundle price exactly
-    addToCart({
-      ...product,
-      kit_id: kitId,
-      price_snapshot: Math.max(0, price - companionSharesTotal),
-    }, 1);
   };
 
   return (

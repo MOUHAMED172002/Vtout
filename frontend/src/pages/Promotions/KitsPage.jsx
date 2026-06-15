@@ -184,26 +184,21 @@ export default function KitsPage() {
             await Promise.all(itemIds.map(id => getProductById(id).catch(() => null)))
           ).filter(Boolean);
 
-          const originalPrice = resolvedItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-
-          // Prefer stored old_price (= total bundle original value after fix) when it
-          // represents a genuine saving (old_price > price). Fall back to companions sum.
-          const storedOldPrice = parseFloat(p.old_price || 0);
-          const effectiveOriginal = storedOldPrice > parseFloat(p.price || 0)
-            ? storedOldPrice
-            : (originalPrice || storedOldPrice || parseFloat(p.price || 0));
+          // companions-only total = the original value before the kit deal
+          const companionsTotal = resolvedItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+          const kitPrice = parseFloat(p.price || 0);
 
           return {
             id: p.id,
             name: p.name,
             description: p.description || "",
             tag: "Offre Vendeur",
-            discountBadge: effectiveOriginal > parseFloat(p.price || 0)
-              ? `Économie de ${Math.round(effectiveOriginal - parseFloat(p.price)).toLocaleString()} F`
+            discountBadge: companionsTotal > kitPrice
+              ? `Économie de ${Math.round(companionsTotal - kitPrice).toLocaleString()} F`
               : "Lot Économique",
             items: resolvedItems,
-            originalPrice: effectiveOriginal,
-            kitPrice: parseFloat(p.price),
+            originalPrice: companionsTotal,
+            kitPrice,
             isReal: true,
             productObj: p,
           };
@@ -231,29 +226,24 @@ export default function KitsPage() {
 
     const kitId = kit.id;
     const bundlePrice = kit.kitPrice;
-    const bundleOriginal = kit.originalPrice > 0 ? kit.originalPrice : bundlePrice;
-    const ratio = bundleOriginal > 0 ? bundlePrice / bundleOriginal : 1;
+    // Ratio based on companions only — main product is the promo host, not a cart item
+    const companionsTotal = kit.items.reduce((sum, item) => sum + Number(item.price || 0), 0);
+    const ratio = companionsTotal > 0 ? bundlePrice / companionsTotal : 1;
 
-    // Add companions first and accumulate their proportional shares
-    let companionSharesTotal = 0;
-    kit.items.forEach(item => {
-      const share = Math.round(Number(item.price || 0) * ratio);
-      companionSharesTotal += share;
+    // Add all companion items at their proportional share
+    let sharesTotal = 0;
+    kit.items.forEach((item, idx) => {
+      const isLast = idx === kit.items.length - 1;
+      // Last item absorbs rounding remainder to guarantee total = bundlePrice
+      const share = isLast ? bundlePrice - sharesTotal : Math.round(Number(item.price || 0) * ratio);
+      sharesTotal += share;
       addToCart({
         ...item,
         kit_id: kitId,
-        price_snapshot: share,
+        price_snapshot: Math.max(0, share),
         image_url: item.image_url || item.images?.[0]?.image_url || null,
       }, 1);
     });
-
-    // Main product gets the remainder so cart total = bundle price exactly
-    addToCart({
-      ...kit.productObj,
-      kit_id: kitId,
-      price_snapshot: Math.max(0, bundlePrice - companionSharesTotal),
-      image_url: kit.productObj.image_url || kit.productObj.images?.[0]?.image_url || null,
-    }, 1);
   };
 
   const goToDetail = (kit) => {

@@ -97,10 +97,9 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
   }, [activePromoProduct, promoForm.kit_items, products]);
 
   const kitBundleValue = useMemo(() => {
-    if (!activePromoProduct) return 0;
-    const baseValue = parseFloat(activePromoProduct.price) || 0;
-    return selectedKitProducts.reduce((sum, item) => sum + (parseFloat(item.price) || 0), baseValue);
-  }, [activePromoProduct, selectedKitProducts]);
+    // Companions only — main product is the promo host, not counted in bundle original value
+    return selectedKitProducts.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+  }, [selectedKitProducts]);
 
   const kitPublicPreview = computePublicPrice(parseFloat(promoForm.supplier_price) || activePromoProduct?.supplier_price || 0, deliveryTiers);
 
