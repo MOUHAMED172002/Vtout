@@ -342,7 +342,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
                 <span className={`flex items-center gap-0.5 ${isPopular ? 'text-orange-500' : 'text-base-content/25'}`}>
                   <Zap size={8} fill="currentColor" /> {salesCount} vendus
                 </span>
-                <span className={isPopular ? 'text-primary' : 'text-base-content/20'}>Populaire</span>
+                {isPopular && <span className="text-primary">Populaire</span>}
               </div>
               <div className="h-1 w-full bg-base-200 rounded-full overflow-hidden">
                 {isPopular && (
