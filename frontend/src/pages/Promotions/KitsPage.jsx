@@ -186,14 +186,23 @@ export default function KitsPage() {
 
           const originalPrice = resolvedItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
+          // Prefer stored old_price (= total bundle original value after fix) when it
+          // represents a genuine saving (old_price > price). Fall back to companions sum.
+          const storedOldPrice = parseFloat(p.old_price || 0);
+          const effectiveOriginal = storedOldPrice > parseFloat(p.price || 0)
+            ? storedOldPrice
+            : (originalPrice || storedOldPrice || parseFloat(p.price || 0));
+
           return {
             id: p.id,
             name: p.name,
             description: p.description || "",
             tag: "Offre Vendeur",
-            discountBadge: p.old_price && p.price ? `Économie de ${Math.round(p.old_price - p.price).toLocaleString()} F` : "Lot Économique",
+            discountBadge: effectiveOriginal > parseFloat(p.price || 0)
+              ? `Économie de ${Math.round(effectiveOriginal - parseFloat(p.price)).toLocaleString()} F`
+              : "Lot Économique",
             items: resolvedItems,
-            originalPrice: originalPrice || parseFloat(p.old_price || p.price),
+            originalPrice: effectiveOriginal,
             kitPrice: parseFloat(p.price),
             isReal: true,
             productObj: p,
@@ -220,23 +229,13 @@ export default function KitsPage() {
       return;
     }
 
-    const components = kit.items.length > 0 ? kit.items : [kit.productObj];
-    const totalOriginal = components.reduce((sum, c) => sum + Number(c.price || 0), 0);
-    const ratio = totalOriginal > 0 ? kit.kitPrice / totalOriginal : 1;
-
-    // Add each component individually.
-    // kit_id lets the server recompute the ratio from DB prices at order time.
-    // price_snapshot (pro-rated) lets CartPage display the discounted price.
-    // Removing any one component clears kit_id on all siblings → prices revert to normal.
-    components.forEach(component => {
-      const proRatedPrice = Math.round(Number(component.price || 0) * ratio);
-      addToCart({
-        ...component,
-        kit_id: kit.productObj.id,
-        price_snapshot: proRatedPrice,
-        image_url: component.image_url || component.images?.[0]?.image_url || null,
-      }, 1);
-    });
+    // The kit product's price IS the bundle price covering all companions.
+    // Add only the main kit product — companions are tracked via product.kit_items.
+    addToCart({
+      ...kit.productObj,
+      price_snapshot: kit.kitPrice,
+      image_url: kit.productObj.image_url || kit.productObj.images?.[0]?.image_url || null,
+    }, 1);
   };
 
   const goToDetail = (kit) => {

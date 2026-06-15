@@ -281,7 +281,9 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
           finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
         }
       } else if (promoForm.is_flash_sale || promoForm.is_kit) {
-        finalOldPrice = activePromoProduct.price;
+        // For kits: old_price = total bundle original value (main + all companions)
+        // so CartPage can compute the real savings. For flash: just the product's own price.
+        finalOldPrice = promoForm.is_kit ? kitBundleValue : activePromoProduct.price;
         finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
       } else {
         finalSupplierPrice = activePromoProduct.supplier_price;

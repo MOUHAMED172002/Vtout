@@ -603,23 +603,17 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
   const price = Number(product.price || 0);
   const oldPrice = Number(product.old_price || 0);
   const items = Array.isArray(kitItems) && kitItems.length > 0 ? kitItems : [];
-  const totalOriginal = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  const ratio = totalOriginal > 0 ? price / totalOriginal : 1;
+  const companionsTotal = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  // old_price stores total bundle original value (main + companions) when correctly set.
+  // Fall back to companions-only total for kits saved before this fix.
+  const effectiveDenominator = oldPrice > price ? oldPrice : companionsTotal;
+  const ratio = effectiveDenominator > 0 ? price / effectiveDenominator : 1;
 
   const handleBuy = () => {
     if (!addToCart) return;
-    if (items.length === 0) {
-      addToCart({ ...product, price_snapshot: price }, 1);
-    } else {
-      // Add the main kit product at its (already reduced) price
-      addToCart({ ...product, price_snapshot: price }, 1);
-      // Add each companion with kit_id so the backend re-validates the ratio
-      items.forEach(item => {
-        const itemPrice = Math.round(Number(item.price || 0) * ratio);
-        addToCart({ ...item, kit_id: product.id, price_snapshot: itemPrice }, 1);
-      });
-    }
-    toast.success(`Pack "${product.name}" ajouté au panier !`);
+    // The kit product's price IS the full bundle price — add only the main product.
+    // Companions are included in the bundle and listed on the product via kit_items.
+    addToCart({ ...product, price_snapshot: price }, 1);
   };
 
   return (

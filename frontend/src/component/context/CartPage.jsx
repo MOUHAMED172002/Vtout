@@ -28,9 +28,22 @@ export default function CartPage() {
     let isVolumeDiscount = false;
     let isKitDiscount = false;
 
-    // Kit pricing: price_snapshot holds the pro-rated kit price stored at add time.
-    // kit_id is cleared by the server when any sibling component is removed,
-    // so this only triggers when the full kit is still in the cart.
+    // Bundle/promo discount: product.old_price > product.price means a reduction is active
+    // (covers kit bundles, flash sales, and direct promos displayed in the cart).
+    if (!item.variant_id && !item.kit_id) {
+      const productOldPrice = parseFloat(item.product?.old_price || 0);
+      if (productOldPrice > 0 && productOldPrice > originalPrice) {
+        return {
+          originalPrice: productOldPrice,
+          discountedPrice: Math.round(originalPrice),
+          discountPercent: Math.round(((productOldPrice - originalPrice) / productOldPrice) * 100),
+          isVolumeDiscount: false,
+          isKitDiscount: true
+        };
+      }
+    }
+
+    // Legacy kit companion pricing via kit_id (kept for backwards-compat).
     if (item.kit_id && item.price_snapshot) {
       const kitPrice = parseFloat(item.price_snapshot);
       if (kitPrice > 0 && kitPrice < originalPrice) {
@@ -241,7 +254,13 @@ export default function CartPage() {
                                     </span>
                                   </div>
                                   <span className="inline-block text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full uppercase tracking-tighter">
-                                    {isKitDiscount ? `📦 Prix Kit (-${discountPercent}%)` : `🎉 Offre de Gros (-${discountPercent}%)`}
+                                    {isVolumeDiscount
+                                      ? `🎉 Offre de Gros (-${discountPercent}%)`
+                                      : item.product?.is_kit
+                                        ? `📦 Prix Pack (-${discountPercent}%)`
+                                        : item.product?.is_flash_sale
+                                          ? `⚡ Prix Flash (-${discountPercent}%)`
+                                          : `🏷️ Prix Promo (-${discountPercent}%)`}
                                   </span>
                                 </div>
                               );
