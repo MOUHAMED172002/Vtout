@@ -229,11 +229,29 @@ export default function KitsPage() {
       return;
     }
 
-    // The kit product's price IS the bundle price covering all companions.
-    // Add only the main kit product — companions are tracked via product.kit_items.
+    const kitId = kit.id;
+    const bundlePrice = kit.kitPrice;
+    const bundleOriginal = kit.originalPrice > 0 ? kit.originalPrice : bundlePrice;
+    const ratio = bundleOriginal > 0 ? bundlePrice / bundleOriginal : 1;
+
+    // Add companions first and accumulate their proportional shares
+    let companionSharesTotal = 0;
+    kit.items.forEach(item => {
+      const share = Math.round(Number(item.price || 0) * ratio);
+      companionSharesTotal += share;
+      addToCart({
+        ...item,
+        kit_id: kitId,
+        price_snapshot: share,
+        image_url: item.image_url || item.images?.[0]?.image_url || null,
+      }, 1);
+    });
+
+    // Main product gets the remainder so cart total = bundle price exactly
     addToCart({
       ...kit.productObj,
-      price_snapshot: kit.kitPrice,
+      kit_id: kitId,
+      price_snapshot: Math.max(0, bundlePrice - companionSharesTotal),
       image_url: kit.productObj.image_url || kit.productObj.images?.[0]?.image_url || null,
     }, 1);
   };

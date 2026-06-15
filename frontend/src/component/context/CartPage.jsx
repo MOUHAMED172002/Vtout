@@ -43,12 +43,25 @@ export default function CartPage() {
       }
     }
 
-    // Legacy kit companion pricing via kit_id (kept for backwards-compat).
+    // Kit item: each kit item (main + companions) carries its proportional share in price_snapshot.
     if (item.kit_id && item.price_snapshot) {
-      const kitPrice = parseFloat(item.price_snapshot);
-      if (kitPrice > 0 && kitPrice < originalPrice) {
-        discountedPrice = kitPrice;
-        discountPercent = Math.round(((originalPrice - kitPrice) / originalPrice) * 100);
+      const kitShare = parseFloat(item.price_snapshot);
+      // The main kit product has product.price = the full bundle price, not its individual
+      // original. Showing originalPrice vs kitShare would mislead (e.g. "12500 vs 50000").
+      // Instead show just the share price with no crossed-out comparison.
+      if (item.product?.is_kit) {
+        return {
+          originalPrice: kitShare,
+          discountedPrice: kitShare,
+          discountPercent: 0,
+          isVolumeDiscount: false,
+          isKitDiscount: false
+        };
+      }
+      // For companion items: originalPrice = companion's individual DB price — valid comparison.
+      if (kitShare > 0 && kitShare < originalPrice) {
+        discountedPrice = kitShare;
+        discountPercent = Math.round(((originalPrice - kitShare) / originalPrice) * 100);
         isKitDiscount = true;
       }
       return {

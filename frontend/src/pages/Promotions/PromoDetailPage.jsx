@@ -611,9 +611,25 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
 
   const handleBuy = () => {
     if (!addToCart) return;
-    // The kit product's price IS the full bundle price — add only the main product.
-    // Companions are included in the bundle and listed on the product via kit_items.
-    addToCart({ ...product, price_snapshot: price }, 1);
+    const kitId = product.id;
+    // Add companions first and accumulate their proportional shares
+    let companionSharesTotal = 0;
+    items.forEach(item => {
+      const share = Math.round(Number(item.price || 0) * ratio);
+      companionSharesTotal += share;
+      addToCart({
+        ...item,
+        kit_id: kitId,
+        price_snapshot: share,
+        image_url: item.image_url || item.images?.[0]?.image_url || null,
+      }, 1);
+    });
+    // Main product gets the remainder so cart total = bundle price exactly
+    addToCart({
+      ...product,
+      kit_id: kitId,
+      price_snapshot: Math.max(0, price - companionSharesTotal),
+    }, 1);
   };
 
   return (
