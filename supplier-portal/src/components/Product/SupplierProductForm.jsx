@@ -154,7 +154,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 import('../../services/supplierService').then(s => s.getMyBoutiques(token)),
                 getAttributes(),
                 getDeliveryFeeTiers(),
-                getProducts({ limit: 100 }).catch(e => ({ products: [] }))
+                getProducts({ limit: 200, my_products: true }).catch(e => ({ products: [] }))
             ]);
             setCategories(catData || []);
             setBoutiques(boutData || []);

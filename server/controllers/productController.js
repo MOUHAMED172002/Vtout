@@ -52,12 +52,18 @@ export const processProductsForCommunes = async (products) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status } = req.query;
+        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
         const isAdminView = req.query.isAdmin === 'true';
         const where = {};
+
+        // Filter to only the current supplier's own products (used for kit building)
+        if (my_products === 'true' && req.auth?.userId) {
+            const supplierProfile = await Supplier.findOne({ where: { user_id: req.auth.userId } });
+            if (supplierProfile) where.supplier_id = supplierProfile.id;
+        }
 
         if (category_id) where.category_id = category_id;
 
