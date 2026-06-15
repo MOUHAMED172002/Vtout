@@ -23,7 +23,7 @@ export default function ProductsList() {
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
 
-  // Sync category from URL
+  // Sync category from URL — only update filters, let filtersEffect handle the reset
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryId = params.get("category_id");
@@ -33,12 +33,9 @@ export default function ProductsList() {
       else delete next.category_id;
       return next;
     });
-    // Reset scroll when URL changes
-    setPage(1);
-    setProducts([]);
   }, [location.search]);
 
-  // Reset when filters change
+  // Reset page + products when filters change (covers both URL and panel-driven changes)
   const prevFiltersRef = useRef(null);
   useEffect(() => {
     const json = JSON.stringify(filters);
@@ -49,14 +46,18 @@ export default function ProductsList() {
     prevFiltersRef.current = json;
   }, [filters]);
 
-  // Fetch products
+  // Fetch products — abort controller prevents stale results from overwriting fresh ones
   useEffect(() => {
+    let cancelled = false;
+
     const fetchProducts = async () => {
       if (page === 1) setLoading(true);
       else setLoadingMore(true);
 
       try {
         const data = await getProducts({ ...filters, page, limit: LIMIT });
+        if (cancelled) return;
+
         const newProducts = data?.products || data || [];
         const pages = data?.totalPages || 1;
         const count = data?.totalCount ?? data?.total ?? newProducts.length;
@@ -65,14 +66,17 @@ export default function ProductsList() {
         setTotalPages(pages);
         setTotalCount(count);
       } catch (error) {
-        console.error("Erreur récupération produits:", error);
+        if (!cancelled) console.error("Erreur récupération produits:", error);
       } finally {
-        setLoading(false);
-        setLoadingMore(false);
+        if (!cancelled) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
       }
     };
 
     fetchProducts();
+    return () => { cancelled = true; };
   }, [filters, page]);
 
   // IntersectionObserver to trigger next page
@@ -126,7 +130,7 @@ export default function ProductsList() {
           {/* Mobile Filters & Count */}
           <div className="flex items-center justify-between lg:hidden mb-8">
             <FiltersPanelDrawer onFilterChange={setFilters} mobileOnly />
-            {!loading && (
+            {!loading && totalCount > 0 && (
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {products.length} / {totalCount} articles
               </p>
