@@ -368,10 +368,10 @@ export default function HomeCards() {
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">
                       {address.is_default ? "Adresse par défaut" : address.label || "Adresse de livraison"}
                     </p>
-                    <p className="text-2xl font-black text-base-content leading-tight tracking-tight">
+                    <p className="text-2xl font-black text-white leading-tight tracking-tight">
                       {address.quartier_label}
                     </p>
-                    <p className="text-base-content/40 font-bold text-sm mt-1">
+                    <p className="text-white/60 font-bold text-sm mt-1">
                       {address.commune_label}{address.departement_label ? `, ${address.departement_label}` : ""}
                     </p>
                   </div>
@@ -433,7 +433,7 @@ export default function HomeCards() {
 
             <div className="space-y-3 relative z-10">
               <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
-              <p className="text-base-content/40 text-sm font-bold leading-relaxed">
+              <p className="text-white/60 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
                 Nos experts vous répondent en moins de 5 minutes.
               </p>

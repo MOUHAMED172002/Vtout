@@ -433,9 +433,9 @@ export default function CheckoutPage() {
 
                   {/* Summary Totals for Mobile Step */}
                   <div className="p-6 bg-neutral rounded-[2rem] text-white space-y-4">
-                    <div className="flex justify-between text-sm font-bold opacity-60">
-                      <span>Sous-total</span>
-                      <span>{totalFromCart.toLocaleString()} F</span>
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-white/60">Sous-total</span>
+                      <span className="text-white">{totalFromCart.toLocaleString()} F</span>
                     </div>
                     {discount > 0 && (
                       <div className="flex justify-between text-emerald-400 text-sm font-black uppercase">
@@ -443,14 +443,14 @@ export default function CheckoutPage() {
                         <span>-{discount.toLocaleString()} F</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm font-bold opacity-60">
-                      <span>Livraison</span>
-                      <span>{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-white/60">Livraison</span>
+                      <span className="text-white">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
                     </div>
-                    <div className="h-px bg-base-100/10 my-2"></div>
+                    <div className="h-px bg-white/10 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="font-black text-xs uppercase tracking-widest text-primary">Total à payer</span>
-                      <span className="text-3xl font-black">{finalTotal.toLocaleString()} F</span>
+                      <span className="text-3xl font-black text-white">{finalTotal.toLocaleString()} F</span>
                     </div>
                   </div>
 

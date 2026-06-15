@@ -346,7 +346,7 @@ export default function AddressSelectorPremium({ onChange, requirePhone = false,
              <h3 className="font-black mb-4 flex items-center gap-2 text-sm uppercase tracking-widest text-primary">
                 <MapPin size={16} /> RÉSUMÉ ADRESSE
              </h3>
-             <div className="space-y-2 text-xs font-bold text-base-content/30">
+             <div className="space-y-2 text-xs font-bold text-white/50">
                 <p>Départment: <span className="text-white">{selected.departement || "-"}</span></p>
                 <p>Commune: <span className="text-white">{selected.commune || "-"}</span></p>
                 <p>Quartier: <span className="text-white">{selected.quartier || "-"}</span></p>

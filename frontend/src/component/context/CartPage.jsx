@@ -316,25 +316,25 @@ export default function CartPage() {
                     Résumé <CheckCircle2 className="text-primary" size={24} />
                   </h2>
 
-                  <div className="space-y-4 mb-8 text-base-content/40 relative z-10">
+                  <div className="space-y-4 mb-8 relative z-10">
                     <div className="flex justify-between font-bold">
-                      <span>Articles ({displayCart.length})</span>
-                      <span className="text-blue-900">{total.toLocaleString()} F</span>
+                      <span className="text-white/60">Articles ({displayCart.length})</span>
+                      <span className="text-white font-black">{total.toLocaleString()} F</span>
                     </div>
                     <div className="flex justify-between font-bold items-center">
                       <div className="flex flex-col">
-                        <span>Frais de livraison</span>
-                        <span className="text-[10px] font-medium text-base-content/50 mt-0.5 italic">Calculés à l'étape suivante</span>
+                        <span className="text-white/60">Frais de livraison</span>
+                        <span className="text-[10px] font-medium text-white/40 mt-0.5 italic">Calculés à l'étape suivante</span>
                       </div>
-                      <span className="text-primary text-sm italic">À définir</span>
+                      <span className="text-primary text-sm italic font-black">À définir</span>
                     </div>
-                    <div className="h-px bg-neutral/90 my-6"></div>
+                    <div className="h-px bg-white/10 my-6"></div>
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="font-black text-sm uppercase tracking-widest">Total partiel</span>
-                        <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mt-1">Hors livraison</span>
+                        <span className="font-black text-sm uppercase tracking-widest text-white">Total partiel</span>
+                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider mt-1">Hors livraison</span>
                       </div>
-                      <span className="text-4xl font-black text-base-content">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
+                      <span className="text-4xl font-black text-white">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
                     </div>
                   </div>
 
