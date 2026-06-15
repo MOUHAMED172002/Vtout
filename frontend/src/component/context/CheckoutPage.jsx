@@ -432,25 +432,25 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Summary Totals for Mobile Step */}
-                  <div className="p-6 bg-neutral rounded-[2rem] text-white space-y-4">
+                  <div className="p-6 bg-base-100 border border-base-200 rounded-[2rem] space-y-4 shadow-sm">
                     <div className="flex justify-between text-sm font-bold">
-                      <span className="text-white/60">Sous-total</span>
-                      <span className="text-white">{totalFromCart.toLocaleString()} F</span>
+                      <span className="text-base-content/50">Sous-total</span>
+                      <span className="text-base-content font-black">{totalFromCart.toLocaleString()} F</span>
                     </div>
                     {discount > 0 && (
-                      <div className="flex justify-between text-emerald-400 text-sm font-black uppercase">
+                      <div className="flex justify-between text-emerald-600 text-sm font-black uppercase">
                         <span>Réduction</span>
                         <span>-{discount.toLocaleString()} F</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm font-bold">
-                      <span className="text-white/60">Livraison</span>
-                      <span className="text-white">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
+                      <span className="text-base-content/50">Livraison</span>
+                      <span className="text-base-content font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
                     </div>
-                    <div className="h-px bg-white/10 my-2"></div>
+                    <div className="h-px bg-base-200 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="font-black text-xs uppercase tracking-widest text-primary">Total à payer</span>
-                      <span className="text-3xl font-black text-white">{finalTotal.toLocaleString()} F</span>
+                      <span className="text-3xl font-black text-base-content">{finalTotal.toLocaleString()} F</span>
                     </div>
                   </div>
 

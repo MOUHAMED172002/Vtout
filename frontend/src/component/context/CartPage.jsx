@@ -309,32 +309,32 @@ export default function CartPage() {
           {displayCart.length > 0 && (
             <div className={`w-full ${isDashboard ? "xl:w-[400px]" : "lg:w-[400px]"}`}>
               <div className="sticky top-24 space-y-6">
-                <div className="bg-neutral text-white p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700"></div>
+                <div className="bg-base-100 border border-base-200 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700"></div>
 
-                  <h2 className="text-2xl font-black mb-8 relative z-10 flex items-center gap-3">
+                  <h2 className="text-2xl font-black mb-8 relative z-10 flex items-center gap-3 text-base-content">
                     Résumé <CheckCircle2 className="text-primary" size={24} />
                   </h2>
 
                   <div className="space-y-4 mb-8 relative z-10">
                     <div className="flex justify-between font-bold">
-                      <span className="text-white/60">Articles ({displayCart.length})</span>
-                      <span className="text-white font-black">{total.toLocaleString()} F</span>
+                      <span className="text-base-content/50">Articles ({displayCart.length})</span>
+                      <span className="text-base-content font-black">{total.toLocaleString()} F</span>
                     </div>
                     <div className="flex justify-between font-bold items-center">
                       <div className="flex flex-col">
-                        <span className="text-white/60">Frais de livraison</span>
-                        <span className="text-[10px] font-medium text-white/40 mt-0.5 italic">Calculés à l'étape suivante</span>
+                        <span className="text-base-content/50">Frais de livraison</span>
+                        <span className="text-[10px] font-medium text-base-content/40 mt-0.5 italic">Calculés à l'étape suivante</span>
                       </div>
                       <span className="text-primary text-sm italic font-black">À définir</span>
                     </div>
-                    <div className="h-px bg-white/10 my-6"></div>
+                    <div className="h-px bg-base-200 my-6"></div>
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="font-black text-sm uppercase tracking-widest text-white">Total partiel</span>
-                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider mt-1">Hors livraison</span>
+                        <span className="font-black text-sm uppercase tracking-widest text-base-content">Total partiel</span>
+                        <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider mt-1">Hors livraison</span>
                       </div>
-                      <span className="text-4xl font-black text-white">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
+                      <span className="text-4xl font-black text-base-content">{(selectedIds.size > 0 ? selectedTotal : total).toLocaleString()} F</span>
                     </div>
                   </div>
 

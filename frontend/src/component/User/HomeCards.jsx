@@ -359,23 +359,23 @@ export default function HomeCards() {
 
             {address ? (
               <div className="bg-base-100 rounded-[3rem] border border-base-200 shadow-xl shadow-slate-200/20 overflow-hidden relative group">
-                {/* Dark header */}
-                <div className="bg-neutral p-8 space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-3 opacity-[0.06] pointer-events-none">
+                {/* Address header */}
+                <div className="bg-base-100 border-b border-base-200 p-8 space-y-4 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-3 opacity-[0.04] pointer-events-none">
                     <MapPinned size={80} />
                   </div>
                   <div className="relative z-10">
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">
                       {address.is_default ? "Adresse par défaut" : address.label || "Adresse de livraison"}
                     </p>
-                    <p className="text-2xl font-black text-white leading-tight tracking-tight">
+                    <p className="text-2xl font-black text-base-content leading-tight tracking-tight">
                       {address.quartier_label}
                     </p>
-                    <p className="text-white/60 font-bold text-sm mt-1">
+                    <p className="text-base-content/50 font-bold text-sm mt-1">
                       {address.commune_label}{address.departement_label ? `, ${address.departement_label}` : ""}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest relative z-10">
+                  <div className="flex items-center gap-2 text-emerald-600 text-[10px] font-black uppercase tracking-widest relative z-10">
                     <PackageCheck size={14} /> Zone livrable
                   </div>
                 </div>
@@ -426,14 +426,14 @@ export default function HomeCards() {
           </div>
 
 
-          <div className="bg-neutral p-10 rounded-[3rem] text-white space-y-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
-              <MessageCircle size={100} />
+          <div className="bg-base-100 border border-base-200 p-10 rounded-[3rem] space-y-8 relative overflow-hidden group shadow-sm">
+            <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12 group-hover:rotate-0 transition-transform duration-500">
+              <MessageCircle size={100} className="text-primary" />
             </div>
 
             <div className="space-y-3 relative z-10">
-              <h3 className="font-black text-2xl tracking-tight">Support <span className="text-primary">Direct.</span></h3>
-              <p className="text-white/60 text-sm font-bold leading-relaxed">
+              <h3 className="font-black text-2xl tracking-tight text-base-content">Support <span className="text-primary">Direct.</span></h3>
+              <p className="text-base-content/50 text-sm font-bold leading-relaxed">
                 Une question sur un produit ? <br />
                 Nos experts vous répondent en moins de 5 minutes.
               </p>
@@ -441,7 +441,7 @@ export default function HomeCards() {
 
             <button
               onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
-              className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-2xl shadow-primary/30 border-none relative z-10"
+              className="btn btn-primary btn-block h-14 rounded-2xl font-black shadow-xl shadow-primary/20 border-none relative z-10"
             >
               Parler à un agent
             </button>
