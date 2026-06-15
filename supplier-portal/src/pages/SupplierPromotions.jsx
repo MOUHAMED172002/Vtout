@@ -231,6 +231,20 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       }
     }
 
+    // Validate kit/flash: the promo supplier price must be lower than the original
+    if ((promoForm.is_kit || promoForm.is_flash_sale) && !promoForm.is_promo) {
+      const promoSup = parseFloat(promoForm.supplier_price) || 0;
+      const originalSup = parseFloat(activePromoProduct.supplier_price) || 0;
+      if (promoSup <= 0) {
+        toast.error("Veuillez saisir le prix vendeur promo.");
+        return;
+      }
+      if (promoSup >= originalSup) {
+        toast.error("Le prix vendeur promo doit être inférieur au prix vendeur original.");
+        return;
+      }
+    }
+
     // Validate volume pricing tiers
     if (promoForm.volume_pricing_enabled) {
       const tiers = promoForm.volume_pricing;
@@ -267,10 +281,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
           finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
         }
       } else if (promoForm.is_flash_sale || promoForm.is_kit) {
+        finalOldPrice = activePromoProduct.price;
         finalPrice = computePublicPrice(finalSupplierPrice, deliveryTiers);
-        if (promoForm.is_flash_sale) {
-          finalOldPrice = activePromoProduct.price;
-        }
       } else {
         finalSupplierPrice = activePromoProduct.supplier_price;
         finalPrice = activePromoProduct.price;
@@ -292,6 +304,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
         flash_sale_end: promoForm.is_flash_sale ? promoForm.flash_sale_end : null,
         is_kit: promoForm.is_kit,
         kit_items: promoForm.is_kit ? promoForm.kit_items : null,
+        preserve_approval: true,
         volume_pricing: promoForm.volume_pricing_enabled
           ? promoForm.volume_pricing.map(t => ({ min_qty: parseInt(t.qty) || parseInt(t.min_qty) || 1, discount: parseInt(t.discount) || 0 }))
           : null

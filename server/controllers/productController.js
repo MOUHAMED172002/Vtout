@@ -716,7 +716,9 @@ export const updateProduct = async (req, res) => {
             // Promo fields
             is_flash_sale, flash_sale_end, is_kit, kit_items, volume_pricing,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids,
+            // Flag: promo-only update — preserve current approval status
+            preserve_approval
         } = req.body;
 
         const isApprovalOnly = Object.keys(req.body).every(k => ['approval_status', 'price', 'admin_feedback', 'isAdmin'].includes(k));
@@ -758,7 +760,13 @@ export const updateProduct = async (req, res) => {
 
         let finalStatus = approval_status;
         if (isSupplier && !isAdmin) {
-            finalStatus = 'En attente'; // Reset to En attente if supplier edits
+            // Promo-only updates preserve the current approval status so the product
+            // stays visible on the storefront without requiring admin re-approval.
+            if (preserve_approval) {
+                finalStatus = productToEdit.approval_status;
+            } else {
+                finalStatus = 'En attente';
+            }
         }
 
         // Sync price with supplier_price if it's a marketplace product update
@@ -799,9 +807,11 @@ export const updateProduct = async (req, res) => {
         if (is_flash_sale === true) {
             const endDate = flash_sale_end || productToEdit.flash_sale_end;
             if (!endDate) {
+                await transaction.rollback();
                 return res.status(400).json({ error: 'Une date de fin est requise pour une vente flash.' });
             }
             if (new Date(endDate) <= new Date()) {
+                await transaction.rollback();
                 return res.status(400).json({ error: 'La date de fin de la vente flash doit être dans le futur.' });
             }
         }
@@ -809,6 +819,7 @@ export const updateProduct = async (req, res) => {
         if (old_price !== undefined && Number(old_price) > 0) {
             const effectivePrice = finalPrice || productToEdit.price;
             if (Number(old_price) <= Number(effectivePrice)) {
+                await transaction.rollback();
                 return res.status(400).json({ error: 'L\'ancien prix barré doit être supérieur au prix actuel.' });
             }
         }
