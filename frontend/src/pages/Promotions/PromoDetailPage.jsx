@@ -609,11 +609,14 @@ function KitLayout({ product, kitItems, isDark, navigate, addToCart }) {
   const handleBuy = () => {
     if (!addToCart) return;
     if (items.length === 0) {
-      addToCart({ ...product, price, price_snapshot: price }, 1);
+      addToCart({ ...product, price_snapshot: price }, 1);
     } else {
+      // Add the main kit product at its (already reduced) price
+      addToCart({ ...product, price_snapshot: price }, 1);
+      // Add each companion with kit_id so the backend re-validates the ratio
       items.forEach(item => {
         const itemPrice = Math.round(Number(item.price || 0) * ratio);
-        addToCart({ ...item, price: itemPrice, price_snapshot: itemPrice }, 1);
+        addToCart({ ...item, kit_id: product.id, price_snapshot: itemPrice }, 1);
       });
     }
     toast.success(`Pack "${product.name}" ajouté au panier !`);
