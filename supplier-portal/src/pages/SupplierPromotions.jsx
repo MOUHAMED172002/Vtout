@@ -82,14 +82,9 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     return true;
   });
 
-  // Eligible products for new promos
-  const eligibleProductsForPromo = products.filter(p => {
-    const hasFlash = !!p.is_flash_sale;
-    const hasVolume = !!p.volume_pricing;
-    const hasKit = !!p.is_kit;
-    const hasPromo = p.old_price && parseFloat(p.old_price) > parseFloat(p.price);
-    return !hasFlash && !hasVolume && !hasKit && !hasPromo;
-  }).filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
+  // All products shown for promo selection — already-promoted ones show a badge
+  const eligibleProductsForPromo = products
+    .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
 
   const selectedKitProducts = useMemo(() => {
     if (!activePromoProduct || promoForm.kit_items.length === 0) return [];
@@ -120,8 +115,19 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
     setIsModalOpen(true);
   };
 
-  // Select Product in Step 1
+  // Select Product in Step 1 — pre-fill existing promos if any
   const handleSelectProduct = (product) => {
+    const hasFlash = !!product.is_flash_sale;
+    const hasVolume = !!product.volume_pricing;
+    const hasKit = !!product.is_kit;
+    const hasPromo = product.old_price && parseFloat(product.old_price) > parseFloat(product.price);
+
+    if (hasFlash || hasVolume || hasKit || hasPromo) {
+      // Re-use edit logic so existing config is preserved and extended
+      handleEditPromo(product);
+      return;
+    }
+
     setActivePromoProduct(product);
     setPromoForm({
       is_flash_sale: false,
@@ -569,29 +575,45 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                     {eligibleProductsForPromo.length === 0 ? (
                       <div className="text-center py-12">
                         <Package size={48} className="mx-auto text-slate-300 mb-4" />
-                        <p className="text-slate-500 font-bold">Aucun produit éligible trouvé.</p>
+                        <p className="text-slate-500 font-bold">Aucun produit trouvé.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {eligibleProductsForPromo.map(prod => (
-                          <div 
-                            key={prod.id}
-                            onClick={() => handleSelectProduct(prod)}
-                            className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer transition-all flex flex-col gap-3 group"
-                          >
-                            <div className="h-32 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden">
-                              {prod.images && prod.images[0] ? (
-                                <img src={prod.images[0].image_url} alt={prod.name} className="h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
-                              ) : (
-                                <ImageIcon size={32} className="text-slate-300" />
+                        {eligibleProductsForPromo.map(prod => {
+                          const hasFlash = !!prod.is_flash_sale;
+                          const hasVolume = !!prod.volume_pricing;
+                          const hasKit = !!prod.is_kit;
+                          const hasPromo = prod.old_price && parseFloat(prod.old_price) > parseFloat(prod.price);
+                          const hasAny = hasFlash || hasVolume || hasKit || hasPromo;
+                          return (
+                            <div
+                              key={prod.id}
+                              onClick={() => handleSelectProduct(prod)}
+                              className={`relative bg-white p-4 rounded-2xl border cursor-pointer transition-all flex flex-col gap-3 group hover:shadow-lg ${hasAny ? 'border-indigo-200 hover:border-indigo-400' : 'border-slate-200 hover:border-indigo-500 hover:shadow-indigo-500/10'}`}
+                            >
+                              {hasAny && (
+                                <div className="absolute top-2 right-2 flex flex-wrap gap-1 justify-end">
+                                  {hasFlash && <span className="text-[8px] font-black bg-rose-500 text-white px-1.5 py-0.5 rounded-full uppercase">Flash</span>}
+                                  {hasVolume && <span className="text-[8px] font-black bg-blue-500 text-white px-1.5 py-0.5 rounded-full uppercase">Volume</span>}
+                                  {hasKit && <span className="text-[8px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full uppercase">Kit</span>}
+                                  {hasPromo && <span className="text-[8px] font-black bg-violet-500 text-white px-1.5 py-0.5 rounded-full uppercase">Promo</span>}
+                                </div>
                               )}
+                              <div className="h-32 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden">
+                                {prod.images && prod.images[0] ? (
+                                  <img src={prod.images[0].image_url} alt={prod.name} className="h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
+                                ) : (
+                                  <ImageIcon size={32} className="text-slate-300" />
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-black text-slate-800 text-sm line-clamp-1">{prod.name}</h4>
+                                <p className="text-xs font-bold text-slate-400 mt-1">{prod.price} F CFA</p>
+                                {hasAny && <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1">Modifier la promo</p>}
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-black text-slate-800 text-sm line-clamp-1">{prod.name}</h4>
-                              <p className="text-xs font-bold text-slate-400 mt-1">{prod.price} F CFA</p>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
