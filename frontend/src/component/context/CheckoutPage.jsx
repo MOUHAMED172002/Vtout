@@ -26,8 +26,9 @@ export default function CheckoutPage() {
   const [showFedaPayModal, setShowFedaPayModal] = useState(false);
   const [fedapayReady, setFedapayReady] = useState(false);
 
-  // Steps: 1 (Contact), 2 (Address), 3 (Payment), 4 (Summary), 5 (WhatsApp Prompt if needed), 6 (Done)
+  // Steps: 1 (Contact), 2 (Address), 3 (Verification), 4 (Payment), 5 (WhatsApp Prompt if needed)
   const [step, setStep] = useState(2);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [hasAdjustedStep, setHasAdjustedStep] = useState(false);
 
   useEffect(() => {
@@ -277,7 +278,7 @@ export default function CheckoutPage() {
 
         });
         await refreshCart();
-        setStep(6); // Success is now step 6
+        setIsSuccess(true);
         toast.success("Commande enregistrée !");
         const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);
@@ -296,36 +297,38 @@ export default function CheckoutPage() {
     <div className="bg-base-200/50 min-h-screen pt-12 pb-24 font-sans selection:bg-primary/10 selection:text-primary transition-colors duration-500">
       <div className="max-w-[1200px] mx-auto px-6">
 
-        {/* Header Area */}
-        <div className="text-center mb-8 md:mb-20 space-y-4 md:space-y-6">
-          <h1 className="text-3xl md:text-6xl font-black text-base-content tracking-tightest">
-            Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
-          </h1>
-          <div className="flex items-center justify-center gap-2 md:gap-6">
-            {[1, 2, 3, 4, 5, 6].map((s) => (
-              <React.Fragment key={s}>
-                <div className="flex flex-col items-center gap-2">
+        {/* Header Area — hidden on success */}
+        {!isSuccess && (
+          <div className="text-center mb-8 md:mb-20 space-y-4 md:space-y-6">
+            <h1 className="text-3xl md:text-6xl font-black text-base-content tracking-tightest">
+              Ma <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Commande.</span>
+            </h1>
+            <div className="flex items-center justify-center gap-2 md:gap-6">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <React.Fragment key={s}>
+                  <div className="flex flex-col items-center gap-2">
                     <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-base transition-all duration-500 ${
                         step >= s || (s === 1 && !isGuest)
                         ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110'
                         : 'bg-base-100 border-2 border-base-200 text-base-content/30'
                     }`}>
-                        {(step > s || (s === 1 && !isGuest)) ? <Check size={16} strokeWidth={3} /> : s}
+                      {(step > s || (s === 1 && !isGuest)) ? <Check size={16} strokeWidth={3} /> : s}
                     </div>
-                </div>
-                {s < 6 && <div className={`h-1 w-4 md:w-12 rounded-full transition-all duration-700 ${
-                    (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-base-200'
-                }`}></div>}
-              </React.Fragment>
-            ))}
+                  </div>
+                  {s < 5 && <div className={`h-1 w-4 md:w-12 rounded-full transition-all duration-700 ${
+                      (step > s || (s === 1 && !isGuest)) ? 'bg-primary shadow-sm shadow-primary/20' : 'bg-base-200'
+                  }`}></div>}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
           {/* Main Content */}
-          <div className="lg:col-span-8 space-y-8">
-            <div className="lg:col-span-8 space-y-8">
+          <div className={`${isSuccess ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-8`}>
+            <div className={`${isSuccess ? 'lg:col-span-12 max-w-2xl mx-auto w-full' : 'lg:col-span-8'} space-y-8`}>
               {/* STEP 1 — Guest Info (only for unauthenticated users) */}
               {step === 1 && isGuest && (
                 <div
@@ -605,9 +608,9 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {step === 6 ? (
+              {isSuccess ? (
                 <div
-                  key="step6"
+                  key="success"
                   className="bg-base-100 p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-2xl text-center space-y-6 md:space-y-8"
                 >
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto md:scale-125 mb-2 md:mb-4">
@@ -623,8 +626,8 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Sidebar Summary — Desktop Only */}
-          <div className="hidden lg:block lg:col-span-4">
+          {/* Sidebar Summary — Desktop Only, hidden on success */}
+          <div className={`lg:col-span-4 ${isSuccess ? 'hidden' : 'hidden lg:block'}`}>
             <div className="sticky top-24 bg-base-100 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-base-content/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] space-y-8 md:space-y-10 relative overflow-hidden group">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700"></div>
               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl"></div>
