@@ -254,7 +254,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                     </td>
                     <td className="px-8 py-6">
                       {(() => {
-                        const isVariant = product.total_stock !== undefined;
+                        const isVariant = (product.variants?.length ?? 0) > 0;
                         const displayStock = isVariant ? product.total_stock : (product.stock || 0);
                         const dotColor = displayStock > 10 ? 'bg-emerald-500' : displayStock > 0 ? 'bg-amber-500' : 'bg-rose-500';
                         if (editingStockId === product.id) {
