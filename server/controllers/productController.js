@@ -722,8 +722,9 @@ export const updateProduct = async (req, res) => {
         } = req.body;
 
         const isApprovalOnly = Object.keys(req.body).every(k => ['approval_status', 'price', 'admin_feedback', 'isAdmin'].includes(k));
+        const isPromoOnly = !!preserve_approval; // promo-only updates skip structural validation
 
-        if (!isApprovalOnly) {
+        if (!isApprovalOnly && !isPromoOnly) {
             if (!variants || variants.length === 0) {
                 if (stock === undefined || stock === null || stock === '') {
                     await transaction.rollback();
