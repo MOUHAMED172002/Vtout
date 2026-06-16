@@ -87,6 +87,10 @@ const AppContent = ({ products, loading }) => {
   const { signOut } = useAuth();
   const [showSupplierModal, setShowSupplierModal] = useState(false);
 
+  useEffect(() => {
+    if (window.fbq) window.fbq('track', 'PageView');
+  }, [location.pathname]);
+
     useEffect(() => {
         if (profileUser?.id) {
             notificationService.connect(profileUser.id);
