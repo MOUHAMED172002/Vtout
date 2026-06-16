@@ -119,7 +119,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
     try {
       const token = await getToken();
       await updateProductStock(productId, newStock, token);
-      setProducts(products.map(p => p.id === productId ? { ...p, stock: newStock } : p));
+      setProducts(products.map(p => p.id === productId ? { ...p, stock: newStock, total_stock: newStock } : p));
       toast.success("Stock mis à jour");
     } catch (error) {
       toast.error("Erreur mise à jour stock");
@@ -128,10 +128,12 @@ const SupplierProducts = ({ globalSearchQuery }) => {
 
   const startEditStock = (product) => {
     setEditingStockId(product.id);
-    setTempStock(String(product.stock ?? 0));
+    const current = product.total_stock ?? product.stock ?? 0;
+    setTempStock(String(current));
   };
 
   const confirmEditStock = async (productId) => {
+    if (editingStockId !== productId) return;
     const newStock = parseInt(tempStock, 10);
     if (isNaN(newStock) || newStock < 0) {
       toast.error("Valeur de stock invalide");
@@ -276,18 +278,16 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                         }
                         return (
                           <div
-                            onClick={() => !isVariant && startEditStock(product)}
-                            title={isVariant ? "Stock géré par variante — modifier via édition produit" : "Cliquer pour modifier le stock"}
-                            className={`inline-flex items-center gap-2 ${!isVariant ? 'cursor-pointer group/stock hover:bg-slate-100 rounded-xl px-2 py-1 -mx-2 transition-colors' : ''}`}
+                            onClick={() => startEditStock(product)}
+                            title="Cliquer pour modifier le stock"
+                            className="inline-flex items-center gap-2 cursor-pointer group/stock hover:bg-slate-100 rounded-xl px-2 py-1 -mx-2 transition-colors"
                           >
                             <span className="text-sm font-black text-slate-900">{displayStock}</span>
                             <div className={`w-2 h-2 rounded-full ${dotColor}`} />
-                            {!isVariant && (
-                              <Edit size={11} className="text-slate-300 opacity-0 group-hover/stock:opacity-100 transition-opacity" />
-                            )}
                             {isVariant && (
                               <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">var.</span>
                             )}
+                            <Edit size={11} className="text-slate-300 opacity-0 group-hover/stock:opacity-100 transition-opacity" />
                           </div>
                         );
                       })()}
