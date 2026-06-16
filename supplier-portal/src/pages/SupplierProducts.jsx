@@ -15,6 +15,9 @@ const SupplierProducts = ({ globalSearchQuery }) => {
   const [localSearch, setLocalSearch] = useState('');
   const { getToken } = useAuth();
 
+  const [editingStockId, setEditingStockId] = useState(null);
+  const [tempStock, setTempStock] = useState('');
+
   const [activePromoProduct, setActivePromoProduct] = useState(null);
   const [promoForm, setPromoForm] = useState({
     is_flash_sale: false,
@@ -121,6 +124,22 @@ const SupplierProducts = ({ globalSearchQuery }) => {
     } catch (error) {
       toast.error("Erreur mise à jour stock");
     }
+  };
+
+  const startEditStock = (product) => {
+    setEditingStockId(product.id);
+    setTempStock(String(product.stock ?? 0));
+  };
+
+  const confirmEditStock = async (productId) => {
+    const newStock = parseInt(tempStock, 10);
+    if (isNaN(newStock) || newStock < 0) {
+      toast.error("Valeur de stock invalide");
+      setEditingStockId(null);
+      return;
+    }
+    setEditingStockId(null);
+    await handleStockUpdate(productId, newStock);
   };
 
   const handleDelete = async (id) => {
@@ -234,12 +253,44 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                       <span className="text-sm font-black text-slate-900">{product.supplier_price?.toLocaleString()} F</span>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 group/stock">
-                        <span className="text-sm font-black text-slate-900">
-                          {product.total_stock !== undefined ? product.total_stock : (product.stock || 0)}
-                        </span>
-                        <div className={`w-2 h-2 rounded-full ${(product.total_stock !== undefined ? product.total_stock : product.stock) > 10 ? 'bg-emerald-500' : (product.total_stock !== undefined ? product.total_stock : product.stock) > 0 ? 'bg-amber-500' : 'bg-rose-500'}`} />
-                      </div>
+                      {(() => {
+                        const isVariant = product.total_stock !== undefined;
+                        const displayStock = isVariant ? product.total_stock : (product.stock || 0);
+                        const dotColor = displayStock > 10 ? 'bg-emerald-500' : displayStock > 0 ? 'bg-amber-500' : 'bg-rose-500';
+                        if (editingStockId === product.id) {
+                          return (
+                            <input
+                              type="number"
+                              min="0"
+                              value={tempStock}
+                              onChange={(e) => setTempStock(e.target.value)}
+                              onBlur={() => confirmEditStock(product.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') confirmEditStock(product.id);
+                                if (e.key === 'Escape') setEditingStockId(null);
+                              }}
+                              autoFocus
+                              className="w-20 border-2 border-indigo-400 rounded-xl px-3 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            />
+                          );
+                        }
+                        return (
+                          <div
+                            onClick={() => !isVariant && startEditStock(product)}
+                            title={isVariant ? "Stock géré par variante — modifier via édition produit" : "Cliquer pour modifier le stock"}
+                            className={`inline-flex items-center gap-2 ${!isVariant ? 'cursor-pointer group/stock hover:bg-slate-100 rounded-xl px-2 py-1 -mx-2 transition-colors' : ''}`}
+                          >
+                            <span className="text-sm font-black text-slate-900">{displayStock}</span>
+                            <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+                            {!isVariant && (
+                              <Edit size={11} className="text-slate-300 opacity-0 group-hover/stock:opacity-100 transition-opacity" />
+                            )}
+                            {isVariant && (
+                              <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">var.</span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-wrap gap-1">
