@@ -143,8 +143,6 @@ export const getAllProducts = async (req, res) => {
         }
 
         if (isPromo === 'true') {
-            where.is_flash_sale = false;
-            where.is_kit = false;
             where[Op.and] = where[Op.and] || [];
             where[Op.and].push(
                 sequelize.where(sequelize.col('Product.old_price'), '>', 0)
@@ -800,7 +798,7 @@ export const updateProduct = async (req, res) => {
         }
 
         let finalStock = stock;
-        if (variants && variants.length > 0) {
+        if (!isPromoOnly && variants && variants.length > 0) {
             finalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
         }
 

@@ -349,7 +349,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
         flash_sale_end: null,
         is_kit: false,
         kit_items: null,
-        volume_pricing: null
+        volume_pricing: null,
+        preserve_approval: true
       };
       await updateProduct(product.id, payload, token);
       toast.success("Promotions désactivées !");
