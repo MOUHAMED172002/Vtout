@@ -850,6 +850,24 @@ export const updateProduct = async (req, res) => {
             transaction
         });
 
+        // For stock-only updates on variant products: distribute the new stock
+        // across all existing priceRows so total_stock reflects the change.
+        if (isPromoOnly && finalStock !== undefined && finalStock !== null && !variants) {
+            const existingVariants = await ProductVariant.findAll({
+                where: { product_id: id },
+                include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+            });
+            const allPriceRows = existingVariants.flatMap(v => v.priceRows || []);
+            if (allPriceRows.length > 0) {
+                const base = Math.floor(finalStock / allPriceRows.length);
+                let rem = finalStock - base * allPriceRows.length;
+                for (const pr of allPriceRows) {
+                    const s = base + (rem > 0 ? (rem--, 1) : 0);
+                    await ProductVariantPrice.update({ stock: s }, { where: { id: pr.id }, transaction });
+                }
+            }
+        }
+
         // Notify supplier (background)
         if (approval_status && (approval_status === 'approved' || approval_status === 'rejected')) {
             Product.findByPk(id, { include: [{ model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'user' }] }] }).then(product => {
