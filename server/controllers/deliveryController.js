@@ -651,6 +651,30 @@ export const adminAssignOrder = async (req, res) => {
     }
 };
 
+export const getCashHistory = async (req, res) => {
+    try {
+        const orders = await Order.findAll({
+            where: {
+                payment_method: 'delivery',
+                payment_status: 'payé',
+                status: 'livrée',
+                delivery_person_id: { [Op.ne]: null }
+            },
+            attributes: ['id', 'total_amount', 'delivery_fee', 'payment_id', 'updated_at', 'delivery_person_id'],
+            include: [{
+                model: DeliveryPerson,
+                as: 'deliveryPerson',
+                include: [{ model: Profile, as: 'profile', attributes: ['fullname'] }]
+            }],
+            order: [['updated_at', 'DESC']]
+        });
+
+        res.json({ orders });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur historique des versements', details: error.message });
+    }
+};
+
 export const registerLivreur = async (req, res) => {
     try {
         const userId = req.auth.userId;

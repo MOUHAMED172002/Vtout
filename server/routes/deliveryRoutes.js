@@ -26,6 +26,7 @@ router.post('/generate-cash-link', requireAuth, requireLivreur, deliveryControll
 
 // Admin routes
 
+router.get('/admin/cash-history', requireAuth, requireAdmin, deliveryController.getCashHistory);
 router.get('/admin/list', requireAuth, requireAdmin, deliveryController.getLivreursList);
 router.post('/admin/verify/:id', requireAuth, requireAdmin, deliveryController.verifyLivreur);
 router.delete('/admin/:id', requireAuth, requireAdmin, deliveryController.deleteLivreur);

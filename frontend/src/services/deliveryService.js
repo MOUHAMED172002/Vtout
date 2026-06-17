@@ -119,6 +119,13 @@ export const deleteLivreur = async (token, id) => {
 };
 
 
+export const getCashHistory = async (token) => {
+    const res = await api.get("/delivery/admin/cash-history", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+};
+
 export const generateCashPaymentLink = async (orderId, token) => {
     const res = await api.post("/delivery/generate-cash-link", { orderId }, {
         headers: { Authorization: `Bearer ${token}` }
