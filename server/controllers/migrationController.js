@@ -58,6 +58,11 @@ export const syncDatabase = async (req, res) => {
         order_items: {
             original_price: { type: DataTypes.DECIMAL(15, 2), allowNull: true }
         },
+        delivery_persons: {
+            selfie_url:            { type: DataTypes.STRING,                                                     allowNull: true },
+            kyc_status:            { type: DataTypes.STRING(20),                                                  defaultValue: 'pending' },
+            kyc_rejection_reason:  { type: DataTypes.TEXT,                                                       allowNull: true },
+        },
         disputes: {
             status_history:       { type: DataTypes.JSON,              allowNull: true },
             admin_notes:          { type: DataTypes.TEXT,              allowNull: true },
