@@ -38,7 +38,7 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
             toast.success('KYC approuvé — livreur activé !');
             fetchLivreurs();
         } catch (err) {
-            toast.error('Erreur lors de l'approbation');
+            toast.error("Erreur lors de l'approbation");
         }
     };
 
