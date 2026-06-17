@@ -716,7 +716,9 @@ export const updateProduct = async (req, res) => {
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids,
             // Flag: promo-only update — preserve current approval status
-            preserve_approval
+            preserve_approval,
+            // Per-variant stock map: { [priceRowId]: stockValue }
+            variantStocks
         } = req.body;
 
         const isApprovalOnly = Object.keys(req.body).every(k => ['approval_status', 'price', 'admin_feedback', 'isAdmin'].includes(k));
@@ -850,9 +852,17 @@ export const updateProduct = async (req, res) => {
             transaction
         });
 
-        // For stock-only updates on variant products: distribute the new stock
-        // across all existing priceRows so total_stock reflects the change.
-        if (isPromoOnly && finalStock !== undefined && finalStock !== null && !variants) {
+        // Per-variant stock update: supplier sets each variant's stock individually.
+        if (isPromoOnly && variantStocks && typeof variantStocks === 'object') {
+            let totalStock = 0;
+            for (const [priceRowId, stockVal] of Object.entries(variantStocks)) {
+                const s = Math.max(0, parseInt(stockVal) || 0);
+                await ProductVariantPrice.update({ stock: s }, { where: { id: priceRowId }, transaction });
+                totalStock += s;
+            }
+            await Product.update({ stock: totalStock }, { where: { id }, transaction });
+        // Fallback: equal distribution when only a total stock is provided.
+        } else if (isPromoOnly && finalStock !== undefined && finalStock !== null && !variants) {
             const existingVariants = await ProductVariant.findAll({
                 where: { product_id: id },
                 include: [{ model: ProductVariantPrice, as: 'priceRows' }]

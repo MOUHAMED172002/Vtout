@@ -63,3 +63,10 @@ export const updateProductStock = async (productId, stock, token) => {
     });
     return data;
 };
+
+export const updateVariantStocks = async (productId, variantStocks, token) => {
+    const { data } = await api.put(`/products/${productId}`, { variantStocks, preserve_approval: true }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};

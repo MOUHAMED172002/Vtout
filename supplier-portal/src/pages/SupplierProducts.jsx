@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/clerk-shim';
-import { getMySupplierProducts, updateProductStock } from '../services/supplierService';
+import { getMySupplierProducts, updateProductStock, updateVariantStocks } from '../services/supplierService';
 import { deleteProduct, updateProduct } from '../services/productService';
 
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +17,9 @@ const SupplierProducts = ({ globalSearchQuery }) => {
 
   const [editingStockId, setEditingStockId] = useState(null);
   const [tempStock, setTempStock] = useState('');
+  const [variantStockModal, setVariantStockModal] = useState(null); // product object
+  const [variantStockInputs, setVariantStockInputs] = useState({}); // { priceRowId: stockStr }
+  const [savingVariantStock, setSavingVariantStock] = useState(false);
 
   const [activePromoProduct, setActivePromoProduct] = useState(null);
   const [promoForm, setPromoForm] = useState({
@@ -123,6 +126,58 @@ const SupplierProducts = ({ globalSearchQuery }) => {
       toast.success("Stock mis à jour");
     } catch (error) {
       toast.error("Erreur mise à jour stock");
+    }
+  };
+
+  const openVariantStockModal = (product) => {
+    const inputs = {};
+    for (const v of product.variants || []) {
+      for (const pr of v.priceRows || []) {
+        inputs[pr.id] = String(pr.stock ?? 0);
+      }
+    }
+    setVariantStockInputs(inputs);
+    setVariantStockModal(product);
+  };
+
+  const handleSaveVariantStocks = async () => {
+    if (!variantStockModal) return;
+    for (const val of Object.values(variantStockInputs)) {
+      if (isNaN(parseInt(val, 10)) || parseInt(val, 10) < 0) {
+        toast.error("Toutes les valeurs de stock doivent être ≥ 0.");
+        return;
+      }
+    }
+    setSavingVariantStock(true);
+    try {
+      const token = await getToken();
+      const numericStocks = Object.fromEntries(
+        Object.entries(variantStockInputs).map(([k, v]) => [k, parseInt(v, 10) || 0])
+      );
+      await updateVariantStocks(variantStockModal.id, numericStocks, token);
+      const newTotal = Object.values(numericStocks).reduce((s, v) => s + v, 0);
+      setProducts(products.map(p =>
+        p.id === variantStockModal.id
+          ? {
+              ...p,
+              stock: newTotal,
+              total_stock: newTotal,
+              variants: p.variants.map(v => ({
+                ...v,
+                priceRows: v.priceRows.map(pr => ({
+                  ...pr,
+                  stock: numericStocks[pr.id] ?? pr.stock
+                }))
+              }))
+            }
+          : p
+      ));
+      toast.success("Stocks mis à jour !");
+      setVariantStockModal(null);
+    } catch {
+      toast.error("Erreur lors de la mise à jour.");
+    } finally {
+      setSavingVariantStock(false);
     }
   };
 
@@ -278,8 +333,8 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                         }
                         return (
                           <div
-                            onClick={() => startEditStock(product)}
-                            title="Cliquer pour modifier le stock"
+                            onClick={() => isVariant ? openVariantStockModal(product) : startEditStock(product)}
+                            title={isVariant ? "Cliquer pour modifier le stock par variante" : "Cliquer pour modifier le stock"}
                             className="inline-flex items-center gap-2 cursor-pointer group/stock hover:bg-slate-100 rounded-xl px-2 py-1 -mx-2 transition-colors"
                           >
                             <span className="text-sm font-black text-slate-900">{displayStock}</span>
@@ -369,6 +424,66 @@ const SupplierProducts = ({ globalSearchQuery }) => {
           </table>
         </div>
       </div>
+
+      {/* Variant Stock Modal */}
+      {variantStockModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-md p-6 md:p-8 space-y-5">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">Stock par variante</h2>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-0.5 line-clamp-1">{variantStockModal.name}</p>
+              </div>
+              <button
+                onClick={() => setVariantStockModal(null)}
+                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold text-lg"
+              >×</button>
+            </div>
+
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+              {variantStockModal.variants?.map(v =>
+                v.priceRows?.map(pr => {
+                  const combo = (() => {
+                    try {
+                      const obj = typeof v.combination === 'string' ? JSON.parse(v.combination) : (v.combination || {});
+                      return Object.entries(obj).map(([k, val]) => `${k}: ${val}`).join(' / ') || 'Variante';
+                    } catch { return 'Variante'; }
+                  })();
+                  return (
+                    <div key={pr.id} className="flex items-center justify-between gap-4 bg-slate-50 rounded-2xl px-4 py-3">
+                      <span className="text-xs font-black text-slate-700 capitalize flex-1">{combo}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Stock</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={variantStockInputs[pr.id] ?? '0'}
+                          onChange={e => setVariantStockInputs(prev => ({ ...prev, [pr.id]: e.target.value }))}
+                          className="w-20 border-2 border-indigo-300 rounded-xl px-3 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setVariantStockModal(null)}
+                className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-all"
+              >Annuler</button>
+              <button
+                onClick={handleSaveVariantStocks}
+                disabled={savingVariantStock}
+                className="flex-[2] py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+              >
+                {savingVariantStock ? 'Enregistrement...' : 'Enregistrer les stocks'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Promotions Modal */}
       {activePromoProduct && (
