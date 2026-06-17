@@ -15,7 +15,16 @@ const getFbCookies = () => {
  * eventName: standard Meta event name (e.g. 'CompleteRegistration') or
  *            prefixed with 'custom:' for custom events (e.g. 'custom:SellerRegistration').
  */
+export const hasConsent = () => localStorage.getItem('cookie-consent') === 'accepted';
+
+export const trackGA4 = (event, params = {}) => {
+    if (!hasConsent()) return;
+    window.gtag?.('event', event, params);
+};
+
 export const trackMeta = (eventName, params = {}, userEmail = null) => {
+    if (!hasConsent()) return;
+
     // 1. Pixel (browser-side)
     if (window.fbq) {
         if (eventName.startsWith('custom:')) {

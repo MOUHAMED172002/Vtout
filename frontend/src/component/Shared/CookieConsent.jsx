@@ -15,6 +15,9 @@ export default function CookieConsent() {
 
     const acceptAll = () => {
         localStorage.setItem('cookie-consent', 'accepted');
+        window.gtag?.('config', 'G-VVET0H2YQ7');
+        window.fbq?.('init', '2483353495522576');
+        window.fbq?.('track', 'PageView');
         setIsVisible(false);
     };
 
