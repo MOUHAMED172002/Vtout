@@ -72,25 +72,32 @@ export const fedapayWebhook = async (req, res) => {
             }
 
             const orderIdStr = fedaTx.custom_metadata?.order_id || fedaTx.metadata?.order_id;
-            
+            const txType = fedaTx.custom_metadata?.type || fedaTx.metadata?.type;
+
             if (orderIdStr) {
-                // orderIdStr peut contenir plusieurs IDs séparés par des virgules
-                const orderIds = orderIdStr.split(',');
-                
-                for (const oId of orderIds) {
-                    const order = await Order.findByPk(oId.trim(), {
-                        include: [{ model: OrderItem, as: 'items', include: ['product'] }]
-                    });
-                    
+                // Reversement cash livreur : on marque juste payment_status = 'payé'
+                if (txType === 'reversement_cash') {
+                    const order = await Order.findByPk(orderIdStr.trim());
                     if (order && order.payment_status !== 'payé') {
                         await order.update({ payment_status: 'payé' });
-                        // Notifications
-                        try {
-                            await sendOrderUpdateToCustomer(order, 'Payé (En préparation)');
-                            await sendOrderNotificationToAdmin(order);
-                            await sendInvoiceEmail(order, order.items);
-                        } catch (notifErr) {
-                            console.error('[Webhook Notification Error]:', notifErr);
+                        console.log(`[Webhook] Cash reversé pour commande ${orderIdStr}`);
+                    }
+                } else {
+                    // Paiement client classique
+                    const orderIds = orderIdStr.split(',');
+                    for (const oId of orderIds) {
+                        const order = await Order.findByPk(oId.trim(), {
+                            include: [{ model: OrderItem, as: 'items', include: ['product'] }]
+                        });
+                        if (order && order.payment_status !== 'payé') {
+                            await order.update({ payment_status: 'payé' });
+                            try {
+                                await sendOrderUpdateToCustomer(order, 'Payé (En préparation)');
+                                await sendOrderNotificationToAdmin(order);
+                                await sendInvoiceEmail(order, order.items);
+                            } catch (notifErr) {
+                                console.error('[Webhook Notification Error]:', notifErr);
+                            }
                         }
                     }
                 }

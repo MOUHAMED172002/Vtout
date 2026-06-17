@@ -8,7 +8,8 @@ import {
     releaseOrder,
     updateDeliveryStatus,
     toggleDeliveryStatus,
-    updateServiceZones
+    updateServiceZones,
+    generateCashPaymentLink
 } from "../../services/deliveryService";
 import { getCommunesParDepartement } from "../../utils/communes";
 import { initSocket, sendLocation } from "../../services/socketService";
@@ -65,6 +66,7 @@ export default function DeliveryDashboard() {
     const [vehicleData, setVehicleData] = useState({ vehicle_type: '', vehicle_model: '', license_plate: '' });
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [previewOrder, setPreviewOrder] = useState(null);
+    const [generatingLinkId, setGeneratingLinkId] = useState(null);
 
     const abortControllerRef = useRef(null);
     const isFetchingRef = useRef(false);
@@ -334,7 +336,18 @@ export default function DeliveryDashboard() {
         }
     };
 
-
+    const handleGenerateCashLink = async (orderId) => {
+        try {
+            setGeneratingLinkId(orderId);
+            const token = await getToken();
+            const { checkoutUrl } = await generateCashPaymentLink(orderId, token);
+            window.open(checkoutUrl, '_blank');
+        } catch (err) {
+            toast.error(err?.response?.data?.error || "Erreur génération du lien de paiement");
+        } finally {
+            setGeneratingLinkId(null);
+        }
+    };
 
     return (
         <div className="relative space-y-6 md:space-y-10 p-4 md:p-10 bg-base-200 min-h-screen text-base-content">
@@ -366,15 +379,31 @@ export default function DeliveryDashboard() {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Action requise</p>
                                 <p className="text-sm font-bold text-base-content/80">Rendez-vous au point de collecte principal pour solder votre caisse avec l'administrateur.</p>
                             </div>
+                            {/* FedaPay buttons per unremitted order */}
+                            <div className="space-y-3 w-full">
+                                {unremittedCashOrders.map(o => {
+                                    const toReverse = Math.max(0, Number(o.total_amount) - Number(o.delivery_fee || 0));
+                                    return (
+                                        <button
+                                            key={o.id}
+                                            onClick={() => handleGenerateCashLink(o.id)}
+                                            disabled={generatingLinkId === o.id}
+                                            className="w-full flex items-center justify-between gap-3 py-4 px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-2xl font-black text-xs transition-all shadow-lg shadow-indigo-500/20"
+                                        >
+                                            <span>Reverser #{o.id.slice(0, 8).toUpperCase()}</span>
+                                            <span className="bg-white/20 px-3 py-1 rounded-xl">
+                                                {generatingLinkId === o.id ? '...' : `${toReverse.toLocaleString()} F`}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                             <a
                                 href={`https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP || "22900000000"}?text=${encodeURIComponent(`Bonjour, mon compte livreur est bloqué pour un montant de ${unremittedCashAmount.toLocaleString()} F. Je souhaite régulariser ma situation.`)}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                                className="w-full flex items-center justify-center gap-3 py-3 bg-base-200 hover:bg-base-300 text-base-content/60 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                             >
-                                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                                </svg>
                                 Contacter l'administration
                             </a>
                             <button
@@ -399,8 +428,21 @@ export default function DeliveryDashboard() {
                             <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Veuillez solder votre compte pour éviter la suspension</p>
                         </div>
                     </div>
-                    <div className="bg-base-100/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/20">
-                        Attention : Suspension imminente
+                    <div className="flex flex-col gap-2">
+                        {unremittedCashOrders.map(o => {
+                            const toReverse = Math.max(0, Number(o.total_amount) - Number(o.delivery_fee || 0));
+                            return (
+                                <button
+                                    key={o.id}
+                                    onClick={() => handleGenerateCashLink(o.id)}
+                                    disabled={generatingLinkId === o.id}
+                                    className="flex items-center justify-between gap-3 px-4 py-2.5 bg-white text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-wider disabled:opacity-60 transition-all hover:bg-rose-50"
+                                >
+                                    <span>Reverser #{o.id.slice(0, 8).toUpperCase()}</span>
+                                    <span>{generatingLinkId === o.id ? '...' : `${toReverse.toLocaleString()} F`}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -919,23 +961,43 @@ export default function DeliveryDashboard() {
                                             <p className="text-base-content/50 font-bold">Votre historique est vide.</p>
                                         </div>
                                     ) : (
-                                        finishedOrders.map(order => (
-                                            <div key={order.id} className="bg-base-100 rounded-[2rem] p-6 border border-base-content/10 flex items-center justify-between opacity-70 hover:opacity-100 transition-opacity">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${['livree', 'livrée'].includes(order.status) ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-                                                        {['livree', 'livrée'].includes(order.status) ? <CheckCircle2 size={24} /> : <Clock size={24} />}
+                                        finishedOrders.map(order => {
+                                            const isCodPending = ['livree', 'livrée'].includes(order.status) && order.payment_method === 'delivery' && order.payment_status === 'en_attente';
+                                            const toReverse = isCodPending ? Math.max(0, Number(order.total_amount) - Number(order.delivery_fee || 0)) : 0;
+                                            return (
+                                            <div key={order.id} className={`bg-base-100 rounded-[2rem] p-6 border transition-all ${isCodPending ? 'border-rose-200 opacity-100' : 'border-base-content/10 opacity-70 hover:opacity-100'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${['livree', 'livrée'].includes(order.status) ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                                                            {['livree', 'livrée'].includes(order.status) ? <CheckCircle2 size={24} /> : <Clock size={24} />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black text-base-content">Commande #{order.id.slice(0, 8)}</p>
+                                                            <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-black text-base-content">Commande #{order.id.slice(0, 8)}</p>
-                                                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{new Date(order.delivered_at || order.updated_at || order.createdAt || order.created_at).toLocaleDateString()}</p>
+                                                    <div className="text-right">
+                                                        <p className="font-black text-base-content text-sm">{Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0)).toLocaleString()} F</p>
+                                                        <p className="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Gain encaissé</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="font-black text-base-content text-sm">{Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0)).toLocaleString()} F</p>
-                                                    <p className="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Gain encaissé</p>
-                                                </div>
+                                                {isCodPending && (
+                                                    <div className="mt-4 pt-4 border-t border-rose-100">
+                                                        <button
+                                                            onClick={() => handleGenerateCashLink(order.id)}
+                                                            disabled={generatingLinkId === order.id}
+                                                            className="w-full flex items-center justify-between py-3 px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-2xl font-black text-xs transition-all shadow-md shadow-indigo-500/20"
+                                                        >
+                                                            <span>💳 Reverser le cash</span>
+                                                            <span className="bg-white/20 px-3 py-1 rounded-xl">
+                                                                {generatingLinkId === order.id ? 'Génération...' : `${toReverse.toLocaleString()} F`}
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))
+                                            );
+                                        })
                                     )
                                 )}
 

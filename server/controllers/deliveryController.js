@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
+import { createFedapayTransaction } from '../services/fedapayService.js';
 
 const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) => {
     try {
@@ -476,6 +477,67 @@ export const confirmCashRemitted = async (req, res) => {
         await t.rollback();
         console.error("confirmCashRemitted error:", error);
         res.status(500).json({ error: 'Erreur lors de la confirmation du versement' });
+    }
+};
+
+export const generateCashPaymentLink = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        if (!orderId) return res.status(400).json({ error: 'orderId requis' });
+
+        const deliveryPerson = await DeliveryPerson.findOne({ where: { user_id: req.auth.userId } });
+        if (!deliveryPerson) return res.status(403).json({ error: 'Profil livreur introuvable' });
+
+        const order = await Order.findOne({
+            where: {
+                id: orderId,
+                delivery_person_id: deliveryPerson.id,
+                payment_method: 'delivery',
+                payment_status: 'en_attente',
+                status: { [Op.in]: ['livrée', 'livree'] }
+            },
+            include: [{ model: Profile, as: 'user' }]
+        });
+        if (!order) return res.status(404).json({ error: 'Commande introuvable ou déjà soldée' });
+
+        const totalAmount = parseFloat(order.total_amount || 0);
+        const deliveryFee = parseFloat(order.delivery_fee || 0);
+        const amountToReverse = Math.max(0, Math.round(totalAmount - deliveryFee));
+
+        if (amountToReverse <= 0) return res.status(400).json({ error: 'Montant à reverser invalide' });
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const callbackUrl = `${frontendUrl}/delivery-rider/cash-success?order_id=${orderId}`;
+
+        const livreurProfile = await Profile.findOne({ where: { id: req.auth.userId } });
+
+        // Reuse the existing FedaPay service with a synthetic order object
+        const syntheticOrder = {
+            id: orderId,
+            total_amount: amountToReverse,
+            guest_name: livreurProfile?.fullname || 'Livreur',
+            guest_email: livreurProfile?.email || 'livreur@vtout.com',
+            guest_phone: deliveryPerson.whatsapp || '00000000',
+        };
+        const customer = {
+            fullname: livreurProfile?.fullname || 'Livreur',
+            email: livreurProfile?.email || 'livreur@vtout.com',
+            phone: deliveryPerson.whatsapp || '00000000',
+        };
+
+        const result = await createFedapayTransaction(syntheticOrder, customer, callbackUrl, { type: 'reversement_cash' });
+
+        // Tag the order with the reversement transaction id so the webhook can find it
+        await order.update({ payment_id: String(result.transactionId) });
+
+        res.json({
+            checkoutUrl: result.checkoutUrl,
+            amount: amountToReverse,
+            transactionId: result.transactionId
+        });
+    } catch (error) {
+        console.error('[generateCashPaymentLink]', error);
+        res.status(500).json({ error: 'Erreur génération du lien de paiement' });
     }
 };
 

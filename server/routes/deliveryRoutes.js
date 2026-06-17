@@ -22,6 +22,7 @@ router.post('/status', requireAuth, requireLivreur, deliveryController.updateDel
 router.post('/toggle-status', requireAuth, requireLivreur, deliveryController.toggleStatus);
 router.put('/location', requireAuth, requireLivreur, deliveryController.updateLocation);
 router.post('/update-zones', requireAuth, requireLivreur, deliveryController.updateServiceZones);
+router.post('/generate-cash-link', requireAuth, requireLivreur, deliveryController.generateCashPaymentLink);
 
 // Admin routes
 

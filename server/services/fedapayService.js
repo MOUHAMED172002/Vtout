@@ -1,6 +1,6 @@
 // On utilise fetch natif de Node 18+ (pas besoin d'import)
 
-export const createFedapayTransaction = async (order, customerProfile, redirectUrl) => {
+export const createFedapayTransaction = async (order, customerProfile, redirectUrl, extraMetadata = {}) => {
     try {
         const apiKey = process.env.FEDAPAY_SECRET_KEY;
         // Utilisez 'api.fedapay.com' pour la production
@@ -30,7 +30,8 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
                     }
                 },
                 metadata: {
-                    order_id: order.id
+                    order_id: order.id,
+                    ...extraMetadata
                 }
             })
         });
