@@ -406,7 +406,8 @@ function VolumeLayout({ product, isDark, navigate }) {
 
   const activeTier = getActiveTier(qty);
   const discount = activeTier?.discount ?? 0;
-  const unitPrice = discount > 0 ? Math.round(price * (1 - discount / 100)) : price;
+  const sp = Number(product?.supplier_price || 0);
+  const unitPrice = discount > 0 ? Math.round(sp > 0 && sp < price ? price - sp * (discount / 100) : price * (1 - discount / 100)) : price;
   const totalPrice = unitPrice * qty;
   const savings = (price - unitPrice) * qty;
   const nextTier = tiers.find(t => t.min_qty > qty);

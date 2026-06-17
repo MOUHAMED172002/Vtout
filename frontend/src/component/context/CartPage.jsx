@@ -87,7 +87,10 @@ export default function CartPage() {
           if (metTier) {
             discountPercent = parseFloat(metTier.discount || 0);
             if (discountPercent > 0) {
-              discountedPrice = originalPrice * (1 - discountPercent / 100);
+              const sp = Number(item.product?.supplier_price || 0);
+              discountedPrice = sp > 0 && sp < originalPrice
+                ? originalPrice - sp * (discountPercent / 100)
+                : originalPrice * (1 - discountPercent / 100);
               isVolumeDiscount = true;
             }
           }

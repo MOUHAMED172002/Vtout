@@ -1092,7 +1092,8 @@ export default function AddProductModal({ onClose, onCreate, isSupplier = false,
                     <div className="space-y-2">
                       {volumePricingTiers.map((tier, idx) => {
                         const basePrice = parseFloat(watchPrice) || 0;
-                        const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(basePrice * (1 - tier.discount / 100))) : 0;
+                        const spAdd = parseFloat(globalSupplierPrice) || 0;
+                        const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(spAdd > 0 && spAdd < basePrice ? basePrice - spAdd * (tier.discount / 100) : basePrice * (1 - tier.discount / 100))) : 0;
                         const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
                         const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.min_qty) : 0;
                         return (

@@ -1097,7 +1097,8 @@ export default function EditProductModal({ product: initialProduct, onClose, onU
                     <div className="space-y-2">
                       {volumePricingTiers.map((tier, idx) => {
                       const basePrice = parseFloat(watchPrice) || 0;
-                      const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(basePrice * (1 - tier.discount / 100))) : 0;
+                      const spEdit = parseFloat(watchSupplierPrice) || 0;
+                      const discountedUnitPrice = basePrice > 0 ? Math.max(0, Math.round(spEdit > 0 && spEdit < basePrice ? basePrice - spEdit * (tier.discount / 100) : basePrice * (1 - tier.discount / 100))) : 0;
                       const savings = basePrice > 0 ? Math.round(basePrice - discountedUnitPrice) : 0;
                       const totalSavingsAtTier = basePrice > 0 ? Math.round(savings * tier.min_qty) : 0;
                       return (
