@@ -98,20 +98,27 @@ export const authMiddleware = async (req, res, next) => {
                     await profile.save();
                 }
 
-                // If email still unverified, re-trigger verification email (fire & forget)
+                // If email still unverified in profiles table, check Better Auth source of truth first
                 if (!profile.email_verified) {
-                    sequelize.query(
-                        `SELECT id FROM verification WHERE identifier = :email AND expiresAt > NOW() LIMIT 1`,
-                        { replacements: { email: profile.email }, type: sequelize.QueryTypes.SELECT }
-                    ).then(([existing]) => {
-                        if (!existing) {
-                            import('../services/mailService.js').then(({ sendEmailVerification }) => {
-                                sendEmailVerification(profile).catch(e =>
-                                    console.warn('[authMiddleware] Re-verification email failed:', e.message)
-                                );
-                            }).catch(e => console.warn('[authMiddleware] mailService import failed:', e.message));
-                        }
-                    }).catch(e => console.warn('[authMiddleware] Verification token check failed:', e.message));
+                    if (session.user.emailVerified) {
+                        // Better Auth already verified — just sync the profiles column, no email
+                        profile.email_verified = true;
+                        profile.save().catch(e => console.warn('[authMiddleware] email_verified sync failed:', e.message));
+                    } else {
+                        // Truly unverified — re-trigger only if no valid token exists
+                        sequelize.query(
+                            `SELECT id FROM verification WHERE identifier = :email AND expiresAt > NOW() LIMIT 1`,
+                            { replacements: { email: profile.email }, type: sequelize.QueryTypes.SELECT }
+                        ).then(([existing]) => {
+                            if (!existing) {
+                                import('../services/mailService.js').then(({ sendEmailVerification }) => {
+                                    sendEmailVerification(profile).catch(e =>
+                                        console.warn('[authMiddleware] Re-verification email failed:', e.message)
+                                    );
+                                }).catch(e => console.warn('[authMiddleware] mailService import failed:', e.message));
+                            }
+                        }).catch(e => console.warn('[authMiddleware] Verification token check failed:', e.message));
+                    }
                 }
             }
 
