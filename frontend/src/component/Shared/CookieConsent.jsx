@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, X, Cookie, ExternalLink } from 'lucide-react';
 
@@ -76,12 +77,12 @@ export default function CookieConsent() {
                                     >
                                         Refuser
                                     </button>
-                                    <a
-                                        href="/privacy"
+                                    <Link
+                                        to="/privacy"
                                         className="flex-1 py-4 bg-transparent text-white/40 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
                                         Politique <ExternalLink size={12} />
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
 
