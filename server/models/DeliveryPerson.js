@@ -52,6 +52,18 @@ const DeliveryPerson = sequelize.define('DeliveryPerson', {
         type: DataTypes.STRING,
         allowNull: true
     },
+    selfie_url: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    kyc_status: {
+        type: DataTypes.ENUM('pending', 'submitted', 'approved', 'rejected'),
+        defaultValue: 'pending'
+    },
+    kyc_rejection_reason: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     is_verified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

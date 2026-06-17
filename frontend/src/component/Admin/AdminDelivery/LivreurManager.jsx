@@ -1,16 +1,18 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
-import { getLivreursList, verifyLivreur, deleteLivreur } from "../../../services/deliveryService";
+import { getLivreursList, reviewKyc, deleteLivreur } from "../../../services/deliveryService";
 import toast from "react-hot-toast";
-import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, Filter, AlertCircle, Clock, FileText, Trash2 } from "lucide-react";
+import { Truck, ShieldCheck, Mail, Phone, User, Check, X, ExternalLink, Search, AlertCircle, Clock, FileText, Trash2, Camera } from "lucide-react";
 
 export default function LivreurManager({ globalSearchQuery = "" }) {
     const { getToken } = useAuth();
     const [livreurs, setLivreurs] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [filter, setFilter] = useState("all"); //   En attente, verified, all
+    const [filter, setFilter] = useState("all");
     const [search, setSearch] = useState("");
     const [zoneFilter, setZoneFilter] = useState("");
+    const [rejectingId, setRejectingId] = useState(null);
+    const [rejectionReason, setRejectionReason] = useState("");
 
     useEffect(() => {
         fetchLivreurs();
@@ -29,14 +31,28 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
         }
     };
 
-    const handleVerify = async (id, status) => {
+    const handleApprove = async (id) => {
         try {
             const token = await getToken();
-            await verifyLivreur(token, id, status);
-            toast.success(status ? "Livreur validÃ© et rÃ´le mis Ã  jour !" : "Statut mis Ã  jour");
+            await reviewKyc(token, id, 'approve');
+            toast.success('KYC approuvé — livreur activé !');
             fetchLivreurs();
         } catch (err) {
-            toast.error("Erreur de modification");
+            toast.error('Erreur lors de l'approbation');
+        }
+    };
+
+    const handleReject = async (id) => {
+        if (!rejectionReason.trim()) return toast.error('Veuillez indiquer un motif de rejet');
+        try {
+            const token = await getToken();
+            await reviewKyc(token, id, 'reject', rejectionReason);
+            toast.success('Dossier rejeté — livreur notifié');
+            setRejectingId(null);
+            setRejectionReason('');
+            fetchLivreurs();
+        } catch (err) {
+            toast.error('Erreur lors du rejet');
         }
     };
 
@@ -259,48 +275,77 @@ export default function LivreurManager({ globalSearchQuery = "" }) {
                                         </div>
                                     </td>
                                     <td className="py-8">
-                                        {l.id_card_url ? (
-                                            <div className="space-y-3">
-                                                <a
-                                                    href={l.id_card_url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="flex items-center gap-3 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 px-5 py-3 rounded-xl w-fit transition-colors border border-primary/10"
-                                                >
-                                                    <FileText size={16} /> PIÃˆCE D'IDENTITÃ‰ <ExternalLink size={14} />
+                                        <div className="space-y-2">
+                                            {l.id_card_url ? (
+                                                <a href={l.id_card_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-xl w-fit transition-colors border border-primary/10">
+                                                    <FileText size={14} /> CNI <ExternalLink size={12} />
                                                 </a>
-                                            </div>
-                                        ) : (
-                                            <span className="text-[11px] font-black text-rose-300 bg-rose-50 px-4 py-2 rounded-lg border border-rose-100">DOCUMENT MANQUANT</span>
-                                        )}
-                                    </td>
-                                    <td className="py-8 text-right pr-10">
-                                        <div className="flex justify-end gap-3">
-                                            {!l.is_verified ? (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleVerify(l.id, true)}
-                                                        className="flex items-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 active:scale-95 transition-all"
-                                                    >
-                                                        <Check size={16} /> Approuver
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(l.id)}
-                                                        className="flex items-center gap-2 bg-rose-50 text-rose-500 border border-rose-100 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white active:scale-95 transition-all"
-                                                        title="Rejeter et supprimer la demande"
-                                                    >
-                                                        <Trash2 size={16} /> Rejeter
-                                                    </button>
-                                                </>
                                             ) : (
-                                                <button
-                                                    onClick={() => handleVerify(l.id, false)}
-                                                    className="flex items-center gap-2 bg-base-200 text-base-content/40 hover:text-rose-500 hover:bg-rose-50 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all group"
-                                                >
-                                                    <X size={16} className="group-hover:rotate-90 transition-transform" /> RÃ©voquer l'accÃ¨s
-                                                </button>
+                                                <span className="text-[10px] font-black text-rose-300 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 block w-fit">CNI MANQUANTE</span>
+                                            )}
+                                            {l.selfie_url ? (
+                                                <a href={l.selfie_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl w-fit transition-colors border border-indigo-100">
+                                                    <Camera size={14} /> SELFIE <ExternalLink size={12} />
+                                                </a>
+                                            ) : (
+                                                <span className="text-[10px] font-black text-amber-400 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 block w-fit">SELFIE MANQUANT</span>
+                                            )}
+                                            {l.kyc_status && (
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border block w-fit ${l.kyc_status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : l.kyc_status === 'rejected' ? 'bg-rose-50 text-rose-500 border-rose-200' : l.kyc_status === 'submitted' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-base-200 text-base-content/40 border-base-300'}`}>
+                                                    KYC: {l.kyc_status}
+                                                </span>
                                             )}
                                         </div>
+                                    </td>
+                                    <td className="py-8 text-right pr-10">
+                                        {rejectingId === l.id ? (
+                                            <div className="space-y-3 text-left max-w-xs ml-auto">
+                                                <textarea
+                                                    autoFocus
+                                                    rows={3}
+                                                    placeholder="Motif du rejet (obligatoire)..."
+                                                    value={rejectionReason}
+                                                    onChange={e => setRejectionReason(e.target.value)}
+                                                    className="w-full text-sm font-bold bg-base-200 border border-rose-200 rounded-2xl px-4 py-3 resize-none focus:outline-none focus:border-rose-400"
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleReject(l.id)} className="flex-1 bg-rose-500 text-white px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 active:scale-95 transition-all">
+                                                        Confirmer
+                                                    </button>
+                                                    <button onClick={() => { setRejectingId(null); setRejectionReason(''); }} className="px-4 py-2 rounded-xl font-black text-xs text-base-content/40 bg-base-200 hover:bg-base-300 transition-all">
+                                                        Annuler
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-end gap-3">
+                                                {l.kyc_status !== 'approved' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApprove(l.id)}
+                                                            disabled={!l.id_card_url || !l.selfie_url}
+                                                            className="flex items-center gap-2 bg-emerald-500 text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                                            title={!l.id_card_url || !l.selfie_url ? 'Documents incomplets' : 'Approuver le KYC'}
+                                                        >
+                                                            <Check size={16} /> Approuver
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setRejectingId(l.id); setRejectionReason(''); }}
+                                                            className="flex items-center gap-2 bg-rose-50 text-rose-500 border border-rose-100 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white active:scale-95 transition-all"
+                                                        >
+                                                            <X size={16} /> Rejeter
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => { setRejectingId(l.id); setRejectionReason(''); }}
+                                                        className="flex items-center gap-2 bg-base-200 text-base-content/40 hover:text-rose-500 hover:bg-rose-50 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all group"
+                                                    >
+                                                        <X size={16} className="group-hover:rotate-90 transition-transform" /> Révoquer
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

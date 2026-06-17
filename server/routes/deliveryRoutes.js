@@ -11,6 +11,7 @@ router.get('/ping', (req, res) => res.json({ status: 'ok', message: 'Delivery ro
 
 // Public/Auth routes for delivery personnel
 router.post('/register', requireAuth, deliveryController.registerLivreur);
+router.get('/my-kyc', requireAuth, deliveryController.getMyKycStatus);
 
 // Protected routes (Livreur only)
 router.get('/available', requireAuth, requireLivreur, deliveryController.getAvailableOrders);
@@ -29,6 +30,7 @@ router.post('/generate-cash-link', requireAuth, requireLivreur, deliveryControll
 router.get('/admin/cash-history', requireAuth, requireAdmin, deliveryController.getCashHistory);
 router.get('/admin/list', requireAuth, requireAdmin, deliveryController.getLivreursList);
 router.post('/admin/verify/:id', requireAuth, requireAdmin, deliveryController.verifyLivreur);
+router.post('/admin/kyc-review/:id', requireAuth, requireAdmin, deliveryController.reviewKyc);
 router.delete('/admin/:id', requireAuth, requireAdmin, deliveryController.deleteLivreur);
 router.post('/admin/assign', requireAuth, requireAdmin, deliveryController.adminAssignOrder);
 router.post('/admin/confirm-cash', requireAuth, requireAdmin, deliveryController.confirmCashRemitted);

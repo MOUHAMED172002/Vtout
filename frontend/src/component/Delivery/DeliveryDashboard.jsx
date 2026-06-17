@@ -33,6 +33,7 @@ import {
     Banknote,
     RefreshCcw,
     AlertOctagon,
+    AlertCircle,
     Edit2,
     Phone,
     Map,
@@ -1003,6 +1004,28 @@ export default function DeliveryDashboard() {
 
                                 {tab === 'profile' && myself && (
                                     <div className="p-4 md:p-10 space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        {myself.kyc_status === 'rejected' && (
+                                            <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 flex gap-4 items-start">
+                                                <div className="w-10 h-10 bg-rose-100 text-rose-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                                    <AlertCircle size={20} />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-black text-rose-700 text-sm uppercase tracking-wide">Dossier KYC rejeté</p>
+                                                    {myself.kyc_rejection_reason && (
+                                                        <p className="text-rose-600 font-bold text-sm leading-relaxed">{myself.kyc_rejection_reason}</p>
+                                                    )}
+                                                    <p className="text-rose-400 text-xs font-bold pt-1">Contactez le support ou mettez à jour votre dossier.</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {myself.kyc_status === 'submitted' && (
+                                            <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 flex gap-4 items-center">
+                                                <div className="w-8 h-8 bg-amber-100 text-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <Clock size={16} />
+                                                </div>
+                                                <p className="font-bold text-amber-700 text-sm">Votre dossier KYC est en cours d'examen par notre équipe.</p>
+                                            </div>
+                                        )}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                             <div className="space-y-6">
                                                 <div className="flex justify-between items-center">

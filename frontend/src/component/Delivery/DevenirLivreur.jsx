@@ -9,7 +9,7 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 
 import { uploadSingleImage } from "../../services/uploadService";
-import { registerLivreur } from "../../services/deliveryService";
+import { registerLivreur, getMyKycStatus } from "../../services/deliveryService";
 import { getCommunesParDepartement } from "../../utils/communes";
 
 export default function DevenirLivreur() {
@@ -20,6 +20,7 @@ export default function DevenirLivreur() {
 
     const [step, setStep] = useState(1);
     const [authMode, setAuthMode] = useState('signUp');
+    const [kycInfo, setKycInfo] = useState(null);
 
     // Redirect active livreurs or show pending status for registered ones
     React.useEffect(() => {
@@ -28,12 +29,14 @@ export default function DevenirLivreur() {
         if (profileUser.role === 'livreur') {
             navigate('/delivery-rider');
         } else if (profileUser.isDelivery) {
-            setStep(3); // Already registered, show pending screen
+            setStep(3);
+            getToken().then(token => getMyKycStatus(token).then(setKycInfo).catch(() => {}));
         }
     }, [isSignedIn, profileUser, navigate]);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [uploadingSelfie, setUploadingSelfie] = useState(false);
     const [zoneSearch, setZoneSearch] = useState("");
     const [policies, setPolicies] = useState([]);
 
@@ -55,6 +58,7 @@ export default function DevenirLivreur() {
         vehicle_model: "",
         license_plate: "",
         id_card_url: "",
+        selfie_url: "",
         service_zones: []
     });
 
@@ -70,7 +74,6 @@ export default function DevenirLivreur() {
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         setUploading(true);
         try {
             const token = await getToken();
@@ -84,9 +87,26 @@ export default function DevenirLivreur() {
         }
     };
 
+    const handleSelfieChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingSelfie(true);
+        try {
+            const token = await getToken();
+            const url = await uploadSingleImage(file, token);
+            setForm(prev => ({ ...prev, selfie_url: url }));
+            toast.success("Selfie enregistré !");
+        } catch (err) {
+            toast.error("Erreur lors de l'envoi du selfie");
+        } finally {
+            setUploadingSelfie(false);
+        }
+    };
+
     const handleRegister = async () => {
         if (!isSignedIn) return navigate("/auth/connexion");
         if (!form.id_card_url) return toast.error("Veuillez fournir une copie de votre pièce d'identité");
+        if (!form.selfie_url) return toast.error("Veuillez fournir un selfie tenant votre pièce d'identité");
         if (!form.phone) return toast.error("Veuillez fournir un numéro de téléphone");
 
         setLoading(true);
@@ -94,6 +114,7 @@ export default function DevenirLivreur() {
             const token = await getToken();
             await registerLivreur(token, form);
             await refreshProfile();
+            setKycInfo({ kyc_status: 'submitted', kyc_rejection_reason: null });
             setStep(3);
             toast.success("Demande envoyée !");
             window.fbq?.('track', 'CompleteRegistration', { account_type: 'driver' });
@@ -320,20 +341,41 @@ export default function DevenirLivreur() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <label className="text-[11px] font-black uppercase text-base-content tracking-[0.2em] ml-1 block">Pièce d'identité (Scan/Photo)</label>
-                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-16 text-center space-y-6 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-base-200 hover:border-primary/20 hover:bg-primary/5'}`}>
+                                    <div className="space-y-4">
+                                        <label className="text-[11px] font-black uppercase text-base-content tracking-[0.2em] ml-1 block">1. Pièce d'identité (CNI / Passeport)</label>
+                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-12 text-center space-y-4 transition-all group ${form.id_card_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-base-200 hover:border-primary/20 hover:bg-primary/5'}`}>
                                             <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.pdf" onChange={handleFileChange} disabled={uploading} />
-                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.id_card_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-base-200 text-base-content/40 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
-                                                {uploading ? <Loader2 size={32} className="animate-spin" /> : form.id_card_url ? <CheckCircle2 size={32} /> : <Upload size={32} />}
+                                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.id_card_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-base-200 text-base-content/40 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
+                                                {uploading ? <Loader2 size={28} className="animate-spin" /> : form.id_card_url ? <CheckCircle2 size={28} /> : <Upload size={28} />}
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="space-y-1">
                                                 {form.id_card_url ? (
-                                                    <p className="font-black text-emerald-600 text-lg uppercase tracking-widest">Document prêt !</p>
+                                                    <p className="font-black text-emerald-600 uppercase tracking-widest">CNI enregistrée !</p>
                                                 ) : (
                                                     <>
-                                                        <p className="font-black text-gray-900 text-xl tracking-tight leading-tight">Téléversez votre pièce</p>
-                                                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest opacity-60">Format JPG, PNG ou PDF</p>
+                                                        <p className="font-black text-gray-900 text-lg tracking-tight">Photo ou scan de votre CNI</p>
+                                                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest opacity-60">JPG, PNG ou PDF</p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[11px] font-black uppercase text-base-content tracking-[0.2em] ml-1 block">2. Selfie tenant votre CNI <span className="text-primary normal-case font-bold">(obligatoire)</span></label>
+                                        <p className="text-xs text-base-content/50 font-bold ml-1">Prenez une photo de vous en tenant votre pièce d'identité bien visible face à la caméra.</p>
+                                        <div className={`relative border-4 border-dashed rounded-[3rem] p-12 text-center space-y-4 transition-all group ${form.selfie_url ? 'border-emerald-200 bg-emerald-50/30' : 'border-base-200 hover:border-primary/20 hover:bg-primary/5'}`}>
+                                            <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={handleSelfieChange} disabled={uploadingSelfie} />
+                                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto transition-all shadow-xl ${form.selfie_url ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-base-200 text-base-content/40 group-hover:bg-primary group-hover:text-white shadow-slate-100'}`}>
+                                                {uploadingSelfie ? <Loader2 size={28} className="animate-spin" /> : form.selfie_url ? <CheckCircle2 size={28} /> : <Upload size={28} />}
+                                            </div>
+                                            <div className="space-y-1">
+                                                {form.selfie_url ? (
+                                                    <p className="font-black text-emerald-600 uppercase tracking-widest">Selfie enregistré !</p>
+                                                ) : (
+                                                    <>
+                                                        <p className="font-black text-gray-900 text-lg tracking-tight">Selfie + CNI en main</p>
+                                                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest opacity-60">JPG ou PNG uniquement</p>
                                                     </>
                                                 )}
                                             </div>
@@ -344,7 +386,7 @@ export default function DevenirLivreur() {
                                         <button onClick={() => setStep(1)} className="flex-1 h-16 rounded-2xl font-black text-base-content/40 hover:text-base-content bg-base-200 hover:bg-base-300 transition-all uppercase tracking-widest text-[11px]">Retour</button>
                                         <button
                                             onClick={handleRegister}
-                                            disabled={loading || uploading || !form.id_card_url || !form.service_zones?.length}
+                                            disabled={loading || uploading || uploadingSelfie || !form.id_card_url || !form.selfie_url || !form.service_zones?.length}
                                             className="flex-[3] h-16 bg-primary text-white rounded-2xl font-black text-lg shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 uppercase tracking-widest"
                                         >
                                             {loading ? <Loader2 size={24} className="animate-spin" /> : "Envoyer ma demande"}
@@ -353,7 +395,39 @@ export default function DevenirLivreur() {
                                 </motion.div>
                             )}
 
-                            {step === 3 && (
+                            {step === 3 && kycInfo?.kyc_status === 'rejected' && (
+                                <motion.div
+                                    key="rejected"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-center py-10 space-y-8"
+                                >
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-rose-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+                                        <div className="relative w-40 h-40 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-rose-100">
+                                            <AlertCircle size={80} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h2 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Dossier rejeté</h2>
+                                        <p className="text-gray-500 font-bold max-w-sm mx-auto">Votre dossier KYC n'a pas été accepté.</p>
+                                        {kycInfo.kyc_rejection_reason && (
+                                            <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 max-w-sm mx-auto text-left">
+                                                <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">Motif du rejet</p>
+                                                <p className="font-bold text-rose-700 text-sm leading-relaxed">{kycInfo.kyc_rejection_reason}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => setStep(2)}
+                                        className="w-full max-w-xs h-16 bg-primary text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest"
+                                    >
+                                        Corriger mon dossier
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {step === 3 && kycInfo?.kyc_status !== 'rejected' && (
                                 <motion.div
                                     key="success"
                                     initial={{ opacity: 0, scale: 0.9 }}
@@ -369,7 +443,7 @@ export default function DevenirLivreur() {
                                     <div className="space-y-4">
                                         <h2 className="text-5xl font-black text-gray-900 tracking-tighter uppercase leading-tight">C'est parti !</h2>
                                         <p className="text-gray-500 font-bold text-xl max-w-sm mx-auto leading-relaxed">
-                                            Votre demande est en cours d'examen. Notre équipe vous contactera sous <span className="text-primary">24h</span>.
+                                            Votre dossier KYC est en cours d'examen. Notre équipe vous contactera sous <span className="text-primary">24h</span>.
                                         </p>
                                     </div>
                                     <button onClick={() => navigate("/")} className="w-full max-w-xs h-20 bg-neutral text-white hover:bg-black rounded-[2rem] font-black text-xl shadow-2xl shadow-slate-200 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">

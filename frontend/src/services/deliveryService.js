@@ -111,6 +111,20 @@ export const confirmCashRemitted = async (token, deliveryPersonId) => {
     return res.data;
 };
 
+export const getMyKycStatus = async (token) => {
+    const res = await api.get("/delivery/my-kyc", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+};
+
+export const reviewKyc = async (token, id, action, rejectionReason = '') => {
+    const res = await api.post(`/delivery/admin/kyc-review/${id}`, { action, rejection_reason: rejectionReason }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+};
+
 export const deleteLivreur = async (token, id) => {
     const res = await api.delete(`/delivery/admin/${id}`, {
         headers: { Authorization: `Bearer ${token}` }

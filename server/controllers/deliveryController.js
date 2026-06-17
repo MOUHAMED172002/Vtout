@@ -676,18 +676,69 @@ export const getCashHistory = async (req, res) => {
     }
 };
 
+export const getMyKycStatus = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const deliveryPerson = await DeliveryPerson.findOne({
+            where: { user_id: userId },
+            attributes: ['id', 'kyc_status', 'kyc_rejection_reason', 'is_verified']
+        });
+        if (!deliveryPerson) return res.status(404).json({ error: 'Profil livreur non trouvé' });
+        res.json({ kyc_status: deliveryPerson.kyc_status, kyc_rejection_reason: deliveryPerson.kyc_rejection_reason, is_verified: deliveryPerson.is_verified });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+export const reviewKyc = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, rejection_reason } = req.body;
+
+        const deliveryPerson = await DeliveryPerson.findByPk(id);
+        if (!deliveryPerson) return res.status(404).json({ error: 'Livreur non trouvé' });
+
+        if (action === 'approve') {
+            await deliveryPerson.update({ kyc_status: 'approved', is_verified: true, kyc_rejection_reason: null });
+            const profile = await Profile.findByPk(deliveryPerson.user_id);
+            if (profile) {
+                await profile.update({ role: 'livreur' });
+                await sequelize.query('UPDATE user SET role = :role WHERE id = :id', { replacements: { role: 'livreur', id: deliveryPerson.user_id }, type: sequelize.QueryTypes.UPDATE });
+                const phone = deliveryPerson.whatsapp || profile.phone;
+                if (phone) notifyDelivererStatusUpdate(phone, true).catch(() => {});
+            }
+        } else if (action === 'reject') {
+            await deliveryPerson.update({ kyc_status: 'rejected', is_verified: false, kyc_rejection_reason: rejection_reason || '' });
+            const profile = await Profile.findByPk(deliveryPerson.user_id);
+            const phone = deliveryPerson.whatsapp || profile?.phone;
+            if (phone) notifyDelivererStatusUpdate(phone, false).catch(() => {});
+        } else {
+            return res.status(400).json({ error: 'Action invalide (approve | reject)' });
+        }
+
+        res.json({ message: 'KYC mis à jour' });
+    } catch (error) {
+        console.error('[reviewKyc]', error);
+        res.status(500).json({ error: 'Erreur lors de la revue KYC' });
+    }
+};
+
 export const registerLivreur = async (req, res) => {
     try {
         const userId = req.auth.userId;
-        const { vehicle_type, vehicle_model, license_plate, id_card_url, phone, fullname, service_zones } = req.body;
+        const { vehicle_type, vehicle_model, license_plate, id_card_url, selfie_url, phone, fullname, service_zones } = req.body;
+
+        const kycStatus = id_card_url && selfie_url ? 'submitted' : 'pending';
 
         const [deliveryPerson, created] = await DeliveryPerson.findOrCreate({
             where: { user_id: userId },
-            defaults: { vehicle_type, vehicle_model, license_plate, id_card_url, service_zones: service_zones || [], is_verified: false }
+            defaults: { vehicle_type, vehicle_model, license_plate, id_card_url, selfie_url, kyc_status: kycStatus, service_zones: service_zones || [], is_verified: false }
         });
 
         if (!created) {
-            await deliveryPerson.update({ vehicle_type, vehicle_model, license_plate, id_card_url, service_zones: service_zones || [] });
+            const updateData = { vehicle_type, vehicle_model, license_plate, id_card_url, selfie_url, service_zones: service_zones || [] };
+            if (deliveryPerson.kyc_status !== 'approved') updateData.kyc_status = kycStatus;
+            await deliveryPerson.update(updateData);
         }
 
         const profile = await Profile.findByPk(userId);
