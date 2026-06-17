@@ -165,6 +165,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (itemsFromCart.length > 0 && totalFromCart > 0) {
       window.gtag?.('event', 'begin_checkout', { currency: 'XOF', value: totalFromCart });
+      window.fbq?.('track', 'InitiateCheckout', { currency: 'XOF', value: totalFromCart });
     }
   }, []);
 
@@ -286,6 +287,7 @@ export default function CheckoutPage() {
         await refreshCart();
         setIsSuccess(true);
         window.gtag?.('event', 'purchase', { transaction_id: createResponse.order?.id, currency: 'XOF', value: finalTotal });
+        window.fbq?.('track', 'Purchase', { currency: 'XOF', value: finalTotal });
         toast.success("Commande enregistrée !");
         const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);

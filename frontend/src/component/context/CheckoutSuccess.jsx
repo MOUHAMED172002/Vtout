@@ -22,11 +22,8 @@ export default function CheckoutSuccess() {
                 }
             } catch (_) {}
 
-            window.gtag?.('event', 'purchase', {
-                transaction_id: orderId || 'unknown',
-                currency: 'XOF',
-                value
-            });
+            window.gtag?.('event', 'purchase', { transaction_id: orderId || 'unknown', currency: 'XOF', value });
+            window.fbq?.('track', 'Purchase', { currency: 'XOF', value });
 
             setTimeout(() => {
                 navigate(orderId ? `/user/dashboard/orders/${orderId}` : '/', { replace: true });

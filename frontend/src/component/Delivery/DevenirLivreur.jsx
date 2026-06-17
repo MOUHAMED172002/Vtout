@@ -96,6 +96,12 @@ export default function DevenirLivreur() {
             await refreshProfile();
             setStep(3);
             toast.success("Demande envoyée !");
+            window.fbq?.('track', 'CompleteRegistration', { account_type: 'driver' });
+            window.fbq?.('trackCustom', 'DriverRegistration', { account_type: 'driver' });
+            import('../../services/analyticsService').then(({ trackMeta }) => {
+                trackMeta('CompleteRegistration', { account_type: 'driver' });
+                trackMeta('custom:DriverRegistration', { account_type: 'driver' });
+            }).catch(() => {});
         } catch (err) {
             console.error(err);
             let msg = "Erreur lors de l'inscription";

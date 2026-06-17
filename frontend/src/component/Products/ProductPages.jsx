@@ -67,6 +67,12 @@ export default function ProductPages() {
         value: Number(data.price || 0),
         items: [{ item_id: data.id, item_name: data.name, item_category: data.category?.name || '', price: Number(data.price || 0) }]
       });
+      window.fbq?.('track', 'ViewContent', {
+        content_type: 'listing',
+        content_ids: [data.id],
+        content_name: data.name,
+        content_category: data.category?.name || ''
+      });
       const enrichedVariants = (data.variants || []).map(v => ({
         ...v,
         combination: typeof v.combination === 'string' ? JSON.parse(v.combination) : (v.combination || {})
@@ -283,8 +289,12 @@ export default function ProductPages() {
     try {
       const token = await getToken();
       const vId = matchedVariant?.id || null;
-      if (!prev) await addFavorite(id, token, vId);
-      else await removeFavorite(id, token, vId);
+      if (!prev) {
+        await addFavorite(id, token, vId);
+        window.fbq?.('trackCustom', 'AddToFavorites', { content_id: id, content_name: product?.name });
+      } else {
+        await removeFavorite(id, token, vId);
+      }
       toast.success(prev ? "Retiré des favoris" : "Ajouté aux favoris");
     } catch {
       setIsFav(prev);

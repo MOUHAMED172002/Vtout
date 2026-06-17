@@ -1,6 +1,7 @@
 import { Order, FinancialTransaction, OrderItem } from '../models/index.js';
 import { verifyFedapayTransaction } from '../services/fedapayService.js';
 import { sendOrderUpdateToCustomer, sendOrderNotificationToAdmin, sendInvoiceEmail } from '../services/mailService.js';
+import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 import crypto from 'crypto';
 
 export const fedapayCallback = async (req, res) => {
@@ -91,6 +92,11 @@ export const fedapayWebhook = async (req, res) => {
                         });
                         if (order && order.payment_status !== 'payé') {
                             await order.update({ payment_status: 'payé' });
+                            sendMetaCapiEvent({
+                                eventName: 'Purchase',
+                                eventSourceUrl: `${process.env.FRONTEND_URL || 'https://vtout.com'}/checkout/success`,
+                                customData: { currency: 'XOF', value: parseFloat(order.total_amount || 0) }
+                            }).catch(err => console.error('[CAPI Purchase]', err));
                             try {
                                 await sendOrderUpdateToCustomer(order, 'Payé (En préparation)');
                                 await sendOrderNotificationToAdmin(order);

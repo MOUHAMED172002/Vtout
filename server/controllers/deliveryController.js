@@ -4,6 +4,7 @@ import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 import { createFedapayTransaction } from '../services/fedapayService.js';
+import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 
 const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) => {
     try {
@@ -707,7 +708,23 @@ export const registerLivreur = async (req, res) => {
         }
 
         res.json({ message: 'Demande d\'inscription envoyée. En attente de vérification.', deliveryPerson });
-        
+
+        // Meta CAPI — DriverRegistration
+        const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip;
+        const userAgent = req.headers['user-agent'];
+        sendMetaCapiEvent({
+            eventName: 'DriverRegistration',
+            eventSourceUrl: `${process.env.FRONTEND_URL || 'https://vtout.com'}/delivery-rider`,
+            userData: { ip, userAgent },
+            customData: { account_type: 'driver' }
+        }).catch(() => {});
+        sendMetaCapiEvent({
+            eventName: 'CompleteRegistration',
+            eventSourceUrl: `${process.env.FRONTEND_URL || 'https://vtout.com'}/delivery-rider`,
+            userData: { ip, userAgent },
+            customData: { account_type: 'driver' }
+        }).catch(() => {});
+
         // Notify Admin
         notifyAdmin(`🛵 *Nouveau Livreur !*\n${fullname || 'Un utilisateur'} vient de s'inscrire comme livreur.\nNuméro : ${phone || 'Inconnu'}`).catch(() => {});
     } catch (error) {

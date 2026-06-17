@@ -83,6 +83,12 @@ const SupplierRegister = () => {
         try {
             const token = await getToken();
             await registerSelfSupplier(formData, token);
+            window.fbq?.('track', 'CompleteRegistration', { account_type: 'seller' });
+            window.fbq?.('trackCustom', 'SellerRegistration', { account_type: 'seller' });
+            import('../../services/analyticsService').then(({ trackMeta }) => {
+                trackMeta('CompleteRegistration', { account_type: 'seller' });
+                trackMeta('custom:SellerRegistration', { account_type: 'seller' });
+            }).catch(() => {});
             window.location.href = '/fournisseur/dashboard';
         } catch (error) {
             alert(error?.response?.data?.error || 'Une erreur est survenue lors de l\'inscription');

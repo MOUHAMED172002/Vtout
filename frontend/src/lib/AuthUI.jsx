@@ -6,6 +6,7 @@ import api from '../services/api';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import toast from 'react-hot-toast';
+import { trackMeta } from '../services/analyticsService';
 
 export const AuthUI = ({ mode = 'signIn' }) => {
     const [isSign, setIsSign] = useState(mode === 'signIn');
@@ -64,6 +65,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                     if (res.error) toast.error(res.error.message || "Erreur d'inscription");
                     else {
                         window.gtag?.('event', 'sign_up', { method: 'email' });
+                        trackMeta('CompleteRegistration', { account_type: 'buyer' }, email);
                         window.location.href = '/';
                     }
                 }
@@ -87,6 +89,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                         try { await api.get('/profile/sync'); } catch (e) {}
                         toast.success("Inscription réussie !");
                         window.gtag?.('event', 'sign_up', { method: 'whatsapp' });
+                        trackMeta('CompleteRegistration', { account_type: 'buyer' });
                         window.location.href = '/';
                     }
                 } else {

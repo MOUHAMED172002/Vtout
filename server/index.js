@@ -77,6 +77,7 @@ import couponRoutes from "./routes/couponRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 import seedBlogs from "./seedBlogs.js";
 import { adminSyncFinancials } from "./controllers/financialController.js";
 import { syncDatabase } from "./controllers/migrationController.js";
@@ -465,6 +466,7 @@ app.get("/api/diagnostics", async (req, res) => {
 
 app.use("/api/auth/whatsapp", authWhatsAppRoutes);
 app.use("/api/auth", betterAuthMiddleware);
+app.use("/api/analytics", analyticsRoutes); // public — before authMiddleware
 
 // Redirection du lien de réinitialisation du backend vers le frontend
 app.get("/reset-password", (req, res) => {

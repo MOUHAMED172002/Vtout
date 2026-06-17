@@ -433,6 +433,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             } else {
                 await createProduct(payload, token);
                 toast.success("Produit envoyé pour validation !");
+                window.fbq?.('track', 'Lead');
+                window.fbq?.('trackCustom', 'ListingCreated', { content_name: payload.name });
             }
             onClose();
         } catch (err) {

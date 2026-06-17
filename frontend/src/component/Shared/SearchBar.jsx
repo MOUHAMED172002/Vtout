@@ -31,6 +31,7 @@ export default function SearchModal() {
           image: p.images?.[0]?.image_url || "/placeholder.jpg",
         }));
         window.gtag?.('event', 'search', { search_term: query });
+        window.fbq?.('track', 'Search', { search_string: query });
         setResults(formatted);
       } catch (err) {
         console.error("Erreur recherche :", err);

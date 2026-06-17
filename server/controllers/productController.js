@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
+import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 
 export const processProductsForCommunes = async (products) => {
     const tiers = await getDeliveryFeeTiers();
@@ -696,6 +697,12 @@ export const createProduct = async (req, res) => {
         }
 
         await transaction.commit();
+
+        // Meta CAPI — Lead + ListingCreated
+        const _ip = (req.headers?.['x-forwarded-for'] || '').split(',')[0].trim() || req.ip;
+        sendMetaCapiEvent({ eventName: 'Lead', userData: { ip: _ip, userAgent: req.headers?.['user-agent'] } }).catch(() => {});
+        sendMetaCapiEvent({ eventName: 'ListingCreated', userData: { ip: _ip, userAgent: req.headers?.['user-agent'] }, customData: { content_name: name || '' } }).catch(() => {});
+
         res.status(201).json(product);
     } catch (error) {
         if (transaction) await transaction.rollback();
