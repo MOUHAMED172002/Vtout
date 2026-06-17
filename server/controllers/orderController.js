@@ -393,7 +393,10 @@ export const createOrder = async (req, res) => {
                         if (metTier) {
                             const discountPercent = parseFloat(metTier.discount || 0);
                             if (discountPercent > 0) {
-                                unitPrice = basePrice * (1 - discountPercent / 100);
+                                const sp = parseFloat(product.supplier_price || 0);
+                                unitPrice = sp > 0 && sp < basePrice
+                                    ? basePrice - sp * (discountPercent / 100)
+                                    : basePrice * (1 - discountPercent / 100);
                             }
                         }
                     }
