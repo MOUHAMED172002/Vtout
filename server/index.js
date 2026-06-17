@@ -782,6 +782,20 @@ sequelize.authenticate()
                 }
             }
 
+            // ── KYC columns for delivery_persons ──
+            for (const [col, def] of [
+                ['selfie_url',           'TEXT NULL'],
+                ['kyc_status',           "VARCHAR(20) NOT NULL DEFAULT 'pending'"],
+                ['kyc_rejection_reason', 'TEXT NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`delivery_persons\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added delivery_persons.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ delivery_persons.${col}:`, e.message);
+                }
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
