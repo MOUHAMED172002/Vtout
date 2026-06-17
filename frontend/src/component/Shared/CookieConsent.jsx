@@ -78,7 +78,7 @@ export default function CookieConsent() {
                                         Refuser
                                     </button>
                                     <Link
-                                        to="/privacy"
+                                        to="/Policy"
                                         className="flex-1 py-4 bg-transparent text-white/40 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
                                         Politique <ExternalLink size={12} />
