@@ -62,6 +62,11 @@ export default function ProductPages() {
     try {
       const data = await getProductById(id);
       setProduct(data);
+      window.gtag?.('event', 'view_item', {
+        currency: 'XOF',
+        value: Number(data.price || 0),
+        items: [{ item_id: data.id, item_name: data.name, item_category: data.category?.name || '', price: Number(data.price || 0) }]
+      });
       const enrichedVariants = (data.variants || []).map(v => ({
         ...v,
         combination: typeof v.combination === 'string' ? JSON.parse(v.combination) : (v.combination || {})
@@ -263,6 +268,11 @@ export default function ProductPages() {
       selected_attributes: selectedAttributes,
     };
     await addToCart(payload, quantity);
+    window.gtag?.('event', 'add_to_cart', {
+      currency: 'XOF',
+      value: displayPrice.current * quantity,
+      items: [{ item_id: product.id, item_name: product.name, item_category: product.category?.name || '', price: displayPrice.current, quantity }]
+    });
     // CartContext already shows "Ajouté au panier!" — no duplicate toast or redirect here.
   };
 

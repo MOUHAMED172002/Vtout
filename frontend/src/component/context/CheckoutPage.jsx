@@ -163,6 +163,12 @@ export default function CheckoutPage() {
   }, [itemsFromCart, navigate]);
 
   useEffect(() => {
+    if (itemsFromCart.length > 0 && totalFromCart > 0) {
+      window.gtag?.('event', 'begin_checkout', { currency: 'XOF', value: totalFromCart });
+    }
+  }, []);
+
+  useEffect(() => {
     if (!document.getElementById("fedapay-checkout-script")) {
       const script = document.createElement("script");
       script.id = "fedapay-checkout-script";
@@ -279,6 +285,7 @@ export default function CheckoutPage() {
         });
         await refreshCart();
         setIsSuccess(true);
+        window.gtag?.('event', 'purchase', { transaction_id: createResponse.order?.id, currency: 'XOF', value: finalTotal });
         toast.success("Commande enregistrée !");
         const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
         setTimeout(() => navigate(nextPath), 2500);

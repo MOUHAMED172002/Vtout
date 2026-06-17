@@ -45,6 +45,7 @@ import ProductsList from './component/Products/ProductsList';
 import ProductPages from './component/Products/ProductPages';
 import CartPage from './component/context/CartPage';
 import CheckoutPage from './component/context/CheckoutPage';
+import CheckoutSuccess from './component/context/CheckoutSuccess';
 import AddressSelector from './component/context/AddressSelector';
 import GuestOrderConfirmationPage from './component/context/GuestOrderConfirmationPage';
 import OrderDetail from './component/User/OrderDetail';
@@ -191,6 +192,8 @@ const AppContent = ({ products, loading }) => {
           <Route path="/comment-ca-marche/:tab" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />
           <Route path="/cartpage" element={<PublicRoute><><Navbar /><CartPage /><Footer /></></PublicRoute>} />
           <Route path="/checkout" element={<PublicRoute><><Navbar /><CheckoutPage /><Footer /></></PublicRoute>} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/checkout/error" element={<><Navbar /><div className="min-h-screen flex items-center justify-center text-rose-500 font-black text-xl">Paiement échoué ou annulé.</div><Footer /></>} />
           <Route path="/temoignages" element={<><Navbar /><PlatformReviews /><Footer /></>} />
 
           {/* Auth Routes — full-screen, no Navbar/Footer */}

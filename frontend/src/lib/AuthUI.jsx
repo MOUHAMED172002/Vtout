@@ -62,7 +62,10 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                 } else {
                     const res = await authClient.signUp.email({ email, password, name });
                     if (res.error) toast.error(res.error.message || "Erreur d'inscription");
-                    else window.location.href = '/';
+                    else {
+                        window.gtag?.('event', 'sign_up', { method: 'email' });
+                        window.location.href = '/';
+                    }
                 }
             } else {
                 const fakeEmail = `${phone.replace(/\D/g, '')}@whatsapp.vtout.com`;
@@ -83,6 +86,7 @@ export const AuthUI = ({ mode = 'signIn' }) => {
                         }
                         try { await api.get('/profile/sync'); } catch (e) {}
                         toast.success("Inscription réussie !");
+                        window.gtag?.('event', 'sign_up', { method: 'whatsapp' });
                         window.location.href = '/';
                     }
                 } else {

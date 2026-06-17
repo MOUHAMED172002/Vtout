@@ -30,6 +30,7 @@ export default function SearchModal() {
           category: p.category?.name || "Sans catégorie",
           image: p.images?.[0]?.image_url || "/placeholder.jpg",
         }));
+        window.gtag?.('event', 'search', { search_term: query });
         setResults(formatted);
       } catch (err) {
         console.error("Erreur recherche :", err);
