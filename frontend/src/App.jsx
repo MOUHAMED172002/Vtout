@@ -89,6 +89,7 @@ const AppContent = ({ products, loading }) => {
 
   useEffect(() => {
     if (window.fbq) window.fbq('track', 'PageView');
+    if (window.gtag) window.gtag('config', 'G-VVET0H2YQ7', { page_path: location.pathname });
   }, [location.pathname]);
 
     useEffect(() => {
