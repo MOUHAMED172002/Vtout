@@ -48,7 +48,7 @@ export default function CookieConsent() {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setIsVisible(false)}
+                                    onClick={declineAll}
                                     className="text-white/40 hover:text-white transition-colors"
                                 >
                                     <X size={20} />
@@ -74,7 +74,7 @@ export default function CookieConsent() {
                                         Refuser
                                     </button>
                                     <a
-                                        href="/privacy-policy"
+                                        href="/privacy"
                                         className="flex-1 py-4 bg-transparent text-white/40 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
                                         Politique <ExternalLink size={12} />
