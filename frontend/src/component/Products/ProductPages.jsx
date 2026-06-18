@@ -644,18 +644,18 @@ export default function ProductPages() {
           <div className="mt-12">
             <button
               onClick={() => navigate(`/vendeur/${product.supplier_id}`)}
-              className="w-full flex items-center justify-between px-6 py-5 bg-base-200/60 hover:bg-base-200 border border-base-content/8 hover:border-primary/20 rounded-2xl transition-all group"
+              className="w-full flex items-center justify-between px-6 py-5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 rounded-2xl transition-all group shadow-lg shadow-orange-500/30"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center">
                   <Store size={18} />
                 </div>
                 <div className="text-left">
-                  <p className="font-black text-base-content text-sm">Voir tous les produits de ce vendeur</p>
-                  <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Découvrir la boutique</p>
+                  <p className="font-black text-white text-sm">Voir tous les produits de ce vendeur</p>
+                  <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Découvrir la boutique</p>
                 </div>
               </div>
-              <ChevronRight size={18} className="text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              <ChevronRight size={18} className="text-white/70 group-hover:translate-x-1 transition-all" />
             </button>
           </div>
         )}
