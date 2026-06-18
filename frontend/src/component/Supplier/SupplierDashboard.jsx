@@ -688,10 +688,13 @@ const SupplierDashboard = () => {
                                 </button>
                             </div>
 
-                            <AddressSelector 
+                            <AddressSelector
                                 initial={{
+                                    departement_id: profile?.departement_id,
                                     departement_label: profile?.departement_label,
+                                    commune_id: profile?.commune_id,
                                     commune_label: profile?.commune_label,
+                                    quartier_id: profile?.quartier_id,
                                     quartier_label: profile?.quartier_label,
                                     address_line: profile?.address_line,
                                     phone: profile?.phone
