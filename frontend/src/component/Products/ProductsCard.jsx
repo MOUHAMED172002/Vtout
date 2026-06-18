@@ -339,7 +339,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
             {/* Sales bar — always visible, grayed when < 100 sales */}
             <div className="flex-1 min-w-0">
               <div className="flex justify-between text-[8px] sm:text-[10px] font-black mb-1 uppercase tracking-tighter">
-                <span className={`flex items-center gap-0.5 ${isPopular ? 'text-orange-500' : 'text-base-content/25'}`}>
+                <span className="flex items-center gap-0.5 text-orange-500">
                   <Zap size={8} fill="currentColor" /> {salesCount} vendus
                 </span>
                 {isPopular && <span className="text-primary">Populaire</span>}
