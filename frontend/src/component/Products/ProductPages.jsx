@@ -151,14 +151,14 @@ export default function ProductPages() {
     return Number(product?.old_price) > Number(product?.price);
   }, [product]);
 
-  const currentStock = useMemo(() => {
+  const isOutOfStock = useMemo(() => {
     if (variants.length > 0) {
-      return matchedVariant?.priceRows?.[0]?.stock || 0;
+      // No variant chosen yet — product is selectable, not out of stock
+      if (!matchedVariant) return false;
+      return (matchedVariant?.priceRows?.[0]?.stock || 0) <= 0;
     }
-    return product?.stock ?? 0;
+    return (product?.stock ?? 0) <= 0;
   }, [matchedVariant, product, variants]);
-
-  const isOutOfStock = currentStock <= 0;
 
   const displayPrice = useMemo(() => {
     const bPrice = Number(product?.price || 0);
