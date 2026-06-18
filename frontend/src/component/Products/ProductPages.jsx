@@ -36,6 +36,8 @@ export default function ProductPages() {
   const [variants, setVariants] = useState([]);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [isFav, setIsFav] = useState(false);
+  const [showAttrModal, setShowAttrModal] = useState(false);
+  const [attrModalAction, setAttrModalAction] = useState('cart'); // 'cart' | 'buy'
 
   const thumbsRef = useRef(null);
   const actionRef = useRef(null);
@@ -258,11 +260,9 @@ export default function ProductPages() {
   const handleAddToCart = async () => {
     if (!product) return;
     if (variants.length > 0 && !matchedVariant) {
-      haptics.error();
-      variantsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setShakeVariants(true);
-      setTimeout(() => setShakeVariants(false), 600);
-      toast.error("Choisissez vos options avant de continuer.");
+      haptics.tap();
+      setAttrModalAction('cart');
+      setShowAttrModal(true);
       return;
     }
     if (isOutOfStock) {
@@ -552,7 +552,16 @@ export default function ProductPages() {
                 </button>
               </div>
               <button
-                onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
+                onClick={() => {
+                  if (variants.length > 0 && !matchedVariant) {
+                    haptics.tap();
+                    setAttrModalAction('buy');
+                    setShowAttrModal(true);
+                    return;
+                  }
+                  handleAddToCart();
+                  navigate("/cartpage");
+                }}
                 disabled={isOutOfStock}
                 className="btn bg-orange-400 text-white btn-block h-14 rounded-2xl text-lg font-black border-none hover:bg-orange-500 disabled:opacity-50"
               >
@@ -578,14 +587,14 @@ export default function ProductPages() {
                     </div>
                     <div className="flex gap-2 flex-1 justify-end">
                         <button
-                        onClick={handleAddToCart}
+                        onClick={() => { setAttrModalAction('cart'); handleAddToCart(); }}
                         disabled={isOutOfStock}
                         className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
                         >
                         <ShoppingCart size={16} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
                         </button>
                         <button
-                        onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
+                        onClick={() => { setAttrModalAction('buy'); handleAddToCart(); }}
                         disabled={isOutOfStock}
                         className="px-4 bg-neutral text-neutral-content h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 text-xs"
                         >
@@ -649,6 +658,107 @@ export default function ProductPages() {
         </div>
       </div>
     </div>
+
+    {/* Attribute selection bottom-sheet modal */}
+    <AnimatePresence>
+      {showAttrModal && (
+        <>
+          <motion.div
+            key="attr-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowAttrModal(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          />
+          <motion.div
+            key="attr-sheet"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[85vh] flex flex-col md:max-w-lg md:mx-auto md:left-0 md:right-0"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-base-200 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <img src={activeMainImage} alt={product?.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-black text-base-content text-sm truncate">{product?.name}</p>
+                  <p className="text-primary font-black text-base">{formatPrice(displayPrice.current)} <span className="text-xs">FCFA</span></p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAttrModal(false)}
+                className="w-9 h-9 rounded-2xl bg-base-200 flex items-center justify-center text-base-content/50 hover:bg-base-300 flex-shrink-0"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 3L3 11M3 3l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+
+            {/* Scrollable attribute groups */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Choisissez vos options</p>
+              {getAttributeKeys(variants).map(key => {
+                const values = uniqueAttributeValues(variants, key);
+                const selected = selectedAttributes[key];
+                return (
+                  <div key={key} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-widest text-base-content/60">{key}</span>
+                      {selected && <span className="text-xs font-bold text-primary">{selected}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map(val => {
+                        const active = selectedAttributes[key] === val;
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => {
+                              haptics.tap();
+                              setSelectedAttributes(prev => ({ ...prev, [key]: val }));
+                            }}
+                            className={`px-4 py-2.5 rounded-xl border-2 font-bold text-sm transition-all ${
+                              active
+                                ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
+                                : 'border-base-200 bg-base-100 text-base-content/70 hover:border-primary/30'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTA */}
+            <div className="px-6 pt-4 pb-8 border-t border-base-200 flex-shrink-0 space-y-3">
+              {!matchedVariant && Object.keys(selectedAttributes).length > 0 && (
+                <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">
+                  Cette combinaison n'est pas disponible
+                </p>
+              )}
+              <button
+                onClick={async () => {
+                  if (!matchedVariant) return;
+                  setShowAttrModal(false);
+                  await handleAddToCart();
+                  if (attrModalAction === 'buy') navigate('/cartpage');
+                }}
+                disabled={!matchedVariant}
+                className="w-full h-14 bg-primary text-white rounded-2xl font-black text-base shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale transition-all active:scale-95"
+              >
+                <ShoppingCart size={20} />
+                {attrModalAction === 'buy' ? 'Commander maintenant' : 'Ajouter au panier'}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
 
     <style>{`
       @keyframes shake {
