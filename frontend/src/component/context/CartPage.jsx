@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { haptics } from "../../utils/haptics";
 import { useCart } from "./CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Trash2, Plus, Minus, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -292,14 +293,14 @@ export default function CartPage() {
                         <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
                           <div className="flex items-center bg-base-200 rounded-2xl p-2 gap-4">
                             <button
-                              onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                              onClick={() => { haptics.tap(); updateQuantity(item.id, Math.max(1, item.quantity - 1)); }}
                               className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-base-200 text-gray-900 transition-colors shadow-sm active:scale-90"
                             >
                               <Minus size={18} />
                             </button>
                             <span className="text-lg font-black w-6 text-blue-400 text-center">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => { haptics.tap(); updateQuantity(item.id, item.quantity + 1); }}
                               className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-base-200 text-gray-900 transition-colors shadow-sm active:scale-90"
                             >
                               <Plus size={18} />
@@ -307,7 +308,7 @@ export default function CartPage() {
                           </div>
 
                           <button
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => { haptics.remove(); removeFromCart(item.id); }}
                             className="p-4 text-gray-300 hover:text-red-500 transition-colors"
                           >
                             <Trash2 size={24} />

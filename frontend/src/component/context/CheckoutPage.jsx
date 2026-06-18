@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { haptics } from "../../utils/haptics";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import AddressSelector from "./AddressSelector";
@@ -286,6 +287,7 @@ export default function CheckoutPage() {
         });
         await refreshCart();
         setIsSuccess(true);
+        haptics.successBig();
         window.gtag?.('event', 'purchase', { transaction_id: createResponse.order?.id, currency: 'XOF', value: finalTotal });
         window.fbq?.('track', 'Purchase', { currency: 'XOF', value: finalTotal });
         toast.success("Commande enregistrée !");
@@ -294,6 +296,7 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       console.error("[Checkout Error]", err?.response?.data || err?.message || err);
+      haptics.error();
       const errorMsg = err.response?.data?.error || "Erreur lors de la validation";
       const details = err.response?.data?.details;
       toast.error(details ? `${errorMsg}: ${details}` : errorMsg, { duration: 8000 });

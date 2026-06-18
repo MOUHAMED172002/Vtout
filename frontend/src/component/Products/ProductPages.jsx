@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { haptics } from "../../utils/haptics";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
@@ -257,6 +258,7 @@ export default function ProductPages() {
   const handleAddToCart = async () => {
     if (!product) return;
     if (variants.length > 0 && !matchedVariant) {
+      haptics.error();
       variantsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setShakeVariants(true);
       setTimeout(() => setShakeVariants(false), 600);
@@ -264,6 +266,7 @@ export default function ProductPages() {
       return;
     }
     if (isOutOfStock) {
+      haptics.error();
       toast.error("Ce produit est en rupture de stock.");
       return;
     }
@@ -276,6 +279,7 @@ export default function ProductPages() {
       selected_attributes: selectedAttributes,
     };
     await addToCart(payload, quantity);
+    haptics.success();
     window.gtag?.('event', 'add_to_cart', {
       currency: 'XOF',
       value: displayPrice.current * quantity,
@@ -295,6 +299,7 @@ export default function ProductPages() {
     if (!isSignedIn) return navigate("/auth/connexion");
     const prev = isFav;
     setIsFav(!prev);
+    haptics.tap();
     try {
       const token = await getToken();
       const vId = matchedVariant?.id || null;
@@ -510,6 +515,7 @@ export default function ProductPages() {
                             <button
                               key={val}
                               onClick={() => {
+                                haptics.tap();
                                 setSelectedAttributes(prev => ({ ...prev, [key]: val }));
                                 window.fbq?.('track', 'CustomizeProduct', { content_id: product?.id, content_name: product?.name, [`option_${key}`]: val });
                               }}
