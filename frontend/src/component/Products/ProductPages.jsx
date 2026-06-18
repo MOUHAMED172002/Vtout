@@ -90,16 +90,7 @@ export default function ProductPages() {
       setProductImages(uniqueImgs);
 
       const attrKeys = getAttributeKeys(enrichedVariants);
-      const initialSelection = {};
-
-      const targetVariantId = location.state?.selectedVariantId;
-      const targetVariant = enrichedVariants.find(v => v.id === targetVariantId);
-
-      // Only pre-select if arriving from a specific variant link — otherwise leave blank
-      if (targetVariant && targetVariant.combination) {
-        Object.assign(initialSelection, targetVariant.combination);
-      }
-      setSelectedAttributes(initialSelection);
+      setSelectedAttributes({});
 
       const firstVariantImage = enrichedVariants.find((v) => v?.priceRows?.[0]?.image_url)?.priceRows?.[0]?.image_url;
       setActiveMainImage(firstVariantImage || data.image_url || uniqueImgs[0] || "/placeholder.png");
