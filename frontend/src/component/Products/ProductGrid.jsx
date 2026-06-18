@@ -92,8 +92,8 @@ export default function ProductGrid({ products = [], showButton = true, title = 
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 lg:gap-8"
         >
           {products.length > 0 ? (
-            products.slice(0, 20).map((product) => (
-              <motion.div key={product.id} variants={itemVariants}>
+            products.slice(0, 20).map((product, idx) => (
+              <motion.div key={product.id} variants={itemVariants} className={idx >= 10 ? 'hidden md:block' : ''}>
                 <ProductCard product={product} />
               </motion.div>
             ))
