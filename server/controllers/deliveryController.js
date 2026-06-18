@@ -497,13 +497,36 @@ export const generateCashPaymentLink = async (req, res) => {
                 payment_status: 'en_attente',
                 status: { [Op.in]: ['livrée', 'livree'] }
             },
-            include: [{ model: Profile, as: 'user' }]
+            include: [
+                { model: Profile, as: 'user' },
+                { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] }
+            ]
         });
         if (!order) return res.status(404).json({ error: 'Commande introuvable ou déjà soldée' });
 
         const totalAmount = parseFloat(order.total_amount || 0);
-        const deliveryFee = parseFloat(order.delivery_fee || 0);
-        const amountToReverse = Math.max(0, Math.round(totalAmount - deliveryFee));
+
+        // Compute livreur's actual total earning (mirrors financialService.js logic)
+        const deliveryTiers = await getDeliveryFeeTiers();
+        const multiplierTiers = await getDeliveryMultiplierTiers();
+        const items = order.items || [];
+        let totalEmbeddedFees = 0;
+        let totalQuantity = 0;
+        for (const item of items) {
+            const itemSupplierPrice = parseFloat(item.product?.supplier_price || 0);
+            const itemFee = computeDeliveryFee(itemSupplierPrice, deliveryTiers);
+            totalEmbeddedFees += itemFee * item.quantity;
+            totalQuantity += item.quantity;
+        }
+        const multiplier = computeDeliveryMultiplier(totalQuantity, multiplierTiers);
+        const rawDelivererFee = totalQuantity > 0
+            ? Math.round((totalEmbeddedFees / totalQuantity) * multiplier)
+            : 0;
+        const delivererActualFee = Math.min(rawDelivererFee, Math.round(totalEmbeddedFees * 0.80));
+        const geographicalFee = parseFloat(order.delivery_fee || 0);
+        const totalDelivererFee = delivererActualFee + geographicalFee;
+
+        const amountToReverse = Math.max(0, Math.round(totalAmount - totalDelivererFee));
 
         if (amountToReverse <= 0) return res.status(400).json({ error: 'Montant à reverser invalide' });
 
