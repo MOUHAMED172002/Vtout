@@ -38,6 +38,7 @@ export default function DevenirLivreur() {
     const [uploading, setUploading] = useState(false);
     const [uploadingSelfie, setUploadingSelfie] = useState(false);
     const [zoneSearch, setZoneSearch] = useState("");
+    const [showTermsModal, setShowTermsModal] = useState(false);
     const [policies, setPolicies] = useState([]);
 
     React.useEffect(() => {
@@ -214,35 +215,44 @@ export default function DevenirLivreur() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="space-y-10"
                                 >
-                                    <div className="space-y-8">
-                                            <h2 className="text-3xl font-black text-base-content tracking-tighter uppercase">Conditions d'admission</h2>
-                                        <div className="grid gap-5">
-                                            {policies.length > 0 ? (
-                                                policies.map((p) => (
-                                                    <div key={p.id} className="group p-8 bg-base-200/50 rounded-3xl border border-base-content/10 hover:border-primary/30 transition-all hover:bg-base-200 hover:shadow-xl hover:shadow-base-content/5">
-                                                        <div className="flex items-center gap-4 mb-3">
-                                                            <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                                                <CheckCircle2 size={20} />
-                                                            </div>
-                                                            <p className="font-black text-base-content tracking-tight">{p.title}</p>
-                                                        </div>
-                                                        <div className="text-sm font-bold text-base-content/60 leading-relaxed pl-14 opacity-80">
-                                                            {p.content}
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                ["Avoir au moins 18 ans", "Moyen de déplacement propre", "Smartphone & Connexion Internet", "Pièce d'identité valide"].map((text, i) => (
-                                                    <div key={i} className="flex items-center gap-4 p-6 bg-base-200 rounded-2xl border border-base-200 font-bold text-gray-700">
-                                                        <CheckCircle2 size={24} className="text-emerald-500" />
-                                                        {text}
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
+                                    <div className="space-y-3">
+                                        <h2 className="text-3xl font-black text-base-content tracking-tighter uppercase">Conditions d'admission</h2>
+                                        <p className="text-base-content/50 font-bold text-sm">Avant de rejoindre notre flotte, assurez-vous de remplir les critères suivants.</p>
                                     </div>
 
-                                    <div className="flex flex-col gap-6 pt-6">
+                                    {/* Compact requirements list */}
+                                    <div className="grid gap-3">
+                                        {(policies.length > 0
+                                            ? policies.slice(0, 4).map(p => p.title)
+                                            : ["Avoir au moins 18 ans", "Moyen de déplacement propre", "Smartphone & Connexion Internet", "Pièce d'identité valide"]
+                                        ).map((title, i) => (
+                                            <div key={i} className="flex items-center gap-4 p-5 bg-base-200/60 rounded-2xl border border-base-content/5">
+                                                <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <CheckCircle2 size={16} />
+                                                </div>
+                                                <span className="font-bold text-base-content text-sm">{title}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Link to full terms modal */}
+                                    <button
+                                        onClick={() => setShowTermsModal(true)}
+                                        className="w-full flex items-center justify-between px-6 py-4 bg-base-200/40 hover:bg-base-200 border border-base-content/8 hover:border-primary/20 rounded-2xl transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                                                <FileText size={16} />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-black text-base-content text-sm">Lire les conditions complètes</p>
+                                                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Partenariat Vtout Livreur</p>
+                                            </div>
+                                        </div>
+                                        <ChevronRight size={18} className="text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    </button>
+
+                                    <div className="flex flex-col gap-6 pt-2">
                                         <label className="flex items-center gap-5 cursor-pointer group bg-primary/5 p-6 rounded-3xl border border-primary/10">
                                             <input
                                                 type="checkbox"
@@ -250,7 +260,13 @@ export default function DevenirLivreur() {
                                                 checked={acceptedTerms}
                                                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                                             />
-                                            <span className="text-base-content/80 font-bold group-hover:text-primary transition-colors">J'accepte les conditions de partenariat d'Vtout</span>
+                                            <span className="text-base-content/80 font-bold group-hover:text-primary transition-colors">
+                                                J'accepte les{" "}
+                                                <button type="button" onClick={e => { e.preventDefault(); setShowTermsModal(true); }} className="text-primary underline underline-offset-2">
+                                                    conditions de partenariat
+                                                </button>
+                                                {" "}de Vtout
+                                            </span>
                                         </label>
                                         <button
                                             disabled={!acceptedTerms}
@@ -462,7 +478,106 @@ export default function DevenirLivreur() {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+                .terms-scrollbar::-webkit-scrollbar { width: 4px; }
+                .terms-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .terms-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />
+
+            {/* Terms & Conditions Modal */}
+            <AnimatePresence>
+                {showTermsModal && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            key="terms-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowTermsModal(false)}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                        />
+
+                        {/* Modal panel */}
+                        <motion.div
+                            key="terms-modal"
+                            initial={{ opacity: 0, y: "100%" }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: "100%" }}
+                            transition={{ type: "spring", damping: 28, stiffness: 260 }}
+                            className="fixed bottom-0 left-0 right-0 md:inset-0 md:flex md:items-center md:justify-center z-50 pointer-events-none"
+                        >
+                            <div
+                                onClick={e => e.stopPropagation()}
+                                className="pointer-events-auto w-full md:max-w-2xl md:mx-auto bg-base-100 rounded-t-[3rem] md:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[92vh] md:max-h-[85vh] overflow-hidden"
+                            >
+                                {/* Modal header */}
+                                <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-base-200 flex-shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                                            <ShieldCheck size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black text-base-content text-lg tracking-tight leading-none">Conditions de partenariat</h3>
+                                            <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-0.5">Vtout Livreur</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowTermsModal(false)}
+                                        className="w-10 h-10 rounded-2xl bg-base-200 hover:bg-base-300 flex items-center justify-center text-base-content/50 hover:text-base-content transition-all"
+                                        aria-label="Fermer"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                    </button>
+                                </div>
+
+                                {/* Scrollable content */}
+                                <div className="flex-1 overflow-y-auto terms-scrollbar px-8 py-6 space-y-8">
+                                    {policies.length > 0 ? (
+                                        policies.map((p, idx) => (
+                                            <div key={p.id} className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                                                    <h4 className="font-black text-base-content tracking-tight">{p.title}</h4>
+                                                </div>
+                                                <p className="text-sm font-medium text-base-content/60 leading-relaxed pl-9">{p.content}</p>
+                                                {idx < policies.length - 1 && <div className="border-b border-base-200 pt-2" />}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        [
+                                            { title: "Conditions d'âge", content: "Vous devez avoir au moins 18 ans pour rejoindre notre flotte de livraison. Une pièce d'identité valide sera demandée pour vérification." },
+                                            { title: "Moyen de transport", content: "Vous devez disposer d'un véhicule en bon état de fonctionnement (moto, voiture ou vélo) adapté à la livraison de colis." },
+                                            { title: "Connectivité", content: "Un smartphone fonctionnel avec une connexion internet stable est obligatoire pour accéder à l'application livreur et gérer vos livraisons." },
+                                            { title: "Documents requis", content: "Une pièce d'identité nationale valide (CNI ou passeport) ainsi qu'un selfie tenant cette pièce sont requis pour la vérification KYC de votre compte." },
+                                            { title: "Responsabilité", content: "En tant que partenaire livreur, vous êtes responsable des colis confiés pendant leur transport. Tout dommage causé par négligence peut être soumis à compensation." },
+                                            { title: "Respect des standards", content: "Vous vous engagez à respecter les délais de livraison, à communiquer avec les clients de manière professionnelle et à suivre les protocoles Vtout." },
+                                        ].map((item, idx, arr) => (
+                                            <div key={idx} className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                                                    <h4 className="font-black text-base-content tracking-tight">{item.title}</h4>
+                                                </div>
+                                                <p className="text-sm font-medium text-base-content/60 leading-relaxed pl-9">{item.content}</p>
+                                                {idx < arr.length - 1 && <div className="border-b border-base-200 pt-2" />}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                {/* Footer */}
+                                <div className="px-8 pt-4 pb-8 border-t border-base-200 flex-shrink-0">
+                                    <button
+                                        onClick={() => { setAcceptedTerms(true); setShowTermsModal(false); }}
+                                        className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
+                                    >
+                                        J'ai lu et j'accepte
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
