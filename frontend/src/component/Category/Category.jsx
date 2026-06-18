@@ -183,7 +183,10 @@ export default function Category() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
                     whileHover={{ scale: 1.02 }}
-                    onClick={() => navigate(`/products-liste?category_id=${sub.id}`)}
+                    onClick={() => {
+                      window.fbq?.('track', 'ViewCategory', { content_category: sub.name, content_ids: [sub.id] });
+                      navigate(`/products-liste?category_id=${sub.id}`);
+                    }}
                     style={{ touchAction: 'manipulation' }}
                     className="flex-none min-w-[160px] md:min-w-[200px] bg-base-100 border border-base-200 rounded-2xl p-4 flex items-center gap-3 hover:bg-base-200 hover:border-primary/20 transition-all group"
                   >
@@ -203,7 +206,10 @@ export default function Category() {
           ) : activeParent && (
             <div className="text-center py-6">
               <button
-                onClick={() => navigate(`/products-liste?category_id=${activeParent.id}`)}
+                onClick={() => {
+                  window.fbq?.('track', 'ViewCategory', { content_category: activeParent.name, content_ids: [activeParent.id] });
+                  navigate(`/products-liste?category_id=${activeParent.id}`);
+                }}
                 className="inline-flex items-center gap-4 px-8 py-4 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-neutral transition-all shadow-xl shadow-primary/20"
               >
                 Explorer tout dans {activeParent.name} <LucideIcons.ArrowUpRight size={16} />

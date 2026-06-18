@@ -507,10 +507,10 @@ export default function ProductPages() {
                           return (
                             <button
                               key={val}
-                              onClick={() => setSelectedAttributes(prev => ({
-                                ...prev,
-                                [key]: val,
-                              }))}
+                              onClick={() => {
+                                setSelectedAttributes(prev => ({ ...prev, [key]: val }));
+                                window.fbq?.('track', 'CustomizeProduct', { content_id: product?.id, content_name: product?.name, [`option_${key}`]: val });
+                              }}
                               className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl border-2 font-bold transition-all text-sm md:text-base ${active
                                 ? 'border-primary bg-primary/5 text-primary shadow-sm'
                                 : 'border-base-200 bg-base-100 text-base-content/70 hover:border-base-300'
