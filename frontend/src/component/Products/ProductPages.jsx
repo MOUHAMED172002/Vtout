@@ -39,6 +39,8 @@ export default function ProductPages() {
   const thumbsRef = useRef(null);
   const actionRef = useRef(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [shakeVariants, setShakeVariants] = useState(false);
+  const variantsRef = useRef(null);
 
   useEffect(() => {
     if (!actionRef.current) return;
@@ -91,13 +93,9 @@ export default function ProductPages() {
       const targetVariantId = location.state?.selectedVariantId;
       const targetVariant = enrichedVariants.find(v => v.id === targetVariantId);
 
+      // Only pre-select if arriving from a specific variant link — otherwise leave blank
       if (targetVariant && targetVariant.combination) {
         Object.assign(initialSelection, targetVariant.combination);
-      } else {
-        attrKeys.forEach((k) => {
-          const values = uniqueAttributeValues(enrichedVariants, k);
-          if (values.length) initialSelection[k] = values[0];
-        });
       }
       setSelectedAttributes(initialSelection);
 
@@ -259,7 +257,10 @@ export default function ProductPages() {
   const handleAddToCart = async () => {
     if (!product) return;
     if (variants.length > 0 && !matchedVariant) {
-      toast.error("Veuillez sélectionner toutes les options du produit.");
+      variantsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setShakeVariants(true);
+      setTimeout(() => setShakeVariants(false), 600);
+      toast.error("Choisissez vos options avant de continuer.");
       return;
     }
     if (isOutOfStock) {
@@ -496,7 +497,7 @@ export default function ProductPages() {
 
             {/* Variants */}
             {variants.length > 0 && (
-              <div className="space-y-4">
+              <div ref={variantsRef} className={`space-y-4 transition-all ${shakeVariants ? 'animate-[shake_0.5s_ease-in-out] ring-2 ring-primary/50 rounded-2xl p-3' : ''}`}>
                 {getAttributeKeys(variants).map(key => {
                   const values = uniqueAttributeValues(variants, key);
                   return (
@@ -538,7 +539,7 @@ export default function ProductPages() {
                 </div>
                 <button
                   onClick={handleAddToCart}
-                  disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                  disabled={isOutOfStock}
                   className="flex-1 btn btn-primary h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 gap-3 disabled:opacity-50"
                 >
                   <ShoppingCart size={22} /> {isOutOfStock ? "Indisponible" : "Ajouter"}
@@ -546,7 +547,7 @@ export default function ProductPages() {
               </div>
               <button
                 onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
-                disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                disabled={isOutOfStock}
                 className="btn bg-orange-400 text-white btn-block h-14 rounded-2xl text-lg font-black border-none hover:bg-orange-500 disabled:opacity-50"
               >
                 {isOutOfStock ? "Produit Épuisé" : "Commander maintenant!"}
@@ -572,14 +573,14 @@ export default function ProductPages() {
                     <div className="flex gap-2 flex-1 justify-end">
                         <button
                         onClick={handleAddToCart}
-                        disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                        disabled={isOutOfStock}
                         className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
                         >
                         <ShoppingCart size={16} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
                         </button>
                         <button
                         onClick={() => { handleAddToCart(); navigate("/cartpage"); }}
-                        disabled={isOutOfStock || (variants.length > 0 && !matchedVariant)}
+                        disabled={isOutOfStock}
                         className="px-4 bg-neutral text-neutral-content h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 text-xs"
                         >
                         Acheter
@@ -643,5 +644,14 @@ export default function ProductPages() {
       </div>
     </div>
 
+    <style>{`
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-8px); }
+        40% { transform: translateX(8px); }
+        60% { transform: translateX(-5px); }
+        80% { transform: translateX(5px); }
+      }
+    `}</style>
   );
 }
