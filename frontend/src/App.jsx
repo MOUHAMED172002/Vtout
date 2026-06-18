@@ -70,6 +70,7 @@ import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
 import KitsPage from './pages/Promotions/KitsPage';
 import ReductionsPage from './pages/Promotions/ReductionsPage';
 import PromoDetailPage from './pages/Promotions/PromoDetailPage';
+import SupplierStorePage from './pages/Supplier/SupplierStorePage';
 
 // --- Delivery ---
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
@@ -180,6 +181,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/categories" element={<PublicRoute><><Navbar /><Category2 /><Footer /></></PublicRoute>} />
           <Route path="/products" element={<PublicRoute><><Navbar /><ProductGrid /><Footer /></></PublicRoute>} />
           <Route path="/products/:id" element={<PublicRoute><><Navbar /><ProductPages /><Footer /></></PublicRoute>} />
+          <Route path="/vendeur/:supplierId" element={<PublicRoute><><Navbar /><SupplierStorePage /><Footer /></></PublicRoute>} />
           <Route path="/products-liste" element={<PublicRoute><><Navbar /><ProductsList /><Footer /></></PublicRoute>} />
           <Route path="/promotions" element={<PublicRoute><PromotionsHub /></PublicRoute>} />
           <Route path="/promotions/reductions" element={<PublicRoute><ReductionsPage /></PublicRoute>} />
