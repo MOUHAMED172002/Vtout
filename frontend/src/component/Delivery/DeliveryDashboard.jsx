@@ -383,7 +383,7 @@ export default function DeliveryDashboard() {
                             {/* FedaPay buttons per unremitted order */}
                             <div className="space-y-3 w-full">
                                 {unremittedCashOrders.map(o => {
-                                    const toReverse = Math.max(0, Number(o.total_amount) - Number(o.delivery_fee || 0));
+                                    const toReverse = Math.max(0, Number(o.total_amount) - Number(o.deliverer_fee !== undefined ? o.deliverer_fee : (o.delivery_fee || 0)));
                                     return (
                                         <button
                                             key={o.id}
@@ -431,7 +431,7 @@ export default function DeliveryDashboard() {
                     </div>
                     <div className="flex flex-col gap-2">
                         {unremittedCashOrders.map(o => {
-                            const toReverse = Math.max(0, Number(o.total_amount) - Number(o.delivery_fee || 0));
+                            const toReverse = Math.max(0, Number(o.total_amount) - Number(o.deliverer_fee !== undefined ? o.deliverer_fee : (o.delivery_fee || 0)));
                             return (
                                 <button
                                     key={o.id}
@@ -964,7 +964,7 @@ export default function DeliveryDashboard() {
                                     ) : (
                                         finishedOrders.map(order => {
                                             const isCodPending = ['livree', 'livrée'].includes(order.status) && order.payment_method === 'delivery' && order.payment_status === 'en_attente';
-                                            const toReverse = isCodPending ? Math.max(0, Number(order.total_amount) - Number(order.delivery_fee || 0)) : 0;
+                                            const toReverse = isCodPending ? Math.max(0, Number(order.total_amount) - Number(order.deliverer_fee !== undefined ? order.deliverer_fee : (order.delivery_fee || 0))) : 0;
                                             return (
                                             <div key={order.id} className={`bg-base-100 rounded-[2rem] p-6 border transition-all ${isCodPending ? 'border-rose-200 opacity-100' : 'border-base-content/10 opacity-70 hover:opacity-100'}`}>
                                                 <div className="flex items-center justify-between">

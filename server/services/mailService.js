@@ -35,7 +35,7 @@ const generateInvoiceTemplate = (order, items) => {
         <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product?.name || 'Produit'}</td>
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(item.price).toLocaleString('fr-FR')} F</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(item.unit_price || item.price).toLocaleString('fr-FR')} F</td>
         </tr>
     `).join('');
 
