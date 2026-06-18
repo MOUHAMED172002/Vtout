@@ -320,6 +320,10 @@ export default function DevenirLivreur() {
                                             <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">Modèle du véhicule</label>
                                             <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content" value={form.vehicle_model} onChange={e => setForm({ ...form, vehicle_model: e.target.value })} placeholder="Ex: Haojue 110" />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest ml-1">Plaque d'immatriculation</label>
+                                            <input type="text" className="w-full px-6 h-16 rounded-2xl font-black bg-base-200 border border-base-content/20 focus:border-primary focus:bg-base-100 transition-all outline-none text-base-content uppercase" value={form.license_plate} onChange={e => setForm({ ...form, license_plate: e.target.value.toUpperCase() })} placeholder="Ex: BJ 1234 AA" />
+                                        </div>
                                     </div>
 
                                     <div className="space-y-6">
