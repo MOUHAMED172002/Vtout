@@ -53,7 +53,7 @@ export const processProductsForCommunes = async (products) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products } = req.query;
+        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -67,6 +67,7 @@ export const getAllProducts = async (req, res) => {
         }
 
         if (category_id) where.category_id = category_id;
+        if (supplier_id) where.supplier_id = supplier_id;
 
         if (search) {
             where[Op.or] = [
@@ -185,6 +186,7 @@ export const getAllProducts = async (req, res) => {
             offset: offset,
             distinct: true,
             attributes: {
+                exclude: ['supplier_note'],
                 include: [
                     [
                         sequelize.literal(`(
@@ -201,7 +203,7 @@ export const getAllProducts = async (req, res) => {
                     [
                         sequelize.literal(`(
                             COALESCE((
-                                SELECT SUM(pvp.stock) 
+                                SELECT SUM(pvp.stock)
                                 FROM product_variant_prices AS pvp
                                 INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
                                 WHERE pv.product_id = Product.id
@@ -215,11 +217,12 @@ export const getAllProducts = async (req, res) => {
                 { model: Category, as: 'category' },
                 { model: ProductImage, as: 'images' },
                 { model: SupplierProduct, as: 'supplierLink' },
-                { model: ProductVariant, 
+                { model: ProductVariant,
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                // Only expose the supplier id — name and contact info stay server-side
+                { model: Supplier, as: 'supplier', attributes: ['id'] },
                 { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         };
@@ -279,11 +282,8 @@ export const getProductById = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 { model: SupplierProduct, as: 'supplierLink' },
-                { 
-                    model: Supplier, 
-                    as: 'supplier', 
-                    attributes: ['id', 'name', 'commune_label'] 
-                },
+                // Only id exposed — name, commune and contact stay server-side
+                { model: Supplier, as: 'supplier', attributes: ['id'] },
                 { model: Boutique, as: 'boutique' }
             ]
         });

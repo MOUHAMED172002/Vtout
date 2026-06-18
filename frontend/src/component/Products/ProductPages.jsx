@@ -7,6 +7,7 @@ import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, Chevron
 import SimilarProducts from "./SimilarProducts";
 import ProductReviews from "./ProductReviews";
 import FrequentlyBoughtTogether from "./FrequentlyBoughtTogether";
+import SupplierProducts from "./SupplierProducts";
 
 import { toast } from "react-hot-toast";
 import { uniq } from "lodash";
@@ -622,6 +623,15 @@ export default function ProductPages() {
         <div className="mt-12 md:mt-16 mb-8 md:mb-12">
           <FrequentlyBoughtTogether productId={product.id} limit={4} />
         </div>
+
+        {/* Same Supplier Products */}
+        {product.supplier_id && (
+          <SupplierProducts
+            supplierId={product.supplier_id}
+            currentProductId={product.id}
+            limit={8}
+          />
+        )}
 
         {/* Reviews Section */}
         <ProductReviews productId={product.id} />
