@@ -325,6 +325,7 @@ export default function ProductPages() {
   if (!product) return <div className="p-20 text-center font-bold text-xl">Produit introuvable</div>;
 
   return (
+    <>
     <div className="bg-base-100 min-h-screen">
       <div className="max-w-[1400px] mx-auto pt-4 md:pt-8 pb-32 md:pb-16 px-4 md:px-8">
         {/* Breadcrumbs */}
@@ -780,5 +781,6 @@ export default function ProductPages() {
         80% { transform: translateX(5px); }
       }
     `}</style>
+    </>
   );
 }
