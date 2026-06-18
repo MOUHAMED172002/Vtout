@@ -279,6 +279,13 @@ export default function ProductPages() {
       value: displayPrice.current * quantity,
       items: [{ item_id: product.id, item_name: product.name, item_category: product.category?.name || '', price: displayPrice.current, quantity }]
     });
+    window.fbq?.('track', 'AddToCart', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      currency: 'XOF',
+      value: displayPrice.current * quantity
+    });
     // CartContext already shows "Ajouté au panier!" — no duplicate toast or redirect here.
   };
 
@@ -291,6 +298,7 @@ export default function ProductPages() {
       const vId = matchedVariant?.id || null;
       if (!prev) {
         await addFavorite(id, token, vId);
+        window.fbq?.('track', 'AddToWishlist', { content_ids: [id], content_name: product?.name, currency: 'XOF', value: displayPrice.current });
         window.fbq?.('trackCustom', 'AddToFavorites', { content_id: id, content_name: product?.name });
       } else {
         await removeFavorite(id, token, vId);
