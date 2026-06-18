@@ -151,11 +151,20 @@ export default function ProductPages() {
     return Number(product?.old_price) > Number(product?.price);
   }, [product]);
 
+  // When variants exist, stock comes exclusively from the matched variant's priceRow.
+  // product.stock is ignored entirely for variant products.
+  const currentStock = useMemo(() => {
+    if (variants.length > 0) {
+      if (!matchedVariant) return null; // nothing selected yet
+      return matchedVariant?.priceRows?.[0]?.stock ?? 0;
+    }
+    return product?.stock ?? 0;
+  }, [matchedVariant, product, variants]);
+
   const isOutOfStock = useMemo(() => {
     if (variants.length > 0) {
-      // No variant chosen yet — product is selectable, not out of stock
-      if (!matchedVariant) return false;
-      return (matchedVariant?.priceRows?.[0]?.stock || 0) <= 0;
+      if (!matchedVariant) return false; // no selection yet — keep buttons active
+      return (matchedVariant?.priceRows?.[0]?.stock ?? 0) <= 0;
     }
     return (product?.stock ?? 0) <= 0;
   }, [matchedVariant, product, variants]);
@@ -476,10 +485,15 @@ export default function ProductPages() {
                   <span className="w-2 h-2 rounded-full bg-error" />
                   Rupture de stock
                 </div>
-              ) : (
+              ) : currentStock !== null ? (
                 <div className="flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-full text-xs font-black uppercase tracking-widest border border-success/20">
                   <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                   En stock ({currentStock} unités)
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-full text-xs font-black uppercase tracking-widest border border-success/20">
+                  <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  Disponible
                 </div>
               )}
               {variants.length > 0 && !matchedVariant && (
