@@ -590,51 +590,86 @@ export default function OrderDetail() {
                   item.product?.images?.[0]?.image_url ||
                   "/images/placeholder-rect.png";
 
+                const hasDiscount = item.original_price && Number(item.original_price) > Number(item.price);
+                const discountPct = hasDiscount
+                  ? Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)
+                  : 0;
+
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.08 }}
-                    className="p-6 bg-base-200/30 rounded-[2rem] border border-transparent hover:border-base-200 hover:bg-base-200 transition-all flex items-center gap-6 group"
+                    className="relative bg-base-100 rounded-[2rem] border border-base-200 overflow-hidden hover:shadow-md transition-all group"
                   >
-                    <div className="w-20 h-20 bg-base-100 rounded-[1.5rem] p-3 flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-base-200 overflow-hidden">
-                      <img
-                        src={itemImage}
-                        className="w-full h-full object-contain mix-blend-multiply"
-                        alt={item.product?.name}
-                        onError={(e) => { e.target.src = "/images/placeholder-rect.png"; }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                        {item.product?.category?.name || "Produit"}
-                      </p>
-                      <h4 className="text-lg font-black text-base-content tracking-tight truncate">
-                        {item.product?.name || `Produit #${item.product_id}`}
-                      </h4>
-                      <div className="flex items-center gap-3 text-xs font-bold text-base-content/40">
-                        <span>Qté : {item.quantity}</span>
-                        <span className="w-1 h-1 bg-base-300 rounded-full" />
-                        <span>{item.variant?.name ? `${item.variant.name} · ` : ""}{Number(item.price).toLocaleString()} FCFA / unité</span>
-                        {item.original_price && Number(item.original_price) > Number(item.price) && (
-                          <span className="line-through text-base-content/30">{Number(item.original_price).toLocaleString()} FCFA</span>
-                        )}
+                    {/* Discount badge — pinned top-right */}
+                    {hasDiscount && (
+                      <div className="absolute top-4 right-4 z-10 bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-wide shadow-sm shadow-emerald-200">
+                        -{discountPct}%
+                      </div>
+                    )}
+
+                    <div className="flex gap-4 p-5">
+                      {/* Product image */}
+                      <div className="w-[4.5rem] h-[4.5rem] bg-base-200 rounded-2xl p-2 flex-shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
+                        <img
+                          src={itemImage}
+                          className="w-full h-full object-contain mix-blend-multiply"
+                          alt={item.product?.name}
+                          onError={(e) => { e.target.src = "/images/placeholder-rect.png"; }}
+                        />
+                      </div>
+
+                      {/* Name + category + qty */}
+                      <div className="flex-1 min-w-0 pr-12">
+                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">
+                          {item.product?.category?.name || "Produit"}
+                        </p>
+                        <h4 className="text-sm font-black text-base-content leading-tight mb-2">
+                          {item.product?.name || `Produit #${item.product_id}`}
+                          {item.variant?.name && (
+                            <span className="font-bold text-base-content/40"> · {item.variant.name}</span>
+                          )}
+                        </h4>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-base-200 rounded-lg text-[10px] font-black text-base-content/50 uppercase tracking-wide">
+                          <Package size={10} />
+                          Qté : {item.quantity}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0 space-y-1">
-                      {item.original_price && Number(item.original_price) > Number(item.price) && (
-                        <p className="text-xs font-black text-emerald-500">
-                          -{Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)}%
+
+                    {/* Price footer */}
+                    <div className="mx-5 mb-5 pt-4 border-t border-base-200 flex items-end justify-between">
+                      <div>
+                        <p className="text-[9px] font-bold text-base-content/30 uppercase tracking-wide mb-1">Prix unitaire</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base font-black text-base-content">
+                            {Number(item.price).toLocaleString()} F
+                          </span>
+                          {hasDiscount && (
+                            <span className="text-xs text-base-content/30 line-through">
+                              {Number(item.original_price).toLocaleString()} F
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[9px] font-bold text-base-content/30 uppercase tracking-wide mb-1">Sous-total</p>
+                        <p className="text-xl font-black text-primary tracking-tighter">
+                          {(item.quantity * Number(item.price)).toLocaleString()} F
                         </p>
-                      )}
-                      <p className="text-xl font-black text-base-content tracking-tighter">
-                        {(item.quantity * item.price).toLocaleString()} F
-                      </p>
-                      <Link to={`/products/${item.product_id}`} className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest block">
-                        Voir →
-                      </Link>
+                      </div>
                     </div>
+
+                    {/* See product link */}
+                    <Link
+                      to={`/products/${item.product_id}`}
+                      className="flex items-center justify-end gap-1 px-5 pb-4 text-[9px] font-black text-base-content/30 hover:text-primary transition-colors uppercase tracking-widest"
+                    >
+                      Voir le produit <ArrowLeft size={9} className="rotate-180" />
+                    </Link>
                   </motion.div>
                 );
               })}
