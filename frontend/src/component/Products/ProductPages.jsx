@@ -550,7 +550,7 @@ export default function ProductPages() {
                 <button
                   onClick={handleAddToCart}
                   disabled={isOutOfStock}
-                  className="flex-1 btn bg-orange-400 hover:bg-orange-500 text-white border-none h-14 rounded-2xl text-lg font-black shadow-xl shadow-orange-400/20 gap-3 disabled:opacity-50"
+                  className="flex-1 btn btn-primary h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 gap-3 disabled:opacity-50"
                 >
                   <ShoppingCart size={22} /> {isOutOfStock ? "Indisponible" : "Ajouter"}
                 </button>
@@ -593,7 +593,7 @@ export default function ProductPages() {
                         <button
                         onClick={() => { setAttrModalAction('cart'); handleAddToCart(); }}
                         disabled={isOutOfStock}
-                        className="flex-1 bg-orange-400 hover:bg-orange-500 text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
+                        className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
                         >
                         <ShoppingCart size={16} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
                         </button>
@@ -644,7 +644,7 @@ export default function ProductPages() {
           <div className="mt-12">
             <button
               onClick={() => navigate(`/vendeur/${product.supplier_id}`)}
-              className="w-full flex items-center justify-between px-6 py-5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 rounded-2xl transition-all group shadow-lg shadow-orange-500/30"
+              className="w-full flex items-center justify-between px-6 py-5 bg-orange-400 hover:bg-orange-500 active:bg-orange-600 rounded-2xl transition-all group shadow-lg shadow-orange-400/30"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center">
@@ -760,7 +760,7 @@ export default function ProductPages() {
                   if (attrModalAction === 'buy') navigate('/cartpage');
                 }}
                 disabled={!matchedVariant}
-                className="w-full h-14 bg-orange-400 hover:bg-orange-500 text-white border-none rounded-2xl font-black text-base shadow-xl shadow-orange-400/20 flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale transition-all active:scale-95"
+                className="w-full h-14 bg-primary text-white rounded-2xl font-black text-base shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale transition-all active:scale-95"
               >
                 <ShoppingCart size={20} />
                 {attrModalAction === 'buy' ? 'Commander maintenant' : 'Ajouter au panier'}
