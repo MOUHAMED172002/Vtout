@@ -233,6 +233,7 @@ export default function CheckoutPage() {
       items: items.map(it => ({
         product_id: it.product_id || it.id,
         variant_id: it.variant_id || null,
+        kit_id: it.kit_id || null,
         quantity: Number(it.quantity) || 1,
         price: Number(it.price_snapshot || it.price) || 0,
       })),
