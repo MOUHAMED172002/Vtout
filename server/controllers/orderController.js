@@ -1064,29 +1064,44 @@ export const updateOrderStatus = async (req, res) => {
             // REFUND CUSTOMER if paid via wallet
             if (order.payment_method === 'wallet' && order.user_id) {
                 try {
-                    const debitTx = await FinancialTransaction.findOne({
-                        where: { order_id: order.id, user_id: order.user_id, type: 'payout' }
+                    // Guard against duplicate refunds (idempotency)
+                    const existingRefund = await FinancialTransaction.findOne({
+                        where: { order_id: order.id, user_id: order.user_id, type: 'earning', description: { [Op.like]: 'Remboursement%' } }
                     });
 
-                    if (debitTx) {
-                        // Create a refund transaction (re-crediting the wallet)
-                        await FinancialTransaction.create({
-                            id: crypto.randomUUID(),
-                            user_id: order.user_id,
-                            order_id: order.id,
-                            type: 'earning', 
-                            amount: debitTx.amount,
-                            description: `Remboursement commande #${order.id.slice(0, 8)}`,
-                            status: 'completed'
+                    if (!existingRefund) {
+                        // For split orders the payout is stored on the parent order — search both
+                        const searchIds = [order.id];
+                        if (order.parent_id && order.parent_id !== order.id) searchIds.push(order.parent_id);
+
+                        const debitTx = await FinancialTransaction.findOne({
+                            where: { order_id: { [Op.in]: searchIds }, user_id: order.user_id, type: 'payout', status: 'completed' }
                         });
 
-                        await Notification.create({
-                            id: crypto.randomUUID(),
-                            user_id: order.user_id,
-                            title: '💰 Remboursement effectué',
-                            message: `Votre portefeuille a été recrédité de ${debitTx.amount} F CFA suite à l'annulation de votre commande.`,
-                            type: 'wallet'
-                        });
+                        if (debitTx) {
+                            // Refund exactly this sub-order's total (not the full grand-total for split orders)
+                            const refundAmount = parseFloat(order.total_amount);
+
+                            await FinancialTransaction.create({
+                                id: crypto.randomUUID(),
+                                user_id: order.user_id,
+                                order_id: order.id,
+                                type: 'earning',
+                                amount: refundAmount,
+                                description: `Remboursement commande #${order.id.slice(0, 8)}`,
+                                status: 'completed'
+                            });
+
+                            await Notification.create({
+                                id: crypto.randomUUID(),
+                                user_id: order.user_id,
+                                title: '💰 Remboursement effectué',
+                                message: `Votre portefeuille a été recrédité de ${refundAmount.toLocaleString('fr-FR')} F CFA suite à l'annulation de votre commande.`,
+                                type: 'wallet'
+                            });
+                        } else {
+                            console.warn(`[WALLET REFUND] No payout tx found for order ${order.id} (searched: ${searchIds.join(', ')})`);
+                        }
                     }
                 } catch (refundErr) {
                     console.error("CUSTOMER REFUND ERROR:", refundErr);
