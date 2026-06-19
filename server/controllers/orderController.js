@@ -409,17 +409,32 @@ export const createOrder = async (req, res) => {
             // Only applies when ALL kit components are present in this order.
             if (item.kit_id) {
                 try {
-                    const kitProduct = await Product.findByPk(item.kit_id, { attributes: ['id', 'price', 'kit_items'], transaction });
+                    const kitProduct = await Product.findByPk(item.kit_id, { attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'kit_items'], transaction });
                     if (kitProduct && parseFloat(kitProduct.price) > 0) {
+                        // Resolve effective kit price — honour flash sale expiry on the kit product itself
+                        let effectiveKitPrice = parseFloat(kitProduct.price);
+                        if (kitProduct.is_flash_sale && kitProduct.flash_sale_end && new Date(kitProduct.flash_sale_end) < new Date()) {
+                            const kitOldPrice = parseFloat(kitProduct.old_price || 0);
+                            if (kitOldPrice > 0) effectiveKitPrice = kitOldPrice;
+                        }
+
                         let kitItemIds = [];
                         try { kitItemIds = typeof kitProduct.kit_items === 'string' ? JSON.parse(kitProduct.kit_items) : (kitProduct.kit_items || []); } catch (_) {}
                         const orderProductIds = items.map(i => String(i.product_id));
                         const allPresent = kitItemIds.length > 0 && kitItemIds.every(id => orderProductIds.includes(String(id)));
                         if (allPresent) {
-                            const kitComponents = await Product.findAll({ where: { id: kitItemIds }, attributes: ['id', 'price'], transaction });
-                            const totalOriginal = kitComponents.reduce((sum, c) => sum + parseFloat(c.price || 0), 0);
+                            const kitComponents = await Product.findAll({ where: { id: kitItemIds }, attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end'], transaction });
+                            const totalOriginal = kitComponents.reduce((sum, c) => {
+                                // Use effective price of each component (flash sale expiry aware)
+                                let cPrice = parseFloat(c.price || 0);
+                                if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
+                                    const cOld = parseFloat(c.old_price || 0);
+                                    if (cOld > 0) cPrice = cOld;
+                                }
+                                return sum + cPrice;
+                            }, 0);
                             if (totalOriginal > 0) {
-                                const ratio = parseFloat(kitProduct.price) / totalOriginal;
+                                const ratio = effectiveKitPrice / totalOriginal;
                                 unitPrice = Math.round(basePrice * ratio);
                             }
                         }
