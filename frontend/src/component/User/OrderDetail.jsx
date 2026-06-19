@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../lib/AuthHooks";
-import { getOrderById } from "../../services/orderService";
+import { getOrderById, cancelOrder } from "../../services/orderService";
 import { generateInvoicePDF, useInvoiceAvailable } from "../context/InvoiceGenerator";
 import DisputeModal from "./DisputeModal";
 import PlatformReviewModal from "../Popup/PlatformReviewModal";
@@ -184,6 +184,23 @@ export default function OrderDetail() {
   const [disputeResponseLoading, setDisputeResponseLoading] = useState(false);
   const [showPlatformReview, setShowPlatformReview] = useState(false);
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleCancelOrder = async () => {
+    setCancelLoading(true);
+    try {
+      const token = await getToken();
+      await cancelOrder(order.id, token);
+      setOrder(prev => ({ ...prev, status: 'annulée' }));
+      setShowCancelConfirm(false);
+      toast.success("Commande annulée.");
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Erreur lors de l'annulation.");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const invoiceAvailable = useInvoiceAvailable(order);
   const normalizedStatus = normalizeStatus(order?.status);
@@ -902,7 +919,49 @@ export default function OrderDetail() {
                   <span className="text-xs font-black uppercase tracking-widest">Disponible après livraison</span>
                 </div>
               )}
-              <Link 
+              {/* Cancel button — only for pending orders */}
+              {normalizedStatus === 'en_attente' && !showCancelConfirm && (
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  className="w-full py-4 bg-base-100 border-2 border-rose-200 text-rose-500 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-rose-50 hover:border-rose-300 transition-all active:scale-95"
+                >
+                  <XCircle size={18} />
+                  Annuler la commande
+                </button>
+              )}
+
+              {/* Cancel confirmation */}
+              {normalizedStatus === 'en_attente' && showCancelConfirm && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-[1.5rem] border-2 border-rose-200 bg-rose-50 p-5 space-y-4"
+                >
+                  <p className="text-sm font-black text-rose-700 text-center">Confirmer l'annulation ?</p>
+                  <p className="text-[11px] text-rose-500/80 font-bold text-center leading-relaxed">
+                    Cette action est irréversible. Le stock sera restauré automatiquement.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setShowCancelConfirm(false)}
+                      disabled={cancelLoading}
+                      className="py-3 bg-base-100 border-2 border-base-200 rounded-2xl font-black text-xs uppercase tracking-widest text-base-content/60 hover:bg-base-200 transition-all disabled:opacity-50"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      onClick={handleCancelOrder}
+                      disabled={cancelLoading}
+                      className="py-3 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-1.5 hover:bg-rose-600 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {cancelLoading ? <span className="loading loading-spinner loading-xs" /> : <XCircle size={14} />}
+                      {cancelLoading ? 'Annulation...' : 'Confirmer'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              <Link
                 to="/"
                 className="w-full py-4 bg-base-200 text-base-content/40 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-2 hover:bg-base-200 transition-all"
               >

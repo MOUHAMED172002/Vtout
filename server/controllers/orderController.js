@@ -835,31 +835,38 @@ export const updateOrderStatus = async (req, res) => {
         const isAdmin = role === 'admin' || (userEmail && adminEmails.includes(userEmail));
 
         if (!isAdmin) {
-            // Get profile IDs for the current user
-            const [supplier, rider] = await Promise.all([
-                Supplier.findOne({ where: { user_id: userId } }),
-                DeliveryPerson.findOne({ where: { user_id: userId } })
-            ]);
+            const isOrderOwner = order.user_id && order.user_id === userId;
 
-            const isOrderSupplier = supplier && order.supplier_id === supplier.id;
-            const isOrderRider = rider && order.delivery_person_id === rider.id;
+            // Allow the order owner to cancel their own pending order
+            if (isOrderOwner && mappedStatus === 'annulée' && (oldStatus === 'en_attente' || oldStatus === 'en attente')) {
+                // Permitted — falls through to update logic below
+            } else {
+                // Get profile IDs for the current user
+                const [supplier, rider] = await Promise.all([
+                    Supplier.findOne({ where: { user_id: userId } }),
+                    DeliveryPerson.findOne({ where: { user_id: userId } })
+                ]);
 
-            if (!isOrderSupplier && !isOrderRider) {
-                return res.status(403).json({ error: 'Accès non autorisé à cette commande.' });
-            }
+                const isOrderSupplier = supplier && order.supplier_id === supplier.id;
+                const isOrderRider = rider && order.delivery_person_id === rider.id;
 
-            // Status-specific restrictions
-            if (mappedStatus === 'livrée') {
-                if (!order.delivery_person_id) {
-                    return res.status(400).json({ error: 'Un livreur doit être assigné pour confirmer la livraison.' });
+                if (!isOrderSupplier && !isOrderRider) {
+                    return res.status(403).json({ error: 'Accès non autorisé à cette commande.' });
                 }
-                if (!isOrderRider) {
-                    return res.status(403).json({ error: 'Seul le livreur désigné peut confirmer la livraison.' });
-                }
-            }
 
-            if (isOrderSupplier && !isOrderRider && !['confirmée', 'expédiée', 'annulée'].includes(mappedStatus)) {
-                 return res.status(403).json({ error: 'Action non autorisée pour un fournisseur.' });
+                // Status-specific restrictions
+                if (mappedStatus === 'livrée') {
+                    if (!order.delivery_person_id) {
+                        return res.status(400).json({ error: 'Un livreur doit être assigné pour confirmer la livraison.' });
+                    }
+                    if (!isOrderRider) {
+                        return res.status(403).json({ error: 'Seul le livreur désigné peut confirmer la livraison.' });
+                    }
+                }
+
+                if (isOrderSupplier && !isOrderRider && !['confirmée', 'expédiée', 'annulée'].includes(mappedStatus)) {
+                    return res.status(403).json({ error: 'Action non autorisée pour un fournisseur.' });
+                }
             }
         }
         
