@@ -6,10 +6,23 @@ import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
 import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 
+const normalizeExpiredFlashSale = (product) => {
+    if (product.is_flash_sale && product.flash_sale_end && new Date(product.flash_sale_end) < new Date()) {
+        if (Number(product.old_price) > 0) {
+            product.price = product.old_price;
+        }
+        product.old_price = null;
+        product.is_flash_sale = false;
+        product.flash_sale_end = null;
+    }
+    return product;
+};
+
 export const processProductsForCommunes = async (products) => {
     const tiers = await getDeliveryFeeTiers();
     return await Promise.all(products.map(async (p) => {
         const product = p.toJSON ? p.toJSON() : p;
+        normalizeExpiredFlashSale(product);
         product.free_delivery_communes = [];
         if (product.boutique?.commune_label) {
             product.free_delivery_communes.push(product.boutique.commune_label);
@@ -291,6 +304,7 @@ export const getProductById = async (req, res) => {
         if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
 
         const productJson = product.toJSON();
+        normalizeExpiredFlashSale(productJson);
         productJson.free_delivery_communes = [];
         if (productJson.boutique?.commune_label) {
             productJson.free_delivery_communes.push(productJson.boutique.commune_label);
