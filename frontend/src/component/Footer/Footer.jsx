@@ -180,8 +180,8 @@ const Footer = () => {
                                     <Mail size={20} />
                                 </div>
                                 <div>
-                                    <a href={`mailto:${getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}`} className="font-bold text-base-content hover:text-primary transition-colors">
-                                        {getConfig('CONTACT_EMAIL', 'contact@vtout.bj')}
+                                    <a href={`mailto:${getConfig('CONTACT_EMAIL', 'contact@vtout.com')}`} className="font-bold text-base-content hover:text-primary transition-colors">
+                                        {getConfig('CONTACT_EMAIL', 'contact@vtout.com')}
                                     </a>
                                     <p className="text-sm text-base-content/70">Support 24/7</p>
                                 </div>

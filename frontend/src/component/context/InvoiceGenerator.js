@@ -182,11 +182,17 @@ export async function generateInvoicePDF(order) {
         doc.text(pm, MX, currentY + 7);
         doc.setTextColor(...ColorTextGray);
         doc.setFontSize(7);
-        const boutiqueLoc = order.boutique 
+        const boutiqueName = order.boutique?.name || null;
+        const boutiqueLoc = order.boutique
             ? `${order.boutique.commune_label || order.boutique.commune}${order.boutique.departement_label ? ', ' + order.boutique.departement_label : ''}`
-            : (order.supplier_id || 'VT-001');
-        doc.text(`Origine: ${boutiqueLoc}`, MX, currentY + 12);
-        doc.text("Ce reçu est généré numériquement par Vtout.", MX, currentY + 17);
+            : null;
+        if (boutiqueName) {
+            doc.text(`Vendu par : ${boutiqueName}`, MX, currentY + 12);
+            if (boutiqueLoc) doc.text(`Localisation : ${boutiqueLoc}`, MX, currentY + 17);
+            doc.text("Ce reçu est généré numériquement par Vtout.", MX, currentY + 22);
+        } else {
+            doc.text("Ce reçu est généré numériquement par Vtout.", MX, currentY + 12);
+        }
 
         // Right Column (Calculations)
         const totalX = W - MX;
@@ -217,7 +223,7 @@ export async function generateInvoicePDF(order) {
         // ── 5. BOTTOM BAR ──
         const bottomY = H - 30;
         try {
-            const qrDataUrl = await QRCode.toDataURL(`https://vtout.bj/track/${order.id}`, { margin: 1 });
+            const qrDataUrl = await QRCode.toDataURL(`https://vtout.com/track/${order.id}`, { margin: 1 });
             doc.setFillColor(...ColorBlue);
             doc.rect(MX, bottomY, 20, 20, "F");
             doc.addImage(qrDataUrl, "PNG", MX + 1, bottomY + 1, 18, 18);
@@ -228,7 +234,7 @@ export async function generateInvoicePDF(order) {
         doc.text("MERCI POUR VOTRE ACHAT", W / 2 + 10, bottomY + 8, { align: "center" });
         doc.setFontSize(7);
         doc.setTextColor(...ColorTextGray);
-        doc.text("+229 61 23 45 67  |  contact@vtout.bj  |  Cotonou, Bénin", W / 2 + 10, bottomY + 15, { align: "center" });
+        doc.text("+229 61 23 45 67  |  contact@vtout.com  |  Cotonou, Bénin", W / 2 + 10, bottomY + 15, { align: "center" });
 
         doc.save(`RECU_${(order.id || "").slice(0, 8).toUpperCase()}.pdf`);
     } catch (err) {

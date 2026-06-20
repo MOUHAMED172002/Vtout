@@ -42,7 +42,7 @@ const generateInvoiceTemplate = (order, items) => {
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 0; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
         <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-bottom: 1px solid #eee;">
-            <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 40px; width: auto;" onerror="this.style.display='none'">
+            <img src="https://vtout.com/logo.png" alt="Vtout" style="height: 40px; width: auto;" onerror="this.style.display='none'">
             <h1 style="margin: 10px 0 0; color: #0f172a; font-size: 20px; font-weight: 900;">VTOUT</h1>
         </div>
         <div style="padding: 30px;">
@@ -108,7 +108,7 @@ const templates = {
     statusUpdate: (order, statusLabel) => `
         <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 0; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; background-color: white;">
             <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-bottom: 1px solid #e2e8f0;">
-                <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 35px; width: auto;" onerror="this.style.display='none'">
+                <img src="https://vtout.com/logo.png" alt="Vtout" style="height: 35px; width: auto;" onerror="this.style.display='none'">
             </div>
             <div style="padding: 40px;">
                 <h2 style="color: #0f172a; font-size: 22px; margin-top: 0;">Votre commande évolue !</h2>
@@ -285,7 +285,7 @@ export const sendEmailVerification = async (profile) => {
         <!-- Header -->
         <div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);padding:40px 40px 30px;text-align:center;">
             <div style="display:inline-block;background:rgba(255,255,255,0.1);border-radius:16px;padding:12px 20px;margin-bottom:20px;">
-                <img src="https://vtout.bj/logo.png" alt="Vtout" style="height: 30px; width: auto; filter: brightness(0) invert(1);" onerror="this.style.display='none'">
+                <img src="https://vtout.com/logo.png" alt="Vtout" style="height: 30px; width: auto; filter: brightness(0) invert(1);" onerror="this.style.display='none'">
             </div>
             <h1 style="color:#ffffff;font-size:28px;font-weight:900;margin:0;letter-spacing:-0.5px;">Vérifiez votre email</h1>
             <p style="color:#94a3b8;font-size:14px;margin:12px 0 0;">Un clic suffit pour sécuriser votre compte.</p>
