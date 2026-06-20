@@ -483,23 +483,29 @@ export const createOrder = async (req, res) => {
         };
 
         // 2. Group items by optimal boutique (checking primary & secondary boutiques)
-        const itemsByBoutique = {};
-        for (const { product, item, unitPrice, basePrice, variantData } of enrichedItems) {
-            let bestBoutiqueId = product.boutique_id || 'no_boutique';
+        //    Kit items sharing the same kit_id are consolidated into a single boutique
+        //    so the entire kit ships as one order even if components span multiple
+        //    boutiques of the same vendor.
+
+        // 2a. Compute candidate boutiques and individual best boutique per item
+        const itemsWithMeta = [];
+        for (const enrichedItem of enrichedItems) {
+            const { product } = enrichedItem;
+            let bestBoutiqueId = product.boutique_id ? String(product.boutique_id) : 'no_boutique';
             let minSupplement = Infinity;
-            
-            let candidateIds = [];
-            if (product.boutique_id) candidateIds.push(product.boutique_id);
+
+            const candidateIds = [];
+            if (product.boutique_id) candidateIds.push(String(product.boutique_id));
             try {
                 const rawSec = product.secondary_boutique_ids;
                 if (rawSec) {
-                    if (Array.isArray(rawSec)) candidateIds.push(...rawSec);
+                    if (Array.isArray(rawSec)) candidateIds.push(...rawSec.map(String));
                     else if (typeof rawSec === 'string') {
-                        if (rawSec.startsWith('[')) candidateIds.push(...JSON.parse(rawSec));
-                        else candidateIds.push(...rawSec.split(',').map(s=>s.trim()).filter(Boolean));
+                        if (rawSec.startsWith('[')) candidateIds.push(...JSON.parse(rawSec).map(String));
+                        else candidateIds.push(...rawSec.split(',').map(s => s.trim()).filter(Boolean));
                     }
                 }
-            } catch(e) {}
+            } catch (_) {}
 
             if (candidateIds.length > 0 && customerAddress) {
                 const boutiques = await Boutique.findAll({ where: { id: candidateIds }, transaction });
@@ -507,13 +513,61 @@ export const createOrder = async (req, res) => {
                     const supp = calculateBoutiqueSupplement(b);
                     if (supp < minSupplement) {
                         minSupplement = supp;
-                        bestBoutiqueId = b.id;
+                        bestBoutiqueId = String(b.id);
                     }
                 }
             }
-            
-            if (!itemsByBoutique[bestBoutiqueId]) itemsByBoutique[bestBoutiqueId] = [];
-            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, basePrice, variantData });
+
+            itemsWithMeta.push({ ...enrichedItem, bestBoutiqueId, candidateIds });
+        }
+
+        // 2b. Consolidate kit items: items sharing kit_id should go to ONE boutique
+        const kitGroups = {};
+        for (const meta of itemsWithMeta) {
+            const kitId = meta.item.kit_id;
+            if (kitId) {
+                if (!kitGroups[kitId]) kitGroups[kitId] = [];
+                kitGroups[kitId].push(meta);
+            }
+        }
+
+        for (const kitItems of Object.values(kitGroups)) {
+            if (kitItems.length <= 1) continue;
+
+            // Check if they're already in the same boutique — nothing to do
+            const assignedBoutiques = new Set(kitItems.map(i => i.bestBoutiqueId));
+            if (assignedBoutiques.size <= 1) continue;
+
+            // Find the intersection of candidate boutiques across ALL kit items
+            let commonCandidates = [...new Set(kitItems[0].candidateIds)];
+            for (let i = 1; i < kitItems.length; i++) {
+                const otherSet = new Set(kitItems[i].candidateIds);
+                commonCandidates = commonCandidates.filter(id => otherSet.has(id));
+            }
+
+            if (commonCandidates.length === 0) continue; // No shared boutique — leave as-is
+
+            // Among the common boutiques, pick the one with the lowest delivery supplement
+            let bestCommonId = commonCandidates[0];
+            if (customerAddress && commonCandidates.length > 1) {
+                const boutiques = await Boutique.findAll({ where: { id: commonCandidates }, transaction });
+                let minSup = Infinity;
+                for (const b of boutiques) {
+                    const supp = calculateBoutiqueSupplement(b);
+                    if (supp < minSup) { minSup = supp; bestCommonId = String(b.id); }
+                }
+            }
+
+            // Override boutique for every item in this kit
+            for (const ki of kitItems) ki.bestBoutiqueId = bestCommonId;
+        }
+
+        // 2c. Group by final (possibly overridden) boutique
+        const itemsByBoutique = {};
+        for (const meta of itemsWithMeta) {
+            const bId = meta.bestBoutiqueId;
+            if (!itemsByBoutique[bId]) itemsByBoutique[bId] = [];
+            itemsByBoutique[bId].push(meta);
         }
 
         const boutiqueIds = Object.keys(itemsByBoutique);
