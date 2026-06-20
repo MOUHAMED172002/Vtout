@@ -406,12 +406,11 @@ export const createOrder = async (req, res) => {
             }
 
             // Kit pricing: apply discount server-side from DB prices — never trust client ratio.
-            // Only applies when ALL kit components are present in this order.
+            // Only applies when ALL kit components are present AND all belong to the same boutique.
             if (item.kit_id) {
                 try {
                     const kitProduct = await Product.findByPk(item.kit_id, { attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'kit_items'], transaction });
                     if (kitProduct && parseFloat(kitProduct.price) > 0) {
-                        // Resolve effective kit price — honour flash sale expiry on the kit product itself
                         let effectiveKitPrice = parseFloat(kitProduct.price);
                         if (kitProduct.is_flash_sale && kitProduct.flash_sale_end && new Date(kitProduct.flash_sale_end) < new Date()) {
                             const kitOldPrice = parseFloat(kitProduct.old_price || 0);
@@ -420,22 +419,35 @@ export const createOrder = async (req, res) => {
 
                         let kitItemIds = [];
                         try { kitItemIds = typeof kitProduct.kit_items === 'string' ? JSON.parse(kitProduct.kit_items) : (kitProduct.kit_items || []); } catch (_) {}
+
                         const orderProductIds = items.map(i => String(i.product_id));
                         const allPresent = kitItemIds.length > 0 && kitItemIds.every(id => orderProductIds.includes(String(id)));
+
                         if (allPresent) {
-                            const kitComponents = await Product.findAll({ where: { id: kitItemIds }, attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end'], transaction });
-                            const totalOriginal = kitComponents.reduce((sum, c) => {
-                                // Use effective price of each component (flash sale expiry aware)
-                                let cPrice = parseFloat(c.price || 0);
-                                if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
-                                    const cOld = parseFloat(c.old_price || 0);
-                                    if (cOld > 0) cPrice = cOld;
+                            const kitComponents = await Product.findAll({
+                                where: { id: kitItemIds },
+                                attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'boutique_id'],
+                                transaction
+                            });
+
+                            // Kit discount is only valid when every component is from the same boutique
+                            const currentBoutiqueId = product.boutique_id ? String(product.boutique_id) : null;
+                            const allSameBoutique = currentBoutiqueId &&
+                                kitComponents.every(c => c.boutique_id && String(c.boutique_id) === currentBoutiqueId);
+
+                            if (allSameBoutique) {
+                                const totalOriginal = kitComponents.reduce((sum, c) => {
+                                    let cPrice = parseFloat(c.price || 0);
+                                    if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
+                                        const cOld = parseFloat(c.old_price || 0);
+                                        if (cOld > 0) cPrice = cOld;
+                                    }
+                                    return sum + cPrice;
+                                }, 0);
+                                if (totalOriginal > 0) {
+                                    const ratio = effectiveKitPrice / totalOriginal;
+                                    unitPrice = Math.round(basePrice * ratio);
                                 }
-                                return sum + cPrice;
-                            }, 0);
-                            if (totalOriginal > 0) {
-                                const ratio = effectiveKitPrice / totalOriginal;
-                                unitPrice = Math.round(basePrice * ratio);
                             }
                         }
                     }
@@ -483,29 +495,23 @@ export const createOrder = async (req, res) => {
         };
 
         // 2. Group items by optimal boutique (checking primary & secondary boutiques)
-        //    Kit items sharing the same kit_id are consolidated into a single boutique
-        //    so the entire kit ships as one order even if components span multiple
-        //    boutiques of the same vendor.
-
-        // 2a. Compute candidate boutiques and individual best boutique per item
-        const itemsWithMeta = [];
-        for (const enrichedItem of enrichedItems) {
-            const { product } = enrichedItem;
-            let bestBoutiqueId = product.boutique_id ? String(product.boutique_id) : 'no_boutique';
+        const itemsByBoutique = {};
+        for (const { product, item, unitPrice, basePrice, variantData } of enrichedItems) {
+            let bestBoutiqueId = product.boutique_id || 'no_boutique';
             let minSupplement = Infinity;
 
-            const candidateIds = [];
-            if (product.boutique_id) candidateIds.push(String(product.boutique_id));
+            let candidateIds = [];
+            if (product.boutique_id) candidateIds.push(product.boutique_id);
             try {
                 const rawSec = product.secondary_boutique_ids;
                 if (rawSec) {
-                    if (Array.isArray(rawSec)) candidateIds.push(...rawSec.map(String));
+                    if (Array.isArray(rawSec)) candidateIds.push(...rawSec);
                     else if (typeof rawSec === 'string') {
-                        if (rawSec.startsWith('[')) candidateIds.push(...JSON.parse(rawSec).map(String));
-                        else candidateIds.push(...rawSec.split(',').map(s => s.trim()).filter(Boolean));
+                        if (rawSec.startsWith('[')) candidateIds.push(...JSON.parse(rawSec));
+                        else candidateIds.push(...rawSec.split(',').map(s=>s.trim()).filter(Boolean));
                     }
                 }
-            } catch (_) {}
+            } catch(e) {}
 
             if (candidateIds.length > 0 && customerAddress) {
                 const boutiques = await Boutique.findAll({ where: { id: candidateIds }, transaction });
@@ -513,61 +519,13 @@ export const createOrder = async (req, res) => {
                     const supp = calculateBoutiqueSupplement(b);
                     if (supp < minSupplement) {
                         minSupplement = supp;
-                        bestBoutiqueId = String(b.id);
+                        bestBoutiqueId = b.id;
                     }
                 }
             }
 
-            itemsWithMeta.push({ ...enrichedItem, bestBoutiqueId, candidateIds });
-        }
-
-        // 2b. Consolidate kit items: items sharing kit_id should go to ONE boutique
-        const kitGroups = {};
-        for (const meta of itemsWithMeta) {
-            const kitId = meta.item.kit_id;
-            if (kitId) {
-                if (!kitGroups[kitId]) kitGroups[kitId] = [];
-                kitGroups[kitId].push(meta);
-            }
-        }
-
-        for (const kitItems of Object.values(kitGroups)) {
-            if (kitItems.length <= 1) continue;
-
-            // Check if they're already in the same boutique — nothing to do
-            const assignedBoutiques = new Set(kitItems.map(i => i.bestBoutiqueId));
-            if (assignedBoutiques.size <= 1) continue;
-
-            // Find the intersection of candidate boutiques across ALL kit items
-            let commonCandidates = [...new Set(kitItems[0].candidateIds)];
-            for (let i = 1; i < kitItems.length; i++) {
-                const otherSet = new Set(kitItems[i].candidateIds);
-                commonCandidates = commonCandidates.filter(id => otherSet.has(id));
-            }
-
-            if (commonCandidates.length === 0) continue; // No shared boutique — leave as-is
-
-            // Among the common boutiques, pick the one with the lowest delivery supplement
-            let bestCommonId = commonCandidates[0];
-            if (customerAddress && commonCandidates.length > 1) {
-                const boutiques = await Boutique.findAll({ where: { id: commonCandidates }, transaction });
-                let minSup = Infinity;
-                for (const b of boutiques) {
-                    const supp = calculateBoutiqueSupplement(b);
-                    if (supp < minSup) { minSup = supp; bestCommonId = String(b.id); }
-                }
-            }
-
-            // Override boutique for every item in this kit
-            for (const ki of kitItems) ki.bestBoutiqueId = bestCommonId;
-        }
-
-        // 2c. Group by final (possibly overridden) boutique
-        const itemsByBoutique = {};
-        for (const meta of itemsWithMeta) {
-            const bId = meta.bestBoutiqueId;
-            if (!itemsByBoutique[bId]) itemsByBoutique[bId] = [];
-            itemsByBoutique[bId].push(meta);
+            if (!itemsByBoutique[bestBoutiqueId]) itemsByBoutique[bestBoutiqueId] = [];
+            itemsByBoutique[bestBoutiqueId].push({ product, item, unitPrice, basePrice, variantData });
         }
 
         const boutiqueIds = Object.keys(itemsByBoutique);
