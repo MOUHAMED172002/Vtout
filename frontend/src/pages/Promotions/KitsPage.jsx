@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../component/Navbar/Navbar";
 import Footer from "../../component/Footer/Footer";
-import { getProducts, getProductById } from "../../services/productService";
+import { getKits } from "../../services/kitService";
 import { ProductSkeleton } from "../../component/Shared/Skeleton";
 import { Package, ShieldAlert, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -170,39 +170,28 @@ export default function KitsPage() {
     const fetchKits = async () => {
       try {
         setLoading(true);
-        const realKitsData = await getProducts({ isKit: 'true', limit: 20 });
-        const realKitProducts = realKitsData.products || realKitsData || [];
+        const rawKits = await getKits({ active: 'true' });
 
-        // Bug 1 fix: fetch each component by its exact ID — never fish in a limited list
-        const builtKits = await Promise.all(realKitProducts.map(async (p) => {
-          let itemIds = [];
-          if (p.kit_items) {
-            try { itemIds = typeof p.kit_items === 'string' ? JSON.parse(p.kit_items) : p.kit_items; } catch (e) {}
-          }
-
-          const resolvedItems = (
-            await Promise.all(itemIds.map(id => getProductById(id).catch(() => null)))
-          ).filter(Boolean);
-
-          // companions-only total = the original value before the kit deal
-          const companionsTotal = resolvedItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-          const kitPrice = parseFloat(p.price || 0);
-
+        const builtKits = rawKits.map((k) => {
+          const components = k.components || [];
+          const companionsTotal = components.reduce((sum, c) => sum + parseFloat(c.price || 0), 0);
+          const kitPrice = parseFloat(k.bundle_price || 0);
           return {
-            id: p.id,
-            name: p.name,
-            description: p.description || "",
+            id: k.id,
+            name: k.name,
+            description: k.description || "",
             tag: "Offre Vendeur",
             discountBadge: companionsTotal > kitPrice
               ? `Économie de ${Math.round(companionsTotal - kitPrice).toLocaleString()} F`
               : "Lot Économique",
-            items: resolvedItems,
+            items: components.map(c => ({
+              ...c,
+              images: c.images || [],
+            })),
             originalPrice: companionsTotal,
             kitPrice,
-            isReal: true,
-            productObj: p,
           };
-        }));
+        });
 
         setKits(builtKits);
       } catch (err) {
@@ -226,7 +215,6 @@ export default function KitsPage() {
 
     const kitId = kit.id;
     const bundlePrice = kit.kitPrice;
-    // Ratio based on companions only — main product is the promo host, not a cart item
     const companionsTotal = kit.items.reduce((sum, item) => sum + Number(item.price || 0), 0);
     const ratio = companionsTotal > 0 ? bundlePrice / companionsTotal : 1;
 
@@ -247,7 +235,7 @@ export default function KitsPage() {
   };
 
   const goToDetail = (kit) => {
-    navigate(`/promotions/produit/${kit.id}?type=kit`, {
+    navigate(`/promotions/kit/${kit.id}`, {
       state: { kitItems: kit.items, kitPrice: kit.kitPrice, kitOriginalPrice: kit.originalPrice }
     });
   };

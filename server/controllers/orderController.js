@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category, Notification, Dispute } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category, Notification, Dispute, Kit, KitComponent } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
@@ -405,48 +405,72 @@ export const createOrder = async (req, res) => {
                 }
             }
 
-            // Kit pricing: apply discount server-side from DB prices — never trust client ratio.
-            // Only applies when ALL kit components are present AND all belong to the same boutique.
+            // Kit pricing — new Kit entity takes priority; falls back to legacy product-based kit.
             if (item.kit_id) {
                 try {
-                    const kitProduct = await Product.findByPk(item.kit_id, { attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'kit_items'], transaction });
-                    if (kitProduct && parseFloat(kitProduct.price) > 0) {
-                        let effectiveKitPrice = parseFloat(kitProduct.price);
-                        if (kitProduct.is_flash_sale && kitProduct.flash_sale_end && new Date(kitProduct.flash_sale_end) < new Date()) {
-                            const kitOldPrice = parseFloat(kitProduct.old_price || 0);
-                            if (kitOldPrice > 0) effectiveKitPrice = kitOldPrice;
-                        }
+                    // ── New Kit model (kits table) ──
+                    const kit = await Kit.findByPk(item.kit_id, {
+                        include: [{ model: Product, as: 'components', attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'boutique_id'] }],
+                        transaction
+                    });
 
-                        let kitItemIds = [];
-                        try { kitItemIds = typeof kitProduct.kit_items === 'string' ? JSON.parse(kitProduct.kit_items) : (kitProduct.kit_items || []); } catch (_) {}
-
+                    if (kit && kit.is_active) {
+                        const bundlePrice = parseFloat(kit.bundle_price);
+                        const kitComponents = kit.components || [];
                         const orderProductIds = items.map(i => String(i.product_id));
-                        const allPresent = kitItemIds.length > 0 && kitItemIds.every(id => orderProductIds.includes(String(id)));
+                        const allPresent = kitComponents.length > 0 &&
+                            kitComponents.every(c => orderProductIds.includes(String(c.id)));
 
                         if (allPresent) {
-                            const kitComponents = await Product.findAll({
-                                where: { id: kitItemIds },
-                                attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'boutique_id'],
-                                transaction
-                            });
-
-                            // Kit discount is only valid when every component is from the same boutique
-                            const currentBoutiqueId = product.boutique_id ? String(product.boutique_id) : null;
-                            const allSameBoutique = currentBoutiqueId &&
-                                kitComponents.every(c => c.boutique_id && String(c.boutique_id) === currentBoutiqueId);
-
-                            if (allSameBoutique) {
-                                const totalOriginal = kitComponents.reduce((sum, c) => {
-                                    let cPrice = parseFloat(c.price || 0);
-                                    if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
-                                        const cOld = parseFloat(c.old_price || 0);
-                                        if (cOld > 0) cPrice = cOld;
+                            const totalOriginal = kitComponents.reduce((sum, c) => {
+                                let cPrice = parseFloat(c.price || 0);
+                                if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
+                                    const cOld = parseFloat(c.old_price || 0);
+                                    if (cOld > 0) cPrice = cOld;
+                                }
+                                return sum + cPrice;
+                            }, 0);
+                            if (totalOriginal > 0) {
+                                unitPrice = Math.round(basePrice * (bundlePrice / totalOriginal));
+                            }
+                        }
+                    } else {
+                        // ── Legacy: kit_id points to a Product with is_kit=true ──
+                        const kitProduct = await Product.findByPk(item.kit_id, {
+                            attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'kit_items'],
+                            transaction
+                        });
+                        if (kitProduct && parseFloat(kitProduct.price) > 0) {
+                            let effectiveKitPrice = parseFloat(kitProduct.price);
+                            if (kitProduct.is_flash_sale && kitProduct.flash_sale_end && new Date(kitProduct.flash_sale_end) < new Date()) {
+                                const op = parseFloat(kitProduct.old_price || 0);
+                                if (op > 0) effectiveKitPrice = op;
+                            }
+                            let kitItemIds = [];
+                            try { kitItemIds = typeof kitProduct.kit_items === 'string' ? JSON.parse(kitProduct.kit_items) : (kitProduct.kit_items || []); } catch (_) {}
+                            const orderProductIds = items.map(i => String(i.product_id));
+                            const allPresent = kitItemIds.length > 0 && kitItemIds.every(id => orderProductIds.includes(String(id)));
+                            if (allPresent) {
+                                const legacyComponents = await Product.findAll({
+                                    where: { id: kitItemIds },
+                                    attributes: ['id', 'price', 'old_price', 'is_flash_sale', 'flash_sale_end', 'boutique_id'],
+                                    transaction
+                                });
+                                const currentBoutiqueId = product.boutique_id ? String(product.boutique_id) : null;
+                                const allSameBoutique = currentBoutiqueId &&
+                                    legacyComponents.every(c => c.boutique_id && String(c.boutique_id) === currentBoutiqueId);
+                                if (allSameBoutique) {
+                                    const totalOriginal = legacyComponents.reduce((sum, c) => {
+                                        let cPrice = parseFloat(c.price || 0);
+                                        if (c.is_flash_sale && c.flash_sale_end && new Date(c.flash_sale_end) < new Date()) {
+                                            const cOld = parseFloat(c.old_price || 0);
+                                            if (cOld > 0) cPrice = cOld;
+                                        }
+                                        return sum + cPrice;
+                                    }, 0);
+                                    if (totalOriginal > 0) {
+                                        unitPrice = Math.round(basePrice * (effectiveKitPrice / totalOriginal));
                                     }
-                                    return sum + cPrice;
-                                }, 0);
-                                if (totalOriginal > 0) {
-                                    const ratio = effectiveKitPrice / totalOriginal;
-                                    unitPrice = Math.round(basePrice * ratio);
                                 }
                             }
                         }

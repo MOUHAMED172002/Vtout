@@ -74,6 +74,7 @@ import resendVerificationRoutes from "./routes/resendVerificationRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import kitRoutes from "./routes/kitRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
@@ -512,6 +513,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/financials", financialRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/kits", kitRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/blogs", blogRoutes);
