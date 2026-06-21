@@ -215,6 +215,7 @@ export const requireFournisseur = async (req, res, next) => {
         ).catch(() => []);
 
         if (req.auth.role === 'fournisseur' || supplier) {
+            req.auth.supplierId = supplier?.id || null;
             return next();
         }
 

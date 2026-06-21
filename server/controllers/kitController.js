@@ -47,6 +47,15 @@ export const createKit = async (req, res) => {
             return res.status(400).json({ error: 'Champs requis manquants (name, bundle_price, boutique_id, component_ids).' });
         }
 
+        // Non-admin: verify the boutique belongs to the authenticated supplier
+        const { supplierId } = req.auth;
+        if (supplierId) {
+            const ownedBoutique = await Boutique.findOne({ where: { id: boutique_id, supplier_id: supplierId } });
+            if (!ownedBoutique) {
+                return res.status(403).json({ error: "Cette boutique n'appartient pas à votre compte fournisseur." });
+            }
+        }
+
         // Validate all components belong to the same boutique
         const components = await Product.findAll({
             where: { id: { [Op.in]: component_ids } },
@@ -92,6 +101,15 @@ export const updateKit = async (req, res) => {
         const kit = await Kit.findByPk(req.params.id);
         if (!kit) return res.status(404).json({ error: 'Kit introuvable' });
 
+        // Non-admin: verify the kit's boutique belongs to the authenticated supplier
+        const { supplierId } = req.auth;
+        if (supplierId) {
+            const ownedBoutique = await Boutique.findOne({ where: { id: kit.boutique_id, supplier_id: supplierId } });
+            if (!ownedBoutique) {
+                return res.status(403).json({ error: "Ce kit n'appartient pas à votre compte fournisseur." });
+            }
+        }
+
         const { name, description, bundle_price, is_active, component_ids } = req.body;
 
         if (component_ids?.length) {
@@ -133,6 +151,16 @@ export const deleteKit = async (req, res) => {
     try {
         const kit = await Kit.findByPk(req.params.id);
         if (!kit) return res.status(404).json({ error: 'Kit introuvable' });
+
+        // Non-admin: verify ownership before deactivating
+        const { supplierId } = req.auth;
+        if (supplierId) {
+            const ownedBoutique = await Boutique.findOne({ where: { id: kit.boutique_id, supplier_id: supplierId } });
+            if (!ownedBoutique) {
+                return res.status(403).json({ error: "Ce kit n'appartient pas à votre compte fournisseur." });
+            }
+        }
+
         await kit.update({ is_active: false });
         res.json({ message: 'Kit désactivé.' });
     } catch (err) {
