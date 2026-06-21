@@ -51,10 +51,14 @@ export const addToCart = async (req, res) => {
 
         if (!created) {
             item.quantity += quantity;
-            if (price_snapshot) item.price_snapshot = price_snapshot;
             if (image_url) item.image_url = image_url;
             if (selected_attributes) item.selected_attributes = selected_attributes;
-            if (kit_id !== undefined) item.kit_id = kit_id;
+            // Don't overwrite kit context when item already belongs to a different kit
+            const kitConflict = kit_id && item.kit_id && item.kit_id !== kit_id;
+            if (!kitConflict) {
+                if (price_snapshot != null) item.price_snapshot = price_snapshot;
+                if (kit_id !== undefined) item.kit_id = kit_id;
+            }
             await item.save();
         }
 
