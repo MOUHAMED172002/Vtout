@@ -10,6 +10,21 @@ import { useTheme } from "../../component/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+/* ── Group kits by boutique preserving order ── */
+function groupKitsByBoutique(kits) {
+  const order = [];
+  const map = {};
+  kits.forEach(kit => {
+    const id = kit.boutique?.id || '__unknown__';
+    if (!map[id]) {
+      map[id] = { boutique: kit.boutique || { id, name: 'Boutique inconnue' }, items: [] };
+      order.push(id);
+    }
+    map[id].items.push(kit);
+  });
+  return order.map(id => map[id]);
+}
+
 /* ── Carousel d'images par produit dans le kit ── */
 function KitImageCarousel({ items, isDark, discount, tag }) {
   const [idx, setIdx] = useState(0);
@@ -130,6 +145,11 @@ function KitCard({ kit, idx, isDark, goToDetail, handleBuyKit }) {
         <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500">
           {kit.items.length} article{kit.items.length > 1 ? 's' : ''} inclus
         </p>
+        {kit.boutique?.name && (
+          <p className={`text-[9px] font-bold truncate ${isDark ? 'text-base-content/30' : 'text-base-content/40'}`}>
+            {kit.boutique.name}
+          </p>
+        )}
         <h3 className={`font-black text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 transition-colors ${isDark ? 'text-white' : 'text-base-content/90'}`}>
           {kit.name}
         </h3>
@@ -181,6 +201,7 @@ export default function KitsPage() {
             name: k.name,
             description: k.description || "",
             tag: "Offre Vendeur",
+            boutique: k.boutique || null,
             discountBadge: companionsTotal > kitPrice
               ? `Économie de ${Math.round(companionsTotal - kitPrice).toLocaleString()} F`
               : "Lot Économique",
@@ -300,20 +321,46 @@ export default function KitsPage() {
               </div>
             </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
-            >
-              {kits.map((kit, idx) => (
-                <KitCard
-                  key={kit.id}
-                  kit={kit}
-                  idx={idx}
-                  isDark={isDark}
-                  goToDetail={goToDetail}
-                  handleBuyKit={handleBuyKit}
-                />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
+              {groupKitsByBoutique(kits).map(({ boutique, items: boutiqueKits }, sectionIdx) => (
+                <div key={boutique.id || sectionIdx}>
+                  {/* Boutique section header */}
+                  <div className={`flex items-center gap-4 mb-6 pb-4 border-b ${isDark ? 'border-slate-800' : 'border-base-300'}`}>
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
+                      <Package size={16} className="text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        Boutique
+                      </p>
+                      <h2 className={`font-black text-lg leading-tight ${isDark ? 'text-white' : 'text-base-content'}`}>
+                        {boutique.name}
+                      </h2>
+                      {(boutique.commune_label || boutique.departement_label) && (
+                        <p className={`text-[10px] font-medium mt-0.5 ${isDark ? 'text-base-content/30' : 'text-base-content/40'}`}>
+                          {[boutique.commune_label, boutique.departement_label].filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`ml-auto text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${isDark ? 'bg-neutral/60 text-base-content/30' : 'bg-base-200 text-base-content/40'}`}>
+                      {boutiqueKits.length} kit{boutiqueKits.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {/* Kits grid for this boutique */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    {boutiqueKits.map((kit, idx) => (
+                      <KitCard
+                        key={kit.id}
+                        kit={kit}
+                        idx={idx}
+                        isDark={isDark}
+                        goToDetail={goToDetail}
+                        handleBuyKit={handleBuyKit}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </motion.div>
           )}
