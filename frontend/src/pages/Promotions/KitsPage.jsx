@@ -207,12 +207,6 @@ export default function KitsPage() {
     e.stopPropagation();
     if (!addToCart) return;
 
-    const stock = kit.productObj.stock;
-    if (stock !== null && stock !== undefined && Number(stock) <= 0) {
-      toast.error("Ce kit est en rupture de stock.");
-      return;
-    }
-
     const kitId = kit.id;
     const bundlePrice = kit.kitPrice;
     const companionsTotal = kit.items.reduce((sum, item) => sum + Number(item.price || 0), 0);
