@@ -4,11 +4,13 @@ import sequelize from '../config/database.js';
 const KitComponent = sequelize.define('KitComponent', {
     kit_id: {
         type: DataTypes.CHAR(36),
+        primaryKey: true,
         allowNull: false,
         references: { model: 'kits', key: 'id' }
     },
     product_id: {
         type: DataTypes.CHAR(36),
+        primaryKey: true,
         allowNull: false,
         references: { model: 'products', key: 'id' }
     }
