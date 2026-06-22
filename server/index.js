@@ -835,6 +835,41 @@ sequelize.authenticate()
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
+                // ── Kit tables (new Kit entity — kits + kit_components) ──
+                await sequelize.query(`
+                    CREATE TABLE IF NOT EXISTS \`kits\` (
+                        \`id\`           CHAR(36)        NOT NULL,
+                        \`name\`         VARCHAR(255)    NOT NULL,
+                        \`description\`  TEXT            NULL,
+                        \`bundle_price\` DECIMAL(15,2)   NOT NULL,
+                        \`boutique_id\`  CHAR(36)        NOT NULL,
+                        \`supplier_id\`  CHAR(36)        NULL,
+                        \`is_active\`    TINYINT(1)      NOT NULL DEFAULT 1,
+                        \`created_at\`   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        \`updated_at\`   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (\`id\`),
+                        KEY \`idx_kits_boutique\` (\`boutique_id\`),
+                        KEY \`idx_kits_supplier\` (\`supplier_id\`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                `);
+                console.log('  ✅ [MIGRATION] Table kits ready');
+
+                await sequelize.query(`
+                    CREATE TABLE IF NOT EXISTS \`kit_components\` (
+                        \`kit_id\`      CHAR(36) NOT NULL,
+                        \`product_id\`  CHAR(36) NOT NULL,
+                        PRIMARY KEY (\`kit_id\`, \`product_id\`),
+                        KEY \`idx_kit_components_product\` (\`product_id\`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                `);
+                console.log('  ✅ [MIGRATION] Table kit_components ready');
+            } catch (kitTableErr) {
+                console.warn('  ⚠️ [MIGRATION] Kit tables:', kitTableErr.message);
+            }
+
+            // ── Migration automatique des colonnes manquantes ──
+            // Cette fonction est idempotente (safe à appeler plusieurs fois)
+            try {
                 console.log("🛠️ [MIGRATION] Running safe column migrations...");
                 const qi = sequelize.getQueryInterface();
                 const { DataTypes } = await import('sequelize');
