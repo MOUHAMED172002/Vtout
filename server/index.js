@@ -867,6 +867,62 @@ sequelize.authenticate()
                 console.warn('  ⚠️ [MIGRATION] Kit tables:', kitTableErr.message);
             }
 
+            // ── Migrate legacy is_kit=true products → new kits table ──
+            try {
+                const [[{ cnt }]] = await sequelize.query('SELECT COUNT(*) AS cnt FROM `kits`');
+                if (Number(cnt) === 0) {
+                    console.log('  🔄 [MIGRATION] Migrating legacy kit products...');
+                    const { randomUUID } = await import('crypto');
+
+                    const [kitProducts] = await sequelize.query(`
+                        SELECT id, name, description, price, boutique_id, kit_items
+                        FROM products
+                        WHERE is_kit = 1
+                          AND kit_items IS NOT NULL
+                          AND kit_items NOT IN ('null','[]','')
+                    `);
+
+                    let migrated = 0, skipped = 0;
+                    for (const kp of kitProducts) {
+                        try {
+                            let itemIds = [];
+                            try { itemIds = JSON.parse(kp.kit_items); } catch { continue; }
+                            if (!Array.isArray(itemIds) || itemIds.length < 2 || !kp.boutique_id) { skipped++; continue; }
+
+                            // Verify all components exist and belong to the same boutique
+                            const placeholders = itemIds.map(() => '?').join(',');
+                            const [components] = await sequelize.query(
+                                `SELECT id FROM products WHERE id IN (${placeholders}) AND boutique_id = ?`,
+                                { replacements: [...itemIds, kp.boutique_id] }
+                            );
+                            if (components.length !== itemIds.length) { skipped++; continue; }
+
+                            const kitId = randomUUID();
+                            await sequelize.query(
+                                `INSERT INTO kits (id, name, description, bundle_price, boutique_id, is_active, created_at, updated_at)
+                                 VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())`,
+                                { replacements: [kitId, kp.name, kp.description || null, kp.price, kp.boutique_id] }
+                            );
+                            for (const productId of itemIds) {
+                                await sequelize.query(
+                                    'INSERT IGNORE INTO kit_components (kit_id, product_id) VALUES (?, ?)',
+                                    { replacements: [kitId, productId] }
+                                );
+                            }
+                            migrated++;
+                        } catch (e) {
+                            console.warn(`  ⚠️ [MIGRATION] Skipped kit "${kp.name}":`, e.message);
+                            skipped++;
+                        }
+                    }
+                    console.log(`  ✅ [MIGRATION] Kit migration done: ${migrated} migrated, ${skipped} skipped`);
+                } else {
+                    console.log(`  ✅ [MIGRATION] Kit table already populated (${cnt} kits), skipping legacy migration`);
+                }
+            } catch (kitMigErr) {
+                console.warn('  ⚠️ [MIGRATION] Legacy kit migration failed:', kitMigErr.message);
+            }
+
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
