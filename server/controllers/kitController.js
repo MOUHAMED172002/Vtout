@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import { Op } from 'sequelize';
-import { Kit, KitComponent, Product, ProductImage, Boutique, Supplier } from '../models/index.js';
+import { sequelize, Kit, KitComponent, Product, ProductImage, Boutique, Supplier } from '../models/index.js';
 
+// Shared include for single-kit lookups (getKitById, createKit, updateKit)
 const kitIncludes = [
     {
         model: Product,
@@ -9,7 +10,7 @@ const kitIncludes = [
         attributes: ['id', 'name', 'price', 'old_price', 'supplier_price', 'boutique_id', 'is_flash_sale', 'flash_sale_end'],
         include: [{ model: ProductImage, as: 'images', where: { is_main: true }, required: false }]
     },
-    { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'departement_label'] }
+    { model: Boutique, as: 'boutique', required: false, attributes: ['id', 'name', 'commune_label', 'departement_label'] }
 ];
 
 export const getKits = async (req, res) => {
@@ -20,8 +21,41 @@ export const getKits = async (req, res) => {
         if (supplier_id) where.supplier_id = supplier_id;
         where.is_active = active === 'false' ? false : true;
 
-        const kits = await Kit.findAll({ where, include: kitIncludes, order: [['created_at', 'DESC']] });
-        res.json(kits);
+        // Step 1 — fetch kits + boutique (simple belongsTo join, no belongsToMany)
+        const kits = await Kit.findAll({
+            where,
+            include: [{ model: Boutique, as: 'boutique', required: false, attributes: ['id', 'name', 'commune_label', 'departement_label'] }],
+            order: [['created_at', 'DESC']]
+        });
+
+        if (kits.length === 0) return res.json([]);
+
+        // Step 2 — fetch all components in one raw SQL query (avoids Sequelize belongsToMany quirks)
+        const kitIds = kits.map(k => k.id);
+        const [compRows] = await sequelize.query(
+            `SELECT kc.kit_id,
+                    p.id, p.name, p.price, p.old_price, p.supplier_price,
+                    p.boutique_id, p.is_flash_sale, p.flash_sale_end,
+                    pi.image_url
+             FROM kit_components kc
+             INNER JOIN products p ON p.id = kc.product_id
+             LEFT  JOIN product_images pi ON pi.product_id = p.id AND pi.is_main = 1
+             WHERE kc.kit_id IN (${kitIds.map(() => '?').join(',')})`,
+            { replacements: kitIds }
+        );
+
+        // Group components by kit_id
+        const byKit = {};
+        for (const row of compRows) {
+            if (!byKit[row.kit_id]) byKit[row.kit_id] = [];
+            if (!byKit[row.kit_id].find(c => c.id === row.id)) {
+                const { kit_id, image_url, ...product } = row;
+                byKit[row.kit_id].push({ ...product, images: image_url ? [{ image_url, is_main: 1 }] : [] });
+            }
+        }
+
+        const result = kits.map(k => ({ ...k.toJSON(), components: byKit[k.id] || [] }));
+        res.json(result);
     } catch (err) {
         console.error('GET KITS ERROR:', err);
         res.status(500).json({ error: 'Erreur serveur', details: err.message });

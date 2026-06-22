@@ -217,6 +217,7 @@ export default function KitsPage() {
         setKits(builtKits);
       } catch (err) {
         console.error("Erreur chargement Kits:", err);
+        toast.error("Impossible de charger les kits.");
       } finally {
         setLoading(false);
       }
