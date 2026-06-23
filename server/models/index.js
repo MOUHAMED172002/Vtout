@@ -37,8 +37,8 @@ import Notification from './Notification.js';
 import Blog from './Blog.js';
 import Otp from './Otp.js';
 import Newsletter from './Newsletter.js';
-// import Kit from './Kit.js'; // KIT PROMOTIONS — DÉSACTIVÉ
-// import KitComponent from './KitComponent.js'; // KIT PROMOTIONS — DÉSACTIVÉ
+import Kit from './Kit.js'; // gardé pour orderController.js (calcul prix kit)
+import KitComponent from './KitComponent.js'; // gardé pour orderController.js
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -325,6 +325,6 @@ export {
     Account,
     Verification,
     Newsletter,
-    // Kit,          // KIT PROMOTIONS — DÉSACTIVÉ
-    // KitComponent  // KIT PROMOTIONS — DÉSACTIVÉ
+    Kit,         // gardé pour orderController.js
+    KitComponent // gardé pour orderController.js
 };
