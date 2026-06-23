@@ -21,7 +21,7 @@ const FooterNav = [
     { title: "Supports", link: "/#" },
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
-    { title: "Politique de confidentialité", link: "/privacy" },
+
     { title: "Mentions légales", link: "/mentions-legales" },
 ];
 
