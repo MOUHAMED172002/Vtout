@@ -1810,35 +1810,69 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                         </div>
                         
                         <div className="space-y-2">
-                            <input 
-                                value={slide.subtitle} 
+                            <input
+                                value={slide.subtitle}
                                 onChange={e => updateItem(i, 'subtitle', e.target.value)}
-                                placeholder="Sous-titre (ex: Nouveauté)"
+                                placeholder="Badge (ex: VOTRE ACHAT EN TOUTE CONFIANCE)"
                                 className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
                             />
-                            <input 
-                                value={slide.title} 
+                            <input
+                                value={slide.title}
                                 onChange={e => updateItem(i, 'title', e.target.value)}
-                                placeholder="Titre Principal"
+                                placeholder="Titre ligne 1 (ex: Achetez sans stress)"
                                 className="w-full bg-base-100 px-3 py-2 rounded-xl text-sm font-black focus:ring-2 focus:ring-primary/20 outline-none"
                             />
-                            <input 
-                                value={slide.title2} 
+                            <input
+                                value={slide.title2}
                                 onChange={e => updateItem(i, 'title2', e.target.value)}
-                                placeholder="Texte Secondaire"
+                                placeholder="Titre ligne 2 en couleur (ex: Paiement à la réception)"
                                 className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold text-base-content/50 focus:ring-2 focus:ring-primary/20 outline-none"
                             />
+                            <textarea
+                                value={slide.description || ''}
+                                onChange={e => updateItem(i, 'description', e.target.value)}
+                                placeholder="Description (paragraphe sous le titre)"
+                                className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-medium text-base-content/60 focus:ring-2 focus:ring-primary/20 outline-none h-20 resize-none"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input
+                                    value={slide.buttonText || ''}
+                                    onChange={e => updateItem(i, 'buttonText', e.target.value)}
+                                    placeholder="Bouton principal (ex: Explorer)"
+                                    className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                                <input
+                                    value={slide.link || ''}
+                                    onChange={e => updateItem(i, 'link', e.target.value)}
+                                    placeholder="Lien bouton 1 (/products-liste)"
+                                    className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input
+                                    value={slide.button2Text || ''}
+                                    onChange={e => updateItem(i, 'button2Text', e.target.value)}
+                                    placeholder="Bouton secondaire (ex: Comment ça marche ?)"
+                                    className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                                <input
+                                    value={slide.button2Link || ''}
+                                    onChange={e => updateItem(i, 'button2Link', e.target.value)}
+                                    placeholder="Lien bouton 2 (/comment-ca-marche)"
+                                    className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                />
+                            </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-2">
-                            <input 
-                                value={slide.color} 
+                            <input
+                                value={slide.color}
                                 onChange={e => updateItem(i, 'color', e.target.value)}
                                 placeholder="Couleur BG (from-X to-Y)"
                                 className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
                             />
-                            <input 
-                                value={slide.textColor} 
+                            <input
+                                value={slide.textColor}
                                 onChange={e => updateItem(i, 'textColor', e.target.value)}
                                 placeholder="Couleur Texte (text-X)"
                                 className="w-full bg-base-300/50 px-2 py-1 rounded text-[9px] font-mono focus:outline-none focus:ring-1 focus:ring-primary/30"
