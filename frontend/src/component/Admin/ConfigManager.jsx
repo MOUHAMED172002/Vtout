@@ -1222,6 +1222,20 @@ const ConfigManager = () => {
                 uniqueData.push({ key: 'about_mission', value: 'Notre mission est de démocratiser le luxe...', group: 'about', description: 'Mission de la page À Propos' });
             }
 
+            if (!uniqueData.find(c => c.key === 'services_cards')) {
+                uniqueData.push({
+                    key: 'services_cards',
+                    value: JSON.stringify([
+                        { id: 1, icon: 'shield', title: 'Paiement à la réception', description: 'Payez quand vous recevez' },
+                        { id: 2, icon: 'wallet', title: 'Transactions sécurisées', description: 'Données protégées' },
+                        { id: 3, icon: 'car', title: 'Livraison simplifiée', description: 'Suivi & coordination' },
+                        { id: 4, icon: 'headphones', title: 'Support 7j/7', description: 'À votre écoute' }
+                    ]),
+                    group: 'features',
+                    description: 'Cartes de services affichées en page d\'accueil (icône: shield, wallet, car, headphones)'
+                });
+            }
+
             const grouped = uniqueData.reduce((acc, curr) => {
                 const g = curr.group || 'general';
                 if (!acc[g]) acc[g] = [];
@@ -1363,7 +1377,7 @@ const ConfigManager = () => {
                                     <motion.div 
                                         key={cfg.key}
                                         whileHover={{ y: -5 }}
-                                        className={`bg-base-100 p-8 rounded-[2.5rem] shadow-sm border border-base-200 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' || cfg.key === 'promotions_carousel' ? 'md:col-span-2' : ''}`}
+                                        className={`bg-base-100 p-8 rounded-[2.5rem] shadow-sm border border-base-200 space-y-5 transition-all hover:shadow-xl hover:shadow-slate-200/50 ${cfg.key === 'about_team' || cfg.key === 'about_stats' || cfg.key === 'hero_carousel' || cfg.key === 'promotions_carousel' || cfg.key === 'services_cards' ? 'md:col-span-2' : ''}`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="px-3 py-1 bg-base-200 rounded-lg text-[10px] font-black text-base-content/40 uppercase tracking-widest border border-base-200">
@@ -1383,11 +1397,17 @@ const ConfigManager = () => {
                                                     uploadImage={handleGenericUpload}
                                                 />
                                             ) : cfg.key === 'promotions_carousel' ? (
-                                                <PromotionsManager 
-                                                    value={cfg.value} 
-                                                    onChange={(newValue) => handleChange(groupKey, cfg.key, newValue)} 
+                                                <PromotionsManager
+                                                    value={cfg.value}
+                                                    onChange={(newValue) => handleChange(groupKey, cfg.key, newValue)}
                                                     onSave={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
                                                     uploadImage={handleGenericUpload}
+                                                />
+                                            ) : cfg.key === 'services_cards' ? (
+                                                <ServicesManager
+                                                    value={cfg.value}
+                                                    onChange={(newValue) => handleChange(groupKey, cfg.key, newValue)}
+                                                    onSave={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
                                                 />
                                             ) : cfg.key === 'about_team' ? (
                                                 <TeamManager 
@@ -1448,7 +1468,7 @@ const ConfigManager = () => {
                                             )}
                                         </div>
 
-                                        {cfg.key !== 'about_team' && cfg.key !== 'about_stats' && cfg.key !== 'hero_carousel' && (
+                                        {cfg.key !== 'about_team' && cfg.key !== 'about_stats' && cfg.key !== 'hero_carousel' && cfg.key !== 'services_cards' && (
                                             <button 
                                                 onClick={() => handleUpdate(cfg.key, cfg.value, cfg.group, cfg.description)}
                                                 className="w-full flex items-center justify-center gap-2 py-3 bg-base-100 border-2 border-base-200 text-base-content/40 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:border-primary/30 hover:text-primary hover:bg-primary/5 active:scale-95"
@@ -1843,6 +1863,56 @@ const HeroManager = ({ value, onChange, onSave, uploadImage }) => {
                 className="w-full py-4 bg-pink-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-pink-200 hover:bg-pink-700 hover:-translate-y-1 transition-all"
             >
                 Enregistrer le Carousel Hero
+            </button>
+        </div>
+    );
+};
+
+const ServicesManager = ({ value, onChange, onSave }) => {
+    const ICONS = ['shield', 'wallet', 'car', 'headphones'];
+    const ICON_LABELS = { shield: 'Bouclier (paiement)', wallet: 'Portefeuille (sécurité)', car: 'Voiture (livraison)', headphones: 'Casque (support)' };
+
+    let items = [];
+    try { items = value ? JSON.parse(value) : []; } catch (_) {}
+
+    const updateItem = (index, field, newVal) => {
+        const newItems = [...items];
+        newItems[index][field] = newVal;
+        onChange(JSON.stringify(newItems));
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {items.map((card, i) => (
+                    <div key={i} className="bg-base-200 p-4 rounded-2xl space-y-3">
+                        <select
+                            value={card.icon}
+                            onChange={e => updateItem(i, 'icon', e.target.value)}
+                            className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                        >
+                            {ICONS.map(icon => <option key={icon} value={icon}>{ICON_LABELS[icon]}</option>)}
+                        </select>
+                        <input
+                            value={card.title}
+                            onChange={e => updateItem(i, 'title', e.target.value)}
+                            placeholder="Titre"
+                            className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-black focus:ring-2 focus:ring-primary/20 outline-none"
+                        />
+                        <input
+                            value={card.description}
+                            onChange={e => updateItem(i, 'description', e.target.value)}
+                            placeholder="Description courte"
+                            className="w-full bg-base-100 px-3 py-2 rounded-xl text-xs font-bold text-base-content/50 focus:ring-2 focus:ring-primary/20 outline-none"
+                        />
+                    </div>
+                ))}
+            </div>
+            <button
+                onClick={onSave}
+                className="w-full py-3 bg-orange-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all"
+            >
+                Enregistrer les cartes de service
             </button>
         </div>
     );

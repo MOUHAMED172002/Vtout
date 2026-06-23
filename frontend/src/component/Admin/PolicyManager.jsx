@@ -96,6 +96,7 @@ export default function PolicyManager() {
             <option value="delivery">Contrat Livreur</option>
             <option value="privacy">Politique de Confidentialité</option>
             <option value="return">Règlement des Retours</option>
+            <option value="mentions_legales">Mentions Légales</option>
           </select>
         </div>
         <textarea
@@ -142,6 +143,7 @@ export default function PolicyManager() {
                       <option value="delivery">Contrat Livreur</option>
                       <option value="privacy">Confidentialité</option>
                       <option value="return">Retours</option>
+                      <option value="mentions_legales">Mentions Légales</option>
                     </select>
                   </div>
                   <textarea
