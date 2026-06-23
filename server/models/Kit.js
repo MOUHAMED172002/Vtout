@@ -1,3 +1,4 @@
+// KIT PROMOTIONS — DÉSACTIVÉ (non importé dans models/index.js)
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 

@@ -67,8 +67,8 @@ import HowItWorksPage from './pages/HowItWorks/HowItWorksPage';
 import PromotionsHub from './pages/Promotions/PromotionsHub';
 import FlashSalePage from './pages/Promotions/FlashSalePage';
 import QuantityDiscountPage from './pages/Promotions/QuantityDiscountPage';
-import KitsPage from './pages/Promotions/KitsPage';
-import KitDetailPage from './pages/Promotions/KitDetailPage';
+// import KitsPage from './pages/Promotions/KitsPage'; // KIT PROMOTIONS — DÉSACTIVÉ
+// import KitDetailPage from './pages/Promotions/KitDetailPage'; // KIT PROMOTIONS — DÉSACTIVÉ
 import ReductionsPage from './pages/Promotions/ReductionsPage';
 import PromoDetailPage from './pages/Promotions/PromoDetailPage';
 import SupplierStorePage from './pages/Supplier/SupplierStorePage';
@@ -188,8 +188,8 @@ const AppContent = ({ products, loading }) => {
           <Route path="/promotions/reductions" element={<PublicRoute><ReductionsPage /></PublicRoute>} />
           <Route path="/promotions/flash" element={<PublicRoute><FlashSalePage /></PublicRoute>} />
           <Route path="/promotions/quantite" element={<PublicRoute><QuantityDiscountPage /></PublicRoute>} />
-          <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} />
-          <Route path="/promotions/kit/:id" element={<PublicRoute><KitDetailPage /></PublicRoute>} />
+          {/* <Route path="/promotions/kits" element={<PublicRoute><KitsPage /></PublicRoute>} /> */}{/* KIT PROMOTIONS — DÉSACTIVÉ */}
+          {/* <Route path="/promotions/kit/:id" element={<PublicRoute><KitDetailPage /></PublicRoute>} /> */}{/* KIT PROMOTIONS — DÉSACTIVÉ */}
           <Route path="/promotions/produit/:id" element={<PublicRoute><PromoDetailPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><><Navbar /><About /><Footer /></></PublicRoute>} />
           <Route path="/comment-ca-marche" element={<PublicRoute><><Navbar /><HowItWorksPage /><Footer /></></PublicRoute>} />

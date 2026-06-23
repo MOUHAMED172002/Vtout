@@ -37,8 +37,8 @@ import Notification from './Notification.js';
 import Blog from './Blog.js';
 import Otp from './Otp.js';
 import Newsletter from './Newsletter.js';
-import Kit from './Kit.js';
-import KitComponent from './KitComponent.js';
+// import Kit from './Kit.js'; // KIT PROMOTIONS — DÉSACTIVÉ
+// import KitComponent from './KitComponent.js'; // KIT PROMOTIONS — DÉSACTIVÉ
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -271,12 +271,12 @@ Dispute.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
 Blog.belongsTo(Profile, { foreignKey: 'author_id', as: 'author' });
 Profile.hasMany(Blog, { foreignKey: 'author_id', as: 'blogs' });
 
-// Kits
-Kit.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
-Boutique.hasMany(Kit, { foreignKey: 'boutique_id', as: 'kits' });
-Kit.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
-Kit.belongsToMany(Product, { through: KitComponent, foreignKey: 'kit_id', otherKey: 'product_id', as: 'components' });
-Product.belongsToMany(Kit, { through: KitComponent, foreignKey: 'product_id', otherKey: 'kit_id', as: 'kits' });
+// KIT PROMOTIONS — DÉSACTIVÉ
+// Kit.belongsTo(Boutique, { foreignKey: 'boutique_id', as: 'boutique' });
+// Boutique.hasMany(Kit, { foreignKey: 'boutique_id', as: 'kits' });
+// Kit.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
+// Kit.belongsToMany(Product, { through: KitComponent, foreignKey: 'kit_id', otherKey: 'product_id', as: 'components' });
+// Product.belongsToMany(Kit, { through: KitComponent, foreignKey: 'product_id', otherKey: 'kit_id', as: 'kits' });
 
 // --- Final Consolidations ---
 // (Avoiding duplicates that caused 'alias user' errors)
@@ -325,6 +325,6 @@ export {
     Account,
     Verification,
     Newsletter,
-    Kit,
-    KitComponent
+    // Kit,          // KIT PROMOTIONS — DÉSACTIVÉ
+    // KitComponent  // KIT PROMOTIONS — DÉSACTIVÉ
 };

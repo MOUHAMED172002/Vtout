@@ -74,7 +74,7 @@ import resendVerificationRoutes from "./routes/resendVerificationRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
-import kitRoutes from "./routes/kitRoutes.js";
+// import kitRoutes from "./routes/kitRoutes.js"; // KIT PROMOTIONS — DÉSACTIVÉ
 import adminRoutes from "./routes/adminRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
@@ -513,7 +513,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/financials", financialRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
-app.use("/api/kits", kitRoutes);
+// app.use("/api/kits", kitRoutes); // KIT PROMOTIONS — DÉSACTIVÉ
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/blogs", blogRoutes);
@@ -835,7 +835,8 @@ sequelize.authenticate()
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)
             try {
-                // ── Kit tables (new Kit entity — kits + kit_components) ──
+                /* KIT PROMOTIONS — DÉSACTIVÉ
+            // ── Kit tables (new Kit entity — kits + kit_components) ──
                 await sequelize.query(`
                     CREATE TABLE IF NOT EXISTS \`kits\` (
                         \`id\`           CHAR(36)        NOT NULL,
@@ -851,17 +852,17 @@ sequelize.authenticate()
                         KEY \`idx_kits_boutique\` (\`boutique_id\`),
                         KEY \`idx_kits_supplier\` (\`supplier_id\`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                `);
+                \`);
                 console.log('  ✅ [MIGRATION] Table kits ready');
 
-                await sequelize.query(`
+                await sequelize.query(\`
                     CREATE TABLE IF NOT EXISTS \`kit_components\` (
                         \`kit_id\`      CHAR(36) NOT NULL,
                         \`product_id\`  CHAR(36) NOT NULL,
                         PRIMARY KEY (\`kit_id\`, \`product_id\`),
                         KEY \`idx_kit_components_product\` (\`product_id\`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                `);
+                \`);
                 console.log('  ✅ [MIGRATION] Table kit_components ready');
             } catch (kitTableErr) {
                 console.warn('  ⚠️ [MIGRATION] Kit tables:', kitTableErr.message);
@@ -869,38 +870,32 @@ sequelize.authenticate()
 
             // ── Migrate legacy is_kit=true products → new kits table ──
             try {
-                const [[{ cnt }]] = await sequelize.query('SELECT COUNT(*) AS cnt FROM `kits`');
+                const [[{ cnt }]] = await sequelize.query('SELECT COUNT(*) AS cnt FROM \`kits\`');
                 if (Number(cnt) === 0) {
-                    console.log('  🔄 [MIGRATION] Migrating legacy kit products...');
                     const { randomUUID } = await import('crypto');
-
-                    const [kitProducts] = await sequelize.query(`
+                    const [kitProducts] = await sequelize.query(\`
                         SELECT id, name, description, price, boutique_id, kit_items
                         FROM products
                         WHERE is_kit = 1
                           AND kit_items IS NOT NULL
                           AND kit_items NOT IN ('null','[]','')
-                    `);
-
+                    \`);
                     let migrated = 0, skipped = 0;
                     for (const kp of kitProducts) {
                         try {
                             let itemIds = [];
                             try { itemIds = JSON.parse(kp.kit_items); } catch { continue; }
                             if (!Array.isArray(itemIds) || itemIds.length < 2 || !kp.boutique_id) { skipped++; continue; }
-
-                            // Verify all components exist and belong to the same boutique
                             const placeholders = itemIds.map(() => '?').join(',');
                             const [components] = await sequelize.query(
-                                `SELECT id FROM products WHERE id IN (${placeholders}) AND boutique_id = ?`,
+                                \`SELECT id FROM products WHERE id IN (\${placeholders}) AND boutique_id = ?\`,
                                 { replacements: [...itemIds, kp.boutique_id] }
                             );
                             if (components.length !== itemIds.length) { skipped++; continue; }
-
                             const kitId = randomUUID();
                             await sequelize.query(
-                                `INSERT INTO kits (id, name, description, bundle_price, boutique_id, is_active, created_at, updated_at)
-                                 VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())`,
+                                \`INSERT INTO kits (id, name, description, bundle_price, boutique_id, is_active, created_at, updated_at)
+                                 VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())\`,
                                 { replacements: [kitId, kp.name, kp.description || null, kp.price, kp.boutique_id] }
                             );
                             for (const productId of itemIds) {
@@ -910,18 +905,14 @@ sequelize.authenticate()
                                 );
                             }
                             migrated++;
-                        } catch (e) {
-                            console.warn(`  ⚠️ [MIGRATION] Skipped kit "${kp.name}":`, e.message);
-                            skipped++;
-                        }
+                        } catch (e) { skipped++; }
                     }
-                    console.log(`  ✅ [MIGRATION] Kit migration done: ${migrated} migrated, ${skipped} skipped`);
-                } else {
-                    console.log(`  ✅ [MIGRATION] Kit table already populated (${cnt} kits), skipping legacy migration`);
+                    console.log(\`  ✅ [MIGRATION] Kit migration done: \${migrated} migrated, \${skipped} skipped\`);
                 }
             } catch (kitMigErr) {
                 console.warn('  ⚠️ [MIGRATION] Legacy kit migration failed:', kitMigErr.message);
             }
+            KIT PROMOTIONS — FIN */
 
             // ── Migration automatique des colonnes manquantes ──
             // Cette fonction est idempotente (safe à appeler plusieurs fois)

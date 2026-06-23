@@ -1,3 +1,9 @@
+// ============================================================
+// KIT PROMOTIONS — DÉSACTIVÉ
+// Pour réactiver : décommenter le bloc ci-dessous
+// ============================================================
+
+/*
 import api from './api';
 
 export const getKits = async (params = {}) => {
@@ -30,3 +36,4 @@ export const deleteKit = async (id, token) => {
     });
     return data;
 };
+*/

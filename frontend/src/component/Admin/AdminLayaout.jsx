@@ -72,7 +72,7 @@ import InvoiceButton from "./Order/InvoiceButton";
 import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
-import KitsManager from "./Kits/KitsManager";
+// import KitsManager from "./Kits/KitsManager"; // KIT PROMOTIONS — DÉSACTIVÉ
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/AuthHooks";
 import { useNavigate } from "react-router-dom";
@@ -172,6 +172,7 @@ const AdminLayout = () => {
         { key: 'policy', name: 'Politique de confidentialité', icon: <FileText size={16} /> },
       ],
     },
+    /* KIT PROMOTIONS — DÉSACTIVÉ
     {
       name: "Promotions",
       icon: <Package size={18} />,
@@ -179,6 +180,7 @@ const AdminLayout = () => {
         { key: "kitsList", name: "Kits & Packs", icon: <Package size={16} /> },
       ],
     },
+    */
     {
       name: "Finances",
       icon: <DollarSign size={18} />,
@@ -253,11 +255,13 @@ const AdminLayout = () => {
           case "userStatus": return <UserStatusToggle />;
           default: return <UsersAdmin globalSearchQuery={searchQuery} />;
         }
+      /* KIT PROMOTIONS — DÉSACTIVÉ
       case "Promotions":
         switch (selectedSub) {
           case "kitsList": return <KitsManager globalSearchQuery={searchQuery} />;
           default: return <KitsManager globalSearchQuery={searchQuery} />;
         }
+      */
       case "Finances":
         switch (selectedSub) {
           case "payouts": return <PayoutManager globalSearchQuery={searchQuery} />;

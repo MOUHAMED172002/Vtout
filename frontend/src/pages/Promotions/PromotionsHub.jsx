@@ -44,6 +44,7 @@ export default function PromotionsHub() {
       bgClass: isDark ? "bg-amber-950/20 border-amber-900/50" : "bg-amber-50 border-amber-100",
       link: "/promotions/quantite"
     },
+    /* KIT PROMOTIONS — DÉSACTIVÉ
     {
       id: "kits",
       title: "Packs & Kits",
@@ -54,6 +55,7 @@ export default function PromotionsHub() {
       bgClass: isDark ? "bg-emerald-950/20 border-emerald-900/50" : "bg-emerald-50 border-emerald-100",
       link: "/promotions/kits"
     }
+    */
   ];
 
   return (

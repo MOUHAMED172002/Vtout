@@ -164,6 +164,7 @@ const ConfigManager = () => {
                             button2Text: "Toutes les catégories",
                             button2Link: "/categories"
                         },
+                        /* KIT PROMOTIONS — DÉSACTIVÉ
                         {
                             id: 3,
                             badge: "Packs Tout-en-un",
@@ -178,6 +179,7 @@ const ConfigManager = () => {
                             button2Text: "Toutes les catégories",
                             button2Link: "/categories"
                         }
+                        */
                     ]),
                     group: 'hero',
                     description: 'Bannières promotionnelles de la page d\'accueil'
