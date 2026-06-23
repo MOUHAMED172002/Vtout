@@ -256,8 +256,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10kb' }));
 
-// 🆘 ROUTE DE SECOURS - À UTILISER SI LES ERREURS 500 PERSISTENT
+// 🆘 ROUTE DE SECOURS - Protégée par clé secrète (DIAGNOSTIC_KEY)
 app.get("/api/repair-db", async (req, res) => {
+    const diagKey = process.env.DIAGNOSTIC_KEY;
+    if (!diagKey || req.query.key !== diagKey) {
+        return res.status(403).json({ error: "Accès refusé." });
+    }
     try {
         const logs = [];
         const { Otp, Config, Profile, sequelize } = await import('./models/index.js');
@@ -319,7 +323,8 @@ app.get("/api/repair-db", async (req, res) => {
 // ROUTE DE DIAGNOSTIC PUBLIC POUR DOKPLOY
 app.get("/api/diagnostics", async (req, res) => {
     const { key, action, orderId, userId } = req.query;
-    if (key !== "MouhmedDiagnostics2026") {
+    const diagKey = process.env.DIAGNOSTIC_KEY;
+    if (!diagKey || key !== diagKey) {
         return res.status(403).json({ error: "Clé secrète de diagnostic invalide ou manquante." });
     }
 
@@ -542,9 +547,12 @@ app.get("/api/health", async (req, res) => {
     }
 });
 
-// 🔍 Diagnostic public — retourne l'erreur SQL exacte pour identifier les colonnes manquantes
-// À SUPPRIMER après débogage
+// 🔍 Diagnostic — protégé par clé secrète (DIAGNOSTIC_KEY)
 app.get("/api/diag", async (req, res) => {
+    const diagKey = process.env.DIAGNOSTIC_KEY;
+    if (!diagKey || req.query.key !== diagKey) {
+        return res.status(403).json({ error: "Accès refusé." });
+    }
     const results = {};
     // Test 1: products
     try {
@@ -614,7 +622,7 @@ app.get("/api/diag", async (req, res) => {
                 // Chercher un fournisseur qui a exactement le même nom que la boutique
                 const matchingSupplier = suppliers.find(s => s.name === b.name);
                 if (matchingSupplier && b.supplier_id !== matchingSupplier.id) {
-                    await sequelize.query(`UPDATE boutiques SET supplier_id = '${matchingSupplier.id}' WHERE id = '${b.id}'`);
+                    await sequelize.query('UPDATE boutiques SET supplier_id = ? WHERE id = ?', { replacements: [matchingSupplier.id, b.id] });
                     results.repair_log.push(`✅ Boutique "${b.name}" ré-attachée au fournisseur "${matchingSupplier.name}"`);
                 }
             }

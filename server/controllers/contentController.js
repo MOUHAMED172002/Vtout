@@ -126,7 +126,9 @@ export const getCGV = async (req, res) => {
 export const subscribeNewsletter = async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ error: 'Email requis' });
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ error: 'Email invalide' });
+        }
         
         await Newsletter.findOrCreate({
             where: { email },
