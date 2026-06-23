@@ -59,6 +59,7 @@ import NotFoundPage from './component/Shared/NotFoundPage';
 import BlogDetail from './component/Blogs/BlogDetail';
 import MagPage from './component/Blogs/MagPage';
 import Privacy from './component/Popup/Privacy';
+import MentionsLegales from './pages/MentionsLegales';
 
 // --- How It Works ---
 import HowItWorksPage from './pages/HowItWorks/HowItWorksPage';
@@ -240,6 +241,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/Faq" element={<><Navbar /><FaqList /><Footer /></>} />
           <Route path="/Policy" element={<><Navbar /><PolicyPage /><Footer /></>} />
           <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />
+          <Route path="/mentions-legales" element={<><Navbar /><MentionsLegales /><Footer /></>} />
           <Route path="/devenir-livreur" element={<><Navbar /><DevenirLivreur /><Footer /></>} />
 
           {/* Supplier Routes (Redirecting to external portal) */}

@@ -33,6 +33,11 @@ export const getPolicies = async () => {
     return data;
 };
 
+export const getPolicyByType = async (type) => {
+    const { data } = await api.get(`/content/policies/type/${type}`);
+    return data;
+};
+
 export const createPolicy = async (policyData, token) => {
     const { data } = await api.post('/content/policies', policyData, {
         headers: { Authorization: `Bearer ${token}` }

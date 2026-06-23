@@ -12,6 +12,7 @@ const router = express.Router();
 // Public routes
 router.get('/faqs', contentController.getAllFaqs);
 router.get('/policies', contentController.getAllPolicies);
+router.get('/policies/type/:type', contentController.getPolicyByType);
 router.get('/cgv', contentController.getCGV);
 router.get('/platform-reviews', contentController.getAllPlatformReviews);
 router.post('/newsletter', contentController.subscribeNewsletter);

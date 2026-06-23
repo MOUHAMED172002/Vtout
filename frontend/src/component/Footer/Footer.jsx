@@ -22,7 +22,7 @@ const FooterNav = [
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
     { title: "Politique de confidentialité", link: "/privacy" },
-    { title: "Mentions légales", link: "/Policy?tab=Mentions+l%C3%A9gales" },
+    { title: "Mentions légales", link: "/mentions-legales" },
 ];
 
 const Footer = () => {

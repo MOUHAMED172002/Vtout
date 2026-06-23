@@ -49,6 +49,16 @@ export const getAllPolicies = async (req, res) => {
     }
 };
 
+export const getPolicyByType = async (req, res) => {
+    try {
+        const policy = await Policy.findOne({ where: { type: req.params.type } });
+        if (!policy) return res.status(404).json({ error: 'Politique introuvable' });
+        res.json(policy);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 export const createPolicy = async (req, res) => {
     try {
         const policy = await Policy.create(req.body);
