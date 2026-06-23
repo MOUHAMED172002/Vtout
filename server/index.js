@@ -832,10 +832,7 @@ sequelize.authenticate()
                 console.warn('  ⚠️ [CHARSET] Table charset migration failed:', charsetErr.message);
             }
 
-            // ── Migration automatique des colonnes manquantes ──
-            // Cette fonction est idempotente (safe à appeler plusieurs fois)
-            try {
-                /* KIT PROMOTIONS — DÉSACTIVÉ
+            /* KIT PROMOTIONS — DÉSACTIVÉ
             // ── Kit tables (new Kit entity — kits + kit_components) ──
                 await sequelize.query(`
                     CREATE TABLE IF NOT EXISTS \`kits\` (
