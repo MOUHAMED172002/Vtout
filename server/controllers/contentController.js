@@ -14,7 +14,11 @@ export const getAllFaqs = async (req, res) => {
 
 export const createFaq = async (req, res) => {
     try {
-        const faq = await Faq.create(req.body);
+        const { question, answer } = req.body;
+        if (!question?.trim() || !answer?.trim()) {
+            return res.status(400).json({ error: 'Question et réponse requises' });
+        }
+        const faq = await Faq.create({ question: question.trim(), answer: answer.trim() });
         res.status(201).json(faq);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -23,7 +27,12 @@ export const createFaq = async (req, res) => {
 
 export const updateFaq = async (req, res) => {
     try {
-        await Faq.update(req.body, { where: { id: req.params.id } });
+        const { question, answer } = req.body;
+        const fields = {};
+        if (question !== undefined) fields.question = question.trim();
+        if (answer !== undefined) fields.answer = answer.trim();
+        if (!Object.keys(fields).length) return res.status(400).json({ error: 'Aucun champ à mettre à jour' });
+        await Faq.update(fields, { where: { id: req.params.id } });
         res.json({ message: 'FAQ mise à jour' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -59,9 +68,18 @@ export const getPolicyByType = async (req, res) => {
     }
 };
 
+const ALLOWED_POLICY_TYPES = ['general', 'supplier', 'delivery', 'privacy', 'return', 'mentions_legales'];
+
 export const createPolicy = async (req, res) => {
     try {
-        const policy = await Policy.create(req.body);
+        const { title, content, type } = req.body;
+        if (!title?.trim() || !content?.trim()) {
+            return res.status(400).json({ error: 'Titre et contenu requis' });
+        }
+        if (type && !ALLOWED_POLICY_TYPES.includes(type)) {
+            return res.status(400).json({ error: 'Type de politique invalide' });
+        }
+        const policy = await Policy.create({ title: title.trim(), content: content.trim(), type: type || 'general' });
         res.status(201).json(policy);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -70,7 +88,18 @@ export const createPolicy = async (req, res) => {
 
 export const updatePolicy = async (req, res) => {
     try {
-        await Policy.update(req.body, { where: { id: req.params.id } });
+        const { title, content, type } = req.body;
+        const fields = {};
+        if (title !== undefined) fields.title = title.trim();
+        if (content !== undefined) fields.content = content.trim();
+        if (type !== undefined) {
+            if (!ALLOWED_POLICY_TYPES.includes(type)) {
+                return res.status(400).json({ error: 'Type de politique invalide' });
+            }
+            fields.type = type;
+        }
+        if (!Object.keys(fields).length) return res.status(400).json({ error: 'Aucun champ à mettre à jour' });
+        await Policy.update(fields, { where: { id: req.params.id } });
         res.json({ message: 'Politique mise à jour' });
     } catch (error) {
         res.status(500).json({ error: error.message });
