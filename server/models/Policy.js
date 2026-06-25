@@ -16,7 +16,7 @@ const Policy = sequelize.define('Policy', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('general', 'supplier', 'delivery', 'cgv'),
+        type: DataTypes.ENUM('general', 'supplier', 'delivery', 'cgv', 'privacy', 'return', 'mentions_legales'),
         defaultValue: 'general'
     }
 }, {

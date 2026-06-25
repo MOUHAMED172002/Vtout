@@ -1017,6 +1017,18 @@ sequelize.authenticate()
                     }
                 }
                 console.log("✅ [MIGRATION] Column migrations complete.");
+
+                // ── Migrate policies.type ENUM to include new values ──
+                try {
+                    await sequelize.query(
+                        `ALTER TABLE policies MODIFY COLUMN type ENUM('general','supplier','delivery','cgv','privacy','return','mentions_legales') DEFAULT 'general'`
+                    );
+                    console.log("  ✅ [MIGRATION] policies.type ENUM updated");
+                } catch (enumErr) {
+                    if (!enumErr.message.includes('Duplicate')) {
+                        console.warn("  ⚠️ [MIGRATION] policies.type ENUM:", enumErr.message);
+                    }
+                }
             } catch (migErr) {
                 console.warn("⚠️ [MIGRATION] Migration block failed (non-critical):", migErr.message);
             }
