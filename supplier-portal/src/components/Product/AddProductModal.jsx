@@ -32,12 +32,11 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
             const data = await getProducts({ 
                 approval_status: 'En attente', 
                 isAdmin: 'true',
-                search: query,
-                include_supplier: true,
-                include_variants: true,
-                include_images: true
+                search: query
             });
-            setProducts(data.products || data || []);
+            // S'assurer que les données sont un tableau
+            const productsData = data.products || data || [];
+            setProducts(productsData);
         } catch (error) {
             console.error('Erreur chargement produits:', error);
             toast.error('Erreur lors du chargement des produits');
@@ -91,7 +90,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
     };
 
     const handleDelete = async (product) => {
-        if (!window.confirm("⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce produit ? Cette action est irréversible.")) return;
+        if (!window.confirm("⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) return;
         
         try {
             const token = await getToken();
@@ -112,23 +111,40 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
         }));
     };
 
-    // Formatage de date
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch {
+            return 'N/A';
+        }
     };
 
-    // Formatage de prix
     const formatPrice = (price) => {
         if (!price && price !== 0) return '0';
         return Number(price).toLocaleString('fr-FR');
+    };
+
+    // Fonction pour récupérer une propriété en toute sécurité
+    const getSafe = (obj, path, defaultValue = null) => {
+        try {
+            const keys = path.split('.');
+            let current = obj;
+            for (const key of keys) {
+                if (current === null || current === undefined) return defaultValue;
+                current = current[key];
+            }
+            return current !== undefined && current !== null ? current : defaultValue;
+        } catch {
+            return defaultValue;
+        }
     };
 
     if (loading) {
@@ -209,23 +225,27 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                         >
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
-                                                    {product.images?.[0]?.image_url ? (
+                                                    {product.images?.length > 0 ? (
                                                         <img
                                                             src={product.images[0].image_url}
                                                             alt={product.name}
                                                             className="w-12 h-12 rounded-xl object-cover bg-base-200 shrink-0"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                            }}
                                                         />
-                                                    ) : (
+                                                    ) : null}
+                                                    {(!product.images || product.images.length === 0) && (
                                                         <div className="w-12 h-12 rounded-xl bg-base-200 flex items-center justify-center shrink-0">
                                                             <Package size={20} className="text-base-content/30" />
                                                         </div>
                                                     )}
                                                     <div>
                                                         <p className="text-sm font-black text-base-content line-clamp-1">
-                                                            {product.name}
+                                                            {product.name || 'Sans nom'}
                                                         </p>
                                                         <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">
-                                                            {product.category?.name || 'Non catégorisé'}
+                                                            {getSafe(product, 'category.name', 'Non catégorisé')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -278,7 +298,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                     </div>
                 </div>
 
-                {/* Detail Panel - VERSION COMPLÈTE */}
+                {/* Detail Panel - VERSION AVEC VÉRIFICATIONS */}
                 <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-base-200 p-8 h-fit sticky top-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <AnimatePresence mode="wait">
                         {selectedProduct ? (
@@ -301,13 +321,13 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                             </p>
                                         </div>
                                         <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                                            selectedProduct.approval_status === 'En attente' 
+                                            getSafe(selectedProduct, 'approval_status', 'En attente') === 'En attente' 
                                                 ? 'bg-amber-100 text-amber-700' 
-                                                : selectedProduct.approval_status === 'approved'
+                                                : getSafe(selectedProduct, 'approval_status') === 'approved'
                                                 ? 'bg-emerald-100 text-emerald-700'
                                                 : 'bg-rose-100 text-rose-700'
                                         }`}>
-                                            {selectedProduct.approval_status || 'En attente'}
+                                            {getSafe(selectedProduct, 'approval_status', 'En attente')}
                                         </div>
                                     </div>
                                 </div>
@@ -318,16 +338,18 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                         <Info size={16} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Informations Générales</span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <p className="text-[9px] font-black uppercase text-base-content/30">Nom</p>
-                                            <p className="text-sm font-black text-base-content">{selectedProduct.name}</p>
+                                            <p className="text-sm font-black text-base-content">{selectedProduct.name || 'Sans nom'}</p>
                                         </div>
                                         <div>
                                             <p className="text-[9px] font-black uppercase text-base-content/30">Catégorie</p>
                                             <div className="flex items-center gap-1">
                                                 <Tag size={12} className="text-base-content/30" />
-                                                <p className="text-sm font-black text-base-content">{selectedProduct.category?.name || 'Non catégorisé'}</p>
+                                                <p className="text-sm font-black text-base-content">
+                                                    {getSafe(selectedProduct, 'category.name', 'Non catégorisé')}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -353,11 +375,11 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                             <p className="text-2xl font-black text-indigo-600">{formatPrice(selectedProduct.price)} FCFA</p>
                                         </div>
                                         <div className="bg-white/70 rounded-2xl p-4">
-                                            <p className="text-[9px] font-black uppercase text-emerald-400">📦 Payout (Gain)</p>
+                                            <p className="text-[9px] font-black uppercase text-emerald-400">📦 Payout</p>
                                             <p className="text-2xl font-black text-emerald-600">{formatPrice(selectedProduct.supplier_price)} FCFA</p>
                                         </div>
                                     </div>
-                                    {selectedProduct.old_price > 0 && (
+                                    {selectedProduct.old_price && selectedProduct.old_price > 0 && (
                                         <div className="bg-rose-50 rounded-2xl p-4 border border-rose-200">
                                             <div className="flex items-center gap-2">
                                                 <Flame size={16} className="text-rose-500" />
@@ -368,35 +390,49 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                             </p>
                                         </div>
                                     )}
-                                    {selectedProduct.is_flash_sale && (
-                                        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200">
-                                            <div className="flex items-center gap-2">
-                                                <Sparkles size={16} className="text-amber-500" />
-                                                <span className="text-[9px] font-black uppercase text-amber-500">Flash Sale</span>
-                                            </div>
-                                            <p className="text-xs font-medium text-amber-700">
-                                                Jusqu'au: {selectedProduct.flash_sale_end ? formatDate(selectedProduct.flash_sale_end) : 'N/A'}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {selectedProduct.volume_pricing && selectedProduct.volume_pricing.length > 0 && (
-                                        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
-                                            <div className="flex items-center gap-2">
-                                                <Gift size={16} className="text-blue-500" />
-                                                <span className="text-[9px] font-black uppercase text-blue-500">Prix Volume</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {selectedProduct.volume_pricing.map((vp, i) => (
-                                                    <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-xl text-[10px] font-black">
-                                                        {vp.qty}+ → -{vp.discount}%
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* SECTION 3: Variantes */}
+                                {/* SECTION 3: Images */}
+                                {selectedProduct.images && selectedProduct.images.length > 0 && (
+                                    <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
+                                        <button
+                                            onClick={() => toggleSection('images')}
+                                            className="flex items-center justify-between w-full"
+                                        >
+                                            <div className="flex items-center gap-2 text-base-content/40">
+                                                <ImageIcon size={16} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">
+                                                    Images ({selectedProduct.images.length})
+                                                </span>
+                                            </div>
+                                            {expandedSections.images ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                        </button>
+                                        
+                                        {expandedSections.images && (
+                                            <div className="grid grid-cols-3 gap-2 mt-4">
+                                                {selectedProduct.images.map((img, idx) => (
+                                                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border-2 border-base-100">
+                                                        <img 
+                                                            src={img.image_url} 
+                                                            alt={`Product ${idx + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                        {img.is_main && (
+                                                            <div className="absolute top-1 right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded">
+                                                                MAIN
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* SECTION 4: Variantes */}
                                 {selectedProduct.variants && selectedProduct.variants.length > 0 && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <button
@@ -422,16 +458,21 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                                                     src={variant.image_url} 
                                                                     alt={`Variant ${idx + 1}`}
                                                                     className="w-12 h-12 rounded-xl object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                    }}
                                                                 />
                                                             )}
                                                             <div className="flex-1">
-                                                                <div className="flex flex-wrap gap-1 mb-2">
-                                                                    {variant.combination && Object.entries(variant.combination).map(([attr, val]) => (
-                                                                        <span key={attr} className="px-2 py-0.5 bg-base-200 rounded-lg text-[8px] font-black uppercase">
-                                                                            {attr}: {val}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
+                                                                {variant.combination && Object.keys(variant.combination).length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1 mb-2">
+                                                                        {Object.entries(variant.combination).map(([attr, val]) => (
+                                                                            <span key={attr} className="px-2 py-0.5 bg-base-200 rounded-lg text-[8px] font-black uppercase">
+                                                                                {attr}: {val}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                                 <div className="flex gap-4 text-xs font-bold">
                                                                     <span className="text-indigo-600">{formatPrice(variant.price)} FCFA</span>
                                                                     <span className="text-base-content/40">|</span>
@@ -454,141 +495,61 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                     </div>
                                 )}
 
-                                {/* SECTION 4: Images */}
-                                {selectedProduct.images && selectedProduct.images.length > 0 && (
-                                    <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
-                                        <button
-                                            onClick={() => toggleSection('images')}
-                                            className="flex items-center justify-between w-full"
-                                        >
-                                            <div className="flex items-center gap-2 text-base-content/40">
-                                                <ImageIcon size={16} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">
-                                                    Images ({selectedProduct.images.length})
-                                                </span>
-                                            </div>
-                                            {expandedSections.images ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                        </button>
-                                        
-                                        {expandedSections.images && (
-                                            <div className="grid grid-cols-3 gap-2 mt-4">
-                                                {selectedProduct.images.map((img, idx) => (
-                                                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border-2 border-base-100">
-                                                        <img 
-                                                            src={img.image_url} 
-                                                            alt={`Product ${idx + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                        {img.is_main && (
-                                                            <div className="absolute top-1 right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded">
-                                                                MAIN
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* SECTION 5: Fournisseur */}
-                                {selectedProduct.supplier && (
-                                    <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
-                                        <button
-                                            onClick={() => toggleSection('supplier')}
-                                            className="flex items-center justify-between w-full"
-                                        >
-                                            <div className="flex items-center gap-2 text-base-content/40">
-                                                <User size={16} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Fournisseur</span>
-                                            </div>
-                                            {expandedSections.supplier ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                        </button>
-                                        
-                                        {expandedSections.supplier && (
-                                            <div className="bg-base-100 rounded-2xl p-4 space-y-2 mt-4">
-                                                <p className="text-sm font-black text-base-content">{selectedProduct.supplier.name}</p>
-                                                {selectedProduct.supplier.email && (
-                                                    <div className="flex items-center gap-2 text-xs text-base-content/60">
-                                                        <Mail size={12} />
-                                                        <span>{selectedProduct.supplier.email}</span>
-                                                    </div>
-                                                )}
-                                                {selectedProduct.supplier.phone && (
-                                                    <div className="flex items-center gap-2 text-xs text-base-content/60">
-                                                        <Phone size={12} />
-                                                        <span>{selectedProduct.supplier.phone}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* SECTION 6: Boutiques */}
-                                {(selectedProduct.boutique_id || selectedProduct.secondary_boutique_ids?.length > 0) && (
+                                {/* SECTION 5: Stock */}
+                                {selectedProduct.stock !== undefined && selectedProduct.stock !== null && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <div className="flex items-center gap-2 text-base-content/40">
-                                            <Store size={16} />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Boutiques</span>
+                                            <ShoppingBag size={16} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Stock</span>
                                         </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {selectedProduct.boutique_id && (
-                                                <span className="px-3 py-1 bg-primary/10 text-primary rounded-xl text-[10px] font-black">
-                                                    Boutique principale
-                                                </span>
-                                            )}
-                                            {selectedProduct.secondary_boutique_ids?.map((id, idx) => (
-                                                <span key={idx} className="px-3 py-1 bg-base-100 rounded-xl text-[10px] font-black text-base-content/60">
-                                                    Boutique #{id}
-                                                </span>
-                                            ))}
+                                        <div className="bg-base-100 rounded-2xl p-4">
+                                            <p className={`text-2xl font-black ${selectedProduct.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                                                {selectedProduct.stock} unités
+                                            </p>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* SECTION 7: Notes Admin & Fournisseur */}
-                                <div className="space-y-3">
-                                    {selectedProduct.supplier_note && (
-                                        <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200">
-                                            <div className="flex items-center gap-2 text-amber-600 mb-2">
-                                                <FileText size={14} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Note du fournisseur</span>
+                                {/* SECTION 6: Métadonnées */}
+                                {(selectedProduct.created_at || selectedProduct.updated_at) && (
+                                    <div className="bg-base-200/30 rounded-3xl p-4 grid grid-cols-2 gap-2 text-[10px]">
+                                        {selectedProduct.created_at && (
+                                            <div>
+                                                <p className="font-black text-base-content/30 uppercase">Créé le</p>
+                                                <p className="font-bold text-base-content/60">{formatDate(selectedProduct.created_at)}</p>
                                             </div>
-                                            <p className="text-sm font-medium text-amber-800">{selectedProduct.supplier_note}</p>
-                                        </div>
-                                    )}
-
-                                    {selectedProduct.admin_feedback && (
-                                        <div className="bg-blue-50 rounded-3xl p-6 border border-blue-200">
-                                            <div className="flex items-center gap-2 text-blue-600 mb-2">
-                                                <AlertCircle size={14} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Feedback précédent</span>
+                                        )}
+                                        {selectedProduct.updated_at && (
+                                            <div>
+                                                <p className="font-black text-base-content/30 uppercase">Modifié le</p>
+                                                <p className="font-bold text-base-content/60">{formatDate(selectedProduct.updated_at)}</p>
                                             </div>
-                                            <p className="text-sm font-medium text-blue-800">{selectedProduct.admin_feedback}</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* SECTION 8: Métadonnées */}
-                                <div className="bg-base-200/30 rounded-3xl p-4 grid grid-cols-2 gap-2 text-[10px]">
-                                    <div>
-                                        <p className="font-black text-base-content/30 uppercase">Créé le</p>
-                                        <p className="font-bold text-base-content/60">{formatDate(selectedProduct.created_at)}</p>
+                                        )}
                                     </div>
-                                    <div>
-                                        <p className="font-black text-base-content/30 uppercase">Modifié le</p>
-                                        <p className="font-bold text-base-content/60">{formatDate(selectedProduct.updated_at)}</p>
-                                    </div>
-                                    {selectedProduct.status && (
-                                        <div className="col-span-2">
-                                            <p className="font-black text-base-content/30 uppercase">Statut</p>
-                                            <p className="font-bold text-base-content/60">{selectedProduct.status}</p>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
 
-                                {/* SECTION 9: Zone de feedback */}
+                                {/* SECTION 7: Notes */}
+                                {selectedProduct.supplier_note && (
+                                    <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200">
+                                        <div className="flex items-center gap-2 text-amber-600 mb-2">
+                                            <FileText size={14} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Note du fournisseur</span>
+                                        </div>
+                                        <p className="text-sm font-medium text-amber-800">{selectedProduct.supplier_note}</p>
+                                    </div>
+                                )}
+
+                                {selectedProduct.admin_feedback && (
+                                    <div className="bg-blue-50 rounded-3xl p-6 border border-blue-200">
+                                        <div className="flex items-center gap-2 text-blue-600 mb-2">
+                                            <AlertCircle size={14} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Feedback précédent</span>
+                                        </div>
+                                        <p className="text-sm font-medium text-blue-800">{selectedProduct.admin_feedback}</p>
+                                    </div>
+                                )}
+
+                                {/* SECTION 8: Zone de feedback */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase text-base-content/40 tracking-widest px-2">
                                         ✏️ Message au fournisseur
@@ -602,7 +563,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                     />
                                 </div>
 
-                                {/* SECTION 10: Actions */}
+                                {/* SECTION 9: Actions */}
                                 <div className="grid grid-cols-3 gap-3 pt-4">
                                     <button
                                         onClick={() => handleDelete(selectedProduct)}
@@ -623,21 +584,6 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                         <CheckCircle size={14} /> Approuver
                                     </button>
                                 </div>
-
-                                {/* Badge KIT si applicable */}
-                                {selectedProduct.is_kit && (
-                                    <div className="mt-4 p-4 bg-purple-50 rounded-2xl border border-purple-200 text-center">
-                                        <div className="flex items-center justify-center gap-2 text-purple-600">
-                                            <Gift size={16} />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Ce produit est un KIT</span>
-                                        </div>
-                                        {selectedProduct.kit_items?.length > 0 && (
-                                            <p className="text-xs font-medium text-purple-700 mt-1">
-                                                {selectedProduct.kit_items.length} articles inclus
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
 
                             </motion.div>
                         ) : (
