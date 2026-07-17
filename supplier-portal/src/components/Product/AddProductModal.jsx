@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
+const AddProductModal = ({ globalSearchQuery = "" }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -660,4 +660,4 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
     );
 };
 
-export default SupplierProductsApproval;
+export default AddProductModal;
