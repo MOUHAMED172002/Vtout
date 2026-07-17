@@ -44,17 +44,11 @@ export const uploadSingleImage = async (file, token) => {
             },
         });
 
-        // Afficher le succès avec détails
+        // Afficher le succès avec détails (sans JSX)
         if (data.success) {
+            const sizeMB = (data.details?.size / (1024 * 1024)).toFixed(2);
             toast.success(
-                (t) => (
-                    <div className="space-y-1">
-                        <p className="font-bold">✅ {data.message}</p>
-                        <p className="text-xs opacity-80">
-                            {(data.details?.size / (1024 * 1024)).toFixed(2)}MB • {fileExtension.toUpperCase()}
-                        </p>
-                    </div>
-                ),
+                `✅ ${data.message} - ${sizeMB}MB • ${fileExtension.toUpperCase()}`,
                 { id: toastId }
             );
         }
@@ -146,18 +140,11 @@ export const uploadMultipleImages = async (files, token) => {
             },
         });
 
-        // Afficher le succès
+        // Afficher le succès (sans JSX)
         if (data.success) {
             const totalSize = files.reduce((sum, f) => sum + f.size, 0);
             toast.success(
-                (t) => (
-                    <div className="space-y-1">
-                        <p className="font-bold">✅ {data.message}</p>
-                        <p className="text-xs opacity-80">
-                            {data.count} image(s) • {(totalSize / (1024 * 1024)).toFixed(2)}MB
-                        </p>
-                    </div>
-                ),
+                `✅ ${data.message} - ${data.count} image(s) • ${(totalSize / (1024 * 1024)).toFixed(2)}MB`,
                 { id: toastId }
             );
         }
