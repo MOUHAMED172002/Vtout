@@ -127,15 +127,15 @@ export default function ProductsList() {
         {/* Product Area */}
         <div className="flex-1">
 
-          {/* Mobile Filters & Count
+          {/* Mobile Filters & Count */}
           <div className="flex items-center justify-between lg:hidden mb-8">
             <FiltersPanelDrawer onFilterChange={setFilters} mobileOnly />
-            {!loading && totalCount > 0 && (
+            {/* {!loading && totalCount > 0 && (
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {products.length} / {totalCount} articles
               </p>
-            )}
-          </div> */}
+            )} */}
+          </div>
 
           {/* Initial Loading Skeletons */}
           {loading && (
