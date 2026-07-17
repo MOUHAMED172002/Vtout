@@ -131,9 +131,7 @@ export default function ProductsList() {
           <div className="flex items-center justify-between lg:hidden mb-8">
             <FiltersPanelDrawer onFilterChange={setFilters} mobileOnly />
             {!loading && totalCount > 0 && (
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                {products.length} / {totalCount} articles
-              </p>
+              
             )}
           </div>
 
@@ -221,9 +219,7 @@ export default function ProductsList() {
                       Tous les articles sont affichés
                     </span>
                   </div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                    {products.length} article{products.length > 1 ? "s" : ""} au total
-                  </p>
+                  
                 </motion.div>
               )}
 
