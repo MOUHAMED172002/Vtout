@@ -184,7 +184,7 @@ export const getAllProducts = async (req, res) => {
             });
         }
 
-        let order = [['createdAt', 'DESC']];
+        let order =   sequelize?.literal('RAND()'); // Default random order;
         if (sort === 'price_asc') order = [['price', 'ASC']];
         if (sort === 'price_desc') order = [['price', 'DESC']];
 
