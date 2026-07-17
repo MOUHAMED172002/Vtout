@@ -5,11 +5,133 @@ import {
   CheckCircle, XCircle, Eye, AlertCircle, Trash2, 
   Package, Search, User, Calendar, Tag, Info, Layers, ShoppingBag, 
   Truck, Percent, Image as ImageIcon, Store, FileText, 
-  Sparkles, Flame, Gift, ChevronDown, ChevronUp, Loader
+  Sparkles, Flame, Gift, ChevronDown, ChevronUp, Loader,
+  X, ChevronLeft, ChevronRight, ZoomIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
+// Composant Lightbox pour la visualisation des images
+const ImageLightbox = ({ images, currentIndex, onClose, onNavigate }) => {
+    const [isZoomed, setIsZoomed] = useState(false);
+
+    // Navigation au clavier
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') onClose();
+            if (e.key === 'ArrowLeft') onNavigate('prev');
+            if (e.key === 'ArrowRight') onNavigate('next');
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose, onNavigate]);
+
+    if (!images || images.length === 0) return null;
+
+    const currentImage = images[currentIndex];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl flex items-center justify-center"
+            onClick={onClose}
+        >
+            {/* Bouton fermer */}
+            <button
+                onClick={onClose}
+                className="absolute top-6 right-6 text-white/60 hover:text-white transition-colors z-10 p-2 hover:bg-white/10 rounded-full"
+            >
+                <X size={32} />
+            </button>
+
+            {/* Navigation - Précédent */}
+            {images.length > 1 && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
+                    className="absolute left-6 text-white/40 hover:text-white transition-colors z-10 p-4 hover:bg-white/10 rounded-full"
+                >
+                    <ChevronLeft size={40} />
+                </button>
+            )}
+
+            {/* Image */}
+            <motion.div
+                key={currentIndex}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 25 }}
+                className="relative max-w-[90vw] max-h-[85vh] cursor-pointer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsZoomed(!isZoomed);
+                }}
+            >
+                <img
+                    src={currentImage?.image_url || currentImage?.url}
+                    alt={`Image ${currentIndex + 1}`}
+                    className={`object-contain transition-all duration-300 ${
+                        isZoomed ? 'scale-150' : 'scale-100'
+                    } max-w-[90vw] max-h-[85vh] rounded-xl shadow-2xl`}
+                    onError={(e) => {
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23333"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666" font-size="16"%3EImage non disponible%3C/text%3E%3C/svg%3E';
+                    }}
+                />
+                
+                {/* Indicateur de zoom */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white/80 text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
+                    {isZoomed ? '🔍 Dézoomer' : '🔍 Zoomer'} • Cliquez sur l'image
+                </div>
+
+                {/* Compteur */}
+                {images.length > 1 && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm">
+                        {currentIndex + 1} / {images.length}
+                    </div>
+                )}
+            </motion.div>
+
+            {/* Navigation - Suivant */}
+            {images.length > 1 && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
+                    className="absolute right-6 text-white/40 hover:text-white transition-colors z-10 p-4 hover:bg-white/10 rounded-full"
+                >
+                    <ChevronRight size={40} />
+                </button>
+            )}
+
+            {/* Miniatures en bas */}
+            {images.length > 1 && (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 max-w-[80vw] overflow-x-auto px-4 py-2">
+                    {images.map((img, idx) => (
+                        <button
+                            key={idx}
+                            onClick={(e) => { e.stopPropagation(); onNavigate(idx); }}
+                            className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                                idx === currentIndex 
+                                    ? 'border-white shadow-lg shadow-white/20' 
+                                    : 'border-white/20 hover:border-white/50'
+                            }`}
+                        >
+                            <img
+                                src={img.image_url || img.url}
+                                alt={`Miniature ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                }}
+                            />
+                        </button>
+                    ))}
+                </div>
+            )}
+        </motion.div>
+    );
+};
+
+// Composant principal
 const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,6 +145,11 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
         images: true,
     });
     const { getToken } = useAuth();
+
+    // États pour la lightbox
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxImages, setLightboxImages] = useState([]);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     const fetchPendingProducts = async () => {
         try {
@@ -47,23 +174,39 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
         fetchPendingProducts();
     }, [globalSearchQuery]);
 
-    // Fonction pour charger les détails complets d'un produit
     const loadProductDetails = async (product) => {
         setLoadingDetails(true);
         setSelectedProduct(product);
         try {
             const token = await getToken();
-            // Récupérer le produit avec tous ses détails
             const fullProduct = await getProductById(product.id, token);
             setSelectedProductDetails(fullProduct);
             setFeedback(fullProduct.admin_feedback || '');
         } catch (error) {
             console.error('Erreur chargement détails:', error);
-            // En cas d'erreur, on utilise les données qu'on a déjà
             setSelectedProductDetails(product);
             toast.error('Impossible de charger tous les détails');
         } finally {
             setLoadingDetails(false);
+        }
+    };
+
+    // Fonction pour ouvrir la lightbox
+    const openLightbox = (images, index = 0) => {
+        if (!images || images.length === 0) return;
+        setLightboxImages(images);
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+    };
+
+    // Fonction pour naviguer dans la lightbox
+    const navigateLightbox = (direction) => {
+        if (direction === 'next') {
+            setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+        } else if (direction === 'prev') {
+            setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+        } else if (typeof direction === 'number') {
+            setLightboxIndex(direction);
         }
     };
 
@@ -153,7 +296,6 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
         return Number(price).toLocaleString('fr-FR');
     };
 
-    // Récupérer le produit à afficher (détails complets ou données de base)
     const displayProduct = selectedProductDetails || selectedProduct;
 
     if (loading) {
@@ -407,7 +549,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     )}
                                 </div>
 
-                                {/* SECTION 3: Images */}
+                                {/* SECTION 3: Images avec Lightbox */}
                                 {displayProduct.images && displayProduct.images.length > 0 && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <button
@@ -426,20 +568,32 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                         {expandedSections.images && (
                                             <div className="grid grid-cols-3 gap-2 mt-4">
                                                 {displayProduct.images.map((img, idx) => (
-                                                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border-2 border-base-100">
+                                                    <div 
+                                                        key={idx} 
+                                                        className="relative aspect-square rounded-xl overflow-hidden border-2 border-base-100 cursor-pointer group hover:border-primary transition-all"
+                                                        onClick={() => openLightbox(displayProduct.images, idx)}
+                                                    >
                                                         <img 
                                                             src={img.image_url} 
                                                             alt={`Product ${idx + 1}`}
-                                                            className="w-full h-full object-cover"
+                                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                             onError={(e) => {
                                                                 e.target.style.display = 'none';
                                                             }}
                                                         />
+                                                        {/* Overlay au survol */}
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <ZoomIn size={24} className="text-white" />
+                                                        </div>
                                                         {img.is_main && (
                                                             <div className="absolute top-1 right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded">
                                                                 MAIN
                                                             </div>
                                                         )}
+                                                        {/* Indicateur de clic */}
+                                                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[8px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            Cliquer pour voir
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -469,14 +623,26 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                                     <div key={idx} className="bg-base-100 rounded-2xl p-4 border border-base-200">
                                                         <div className="flex items-center gap-3">
                                                             {variant.image_url && (
-                                                                <img 
-                                                                    src={variant.image_url} 
-                                                                    alt={`Variant ${idx + 1}`}
-                                                                    className="w-12 h-12 rounded-xl object-cover"
-                                                                    onError={(e) => {
-                                                                        e.target.style.display = 'none';
+                                                                <div 
+                                                                    className="w-12 h-12 rounded-xl overflow-hidden cursor-pointer group relative flex-shrink-0"
+                                                                    onClick={() => {
+                                                                        // Si la variante a une image, on l'ouvre dans la lightbox
+                                                                        const variantImage = { image_url: variant.image_url };
+                                                                        openLightbox([variantImage], 0);
                                                                     }}
-                                                                />
+                                                                >
+                                                                    <img 
+                                                                        src={variant.image_url} 
+                                                                        alt={`Variant ${idx + 1}`}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            e.target.style.display = 'none';
+                                                                        }}
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                        <ZoomIn size={14} className="text-white" />
+                                                                    </div>
+                                                                </div>
                                                             )}
                                                             <div className="flex-1">
                                                                 {variant.combination && Object.keys(variant.combination).length > 0 && (
@@ -617,6 +783,18 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Lightbox / Visionneuse d'images */}
+            <AnimatePresence>
+                {lightboxOpen && (
+                    <ImageLightbox
+                        images={lightboxImages}
+                        currentIndex={lightboxIndex}
+                        onClose={() => setLightboxOpen(false)}
+                        onNavigate={navigateLightbox}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
