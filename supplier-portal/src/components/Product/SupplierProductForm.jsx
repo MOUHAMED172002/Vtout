@@ -369,9 +369,15 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             lastGeneratedSignature.current = signature;
             generateVariants();
         }
-    }, [selectedAttributes, selectedValuesMap, initialData, generateVariants]);
+    }, [selectedAttributes, selectedValuesMap, initialData]);
 
     const onSubmit = async (data) => {
+        // Vérifier la validité du formulaire avant de soumettre
+        if (!isValid) {
+            toast.error("Veuillez corriger les erreurs dans le formulaire.");
+            return;
+        }
+
         setLoading(true);
         try {
             const token = await getToken();
