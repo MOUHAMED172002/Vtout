@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import {
     X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
@@ -95,7 +95,10 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const [imageFiles, setImageFiles] = useState([]);
     const [deliveryTiers, setDeliveryTiers] = useState([]);
 
-    const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
+    // Ref pour éviter les générations en boucle
+    const lastGeneratedSignature = useRef('');
+
+    const { register, handleSubmit, control, watch, setValue, formState: { errors, isValid } } = useForm({
         defaultValues: initialData ? {
             name: initialData.name,
             description: initialData.description || '',
@@ -304,6 +307,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
         setImageFiles(newImages);
     };
 
+    // Génération des variantes
     const generateVariants = () => {
         try {
             if (selectedAttributes.length === 0) {
@@ -334,8 +338,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             });
 
             setValue('variants', newVariants);
-            // When variants are generated, we prioritize their prices
-            toast.success(`${newVariants.length} variantes générées. Les prix seront gérés par variante.`);
+            toast.success(`${newVariants.length} variantes générées automatiquement.`);
         } catch (e) {
             toast.error(e.message);
         }
@@ -344,6 +347,29 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const cartesianProduct = (arrays) => {
         return arrays.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]]);
     };
+
+    // useEffect pour la génération automatique
+    useEffect(() => {
+        // Ne pas générer si on est en édition avec des variantes existantes
+        if (initialData && initialData.variants && initialData.variants.length > 0) {
+            return;
+        }
+
+        // Construire une signature des sélections pour éviter les regénérations inutiles
+        const signature = selectedAttributes.map(a => `${a.id}-${(selectedValuesMap[a.id] || []).sort().join(',')}`).join('|');
+        if (signature === lastGeneratedSignature.current) return;
+
+        // Vérifier que tous les attributs sélectionnés ont au moins une valeur choisie
+        const allHaveValues = selectedAttributes.every(attr => {
+            const values = selectedValuesMap[attr.id] || [];
+            return values.length > 0;
+        });
+
+        if (selectedAttributes.length > 0 && allHaveValues) {
+            lastGeneratedSignature.current = signature;
+            generateVariants();
+        }
+    }, [selectedAttributes, selectedValuesMap, initialData, generateVariants]);
 
     const onSubmit = async (data) => {
         setLoading(true);
@@ -445,9 +471,13 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     };
 
     const nextStep = () => {
-        if (currentStep === 0 && (!selectedCategoryId || !watch('name'))) {
-            toast.error('Nom et Catégorie requis.');
-            return;
+        // Validation des champs de l'étape 0
+        if (currentStep === 0) {
+            if (!selectedCategoryId || !watch('name')) {
+                toast.error('Nom et Catégorie requis.');
+                return;
+            }
+            // Si on a déjà généré des variantes mais qu'on revient, on peut passer
         }
         setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
     };
@@ -494,7 +524,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                         <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
-                                <input {...register("name", { required: true })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
+                                <input {...register("name", { required: "Le nom est requis" })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
+                                {errors.name && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">{errors.name.message}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -505,6 +536,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     </span>
                                     <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
                                 </button>
+                                {errors.category_id && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">La catégorie est requise</p>}
                             </div>
 
                             <div className="space-y-4">
@@ -617,7 +649,10 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                         ))}
                                     </div>
                                 )}
-                                <button type="button" onClick={() => { generateVariants(); nextStep(); }} disabled={selectedAttributes.length === 0} className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl">Générer & Continuer</button>
+                                {/* Bouton Continuer sans génération */}
+                                <button type="button" onClick={nextStep} className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl">
+                                    Continuer
+                                </button>
                             </div>
                         </motion.div>
                     )}
@@ -659,7 +694,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Votre prix de vente souhaité (FCFA)</label>
-                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
+                                        <input type="number" {...register("supplier_price", { min: { value: 0, message: "Prix doit être >= 0" } })} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
+                                        {errors.supplier_price && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">{errors.supplier_price.message}</p>}
                                     </div>
                                     <div className="space-y-2 px-4">
                                         <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
@@ -684,7 +720,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
-                                    <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                    <input type="number" {...register("stock", { min: { value: 0, message: "Stock doit être >= 0" } })} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                    {errors.stock && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">{errors.stock.message}</p>}
                                     <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut les frais de livraison calculés selon la grille. Le client verra "Livraison Gratuite".</p>
                                 </div>
                             </div>
@@ -767,8 +804,6 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             </div>
                         </motion.div>
                     )}
-
-
                 </AnimatePresence>
             </div>
 
@@ -783,7 +818,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             Continuer
                         </button>
                     ) : (
-                        <button onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2">
+                        <button onClick={handleSubmit(onSubmit)} disabled={loading || !isValid} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2 disabled:opacity-50">
                             {loading ? <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : <><Check size={14} /> Envoyer</>}
                         </button>
                     )}
