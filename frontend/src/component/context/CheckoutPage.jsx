@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { haptics } from "../../utils/haptics";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
@@ -12,7 +12,6 @@ import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRigh
 
 import api from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
-
 export default function CheckoutPage() {
   const { getToken } = useAuth();
   const { user, isSignedIn, isLoaded } = useUser();
@@ -51,6 +50,8 @@ export default function CheckoutPage() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [feesConfig, setFeesConfig] = useState({ intra: 500, inter: 1000, crossing: {} });
   const [isDynamicFeeLoading, setIsDynamicFeeLoading] = useState(false);
+  // true si l'adresse du client n'est PAS dans la zone de livraison gratuite du/des vendeur(s)
+  const [isZoneMismatch, setIsZoneMismatch] = useState(false);
 
   useEffect(() => {
     // Fetch delivery fee configs from public API
@@ -94,6 +95,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!address || !address.is_valid || itemsFromCart.length === 0) {
       setDeliveryFee(0);
+      setIsZoneMismatch(false);
       return;
     }
 
@@ -110,6 +112,7 @@ export default function CheckoutPage() {
     });
 
     let totalSupplement = 0;
+    let anyZoneMismatch = false;
     Object.entries(boutiques).forEach(([bId, boutique]) => {
         if (!boutique) return;
         
@@ -139,6 +142,7 @@ export default function CheckoutPage() {
             // Livraison incluse
         } else if (String(boutique.departement_id) === String(address.departement_id)) {
             totalSupplement += feesConfig.intra;
+            anyZoneMismatch = true;
         } else {
             const key = `${boutique.departement_id}-${address.departement_id}`;
             const reverseKey = `${address.departement_id}-${boutique.departement_id}`;
@@ -150,12 +154,22 @@ export default function CheckoutPage() {
             } else {
                 totalSupplement += feesConfig.inter;
             }
+            anyZoneMismatch = true;
         }
     });
 
     setDeliveryFee(totalSupplement);
+    setIsZoneMismatch(anyZoneMismatch);
     setIsDynamicFeeLoading(false);
   }, [address, itemsFromCart, feesConfig]);
+
+  // Si la zone devient incompatible pendant que "paiement à la livraison" est sélectionné,
+  // on bascule automatiquement sur un autre mode de paiement disponible.
+  useEffect(() => {
+    if (isZoneMismatch && paymentMethod === 'delivery') {
+      setPaymentMethod('fedapay');
+    }
+  }, [isZoneMismatch, paymentMethod]);
 
   useEffect(() => {
     if (itemsFromCart.length === 0) {
@@ -203,6 +217,16 @@ export default function CheckoutPage() {
 
   const finalTotal = Math.max(0, totalFromCart - discount + deliveryFee);
 
+  // Gère le clic sur le mode "Paiement à la livraison" : bloqué + toast si la zone
+  // du client est différente de celle du vendeur.
+  const handleSelectDeliveryPayment = () => {
+    if (isZoneMismatch) {
+      toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
+      return;
+    }
+    setPaymentMethod('delivery');
+  };
+
   async function createOrderFlow({ addressObj, items, total, paymentMethod = "delivery", coupon }) {
     console.log("[CheckoutPage] Starting createOrderFlow...", { paymentMethod, itemsCount: items.length });
     const token = isGuest ? null : await getToken();
@@ -249,6 +273,10 @@ export default function CheckoutPage() {
   const handleConfirmOrder = async () => {
     try {
       if (!address) return toast.error("Veuillez renseigner votre adresse !");
+      if (paymentMethod === 'delivery' && isZoneMismatch) {
+        toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
+        return;
+      }
       setLoading(true);
 
       if (paymentMethod === "fedapay") {
@@ -306,52 +334,6 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
-
-  // --- Nouvelle logique pour déterminer si la livraison est disponible pour l'adresse sélectionnée ---
-  const isDeliveryAvailable = useMemo(() => {
-    if (!address || !address.is_valid) return false;
-    if (itemsFromCart.length === 0) return false;
-
-    // Fonction de normalisation (identique à celle utilisée pour les frais)
-    const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-    const targetCommuneNorm = normalize(address.commune_label);
-
-    // Vérifier pour chaque article si la boutique livre à cette adresse
-    return itemsFromCart.every(item => {
-      const product = item.product || item;
-      const boutique = product.boutique || item.boutique;
-      if (!boutique) return false; // pas d'info => on considère que non
-
-      // 1. Vérifier si la commune de la boutique correspond à celle de l'adresse
-      if (String(boutique.commune_id) === String(address.commune_id)) return true;
-
-      // 2. Vérifier si l'adresse est dans les communes de livraison gratuite du produit
-      const freeCommunes = product.free_delivery_communes || item.free_delivery_communes || [];
-      const isFree = freeCommunes.some(c => normalize(c) === targetCommuneNorm);
-      if (isFree) return true;
-
-      // Si aucune des conditions n'est remplie, cet article n'est pas livrable à cette adresse
-      return false;
-    });
-  }, [address, itemsFromCart]);
-
-  // Gestion du clic sur le bouton "À la livraison"
-  const handleDeliveryPaymentClick = () => {
-    if (!address || !address.is_valid) {
-      toast.error("Veuillez d'abord sélectionner une adresse de livraison.");
-      return;
-    }
-    if (!isDeliveryAvailable) {
-      toast.error(
-        "La livraison à cette adresse n'est pas disponible pour le paiement à la livraison. " +
-        "Veuillez choisir un autre mode de paiement."
-      );
-      return;
-    }
-    setPaymentMethod('delivery');
-  };
-
-  // --- Fin des ajouts ---
 
   return (
     <div className="bg-base-200/50 min-h-screen pt-12 pb-24 font-sans selection:bg-primary/10 selection:text-primary transition-colors duration-500">
@@ -543,39 +525,28 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* BOUTON "À LA LIVRAISON" MODIFIÉ */}
+                    {/* ... (Payment methods content) ... */}
                     <button
-                      onClick={handleDeliveryPaymentClick}
-                      disabled={!isDeliveryAvailable}
-                      className={`p-8 rounded-3xl border-2 transition-all text-left space-y-4 ${
-                        paymentMethod === 'delivery'
-                          ? 'border-primary bg-orange-50/50 ring-4 ring-primary/5'
-                          : 'border-gray-100 hover:border-gray-200'
-                      } ${!isDeliveryAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={handleSelectDeliveryPayment}
+                      className={`p-8 rounded-3xl border-2 transition-all text-left space-y-4 ${paymentMethod === 'delivery' ? 'border-primary bg-orange-50/50 ring-4 ring-primary/5' : 'border-gray-100 hover:border-gray-200'} ${isZoneMismatch ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                     >
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                        paymentMethod === 'delivery' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === 'delivery' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
                         <Truck size={24} />
                       </div>
                       <div>
                         <p className="font-black text-lg text-gray-900">À la livraison</p>
-                        <p className="text-sm text-gray-500 font-medium">Payez en espèces à réception</p>
+                        <p className="text-sm text-gray-500 font-medium">
+                          {isZoneMismatch ? "Indisponible pour votre zone" : "Payez en espèces à réception"}
+                        </p>
                       </div>
                     </button>
 
                     <button
                       onClick={() => setPaymentMethod('fedapay')}
-                      className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${
-                        paymentMethod === 'fedapay'
-                          ? 'border-primary bg-primary/5 ring-8 ring-primary/5'
-                          : 'border-base-content/5 hover:border-primary/30 hover:bg-base-200/50'
-                      }`}
+                      className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'fedapay' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-primary/30 hover:bg-base-200/50'}`}
                     >
                       {paymentMethod === 'fedapay' && <div className="absolute -top-6 -right-6 w-20 h-20 bg-primary/10 rounded-full blur-2xl"></div>}
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                        paymentMethod === 'fedapay' ? 'bg-primary text-primary-content rotate-6' : 'bg-base-200 text-base-content/40'
-                      }`}>
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'fedapay' ? 'bg-primary text-primary-content rotate-6' : 'bg-base-200 text-base-content/40'}`}>
                         <CreditCard size={28} />
                       </div>
                       <div>
@@ -588,15 +559,9 @@ export default function CheckoutPage() {
                       <button
                         onClick={() => setPaymentMethod('wallet')}
                         disabled={walletBalance < finalTotal}
-                        className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${
-                          paymentMethod === 'wallet'
-                            ? 'border-primary bg-primary/5 ring-8 ring-primary/5'
-                            : 'border-base-content/5 hover:border-emerald-500/30 hover:bg-emerald-50/10'
-                        } ${walletBalance < finalTotal ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                        className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'wallet' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-emerald-500/30 hover:bg-emerald-50/10'} ${walletBalance < finalTotal ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                       >
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                          paymentMethod === 'wallet' ? 'bg-emerald-500 text-white rotate-3' : 'bg-emerald-50 text-emerald-400'
-                        }`}>
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'bg-emerald-500 text-white rotate-3' : 'bg-emerald-50 text-emerald-400'}`}>
                           <Wallet size={28} />
                         </div>
                         <div>
@@ -616,6 +581,10 @@ export default function CheckoutPage() {
                     <button onClick={() => setStep(3)} className="font-black text-gray-400 hover:text-gray-900">Retour</button>
                     <button
                       onClick={() => {
+                        if (paymentMethod === 'delivery' && isZoneMismatch) {
+                          toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
+                          return;
+                        }
                         if (isWhatsAppUser) {
                           handleConfirmOrder();
                         } else {
