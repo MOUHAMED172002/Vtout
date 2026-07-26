@@ -401,7 +401,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const onSubmit = async (data) => {
         const missingFields = validateForm(data);
         if (missingFields.length > 0) {
-            toast.error(`Champs manquants : ${missingFields.join(', ')}`);
+            missingFields.forEach(field => toast.error(`Champ manquant : ${field}`));
             return;
         }
 
