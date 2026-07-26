@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import {
     X, Plus, Trash2, Image as ImageIcon, Check, ChevronRight,
@@ -95,10 +95,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const [imageFiles, setImageFiles] = useState([]);
     const [deliveryTiers, setDeliveryTiers] = useState([]);
 
-    // Ref pour éviter les générations en boucle
-    const lastGeneratedSignature = useRef('');
-
-    const { register, handleSubmit, control, watch, setValue, formState: { errors, isValid } } = useForm({
+    const { register, handleSubmit, control, watch, setValue, getValues, formState: { errors } } = useForm({
         defaultValues: initialData ? {
             name: initialData.name,
             description: initialData.description || '',
@@ -307,30 +304,58 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
         setImageFiles(newImages);
     };
 
-    // Génération des variantes
-    const generateVariants = () => {
+    // Fonction pour le produit cartésien (utilisée dans la génération auto)
+    const cartesianProduct = (arrays) => {
+        return arrays.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]]);
+    };
+
+    // ============================================================
+    // 1. GÉNÉRATION AUTOMATIQUE DES VARIANTES
+    // ============================================================
+    useEffect(() => {
+        // Si on est en édition avec des variantes existantes, on ne génère pas automatiquement
+        if (initialData && initialData.variants && initialData.variants.length > 0) {
+            return;
+        }
+
+        // Si aucun attribut sélectionné, on vide les variantes
+        if (selectedAttributes.length === 0) {
+            setValue('variants', []);
+            return;
+        }
+
+        // Vérifier que chaque attribut sélectionné a au moins une valeur choisie
+        const allHaveValues = selectedAttributes.every(a => (selectedValuesMap[a.id] || []).length > 0);
+        if (!allHaveValues) {
+            setValue('variants', []);
+            return;
+        }
+
         try {
-            if (selectedAttributes.length === 0) {
-                throw new Error("Sélectionnez au moins un attribut");
-            }
+            // Construire les combinaisons
             const combinations = cartesianProduct(selectedAttributes.map(a => {
                 const valIds = selectedValuesMap[a.id] || [];
                 const chosenValues = a.values.filter(v => valIds.includes(v.id));
-                if (chosenValues.length === 0) {
-                    throw new Error(`Sélectionnez au moins une valeur pour "${a.name}"`);
-                }
                 return chosenValues.map(v => ({ attribute: a.name, value: v.value }));
             }));
+
+            // Récupérer les variantes existantes (pour conserver prix/stock déjà saisis)
+            const existingVariants = getValues('variants') || [];
 
             const newVariants = combinations.map(combo => {
                 const comboObj = {};
                 const comboArray = Array.isArray(combo) ? combo : [combo];
                 comboArray.forEach(item => { comboObj[item.attribute] = item.value; });
 
-                return {
+                // Chercher si cette combinaison existait déjà
+                const existing = existingVariants.find(
+                    v => JSON.stringify(v.combination) === JSON.stringify(comboObj)
+                );
+
+                return existing || {
                     combination: comboObj,
                     sku: '',
-                    supplier_price: parseFloat(globalSupplierPrice) || 0,
+                    supplier_price: parseFloat(getValues('supplier_price')) || 0,
                     stock: 0,
                     image_file: null,
                     preview_url: null
@@ -338,43 +363,61 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             });
 
             setValue('variants', newVariants);
-            toast.success(`${newVariants.length} variantes générées automatiquement.`);
         } catch (e) {
-            toast.error(e.message);
+            // Ignorer silencieusement (les toasts seraient trop fréquents)
         }
+    }, [selectedAttributes, selectedValuesMap, initialData, setValue, getValues]);
+
+    // ============================================================
+    // 2. VALIDATION DES CHAMPS OBLIGATOIRES
+    // ============================================================
+    const validateForm = (data) => {
+        const missing = [];
+
+        // Étape 0 : Informations
+        if (!data.name || !data.name.trim()) missing.push("Nom de l'article");
+        if (!data.category_id) missing.push("Catégorie");
+        if (selectedBoutiques.length === 0) missing.push("Boutique de livraison");
+        if (imageFiles.length === 0) missing.push("Au moins une image");
+
+        // Étape 3 : Variantes & Prix
+        if (variants.length === 0) {
+            // Pas de variantes => prix et stock globaux
+            if (!data.supplier_price || parseFloat(data.supplier_price) <= 0) missing.push("Prix de vente souhaité");
+            if (data.stock === '' || data.stock === undefined || data.stock === null) missing.push("Stock");
+        } else {
+            // Variantes existantes => on vérifie chaque variante
+            const invalid = variants.some((v, idx) => {
+                const vp = data.variants?.[idx]?.supplier_price;
+                const vs = data.variants?.[idx]?.stock;
+                return !vp || parseFloat(vp) <= 0 || vs === '' || vs === undefined || vs === null;
+            });
+            if (invalid) missing.push("Prix et stock de chaque variante");
+        }
+
+        // Promo
+        if (data.is_promo) {
+            if (!data.old_supplier_price || parseFloat(data.old_supplier_price) <= 0) missing.push("Ancien prix (Promo)");
+            if (!data.discount_percent || parseFloat(data.discount_percent) <= 0) missing.push("Pourcentage de réduction (Promo)");
+        }
+
+        // Vente Flash
+        if (data.is_flash_sale && !data.flash_sale_end) missing.push("Date de fin (Vente Flash)");
+
+        // Kit
+        if (data.is_kit && (!data.kit_items || data.kit_items.length === 0)) missing.push("Articles du kit");
+
+        return missing;
     };
 
-    const cartesianProduct = (arrays) => {
-        return arrays.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]]);
-    };
-
-    // useEffect pour la génération automatique
-    useEffect(() => {
-        // Ne pas générer si on est en édition avec des variantes existantes
-        if (initialData && initialData.variants && initialData.variants.length > 0) {
-            return;
-        }
-
-        // Construire une signature des sélections pour éviter les regénérations inutiles
-        const signature = selectedAttributes.map(a => `${a.id}-${(selectedValuesMap[a.id] || []).sort().join(',')}`).join('|');
-        if (signature === lastGeneratedSignature.current) return;
-
-        // Vérifier que tous les attributs sélectionnés ont au moins une valeur choisie
-        const allHaveValues = selectedAttributes.every(attr => {
-            const values = selectedValuesMap[attr.id] || [];
-            return values.length > 0;
-        });
-
-        if (selectedAttributes.length > 0 && allHaveValues) {
-            lastGeneratedSignature.current = signature;
-            generateVariants();
-        }
-    }, [selectedAttributes, selectedValuesMap, initialData]);
-
+    // ============================================================
+    // 3. SOUMISSION AVEC VALIDATION
+    // ============================================================
     const onSubmit = async (data) => {
-        // Vérifier la validité du formulaire avant de soumettre
-        if (!isValid) {
-            toast.error("Veuillez corriger les erreurs dans le formulaire.");
+        // Vérifier les champs manquants
+        const missingFields = validateForm(data);
+        if (missingFields.length > 0) {
+            toast.error(`Champs manquants : ${missingFields.join(', ')}`);
             return;
         }
 
@@ -476,20 +519,49 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
         }
     };
 
+    // ============================================================
+    // 4. NAVIGATION AVEC VALIDATION DES ÉTAPES
+    // ============================================================
     const nextStep = () => {
-        // Validation des champs de l'étape 0
+        // Étape 0 : nom et catégorie
         if (currentStep === 0) {
             if (!selectedCategoryId || !watch('name')) {
                 toast.error('Nom et Catégorie requis.');
                 return;
             }
-            // Si on a déjà généré des variantes mais qu'on revient, on peut passer
+            // Vérifier les boutiques sélectionnées
+            if (selectedBoutiques.length === 0) {
+                toast.error('Sélectionnez au moins une boutique de livraison.');
+                return;
+            }
+            // Vérifier les images
+            if (imageFiles.length === 0) {
+                toast.error('Ajoutez au moins une image du produit.');
+                return;
+            }
         }
+
+        // Étape 1 : attributs → on vérifie que des variantes ont été générées (si des attributs sont sélectionnés)
+        if (currentStep === 1) {
+            if (selectedAttributes.length > 0 && variants.length === 0) {
+                toast.error('Sélectionnez au moins une valeur pour chaque attribut choisi.');
+                return;
+            }
+        }
+
+        // Étape 2 : images → pas de validation particulière (déjà faite à l'étape 0)
+
+        // Étape 3 : avant de passer à la soumission, on pourrait valider les prix mais ce sera fait dans onSubmit
+        // On autorise le passage à l'étape 3 (variantes) sans validation de prix pour permettre la saisie
+
         setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
     };
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
+    // ============================================================
+    // RENDU
+    // ============================================================
     return (
         <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
             {/* Header */}
@@ -560,7 +632,6 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                         if (e.target.checked) {
                                                             setSelectedBoutiques([...selectedBoutiques, b.id]);
                                                         } else {
-                                                            // At least one must be selected if it's the primary one
                                                             if (selectedBoutiques.length > 1) {
                                                                 setSelectedBoutiques(selectedBoutiques.filter(id => id !== b.id));
                                                             } else {
@@ -655,9 +726,14 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                         ))}
                                     </div>
                                 )}
-                                {/* Bouton Continuer sans génération */}
-                                <button type="button" onClick={nextStep} className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl">
-                                    Continuer
+                                {/* Nouveau bouton "Continuer" (sans génération) */}
+                                <button
+                                    type="button"
+                                    onClick={nextStep}
+                                    disabled={selectedAttributes.length === 0 || variants.length === 0}
+                                    className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl disabled:opacity-40"
+                                >
+                                    {variants.length > 0 ? `Continuer (${variants.length} variantes générées)` : "Sélectionnez les valeurs des attributs"}
                                 </button>
                             </div>
                         </motion.div>
@@ -700,7 +776,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Votre prix de vente souhaité (FCFA)</label>
-                                        <input type="number" {...register("supplier_price", { min: { value: 0, message: "Prix doit être >= 0" } })} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
+                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
                                         {errors.supplier_price && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">{errors.supplier_price.message}</p>}
                                     </div>
                                     <div className="space-y-2 px-4">
@@ -726,7 +802,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
-                                    <input type="number" {...register("stock", { min: { value: 0, message: "Stock doit être >= 0" } })} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
+                                    <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
                                     {errors.stock && <p className="text-rose-500 text-xs font-bold ml-4 mt-1">{errors.stock.message}</p>}
                                     <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut les frais de livraison calculés selon la grille. Le client verra "Livraison Gratuite".</p>
                                 </div>
@@ -824,7 +900,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                             Continuer
                         </button>
                     ) : (
-                        <button onClick={handleSubmit(onSubmit)} disabled={loading || !isValid} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2 disabled:opacity-50">
+                        <button onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2">
                             {loading ? <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : <><Check size={14} /> Envoyer</>}
                         </button>
                     )}
