@@ -112,7 +112,6 @@ export default function CheckoutPage() {
     });
 
     let totalSupplement = 0;
-    let anyZoneMismatch = false;
     Object.entries(boutiques).forEach(([bId, boutique]) => {
         if (!boutique) return;
         
@@ -142,7 +141,6 @@ export default function CheckoutPage() {
             // Livraison incluse
         } else if (String(boutique.departement_id) === String(address.departement_id)) {
             totalSupplement += feesConfig.intra;
-            anyZoneMismatch = true;
         } else {
             const key = `${boutique.departement_id}-${address.departement_id}`;
             const reverseKey = `${address.departement_id}-${boutique.departement_id}`;
@@ -154,12 +152,13 @@ export default function CheckoutPage() {
             } else {
                 totalSupplement += feesConfig.inter;
             }
-            anyZoneMismatch = true;
         }
     });
 
     setDeliveryFee(totalSupplement);
-    setIsZoneMismatch(anyZoneMismatch);
+    // Le paiement à la livraison est bloqué dès que des frais de livraison
+    // supplémentaires s'appliquent (zone différente de celle du vendeur).
+    setIsZoneMismatch(totalSupplement !== 0);
     setIsDynamicFeeLoading(false);
   }, [address, itemsFromCart, feesConfig]);
 
