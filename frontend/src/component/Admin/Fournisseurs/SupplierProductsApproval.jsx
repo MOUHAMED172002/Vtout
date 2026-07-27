@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, getProductById, updateProduct, deleteProduct } from '../../../services/productService';
+import { getProducts, getProductById, updateProduct, deleteProduct, getCategories } from '../../../services/productService';
+import { uploadSingleImage } from '../../../services/uploadService';
 import { useAuth } from "../../../lib/AuthHooks";
 import { 
   CheckCircle, XCircle, Eye, AlertCircle, Trash2, 
   Package, Search, User, Calendar, Tag, Info, Layers, ShoppingBag, 
   Truck, Percent, Image as ImageIcon, Store, FileText, 
   Sparkles, Flame, Gift, ChevronDown, ChevronUp, Loader,
-  X, ChevronLeft, ChevronRight, ZoomIn
+  X, ChevronLeft, ChevronRight, ZoomIn, Edit, Save, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -151,6 +152,17 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
     const [lightboxImages, setLightboxImages] = useState([]);
     const [lightboxIndex, setLightboxIndex] = useState(0);
 
+    // États pour le mode édition admin (tout modifiable sauf les prix)
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editForm, setEditForm] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [newImageFiles, setNewImageFiles] = useState([]);
+    const [savingEdit, setSavingEdit] = useState(false);
+
+    useEffect(() => {
+        getCategories().then(data => setCategories(data || [])).catch(() => {});
+    }, []);
+
     const fetchPendingProducts = async () => {
         try {
             setLoading(true);
@@ -174,17 +186,35 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
         fetchPendingProducts();
     }, [globalSearchQuery]);
 
+    // Initialise le formulaire d'édition à partir d'un produit (sans jamais toucher aux prix)
+    const initEditForm = (product) => {
+        if (!product) return;
+        setEditForm({
+            name: product.name || '',
+            description: product.description || '',
+            category_id: product.category_id || product.category?.id || '',
+            supplier_note: product.supplier_note || '',
+            stock: product.stock ?? 0,
+            images: (product.images || []).map(img => ({ ...img, _toDelete: false })),
+            variants: (product.variants || []).map(v => ({ ...v }))
+        });
+        setNewImageFiles([]);
+    };
+
     const loadProductDetails = async (product) => {
         setLoadingDetails(true);
         setSelectedProduct(product);
+        setIsEditMode(false);
         try {
             const token = await getToken();
             const fullProduct = await getProductById(product.id, token);
             setSelectedProductDetails(fullProduct);
             setFeedback(fullProduct.admin_feedback || '');
+            initEditForm(fullProduct);
         } catch (error) {
             console.error('Erreur chargement détails:', error);
             setSelectedProductDetails(product);
+            initEditForm(product);
             toast.error('Impossible de charger tous les détails');
         } finally {
             setLoadingDetails(false);
@@ -266,6 +296,73 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
             console.error('Erreur suppression:', error);
             toast.error('❌ Erreur lors de la suppression');
         }
+    };
+
+    // Annule les modifications en cours et revient à l'état affiché
+    const handleCancelEdit = () => {
+        initEditForm(selectedProductDetails || selectedProduct);
+        setIsEditMode(false);
+    };
+
+    // Enregistre les modifications admin (jamais les prix, ni les payouts fournisseur)
+    const handleSaveEdit = async () => {
+        if (!editForm || !displayProduct) return;
+        setSavingEdit(true);
+        try {
+            const token = await getToken();
+
+            // Upload des nouvelles images ajoutées
+            const uploadedNew = [];
+            for (const img of newImageFiles) {
+                const url = await uploadSingleImage(img.file, token);
+                uploadedNew.push({ url, isMain: false });
+            }
+
+            const remainingExisting = editForm.images
+                .filter(img => !img._toDelete)
+                .map(img => ({
+                    url: img.image_url || img.url,
+                    isMain: !!(img.is_main || img.isMain)
+                }));
+
+            const finalImages = [...remainingExisting, ...uploadedNew];
+            if (finalImages.length > 0 && !finalImages.some(i => i.isMain)) {
+                finalImages[0].isMain = true;
+            }
+
+            const payload = {
+                name: editForm.name,
+                description: editForm.description,
+                category_id: editForm.category_id ? parseInt(editForm.category_id) : undefined,
+                supplier_note: editForm.supplier_note,
+                stock: parseInt(editForm.stock) || 0,
+                images: finalImages,
+                // On conserve tous les champs de chaque variante (dont le prix), seuls sku/stock sont modifiables
+                variants: editForm.variants.map(v => ({
+                    ...v,
+                    sku: v.sku,
+                    stock: parseInt(v.stock) || 0
+                })),
+                isAdmin: 'true'
+            };
+
+            await updateProduct(displayProduct.id, payload, token);
+            toast.success('✅ Modifications enregistrées');
+            setIsEditMode(false);
+            setNewImageFiles([]);
+            await loadProductDetails(selectedProduct);
+            fetchPendingProducts();
+        } catch (error) {
+            console.error('Erreur sauvegarde modifications:', error);
+            toast.error("❌ Erreur lors de l'enregistrement des modifications");
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
+    const handleAddNewImages = (e) => {
+        const files = Array.from(e.target.files || []);
+        setNewImageFiles(prev => [...prev, ...files.map(file => ({ file, preview: URL.createObjectURL(file) }))]);
     };
 
     const toggleSection = (section) => {
@@ -487,6 +584,38 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                             {displayProduct.approval_status || 'En attente'}
                                         </div>
                                     </div>
+
+                                    {/* Bouton Modifier / Enregistrer / Annuler */}
+                                    {!isEditMode ? (
+                                        <button
+                                            onClick={() => setIsEditMode(true)}
+                                            className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-all"
+                                        >
+                                            <Edit size={14} /> Modifier le produit
+                                        </button>
+                                    ) : (
+                                        <div className="mt-4 grid grid-cols-2 gap-3">
+                                            <button
+                                                onClick={handleCancelEdit}
+                                                disabled={savingEdit}
+                                                className="py-3 bg-base-200 text-base-content/60 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-base-300 transition-all disabled:opacity-50"
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                onClick={handleSaveEdit}
+                                                disabled={savingEdit}
+                                                className="flex items-center justify-center gap-2 py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-50"
+                                            >
+                                                {savingEdit ? <Loader size={14} className="animate-spin" /> : <><Save size={14} /> Enregistrer</>}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {isEditMode && (
+                                        <p className="text-[9px] font-bold text-base-content/40 italic mt-2 px-1">
+                                            💡 Tout est modifiable sauf le prix public et le payout fournisseur.
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* SECTION 1: Informations Générales */}
@@ -498,18 +627,50 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     <div className="space-y-3">
                                         <div>
                                             <p className="text-[9px] font-black uppercase text-base-content/30">Nom</p>
-                                            <p className="text-sm font-black text-base-content">{displayProduct.name || 'Sans nom'}</p>
+                                            {isEditMode ? (
+                                                <input
+                                                    type="text"
+                                                    value={editForm?.name || ''}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                                                    className="w-full bg-base-100 border border-base-300 rounded-xl px-4 py-3 text-sm font-black text-base-content focus:ring-2 focus:ring-primary/20 outline-none mt-1"
+                                                />
+                                            ) : (
+                                                <p className="text-sm font-black text-base-content">{displayProduct.name || 'Sans nom'}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <p className="text-[9px] font-black uppercase text-base-content/30">Catégorie</p>
-                                            <div className="flex items-center gap-1">
-                                                <Tag size={12} className="text-base-content/30" />
-                                                <p className="text-sm font-black text-base-content">
-                                                    {displayProduct.category?.name || 'Non catégorisé'}
-                                                </p>
-                                            </div>
+                                            {isEditMode ? (
+                                                <select
+                                                    value={editForm?.category_id || ''}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, category_id: e.target.value }))}
+                                                    className="w-full bg-base-100 border border-base-300 rounded-xl px-4 py-3 text-sm font-black text-base-content outline-none mt-1"
+                                                >
+                                                    <option value="">Choisir une catégorie...</option>
+                                                    {categories.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <div className="flex items-center gap-1">
+                                                    <Tag size={12} className="text-base-content/30" />
+                                                    <p className="text-sm font-black text-base-content">
+                                                        {displayProduct.category?.name || 'Non catégorisé'}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
-                                        {displayProduct.description && (
+                                        {isEditMode ? (
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-base-content/30">Description</p>
+                                                <textarea
+                                                    value={editForm?.description || ''}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))}
+                                                    rows={4}
+                                                    className="w-full bg-base-100 border border-base-300 rounded-2xl px-4 py-3 text-sm font-medium text-base-content/80 focus:ring-2 focus:ring-primary/20 outline-none mt-1"
+                                                />
+                                            </div>
+                                        ) : displayProduct.description && (
                                             <div>
                                                 <p className="text-[9px] font-black uppercase text-base-content/30">Description</p>
                                                 <p className="text-sm font-medium text-base-content/80 leading-relaxed bg-base-100 p-4 rounded-2xl">
@@ -520,11 +681,14 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     </div>
                                 </div>
 
-                                {/* SECTION 2: Prix */}
+                                {/* SECTION 2: Prix (jamais modifiable par l'admin) */}
                                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-6 space-y-4 border border-indigo-100">
                                     <div className="flex items-center gap-2 text-indigo-400">
                                         <Percent size={16} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Prix & Paiement</span>
+                                        {isEditMode && (
+                                            <span className="ml-auto text-[8px] font-black uppercase text-indigo-300 bg-white/60 px-2 py-1 rounded-full">Non modifiable</span>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/70 rounded-2xl p-4">
@@ -549,8 +713,8 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     )}
                                 </div>
 
-                                {/* SECTION 3: Images avec Lightbox */}
-                                {displayProduct.images && displayProduct.images.length > 0 && (
+                                {/* SECTION 3: Images avec Lightbox (modifiable en mode édition) */}
+                                {((displayProduct.images && displayProduct.images.length > 0) || isEditMode) && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <button
                                             onClick={() => toggleSection('images')}
@@ -559,50 +723,100 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                             <div className="flex items-center gap-2 text-base-content/40">
                                                 <ImageIcon size={16} />
                                                 <span className="text-[10px] font-black uppercase tracking-widest">
-                                                    Images ({displayProduct.images.length})
+                                                    Images ({(displayProduct.images || []).length})
                                                 </span>
                                             </div>
                                             {expandedSections.images ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                         </button>
                                         
                                         {expandedSections.images && (
-                                            <div className="grid grid-cols-3 gap-2 mt-4">
-                                                {displayProduct.images.map((img, idx) => (
-                                                    <div 
-                                                        key={idx} 
-                                                        className="relative aspect-square rounded-xl overflow-hidden border-2 border-base-100 cursor-pointer group hover:border-primary transition-all"
-                                                        onClick={() => openLightbox(displayProduct.images, idx)}
-                                                    >
-                                                        <img 
-                                                            src={img.image_url} 
-                                                            alt={`Product ${idx + 1}`}
-                                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                            onError={(e) => {
-                                                                e.target.style.display = 'none';
+                                            <>
+                                                <div className="grid grid-cols-3 gap-2 mt-4">
+                                                    {(isEditMode ? (editForm?.images || []) : (displayProduct.images || [])).map((img, idx) => (
+                                                        <div 
+                                                            key={idx} 
+                                                            className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer group transition-all ${
+                                                                isEditMode && img._toDelete
+                                                                    ? 'border-rose-400 opacity-40'
+                                                                    : 'border-base-100 hover:border-primary'
+                                                            }`}
+                                                            onClick={() => {
+                                                                if (isEditMode) {
+                                                                    setEditForm(f => ({
+                                                                        ...f,
+                                                                        images: f.images.map((im, i) => i === idx ? { ...im, _toDelete: !im._toDelete } : im)
+                                                                    }));
+                                                                } else {
+                                                                    openLightbox(displayProduct.images, idx);
+                                                                }
                                                             }}
-                                                        />
-                                                        {/* Overlay au survol */}
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <ZoomIn size={24} className="text-white" />
+                                                        >
+                                                            <img 
+                                                                src={img.image_url || img.url} 
+                                                                alt={`Product ${idx + 1}`}
+                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                }}
+                                                            />
+                                                            {isEditMode ? (
+                                                                <div className={`absolute inset-0 flex items-center justify-center transition-all ${img._toDelete ? 'bg-rose-500/60' : 'bg-black/0 group-hover:bg-black/30'}`}>
+                                                                    {img._toDelete ? (
+                                                                        <span className="text-white text-[8px] font-black uppercase">À supprimer</span>
+                                                                    ) : (
+                                                                        <Trash2 size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <ZoomIn size={24} className="text-white" />
+                                                                </div>
+                                                            )}
+                                                            {(img.is_main || img.isMain) && (
+                                                                <div className="absolute top-1 right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded">
+                                                                    MAIN
+                                                                </div>
+                                                            )}
+                                                            {!isEditMode && (
+                                                                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[8px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    Cliquer pour voir
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        {img.is_main && (
-                                                            <div className="absolute top-1 right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded">
-                                                                MAIN
+                                                    ))}
+                                                    {isEditMode && newImageFiles.map((img, idx) => (
+                                                        <div key={`new-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border-2 border-emerald-300">
+                                                            <img src={img.preview} alt={`Nouvelle ${idx + 1}`} className="w-full h-full object-cover" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setNewImageFiles(prev => prev.filter((_, i) => i !== idx));
+                                                                }}
+                                                                className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-1"
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full">
+                                                                Nouvelle
                                                             </div>
-                                                        )}
-                                                        {/* Indicateur de clic */}
-                                                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[8px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            Cliquer pour voir
                                                         </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                    ))}
+                                                </div>
+
+                                                {isEditMode && (
+                                                    <label className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-base-300 rounded-2xl text-[10px] font-black uppercase tracking-widest text-base-content/40 cursor-pointer hover:border-primary hover:text-primary transition-all">
+                                                        <Upload size={14} /> Ajouter des images
+                                                        <input type="file" multiple accept="image/*" className="hidden" onChange={handleAddNewImages} />
+                                                    </label>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 )}
 
-                                {/* SECTION 4: Variantes */}
-                                {displayProduct.variants && displayProduct.variants.length > 0 && (
+                                {/* SECTION 4: Variantes (sku/stock modifiables, prix jamais modifiable) */}
+                                {((displayProduct.variants && displayProduct.variants.length > 0)) && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <button
                                             onClick={() => toggleSection('variants')}
@@ -619,7 +833,7 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                         
                                         {expandedSections.variants && (
                                             <div className="space-y-3 mt-4">
-                                                {displayProduct.variants.map((variant, idx) => (
+                                                {(isEditMode ? (editForm?.variants || []) : displayProduct.variants).map((variant, idx) => (
                                                     <div key={idx} className="bg-base-100 rounded-2xl p-4 border border-base-200">
                                                         <div className="flex items-center gap-3">
                                                             {variant.image_url && (
@@ -654,19 +868,49 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                                                         ))}
                                                                     </div>
                                                                 )}
-                                                                <div className="flex gap-4 text-xs font-bold">
-                                                                    <span className="text-indigo-600">{formatPrice(variant.price)} FCFA</span>
-                                                                    <span className="text-base-content/40">|</span>
-                                                                    <span className={variant.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}>
-                                                                        Stock: {variant.stock || 0}
-                                                                    </span>
-                                                                    {variant.sku && (
-                                                                        <>
-                                                                            <span className="text-base-content/40">|</span>
-                                                                            <span className="text-base-content/40">SKU: {variant.sku}</span>
-                                                                        </>
-                                                                    )}
-                                                                </div>
+                                                                {isEditMode ? (
+                                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                                        <span className="text-xs font-bold text-indigo-600">{formatPrice(variant.price)} FCFA</span>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <label className="text-[8px] font-black uppercase text-base-content/40">Stock</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={variant.stock ?? 0}
+                                                                                onChange={(e) => setEditForm(f => ({
+                                                                                    ...f,
+                                                                                    variants: f.variants.map((v, i) => i === idx ? { ...v, stock: e.target.value } : v)
+                                                                                }))}
+                                                                                className="w-16 bg-base-200 rounded-lg px-2 py-1 text-xs font-black text-emerald-600 border border-base-300 outline-none"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <label className="text-[8px] font-black uppercase text-base-content/40">SKU</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={variant.sku || ''}
+                                                                                onChange={(e) => setEditForm(f => ({
+                                                                                    ...f,
+                                                                                    variants: f.variants.map((v, i) => i === idx ? { ...v, sku: e.target.value } : v)
+                                                                                }))}
+                                                                                className="w-24 bg-base-200 rounded-lg px-2 py-1 text-xs font-bold text-base-content border border-base-300 outline-none"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex gap-4 text-xs font-bold">
+                                                                        <span className="text-indigo-600">{formatPrice(variant.price)} FCFA</span>
+                                                                        <span className="text-base-content/40">|</span>
+                                                                        <span className={variant.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}>
+                                                                            Stock: {variant.stock || 0}
+                                                                        </span>
+                                                                        {variant.sku && (
+                                                                            <>
+                                                                                <span className="text-base-content/40">|</span>
+                                                                                <span className="text-base-content/40">SKU: {variant.sku}</span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -676,23 +920,45 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                     </div>
                                 )}
 
-                                {/* SECTION 5: Stock */}
-                                {displayProduct.stock !== undefined && displayProduct.stock !== null && (
+                                {/* SECTION 5: Stock (modifiable en mode édition) */}
+                                {(displayProduct.stock !== undefined && displayProduct.stock !== null) && (
                                     <div className="bg-base-200/50 rounded-3xl p-6 space-y-4">
                                         <div className="flex items-center gap-2 text-base-content/40">
                                             <ShoppingBag size={16} />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Stock</span>
                                         </div>
-                                        <div className="bg-base-100 rounded-2xl p-4">
-                                            <p className={`text-2xl font-black ${displayProduct.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                                                {displayProduct.stock} unités
-                                            </p>
-                                        </div>
+                                        {isEditMode ? (
+                                            <input
+                                                type="number"
+                                                value={editForm?.stock ?? 0}
+                                                onChange={(e) => setEditForm(f => ({ ...f, stock: e.target.value }))}
+                                                className="w-full bg-base-100 border border-base-300 rounded-2xl px-4 py-4 text-xl font-black text-base-content outline-none focus:ring-2 focus:ring-primary/20"
+                                            />
+                                        ) : (
+                                            <div className="bg-base-100 rounded-2xl p-4">
+                                                <p className={`text-2xl font-black ${displayProduct.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                                                    {displayProduct.stock} unités
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
                                 {/* SECTION 6: Notes */}
-                                {displayProduct.supplier_note && (
+                                {isEditMode ? (
+                                    <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200 space-y-2">
+                                        <div className="flex items-center gap-2 text-amber-600">
+                                            <FileText size={14} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Note du fournisseur</span>
+                                        </div>
+                                        <textarea
+                                            value={editForm?.supplier_note || ''}
+                                            onChange={(e) => setEditForm(f => ({ ...f, supplier_note: e.target.value }))}
+                                            rows={2}
+                                            className="w-full bg-white border border-amber-200 rounded-2xl px-4 py-3 text-sm font-medium text-amber-800 outline-none focus:ring-2 focus:ring-amber-300/40"
+                                        />
+                                    </div>
+                                ) : displayProduct.supplier_note && (
                                     <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200">
                                         <div className="flex items-center gap-2 text-amber-600 mb-2">
                                             <FileText size={14} />
@@ -745,26 +1011,34 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
                                 </div>
 
                                 {/* SECTION 9: Actions */}
-                                <div className="grid grid-cols-3 gap-3 pt-4">
+                                <div className={`grid grid-cols-3 gap-3 pt-4 ${isEditMode ? 'opacity-40 pointer-events-none' : ''}`}>
                                     <button
                                         onClick={() => handleDelete(displayProduct)}
+                                        disabled={isEditMode}
                                         className="flex items-center justify-center gap-2 py-4 bg-neutral/90 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral transition-all shadow-xl shadow-slate-200 text-white"
                                     >
                                         <Trash2 size={14} /> Supprimer
                                     </button>
                                     <button
                                         onClick={() => handleReject(displayProduct)}
+                                        disabled={isEditMode}
                                         className="flex items-center justify-center gap-2 py-4 bg-rose-500 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-600 transition-all shadow-xl shadow-rose-100 text-white"
                                     >
                                         <XCircle size={14} /> Rejeter
                                     </button>
                                     <button
                                         onClick={() => handleApprove(displayProduct)}
+                                        disabled={isEditMode}
                                         className="flex items-center justify-center gap-2 py-4 bg-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral/90 transition-all shadow-xl shadow-primary/20 text-white"
                                     >
                                         <CheckCircle size={14} /> Approuver
                                     </button>
                                 </div>
+                                {isEditMode && (
+                                    <p className="text-[9px] font-bold text-base-content/40 italic text-center -mt-2">
+                                        Enregistrez ou annulez vos modifications avant d'approuver, rejeter ou supprimer.
+                                    </p>
+                                )}
 
                             </motion.div>
                         ) : (
