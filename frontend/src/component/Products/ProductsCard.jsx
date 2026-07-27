@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Eye, Star, Zap, Truck, MapPin } from "lucide-react";
+import { ShoppingCart, Eye, Star, Zap, Truck, MapPin, X } from "lucide-react";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +20,10 @@ export default function ProductCard({ product, onFavoriteChange }) {
   const [isHovered, setIsHovered] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const cardKey = useRef(Symbol());
+
+  // États pour la modale de sélection des variantes avant "Acheter"
+  const [showAttrModal, setShowAttrModal] = useState(false);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
 
   // Register/unregister this card's setter in the global registry
   useEffect(() => {
@@ -176,7 +180,86 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
   const navState = cheapestVariantId ? { selectedVariantId: cheapestVariantId } : undefined;
 
+  // ------------------------------------------------------------------
+  // Sélection des variantes avant "Acheter" (même logique que la page produit)
+  // ------------------------------------------------------------------
+  const parsedVariants = useMemo(() => {
+    return (product.variants || []).map(v => ({
+      ...v,
+      combination: typeof v.combination === 'string' ? JSON.parse(v.combination) : (v.combination || {})
+    }));
+  }, [product.variants]);
+
+  const getAttributeKeys = (variantList) => {
+    const keys = new Set();
+    variantList.forEach((v) => {
+      Object.keys(v.combination || {}).forEach((k) => keys.add(k));
+    });
+    return Array.from(keys);
+  };
+
+  const uniqueAttributeValues = (variantList, attr) => {
+    const s = new Set();
+    variantList.forEach((v) => {
+      const val = v.combination?.[attr];
+      if (val != null) s.add(val);
+    });
+    return Array.from(s);
+  };
+
+  const matchedVariant = useMemo(() => {
+    if (!parsedVariants.length || !Object.keys(selectedAttributes).length) return null;
+    return parsedVariants.find(v =>
+      Object.entries(selectedAttributes).every(([k, val]) => v.combination?.[k] === val)
+    ) || null;
+  }, [parsedVariants, selectedAttributes]);
+
+  const matchedVariantStock = matchedVariant?.priceRows?.[0]?.stock;
+  const matchedVariantOutOfStock = matchedVariant != null && (matchedVariantStock ?? 0) <= 0;
+
+  const proceedToCheckout = (variant = null) => {
+    const finalPrice = variant ? Number(variant.priceRows?.[0]?.price || currentPrice) : currentPrice;
+    const finalImage = variant?.priceRows?.[0]?.image_url || imgs[0];
+    navigate('/checkout', {
+      state: {
+        items: [{
+          id: product.id,
+          product_id: product.id,
+          variant_id: variant?.id || null,
+          name: product.name,
+          price: finalPrice,
+          price_snapshot: finalPrice,
+          quantity: 1,
+          image_url: finalImage,
+          boutique_id: product.boutique_id,
+          boutique: product.boutique,
+          selected_attributes: variant?.combination || undefined,
+        }],
+        total: Number(finalPrice),
+      }
+    });
+  };
+
+  // Clic sur "Acheter" : si le produit a des variantes, on force le choix
+  // avant d'aller vers le checkout.
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    if (parsedVariants.length > 0) {
+      setSelectedAttributes({});
+      setShowAttrModal(true);
+      return;
+    }
+    proceedToCheckout();
+  };
+
+  const handleConfirmVariantAndCheckout = () => {
+    if (!matchedVariant || matchedVariantOutOfStock) return;
+    setShowAttrModal(false);
+    proceedToCheckout(matchedVariant);
+  };
+
   return (
+    <>
     <div className="group relative bg-base-100 rounded-2xl sm:rounded-[2rem] overflow-hidden border border-base-content/5 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500 flex flex-col">
       <Link
         to={`/products/${product.id}`}
@@ -260,25 +343,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
             {!isOutOfStock && (
               <button
                 className="btn btn-sm bg-base-100/90 border-none hover:bg-base-200 text-base-content shadow-lg font-bold rounded-2xl px-3 gap-1 active:scale-90 transition-transform"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate('/checkout', {
-                    state: {
-                      items: [{
-                        id: product.id,
-                        product_id: product.id,
-                        name: product.name,
-                        price: currentPrice,
-                        price_snapshot: currentPrice,
-                        quantity: 1,
-                        image_url: imgs[0],
-                        boutique_id: product.boutique_id,
-                        boutique: product.boutique,
-                      }],
-                      total: Number(currentPrice),
-                    }
-                  });
-                }}
+                onClick={handleBuyNow}
               >
                 <Zap size={14} fill="currentColor" className="text-amber-500" /> Acheter
               </button>
@@ -360,25 +425,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
             {!isOutOfStock && (
               <button
                 className="md:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-200 active:scale-90"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/checkout', {
-                  state: {
-                    items: [{
-                      id: product.id,
-                      product_id: product.id,
-                      name: product.name,
-                      price: currentPrice,
-                      price_snapshot: currentPrice,
-                      quantity: 1,
-                      image_url: imgs[0],
-                      boutique_id: product.boutique_id,
-                      boutique: product.boutique,
-                    }],
-                    total: Number(currentPrice),
-                  }
-                });
-              }}
+              onClick={handleBuyNow}
             >
               <Zap size={14} fill="currentColor" />
             </button>
@@ -388,5 +435,106 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
       </div>
     </div>
+
+    {/* Modale de sélection des variantes avant "Acheter" */}
+    <AnimatePresence>
+      {showAttrModal && (
+        <>
+          <motion.div
+            key="attr-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowAttrModal(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          />
+          <motion.div
+            key="attr-sheet"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[85vh] flex flex-col md:max-w-lg md:mx-auto md:left-0 md:right-0"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-base-200 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <img src={imgs[0]} alt={product?.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-black text-base-content text-sm truncate">{product?.name}</p>
+                  <p className="text-primary font-black text-base">
+                    {formatPrice(matchedVariant?.priceRows?.[0]?.price ?? currentPrice)} <span className="text-xs">FCFA</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAttrModal(false)}
+                className="w-9 h-9 rounded-2xl bg-base-200 flex items-center justify-center text-base-content/50 hover:bg-base-300 flex-shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable attribute groups */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Choisissez vos options</p>
+              {getAttributeKeys(parsedVariants).map(key => {
+                const values = uniqueAttributeValues(parsedVariants, key);
+                const selected = selectedAttributes[key];
+                return (
+                  <div key={key} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-widest text-base-content/60">{key}</span>
+                      {selected && <span className="text-xs font-bold text-primary">{selected}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map(val => {
+                        const active = selectedAttributes[key] === val;
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => setSelectedAttributes(prev => ({ ...prev, [key]: val }))}
+                            className={`px-4 py-2.5 rounded-xl border-2 font-bold text-sm transition-all ${
+                              active
+                                ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
+                                : 'border-base-200 bg-base-100 text-base-content/70 hover:border-primary/30'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTA */}
+            <div className="px-6 pt-4 pb-8 border-t border-base-200 flex-shrink-0 space-y-3">
+              {!matchedVariant && Object.keys(selectedAttributes).length > 0 && (
+                <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">
+                  Cette combinaison n'est pas disponible
+                </p>
+              )}
+              {matchedVariant && matchedVariantOutOfStock && (
+                <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest text-center">
+                  Cette variante est en rupture de stock
+                </p>
+              )}
+              <button
+                onClick={handleConfirmVariantAndCheckout}
+                disabled={!matchedVariant || matchedVariantOutOfStock}
+                className="w-full h-14 bg-primary text-white rounded-2xl font-black text-base shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale transition-all active:scale-95"
+              >
+                <Zap size={20} fill="currentColor" />
+                Commander maintenant
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
