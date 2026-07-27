@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from './clerk-shim';
 import { X, MapPin, Phone, Building2, Store } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,6 +43,32 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
             });
         }
     }, [initialData, isOpen]);
+
+    // ------------------------------------------------------------------
+    // Props stabilisées pour AddressSelector : sans ça, il reçoit un nouvel
+    // objet "initial" (et une nouvelle fonction "onChange") à CHAQUE frappe,
+    // même dans les champs Nom/Téléphone qui n'ont rien à voir avec l'adresse.
+    // Ça déclenche ses effets internes en boucle et ralentit toute la saisie.
+    // ------------------------------------------------------------------
+    const addressInitial = useMemo(() => ({
+        departement_id: formData.departement_id,
+        departement_label: formData.departement_label,
+        commune_id: formData.commune_id,
+        commune_label: formData.commune_label,
+        quartier_id: formData.quartier_id,
+        quartier_label: formData.quartier_label,
+        lat: formData.lat,
+        lng: formData.lng,
+    }), [
+        formData.departement_id, formData.departement_label,
+        formData.commune_id, formData.commune_label,
+        formData.quartier_id, formData.quartier_label,
+        formData.lat, formData.lng
+    ]);
+
+    const handleAddressChange = useCallback((addr) => {
+        setFormData(prev => ({ ...prev, ...addr }));
+    }, []);
 
     if (!isOpen) return null;
 
@@ -110,7 +136,7 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                             <input 
                                 required
                                 value={formData.name}
-                                onChange={e => setFormData({...formData, name: e.target.value})}
+                                onChange={e => setFormData(prev => ({...prev, name: e.target.value}))}
                                 className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                 placeholder="Ma Super Boutique" 
                             />
@@ -122,7 +148,7 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                                 <input 
                                     required
                                     value={formData.phone}
-                                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                                    onChange={e => setFormData(prev => ({...prev, phone: e.target.value}))}
                                     className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                     placeholder="+229 ..." 
                                 />
@@ -131,7 +157,7 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Numéro WhatsApp</label>
                                 <input 
                                     value={formData.whatsapp}
-                                    onChange={e => setFormData({...formData, whatsapp: e.target.value})}
+                                    onChange={e => setFormData(prev => ({...prev, whatsapp: e.target.value}))}
                                     className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                     placeholder="+229 ..." 
                                 />
@@ -141,8 +167,8 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Localisation & Adresse</label>
                             <AddressSelector 
-                                onChange={(addr) => setFormData({...formData, ...addr})} 
-                                initial={formData}
+                                onChange={handleAddressChange} 
+                                initial={addressInitial}
                             />
                         </div>
                         
@@ -151,7 +177,7 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                             <input 
                                 required
                                 value={formData.address_line}
-                                onChange={e => setFormData({...formData, address_line: e.target.value})}
+                                onChange={e => setFormData(prev => ({...prev, address_line: e.target.value}))}
                                 className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                 placeholder="Ex: Maison X, face à Y..." 
                             />
