@@ -273,8 +273,15 @@ export default function CheckoutPage() {
     try {
       if (!address) return toast.error("Veuillez renseigner votre adresse !");
       if (paymentMethod === 'delivery' && isZoneMismatch) {
-        toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
-        return;
+        toast("Le paiement à la livraison n'est pas proposé pour cette zone avec ce vendeur. Un autre mode de paiement fera l'affaire !", {
+               icon: "📦",
+               style: {
+                 background: '#FFF7ED', // fond orange très clair, doux
+                 color: '#9A3412',      // texte orange foncé, lisible mais pas alarmant
+                 border: '1px solid #FED7AA',
+               },
+             });
+             return;
       }
       setLoading(true);
 
