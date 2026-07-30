@@ -27,8 +27,8 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
         </div>
       )}
 
-      {/* BOUTON MOBILE : FIXE, Z-INDEX ÉLEVÉ */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-[999]">
+      {/* BOUTON MOBILE : FIXE EN HAUT À GAUCHE */}
+      <div className="lg:hidden fixed top-6 left-6 z-[999]">
         <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-3 bg-primary text-white rounded-full h-14 px-6 shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all duration-200"
@@ -38,7 +38,7 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
         </button>
       </div>
 
-      {/* DRAWER MOBILE : z-index encore plus élevé que le bouton */}
+      {/* DRAWER MOBILE : z-index encore plus élevé */}
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-[9999] lg:hidden">
@@ -81,7 +81,7 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
                 </button>
               </div>
 
-              {/* Contenu scrollable avec padding pour éviter le footer */}
+              {/* Contenu scrollable */}
               <div className="flex-1 overflow-y-auto px-5 py-4 pb-28 custom-scrollbar">
                 <FiltersPanel onFilterChange={onFilterChange} />
               </div>
@@ -90,7 +90,7 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
               <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-base-200 px-5 py-4">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full bg-primary text-white h-14 rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3"
+                  className="w-full bg-primary text-white h-14 rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3 z-10 relative"
                 >
                   <SlidersHorizontal size={18} />
                   Appliquer les filtres
