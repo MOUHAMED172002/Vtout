@@ -1,4 +1,4 @@
-// FiltersPanel.jsx (refactorisé)
+// FiltersPanel.jsx (refactorisé - corrigé)
 import { getCategories, getAttributes } from "../../services/productService";
 import { getHierarchy } from "../../services/locationService";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -32,18 +32,17 @@ function useAttributes(categoryId) {
     (async () => {
       try {
         const allAttrs = await getAttributes();
-        // On garde les 15 premiers pour l'affichage
         setAttributes(allAttrs.slice(0, 15));
       } catch (err) {
         console.error("Erreur chargement attributs :", err);
         setAttributes([]);
       }
     })();
-  }, [categoryId]); // reload si categoryId change (pourrait servir plus tard)
+  }, [categoryId]);
   return attributes;
 }
 
-// Gestion des zones de livraison gratuite
+// Gestion des zones de livraison gratuite (uniquement communes, pas de quartiers)
 function useFreeDeliveryZone() {
   const [allLocations, setAllLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
@@ -52,7 +51,7 @@ function useFreeDeliveryZone() {
   const [showZoneSuggestions, setShowZoneSuggestions] = useState(false);
   const wrapperRef = useRef(null);
 
-  // Chargement de la hiérarchie
+  // Chargement de la hiérarchie (uniquement les communes)
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -62,17 +61,14 @@ function useFreeDeliveryZone() {
         const list = [];
         departments.forEach((dep) => {
           (dep.communes || []).forEach((com) => {
-            (com.arrondissements || []).forEach((arr) => {
-              (arr.quartiers || []).forEach((q) => {
-                const formatted = `${q.name}, ${arr.name}, ${com.name}`;
-                list.push({
-                  commune_label: com.name,
-                  arrondissement_label: arr.name,
-                  quartier_label: q.name,
-                  formattedAddress: formatted,
-                  searchStr: removeAccents(formatted),
-                });
-              });
+            // On ajoute uniquement la commune, pas les arrondissements ni quartiers
+            const formatted = com.name;
+            list.push({
+              commune_label: com.name,
+              arrondissement_label: null,
+              quartier_label: null,
+              formattedAddress: formatted,
+              searchStr: removeAccents(formatted),
             });
           });
         });
@@ -107,7 +103,7 @@ function useFreeDeliveryZone() {
     setSelectedZone(loc);
     setZoneQuery(loc.formattedAddress);
     setShowZoneSuggestions(false);
-    return loc.commune_label; // pour remonter la commune au parent
+    return loc.commune_label;
   };
 
   const clearZone = () => {
@@ -187,7 +183,7 @@ function useSections(initialOpen = {}) {
   return { openSections, toggleSection };
 }
 
-// Composant SectionHeader (inchangé, juste exporté)
+// Composant SectionHeader
 const SectionHeader = ({ title, sectionKey, icon: Icon, toggleSection, openSections }) => (
   <button
     onClick={() => toggleSection(sectionKey)}
@@ -273,7 +269,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     });
   };
 
-  // Gestion sélection de zone (remonte la commune)
+  // Gestion sélection de zone
   const handleSelectZone = (loc) => {
     const commune = selectZone(loc);
     updateFilters({ freeDeliveryCommune: commune });
@@ -284,9 +280,9 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     updateFilters({ freeDeliveryCommune: "" });
   };
 
-  // Rendu (exactement le même JSX, juste les handlers adaptés)
+  // Rendu (avec corrections de z-index et affichage uniquement des communes)
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative z-50"> {/* z-index élevé pour éviter d'être sous d'autres éléments */}
       {/* En-tête reset */}
       <div className="flex items-center justify-between mb-8">
         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-base-content/40">Configuration</h4>
@@ -314,7 +310,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
             >
               <div className="space-y-2 relative" ref={wrapperRef}>
                 <p className="text-[10px] font-medium text-base-content/40 px-1 mb-1">
-                  Cherchez votre quartier pour voir les produits livrables gratuitement chez vous.
+                  Cherchez votre commune pour voir les produits livrables gratuitement chez vous.
                 </p>
 
                 {selectedZone ? (
@@ -323,10 +319,8 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
                       <Check className="h-4 w-4 text-emerald-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-black text-xs text-base-content truncate">{selectedZone.quartier_label}</p>
-                      <p className="text-[10px] text-base-content/50 font-medium truncate">
-                        {selectedZone.arrondissement_label}, {selectedZone.commune_label}
-                      </p>
+                      <p className="font-black text-xs text-base-content truncate">{selectedZone.commune_label}</p>
+                      {/* On n'affiche plus l'arrondissement/quartier car ils sont nuls */}
                     </div>
                     <button
                       type="button"
@@ -354,7 +348,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
                         setShowZoneSuggestions(true);
                       }}
                       onFocus={() => setShowZoneSuggestions(true)}
-                      placeholder={locationsLoading ? "Chargement des zones..." : "Ex: Akassato, Godomey..."}
+                      placeholder={locationsLoading ? "Chargement des communes..." : "Ex: Cotonou, Parakou..."}
                       className="w-full h-11 bg-base-200 border border-transparent rounded-xl pl-10 pr-4 text-xs font-bold text-base-content placeholder:font-medium placeholder:text-base-content/30 focus:bg-base-100 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all disabled:opacity-60"
                     />
 
@@ -366,10 +360,8 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
                             onClick={() => handleSelectZone(loc)}
                             className="px-4 py-2.5 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
                           >
-                            <div className="font-bold text-xs text-base-content">{loc.quartier_label}</div>
-                            <div className="text-[10px] text-base-content/50 font-medium">
-                              {loc.arrondissement_label}, {loc.commune_label}
-                            </div>
+                            <div className="font-bold text-xs text-base-content">{loc.commune_label}</div>
+                            {/* On n'affiche pas d'autres informations */}
                           </div>
                         ))}
                       </div>
@@ -377,7 +369,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
 
                     {showZoneSuggestions && zoneQuery && !locationsLoading && filteredZones.length === 0 && (
                       <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl border border-base-200 p-3 text-center">
-                        <p className="text-xs font-bold text-base-content/50">Aucune zone trouvée.</p>
+                        <p className="text-xs font-bold text-base-content/50">Aucune commune trouvée.</p>
                       </div>
                     )}
                   </div>
