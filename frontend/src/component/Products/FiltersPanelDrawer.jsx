@@ -8,13 +8,11 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
 
   return (
     <>
-      {/* Sidebar Desktop - Only shown when not in mobileOnly mode */}
+      {/* Sidebar Desktop (inchangée) */}
       {!mobileOnly && (
         <div className="hidden lg:block w-80 shrink-0">
           <div className="bg-base-100 rounded-[2.5rem] border border-base-200 p-8 shadow-xl shadow-slate-200/40 sticky top-36">
-            {/* Decorative background element */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-[-20%] -translate-y-[20%] blur-3xl pointer-events-none" />
-
             <div className="flex items-center gap-4 mb-10 pb-6 border-b border-base-200 relative">
               <div className="w-12 h-12 bg-neutral rounded-2xl flex items-center justify-center text-primary shadow-xl shadow-slate-900/20">
                 <SlidersHorizontal size={22} className="stroke-[2.5]" />
@@ -29,72 +27,73 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
         </div>
       )}
 
-      {/* Inline Mobile Trigger Button (inside toolbar, not fixed) */}
-      <div className="lg:hidden">
+      {/* BOUTON MOBILE : FIXE, Z-INDEX ÉLEVÉ */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-[999]">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 bg-neutral text-white rounded-2xl h-12 px-5 shadow-lg shadow-slate-900/20 hover:scale-[1.02] transition-transform group"
+          className="flex items-center gap-3 bg-primary text-white rounded-full h-14 px-6 shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all duration-200"
         >
-          <Filter size={16} className="stroke-[2.5] text-primary" />
-          <span className="font-black text-xs uppercase tracking-widest">Filtres</span>
+          <Filter size={20} className="stroke-[2.5]" />
+          <span className="font-black text-sm uppercase tracking-widest">Filtres</span>
         </button>
       </div>
 
-      {/* Modern Slide-over / Bottom Sheet Hybrid */}
+      {/* DRAWER MOBILE : z-index encore plus élevé que le bouton */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[250] lg:hidden">
-            {/* Soft Backdrop */}
+          <div className="fixed inset-0 z-[9999] lg:hidden">
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-neutral/40 backdrop-blur-xl"
+              className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Content Drawer */}
+            {/* Drawer content */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-base-100 rounded-t-[3.5rem] shadow-2xl max-h-[92vh] flex flex-col border-t border-white"
+              className="absolute bottom-0 left-0 right-0 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[90vh] flex flex-col"
             >
-              {/* Handle Bar */}
-              <div className="w-16 h-1.5 bg-base-200 rounded-full mx-auto mt-4 shrink-0" />
+              {/* Handle */}
+              <div className="w-16 h-1.5 bg-base-300 rounded-full mx-auto mt-3 shrink-0" />
 
-              {/* Header */}
-              <div className="px-6 py-6 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 bg-base-200 rounded-[1.5rem] flex items-center justify-center text-base-content shadow-inner">
-                    <SlidersHorizontal size={24} className="stroke-[2.5]" />
+              {/* Header compact */}
+              <div className="px-5 py-4 flex items-center justify-between shrink-0 border-b border-base-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-base-200 rounded-xl flex items-center justify-center text-base-content">
+                    <SlidersHorizontal size={20} className="stroke-[2.5]" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-base-content tracking-tighter">Filtres Articulés.</h2>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-primary mt-1">Précision Absolute</p>
+                    <h2 className="text-lg font-black text-base-content tracking-tight">Filtres</h2>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-primary">Affinez votre recherche</p>
                   </div>
                 </div>
                 <button
-                  className="w-12 h-12 bg-base-200 text-base-content/40 rounded-2xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all border border-base-200/50"
+                  className="w-10 h-10 bg-base-200 text-base-content/40 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all"
                   onClick={() => setIsOpen(false)}
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Scrollable Filters */}
-              <div className="flex-1 overflow-y-auto px-6 pb-32 custom-scrollbar">
+              {/* Contenu scrollable avec padding pour éviter le footer */}
+              <div className="flex-1 overflow-y-auto px-5 py-4 pb-28 custom-scrollbar">
                 <FiltersPanel onFilterChange={onFilterChange} />
               </div>
 
-              {/* Sticky Action Footer */}
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-16 bg-gradient-to-t from-white via-white to-transparent pointer-events-none">
+              {/* Footer fixe avec bouton d'application */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-base-200 px-5 py-4">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full bg-primary text-white h-16 rounded-[1.8rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all pointer-events-auto flex items-center justify-center gap-3"
+                  className="w-full bg-primary text-white h-14 rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3"
                 >
-                  Appliquer & Voir les résultats
+                  <SlidersHorizontal size={18} />
+                  Appliquer les filtres
                 </button>
               </div>
             </motion.div>

@@ -63,7 +63,7 @@ function useFreeDeliveryZone() {
         departments.forEach((dep) => {
           // Niveau département
           list.push({
-            commune_label: null, // pas de commune associée
+            commune_label: null,
             arrondissement_label: null,
             quartier_label: null,
             formattedAddress: dep.name,
@@ -146,11 +146,9 @@ function useFreeDeliveryZone() {
   }, []);
 
   const selectZone = (loc) => {
-    // On sélectionne l'entité et on remonte la commune
     setSelectedZone(loc);
     setZoneQuery(loc.formattedAddress);
     setShowZoneSuggestions(false);
-    // Retourne la commune_label (peut être null si c'est un département sans commune)
     return loc.commune_label || "";
   };
 
