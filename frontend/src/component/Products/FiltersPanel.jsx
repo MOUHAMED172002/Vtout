@@ -116,7 +116,7 @@ function LocationSearchModal({ isOpen, onClose, onSelect, locationsLoading, allL
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[999999] pointer-events-auto">
+        <div className="fixed inset-0 z-[999999999] pointer-events-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

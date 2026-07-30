@@ -41,13 +41,13 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
       {/* DRAWER MOBILE : z-index encore plus élevé */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[9999] lg:hidden">
+          <div className="fixed inset-0 z-[999] lg:hidden">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
+              className=" inset-0 bg-neutral/60 backdrop-blur-md"
               onClick={() => setIsOpen(false)}
             />
 
@@ -57,7 +57,7 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[90vh] flex flex-col"
+              className="absolute bottom-10 left-0 right-0 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[90vh] flex flex-col"
             >
               {/* Handle */}
               <div className="w-16 h-1.5 bg-base-300 rounded-full mx-auto mt-3 shrink-0" />
@@ -90,7 +90,7 @@ export default function FiltersPanelDrawer({ onFilterChange, mobileOnly = false 
               <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-base-200 px-5 py-4">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full bg-primary text-white h-14 rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3 z-10 relative"
+                  className="w-full bg-primary text-white h-14 rounded-2xl font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3 z-[9999] relative"
                 >
                   <SlidersHorizontal size={18} />
                   Appliquer les filtres
