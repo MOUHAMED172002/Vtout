@@ -1,53 +1,91 @@
-// FiltersPanel.jsx (avec modal de recherche de zone)
+// FiltersPanel.jsx (avec modal de recherche de zone — rendu en portail, groupé par type)
 import { getCategories, getAttributes } from "../../services/productService";
 import { getHierarchy } from "../../services/locationService";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { ChevronDown, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search, Truck, Check, X, Loader2, MapPin, Building, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategorySearchModal from "../Shared/CategorySearchModal";
 
-// ---------- Composant Modal de recherche de zone ----------
+// Fonction utilitaire pour enlever les accents
+const removeAccents = (str) => {
+  if (!str) return "";
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
+const TYPE_LABELS = {
+  "département": { plural: "Départements", icon: Building },
+  "commune": { plural: "Communes", icon: MapPin },
+  "arrondissement": { plural: "Arrondissements", icon: Globe },
+  "quartier": { plural: "Quartiers", icon: MapPin },
+};
+const TYPE_ORDER = ["quartier", "commune", "arrondissement", "département"];
+
+// ---------- Composant Modal de recherche de zone (rendu via portail) ----------
 function LocationSearchModal({ isOpen, onClose, onSelect, locationsLoading, allLocations }) {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const inputRef = useRef(null);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  // Filtrer les suggestions en fonction de la requête
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      return;
-    }
-    const q = removeAccents(query.trim());
-    const filtered = allLocations
-      .filter((loc) => loc.searchStr.includes(q))
-      .slice(0, 30);
-    setSuggestions(filtered);
-    setSelectedIndex(-1);
-  }, [query, allLocations]);
-
-  // Focus sur l'input à l'ouverture
+  // Empêche le scroll de la page tant que le modal est ouvert
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = original; };
     }
   }, [isOpen]);
 
-  // Gestion des touches (flèches, Enter, Escape)
+  // Filtrer les suggestions en fonction de la requête
+  const filteredFlat = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = removeAccents(query.trim());
+    return allLocations.filter((loc) => loc.searchStr.includes(q)).slice(0, 60);
+  }, [query, allLocations]);
+
+  // Regroupement par type, avec priorité aux résultats les plus précis (quartier en premier)
+  const groupedResults = useMemo(() => {
+    const groups = {};
+    filteredFlat.forEach((loc) => {
+      if (!groups[loc.type]) groups[loc.type] = [];
+      groups[loc.type].push(loc);
+    });
+    return TYPE_ORDER
+      .filter((type) => groups[type]?.length)
+      .map((type) => ({ type, items: groups[type].slice(0, 8) }));
+  }, [filteredFlat]);
+
+  // Liste plate ordonnée (pour la navigation clavier), alignée sur l'affichage groupé
+  const flatOrdered = useMemo(
+    () => groupedResults.flatMap((g) => g.items),
+    [groupedResults]
+  );
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [query]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else {
+      setQuery("");
+    }
+  }, [isOpen]);
+
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       onClose();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
+      setSelectedIndex((prev) => (prev < flatOrdered.length - 1 ? prev + 1 : prev));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
     } else if (e.key === "Enter" && selectedIndex >= 0) {
       e.preventDefault();
-      const loc = suggestions[selectedIndex];
+      const loc = flatOrdered[selectedIndex];
       if (loc) handleSelect(loc);
     }
   };
@@ -55,98 +93,87 @@ function LocationSearchModal({ isOpen, onClose, onSelect, locationsLoading, allL
   const handleSelect = (loc) => {
     onSelect(loc);
     setQuery("");
-    setSuggestions([]);
     onClose();
   };
 
-  // Rendu d'une suggestion avec mise en évidence
-  const renderSuggestion = (loc, index) => {
-    const isSelected = index === selectedIndex;
-    const queryLower = query.toLowerCase();
-    const displayName = loc.displayName;
-    const parentInfo = loc.parentInfo;
-    const type = loc.type;
-
-    // Mise en évidence du texte correspondant
-    const parts = displayName.split(new RegExp(`(${query})`, 'gi'));
+  const renderSuggestion = (loc, flatIndex) => {
+    const isSelected = flatIndex === selectedIndex;
+    const parts = query ? loc.displayName.split(new RegExp(`(${query})`, "gi")) : [loc.displayName];
     const highlight = parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className="bg-primary/20 text-primary font-black">{part}</span>
+      part.toLowerCase() === query.toLowerCase() && query ? (
+        <span key={i} className="bg-primary/20 text-primary font-black rounded px-0.5">{part}</span>
       ) : (
         <span key={i}>{part}</span>
       )
     );
 
     return (
-      <div
+      <button
         key={loc.formattedAddress}
+        type="button"
         onClick={() => handleSelect(loc)}
-        className={`px-4 py-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors ${
-          isSelected ? 'bg-base-200' : ''
+        onMouseEnter={() => setSelectedIndex(flatIndex)}
+        className={`w-full text-left px-4 py-3 rounded-2xl flex items-center justify-between gap-3 transition-colors ${
+          isSelected ? "bg-primary/10" : "hover:bg-base-200"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-base-200 rounded-lg flex items-center justify-center shrink-0">
-              {type === 'département' && <Building size={16} className="text-primary/60" />}
-              {type === 'commune' && <MapPin size={16} className="text-primary/60" />}
-              {type === 'arrondissement' && <Globe size={16} className="text-primary/60" />}
-              {type === 'quartier' && <MapPin size={16} className="text-primary/60" />}
-            </div>
-            <div>
-              <div className="font-bold text-xs text-base-content">{highlight}</div>
-              {parentInfo && (
-                <div className="text-[10px] text-base-content/50 font-medium">{parentInfo}</div>
-              )}
-              {loc.commune_label && (
-                <div className="text-[9px] text-primary/70 font-bold mt-0.5">
-                  Commune : {loc.commune_label}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="text-[9px] font-black uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full">
-            {type}
-          </div>
+        <div className="min-w-0">
+          <div className="font-bold text-xs text-base-content truncate">{highlight}</div>
+          {loc.parentInfo && (
+            <div className="text-[10px] text-base-content/50 font-medium truncate">{loc.parentInfo}</div>
+          )}
         </div>
-      </div>
+        {loc.commune_label && (
+          <span className="shrink-0 text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full uppercase tracking-widest">
+            {loc.commune_label}
+          </span>
+        )}
+      </button>
     );
   };
 
-  return (
+  if (!isOpen) return null;
+
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[999999999] pointer-events-auto">
+        <div className="fixed inset-0 z-[9999] pointer-events-auto">
+          {/* Arrière-plan flou — couvre tout le viewport, indépendamment de tout ancêtre animé */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-neutral/70 backdrop-blur-md"
             onClick={onClose}
           />
+
           <motion.div
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="absolute bottom-0 left-0 right-0 bg-base-100 rounded-t-[2.5rem] shadow-2xl max-h-[90vh] flex flex-col"
+            transition={{ type: "spring", damping: 32, stiffness: 320 }}
+            className="absolute bottom-0 left-0 right-0 sm:inset-x-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 sm:max-w-lg sm:mx-auto bg-base-100 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl max-h-[85vh] sm:max-h-[80vh] flex flex-col overflow-hidden"
           >
-            {/* Handle */}
-            <div className="w-16 h-1.5 bg-base-300 rounded-full mx-auto mt-3 shrink-0" />
+            {/* Handle (mobile uniquement) */}
+            <div className="w-16 h-1.5 bg-base-300 rounded-full mx-auto mt-3 shrink-0 sm:hidden" />
 
             {/* Header */}
             <div className="px-5 py-4 flex items-center justify-between shrink-0 border-b border-base-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
                   <MapPin size={20} />
                 </div>
-                <div>
-                  <h2 className="text-lg font-black text-base-content tracking-tight">Choisir une zone</h2>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-primary">Département • Commune • Arrondissement • Quartier</p>
+                <div className="min-w-0">
+                  <h2 className="text-base font-black text-base-content tracking-tight truncate">Choisir une zone</h2>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-primary truncate">
+                    Département · Commune · Arrondissement · Quartier
+                  </p>
                 </div>
               </div>
               <button
-                className="w-10 h-10 bg-base-200 text-base-content/40 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all"
+                type="button"
+                className="w-10 h-10 shrink-0 bg-base-200 text-base-content/40 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all"
                 onClick={onClose}
               >
                 <X size={18} />
@@ -154,22 +181,28 @@ function LocationSearchModal({ isOpen, onClose, onSelect, locationsLoading, allL
             </div>
 
             {/* Barre de recherche */}
-            <div className="px-5 py-4 border-b border-base-200">
+            <div className="px-5 py-4 border-b border-base-200 shrink-0">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-base-content/30" />
+                  {locationsLoading ? (
+                    <Loader2 className="h-4 w-4 text-base-content/30 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 text-base-content/30" />
+                  )}
                 </div>
                 <input
                   ref={inputRef}
                   type="text"
                   value={query}
+                  disabled={locationsLoading}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Rechercher un département, une commune, un arrondissement ou un quartier..."
-                  className="w-full h-12 bg-base-200 border-2 border-transparent rounded-xl pl-10 pr-4 text-sm font-bold text-base-content placeholder:font-medium placeholder:text-base-content/30 focus:bg-base-100 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                  placeholder={locationsLoading ? "Chargement des localités..." : "Ex: Cotonou, Akassato, Abomey..."}
+                  className="w-full h-12 bg-base-200 border-2 border-transparent rounded-xl pl-10 pr-9 text-sm font-bold text-base-content placeholder:font-medium placeholder:text-base-content/30 focus:bg-base-100 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all disabled:opacity-60"
                 />
                 {query && (
                   <button
+                    type="button"
                     onClick={() => setQuery("")}
                     className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-base-content/30 hover:text-base-content/60"
                   >
@@ -177,40 +210,64 @@ function LocationSearchModal({ isOpen, onClose, onSelect, locationsLoading, allL
                   </button>
                 )}
               </div>
-              {locationsLoading && (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                  <span className="ml-2 text-xs font-bold text-base-content/50">Chargement des localités...</span>
-                </div>
-              )}
             </div>
 
-            {/* Liste des suggestions */}
-            <div className="flex-1 overflow-y-auto px-2 py-2">
-              {!locationsLoading && suggestions.length === 0 && query.trim() !== "" && (
-                <div className="text-center py-8">
-                  <p className="text-sm font-bold text-base-content/40">Aucun résultat trouvé</p>
-                  <p className="text-[10px] text-base-content/30 mt-1">Essayez avec un autre terme</p>
-                </div>
-              )}
-              {suggestions.map((loc, index) => renderSuggestion(loc, index))}
-              {!locationsLoading && suggestions.length === 0 && query.trim() === "" && (
-                <div className="text-center py-8">
+            {/* Liste des résultats, groupée par type */}
+            <div className="flex-1 overflow-y-auto px-3 py-3">
+              {query.trim() === "" && (
+                <div className="text-center py-10 px-6">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-base-200 rounded-2xl flex items-center justify-center text-base-content/30">
+                    <Search size={20} />
+                  </div>
                   <p className="text-sm font-bold text-base-content/40">Commencez à taper pour chercher</p>
                   <p className="text-[10px] text-base-content/30 mt-1">Ex: Cotonou, Akassato, Abomey...</p>
                 </div>
               )}
+
+              {query.trim() !== "" && !locationsLoading && groupedResults.length === 0 && (
+                <div className="text-center py-10 px-6">
+                  <p className="text-sm font-bold text-base-content/40">Aucun résultat trouvé</p>
+                  <p className="text-[10px] text-base-content/30 mt-1">Essayez avec un autre terme</p>
+                </div>
+              )}
+
+              {(() => {
+                let runningIndex = 0;
+                return groupedResults.map((group) => {
+                  const { icon: Icon, plural } = TYPE_LABELS[group.type];
+                  const items = group.items.map((loc) => {
+                    const el = renderSuggestion(loc, runningIndex);
+                    runningIndex += 1;
+                    return el;
+                  });
+                  return (
+                    <div key={group.type} className="mb-3 last:mb-0">
+                      <div className="flex items-center gap-2 px-2 py-2 sticky top-0 bg-base-100/95 backdrop-blur-sm z-10">
+                        <Icon size={12} className="text-base-content/30" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                          {plural}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">{items}</div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
   );
+
+  // Portail : on sort du flux du composant parent pour éviter tout piège de
+  // stacking context (ex: ancêtre animé par Framer Motion dans le tiroir
+  // mobile), garantissant un overlay plein écran et un flou correctement appliqué.
+  return createPortal(modalContent, document.body);
 }
 
 // ---------- Hooks personnalisés ----------
 
-// Gestion des catégories
 function useCategories() {
   const [categories, setCategories] = useState([]);
   useEffect(() => {
@@ -226,7 +283,6 @@ function useCategories() {
   return categories;
 }
 
-// Gestion des attributs (globaux)
 function useAttributes(categoryId) {
   const [attributes, setAttributes] = useState([]);
   useEffect(() => {
@@ -243,14 +299,12 @@ function useAttributes(categoryId) {
   return attributes;
 }
 
-// Gestion des zones de livraison gratuite (recherche multi-niveaux)
 function useFreeDeliveryZone() {
   const [allLocations, setAllLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [selectedZone, setSelectedZone] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Chargement de la hiérarchie complète
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -260,7 +314,6 @@ function useFreeDeliveryZone() {
         const list = [];
 
         departments.forEach((dep) => {
-          // Niveau département
           list.push({
             commune_label: null,
             arrondissement_label: null,
@@ -273,7 +326,6 @@ function useFreeDeliveryZone() {
           });
 
           (dep.communes || []).forEach((com) => {
-            // Niveau commune
             list.push({
               commune_label: com.name,
               arrondissement_label: null,
@@ -286,7 +338,6 @@ function useFreeDeliveryZone() {
             });
 
             (com.arrondissements || []).forEach((arr) => {
-              // Niveau arrondissement
               list.push({
                 commune_label: com.name,
                 arrondissement_label: arr.name,
@@ -299,7 +350,6 @@ function useFreeDeliveryZone() {
               });
 
               (arr.quartiers || []).forEach((q) => {
-                // Niveau quartier
                 list.push({
                   commune_label: com.name,
                   arrondissement_label: arr.name,
@@ -346,7 +396,6 @@ function useFreeDeliveryZone() {
   };
 }
 
-// Gestion globale des filtres
 function useFilters(initialFilters = {}) {
   const [filters, setFilters] = useState({
     category_id: "",
@@ -383,10 +432,9 @@ function useFilters(initialFilters = {}) {
     });
   }, []);
 
-  return { filters, updateFilters, resetFilters };
+  return { filters, setFilters, updateFilters, resetFilters };
 }
 
-// Gestion des sections ouvertes/fermées
 function useSections(initialOpen = {}) {
   const [openSections, setOpenSections] = useState({
     category: true,
@@ -403,7 +451,6 @@ function useSections(initialOpen = {}) {
   return { openSections, toggleSection };
 }
 
-// Composant SectionHeader
 const SectionHeader = ({ title, sectionKey, icon: Icon, toggleSection, openSections }) => (
   <button
     onClick={() => toggleSection(sectionKey)}
@@ -421,9 +468,8 @@ const SectionHeader = ({ title, sectionKey, icon: Icon, toggleSection, openSecti
 export default function FiltersPanel({ onFilterChange = () => {} }) {
   const location = useLocation();
 
-  // Hooks
   const categories = useCategories();
-  const { filters, updateFilters, resetFilters } = useFilters();
+  const { filters, setFilters, updateFilters, resetFilters } = useFilters();
   const { openSections, toggleSection } = useSections();
   const attributes = useAttributes(filters.category_id);
 
@@ -440,14 +486,12 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     clearZone,
   } = useFreeDeliveryZone();
 
-  // Récupération du paramètre category_id depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryId = params.get("category_id");
     if (categoryId) updateFilters({ category_id: categoryId });
   }, [location.search, updateFilters]);
 
-  // Appel du parent quand les filtres changent
   useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
@@ -457,7 +501,6 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     [categories, filters.category_id]
   );
 
-  // Gestion des presets de prix
   const handlePricePreset = (preset) => {
     switch (preset) {
       case "low":
@@ -474,7 +517,6 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     }
   };
 
-  // Toggle d'une valeur d'attribut
   const toggleAttributeValue = (attrId, val) => {
     setFilters((prev) => {
       const cur = new Set(prev.attributes[attrId] || []);
@@ -486,14 +528,12 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     });
   };
 
-  // Gestion sélection de zone via modal
   const handleSelectZone = (loc) => {
     const commune = selectZone(loc);
     if (commune) {
       updateFilters({ freeDeliveryCommune: commune });
     } else {
-      // Si l'utilisateur sélectionne un département (sans commune), on ignore
-      setSelectedZone(null);
+      setIsModalOpen(false);
     }
   };
 
@@ -502,15 +542,13 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     updateFilters({ freeDeliveryCommune: "" });
   };
 
-  // Ouvre le modal de recherche de zone
   const openZoneModal = () => {
     setIsModalOpen(true);
   };
 
   return (
     <>
-      <div className="space-y-4 relative z-50">
-        {/* En-tête reset */}
+      <div className="space-y-4">
         <div className="flex items-center justify-between mb-8">
           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-base-content/40">Configuration</h4>
           <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs font-black text-primary hover:underline">
@@ -595,7 +633,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Promotions (inchangée) */}
+        {/* Section Promotions */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Promotions & Offres"
@@ -680,7 +718,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Tri (inchangée) */}
+        {/* Section Tri */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Tri"
@@ -715,7 +753,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Catégorie (inchangée) */}
+        {/* Section Catégorie */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Catégorie"
@@ -758,7 +796,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Prix (inchangée) */}
+        {/* Section Prix */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Bilan Prix"
@@ -874,7 +912,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Attributs (inchangée) */}
+        {/* Section Attributs */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Propriétés"
@@ -978,7 +1016,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
         )}
       </div>
 
-      {/* Modal de recherche de zone */}
+      {/* Modal de recherche de zone — rendu dans document.body via portail */}
       <LocationSearchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -989,9 +1027,3 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     </>
   );
 }
-
-// Fonction utilitaire pour enlever les accents
-const removeAccents = (str) => {
-  if (!str) return "";
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-};
