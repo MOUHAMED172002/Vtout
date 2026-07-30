@@ -6,6 +6,44 @@ import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
 import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 
+// =====================================================================
+// UTILITAIRE : filtre livraison gratuite par commune
+// =====================================================================
+const applyFreeDeliveryFilter = async (where, freeDeliveryCommune) => {
+  if (!freeDeliveryCommune) return;
+
+  // Récupérer les boutiques situées dans cette commune
+  const matchingBoutiques = await Boutique.findAll({
+    where: { commune_label: freeDeliveryCommune },
+    attributes: ['id']
+  });
+  const boutiqueIds = matchingBoutiques.map(b => b.id);
+
+  // Initialiser Op.and s'il n'existe pas
+  where[Op.and] = where[Op.and] || [];
+
+  if (boutiqueIds.length === 0) {
+    // Aucune boutique -> aucun produit
+    where[Op.and].push(sequelize.literal('1 = 0'));
+    return;
+  }
+
+  // Conditions : boutique principale OU boutique secondaire
+  const orConditions = [
+    { boutique_id: { [Op.in]: boutiqueIds } },
+    ...boutiqueIds.map((bid) =>
+      sequelize.literal(
+        `JSON_CONTAINS(COALESCE(\`Product\`.\`secondary_boutique_ids\`, '[]'), ${sequelize.escape(JSON.stringify(bid))})`
+      )
+    )
+  ];
+
+  where[Op.and].push({ [Op.or]: orConditions });
+};
+
+// =====================================================================
+// NORMALISATION DES PRODUITS
+// =====================================================================
 const normalizeExpiredFlashSale = (product) => {
     if (product.is_flash_sale && product.flash_sale_end && new Date(product.flash_sale_end) < new Date()) {
         if (Number(product.old_price) > 0) {
@@ -64,9 +102,12 @@ export const processProductsForCommunes = async (products) => {
     }));
 };
 
+// =====================================================================
+// GET ALL PRODUCTS (avec filtre freeDeliveryCommune)
+// =====================================================================
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products } = req.query;
+        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products, freeDeliveryCommune } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -184,7 +225,10 @@ export const getAllProducts = async (req, res) => {
             });
         }
 
-        let order =   sequelize?.literal('RAND()'); // Default random order;
+        // ===== NOUVEAU : filtre livraison gratuite =====
+        await applyFreeDeliveryFilter(where, freeDeliveryCommune);
+
+        let order = sequelize?.literal('RAND()'); // Default random order;
         if (sort === 'price_asc') order = [['price', 'ASC']];
         if (sort === 'price_desc') order = [['price', 'DESC']];
 
@@ -256,6 +300,9 @@ export const getAllProducts = async (req, res) => {
     }
 };
 
+// =====================================================================
+// GET PRODUCT BY ID
+// =====================================================================
 export const getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
@@ -329,31 +376,42 @@ export const getProductById = async (req, res) => {
     }
 };
 
+// =====================================================================
+// SEARCH PRODUCTS (avec filtre freeDeliveryCommune)
+// =====================================================================
 export const searchProducts = async (req, res) => {
     try {
-        const { q } = req.query;
+        const { q, freeDeliveryCommune } = req.query;
         if (!q) return res.json([]);
 
+        // Construction du where pour la recherche textuelle
+        const whereClause = {
+            approval_status: 'approved',
+            price: { [Op.gt]: 0 },
+            [Op.and]: [
+                sequelize.literal(`(
+                    \`Product\`.stock > 0
+                    OR EXISTS (
+                        SELECT 1 FROM \`product_variant_prices\` AS pvp
+                        INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                        WHERE pv.product_id = \`Product\`.id
+                        AND pvp.stock > 0
+                    )
+                )`),
+                {
+                    [Op.or]: [
+                        { name: { [Op.like]: `%${q}%` } },
+                        { description: { [Op.like]: `%${q}%` } }
+                    ]
+                }
+            ]
+        };
+
+        // Appliquer le filtre livraison gratuite
+        await applyFreeDeliveryFilter(whereClause, freeDeliveryCommune);
+
         const products = await Product.findAll({
-            where: {
-                approval_status: 'approved',
-                price: { [Op.gt]: 0 },
-                [Op.and]: [
-                    sequelize.literal(`(
-                        \`Product\`.stock > 0
-                        OR EXISTS (
-                            SELECT 1 FROM \`product_variant_prices\` AS pvp
-                            INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
-                            WHERE pv.product_id = \`Product\`.id
-                            AND pvp.stock > 0
-                        )
-                    )`)
-                ],
-                [Op.or]: [
-                    { name: { [Op.like]: `%${q}%` } },
-                    { description: { [Op.like]: `%${q}%` } }
-                ]
-            },
+            where: whereClause,
             attributes: {
                 include: [
                     [
@@ -386,6 +444,7 @@ export const searchProducts = async (req, res) => {
 
         const processedProducts = await processProductsForCommunes(products);
 
+        // Recherche par catégorie
         const matchingCategories = await Category.findAll({
             where: { name: { [Op.like]: `%${q}%` } },
             attributes: ['id']
@@ -393,24 +452,29 @@ export const searchProducts = async (req, res) => {
 
         if (matchingCategories.length > 0) {
             const catIds = matchingCategories.map(c => c.id);
+            const extraWhere = {
+                approval_status: 'approved',
+                price: { [Op.gt]: 0 },
+                category_id: { [Op.in]: catIds },
+                id: { [Op.notIn]: products.map(p => p.id) },
+                [Op.and]: [
+                    sequelize.literal(`(
+                        \`Product\`.stock > 0
+                        OR EXISTS (
+                            SELECT 1 FROM \`product_variant_prices\` AS pvp
+                            INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
+                            WHERE pv.product_id = \`Product\`.id
+                            AND pvp.stock > 0
+                        )
+                    )`)
+                ]
+            };
+
+            // Appliquer le filtre livraison gratuite également sur cette requête
+            await applyFreeDeliveryFilter(extraWhere, freeDeliveryCommune);
+
             const extraProducts = await Product.findAll({
-                where: {
-                    approval_status: 'approved',
-                    price: { [Op.gt]: 0 },
-                    category_id: { [Op.in]: catIds },
-                    id: { [Op.notIn]: products.map(p => p.id) },
-                    [Op.and]: [
-                        sequelize.literal(`(
-                            \`Product\`.stock > 0
-                            OR EXISTS (
-                                SELECT 1 FROM \`product_variant_prices\` AS pvp
-                                INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
-                                WHERE pv.product_id = \`Product\`.id
-                                AND pvp.stock > 0
-                            )
-                        )`)
-                    ]
-                },
+                where: extraWhere,
                 include: [
                     { model: Category, as: 'category' },
                     { model: ProductImage, as: 'images' },
@@ -449,6 +513,9 @@ export const searchProducts = async (req, res) => {
     }
 };
 
+// =====================================================================
+// CREATE PRODUCT (inchangé)
+// =====================================================================
 export const createProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -725,6 +792,9 @@ export const createProduct = async (req, res) => {
     }
 };
 
+// =====================================================================
+// UPDATE PRODUCT (inchangé)
+// =====================================================================
 export const updateProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -1051,6 +1121,9 @@ export const updateProduct = async (req, res) => {
     }
 };
 
+// =====================================================================
+// DELETE PRODUCT (inchangé)
+// =====================================================================
 export const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1087,6 +1160,9 @@ export const deleteProduct = async (req, res) => {
     }
 };
 
+// =====================================================================
+// ADMIN CREATE PRODUCT (inchangé)
+// =====================================================================
 export const adminCreateProduct = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -1178,6 +1254,9 @@ export const adminCreateProduct = async (req, res) => {
     }
 };
 
+// =====================================================================
+// GET RELATED PRODUCTS (inchangé)
+// =====================================================================
 export const getRelatedProducts = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1248,6 +1327,9 @@ export const getRelatedProducts = async (req, res) => {
     }
 };
 
+// =====================================================================
+// GET FREQUENTLY BOUGHT TOGETHER (inchangé)
+// =====================================================================
 export const getFrequentlyBoughtTogether = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1321,12 +1403,9 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
     }
 };
 
-/**
- * ADMIN MIGRATION: Fix stale variant prices
- * For each product with a valid public price (product.price > 0),
- * update all its variant prices to match, if the variant price is lower than the product price.
- * This corrects old data where variant prices were set to the taxed/net amount.
- */
+// =====================================================================
+// ADMIN MIGRATION : FIX VARIANT PRICES (inchangé)
+// =====================================================================
 export const fixVariantPrices = async (req, res) => {
     try {
         // Fetch all products that have a public price > 0 and have variants
@@ -1385,4 +1464,3 @@ export const fixVariantPrices = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la migration des prix', details: error.message });
     }
 };
-

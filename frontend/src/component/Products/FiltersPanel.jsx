@@ -1,22 +1,137 @@
-import { getCategories, getAttributesByCategory, getAttributes } from "../../services/productService";
-import { useState, useEffect, useMemo } from "react";
+// FiltersPanel.jsx (refactorisé)
+import { getCategories, getAttributes } from "../../services/productService";
+import { getHierarchy } from "../../services/locationService";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search } from "lucide-react";
+import { ChevronDown, Zap, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search, Truck, Check, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategorySearchModal from "../Shared/CategorySearchModal";
 
-export default function FiltersPanel({ onFilterChange = () => { } }) {
-  const [categories, setCategories] = useState([]);
-  const [attributes, setAttributes] = useState([]);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [openSections, setOpenSections] = useState({
-    category: true,
-    price: true,
-    attributes: true,
-    sort: true,
-    promo: true,
-  });
+// ---------- Hooks personnalisés ----------
 
+// Gestion des catégories
+function useCategories() {
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error("Erreur chargement catégories :", err);
+      }
+    })();
+  }, []);
+  return categories;
+}
+
+// Gestion des attributs (globaux)
+function useAttributes(categoryId) {
+  const [attributes, setAttributes] = useState([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const allAttrs = await getAttributes();
+        // On garde les 15 premiers pour l'affichage
+        setAttributes(allAttrs.slice(0, 15));
+      } catch (err) {
+        console.error("Erreur chargement attributs :", err);
+        setAttributes([]);
+      }
+    })();
+  }, [categoryId]); // reload si categoryId change (pourrait servir plus tard)
+  return attributes;
+}
+
+// Gestion des zones de livraison gratuite
+function useFreeDeliveryZone() {
+  const [allLocations, setAllLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [zoneQuery, setZoneQuery] = useState("");
+  const [selectedZone, setSelectedZone] = useState(null);
+  const [showZoneSuggestions, setShowZoneSuggestions] = useState(false);
+  const wrapperRef = useRef(null);
+
+  // Chargement de la hiérarchie
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLocationsLoading(true);
+        const departments = await getHierarchy();
+        const list = [];
+        departments.forEach((dep) => {
+          (dep.communes || []).forEach((com) => {
+            (com.arrondissements || []).forEach((arr) => {
+              (arr.quartiers || []).forEach((q) => {
+                const formatted = `${q.name}, ${arr.name}, ${com.name}`;
+                list.push({
+                  commune_label: com.name,
+                  arrondissement_label: arr.name,
+                  quartier_label: q.name,
+                  formattedAddress: formatted,
+                  searchStr: removeAccents(formatted),
+                });
+              });
+            });
+          });
+        });
+        if (isMounted) setAllLocations(list);
+      } catch (err) {
+        console.error("Échec chargement zones :", err);
+      } finally {
+        if (isMounted) setLocationsLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
+
+  const filteredZones = useMemo(() => {
+    if (!zoneQuery.trim()) return [];
+    const q = removeAccents(zoneQuery.trim());
+    return allLocations.filter((loc) => loc.searchStr.includes(q)).slice(0, 30);
+  }, [zoneQuery, allLocations]);
+
+  // Gestion du clic à l'extérieur
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowZoneSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectZone = (loc) => {
+    setSelectedZone(loc);
+    setZoneQuery(loc.formattedAddress);
+    setShowZoneSuggestions(false);
+    return loc.commune_label; // pour remonter la commune au parent
+  };
+
+  const clearZone = () => {
+    setSelectedZone(null);
+    setZoneQuery("");
+    return "";
+  };
+
+  return {
+    locationsLoading,
+    zoneQuery,
+    setZoneQuery,
+    selectedZone,
+    showZoneSuggestions,
+    setShowZoneSuggestions,
+    filteredZones,
+    wrapperRef,
+    selectZone,
+    clearZone,
+  };
+}
+
+// Gestion globale des filtres
+function useFilters(initialFilters = {}) {
   const [filters, setFilters] = useState({
     category_id: "",
     minPrice: 0,
@@ -28,79 +143,15 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
     isKit: "",
     hasVolumePricing: "",
     isAnyPromo: "",
+    freeDeliveryCommune: "",
+    ...initialFilters,
   });
 
-  const [selectedAttrId, setSelectedAttrId] = useState("");
-  const location = useLocation();
-
-  const selectedCategory = useMemo(() => {
-    return categories.find(c => String(c.id) === String(filters.category_id));
-  }, [categories, filters.category_id]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const categoryId = params.get("category_id");
-    if (categoryId) setFilters((prev) => ({ ...prev, category_id: categoryId }));
-  }, [location.search]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const catData = await getCategories();
-        setCategories(catData || []);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
+  const updateFilters = useCallback((patch) => {
+    setFilters((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  useEffect(() => {
-    const loadAttrs = async () => {
-      try {
-        // Fetch all global attributes as per the "global" system request
-        const allAttrs = await getAttributes();
-
-        // If a category is selected, we could theoretically filter, 
-        // but for a truly global system, we show what's available.
-        // We take the top 15 to keep the UI clean.
-        setAttributes(allAttrs.slice(0, 15));
-        setSelectedAttrId("");
-      } catch (err) {
-        console.error(err);
-        setAttributes([]);
-      }
-    };
-    loadAttrs();
-  }, [filters.category_id]);
-
-  useEffect(() => {
-    onFilterChange(filters);
-  }, [filters, onFilterChange]);
-
-  const toggleSection = (key) => setOpenSections((p) => ({ ...p, [key]: !p[key] }));
-  const updateFilters = (patch) => setFilters((prev) => ({ ...prev, ...patch }));
-
-  const handlePricePreset = (preset) => {
-    switch (preset) {
-      case "low": updateFilters({ minPrice: 0, maxPrice: 10000 }); break;
-      case "mid": updateFilters({ minPrice: 10000, maxPrice: 50000 }); break;
-      case "high": updateFilters({ minPrice: 50000, maxPrice: 500000 }); break;
-      default: updateFilters({ minPrice: 0, maxPrice: 500000 });
-    }
-  };
-
-  const toggleAttributeValue = (attrId, val) => {
-    setFilters((prev) => {
-      const cur = new Set(prev.attributes[attrId] || []);
-      if (cur.has(val)) cur.delete(val);
-      else cur.add(val);
-      const nextAttrs = { ...prev.attributes, [attrId]: Array.from(cur) };
-      if (!nextAttrs[attrId] || nextAttrs[attrId].length === 0) delete nextAttrs[attrId];
-      return { ...prev, attributes: nextAttrs };
-    });
-  };
-
-  const clearFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilters({
       category_id: "",
       minPrice: 0,
@@ -112,40 +163,248 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
       isKit: "",
       hasVolumePricing: "",
       isAnyPromo: "",
+      freeDeliveryCommune: "",
     });
-    setSelectedAttrId("");
-  };
+  }, []);
 
-  const SectionHeader = ({ title, sectionKey, icon: Icon }) => (
-    <button
-      onClick={() => toggleSection(sectionKey)}
-      className="w-full flex items-center justify-between py-4 group"
-    >
-      <div className="flex items-center gap-3">
-        <Icon size={16} className="text-base-content/40 group-hover:text-primary transition-colors" />
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-base-content/90">{title}</span>
-      </div>
-      {openSections[sectionKey] ? <ChevronDown size={14} className="text-base-content/30" /> : <Plus size={14} className="text-base-content/30" />}
-    </button>
+  return { filters, updateFilters, resetFilters };
+}
+
+// Gestion des sections ouvertes/fermées
+function useSections(initialOpen = {}) {
+  const [openSections, setOpenSections] = useState({
+    category: true,
+    price: true,
+    attributes: true,
+    sort: true,
+    promo: true,
+    zone: true,
+    ...initialOpen,
+  });
+  const toggleSection = useCallback((key) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+  return { openSections, toggleSection };
+}
+
+// Composant SectionHeader (inchangé, juste exporté)
+const SectionHeader = ({ title, sectionKey, icon: Icon, toggleSection, openSections }) => (
+  <button
+    onClick={() => toggleSection(sectionKey)}
+    className="w-full flex items-center justify-between py-4 group"
+  >
+    <div className="flex items-center gap-3">
+      <Icon size={16} className="text-base-content/40 group-hover:text-primary transition-colors" />
+      <span className="text-xs font-black uppercase tracking-[0.2em] text-base-content/90">{title}</span>
+    </div>
+    {openSections[sectionKey] ? <ChevronDown size={14} className="text-base-content/30" /> : <Plus size={14} className="text-base-content/30" />}
+  </button>
+);
+
+// ---------- Composant principal ----------
+export default function FiltersPanel({ onFilterChange = () => {} }) {
+  const location = useLocation();
+
+  // Hooks
+  const categories = useCategories();
+  const { filters, updateFilters, resetFilters } = useFilters();
+  const { openSections, toggleSection } = useSections();
+  const attributes = useAttributes(filters.category_id);
+
+  const [selectedAttrId, setSelectedAttrId] = useState("");
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+  const {
+    locationsLoading,
+    zoneQuery,
+    setZoneQuery,
+    selectedZone,
+    showZoneSuggestions,
+    setShowZoneSuggestions,
+    filteredZones,
+    wrapperRef,
+    selectZone,
+    clearZone,
+  } = useFreeDeliveryZone();
+
+  // Récupération du paramètre category_id depuis l'URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryId = params.get("category_id");
+    if (categoryId) updateFilters({ category_id: categoryId });
+  }, [location.search, updateFilters]);
+
+  // Appel du parent quand les filtres changent
+  useEffect(() => {
+    onFilterChange(filters);
+  }, [filters, onFilterChange]);
+
+  const selectedCategory = useMemo(
+    () => categories.find((c) => String(c.id) === String(filters.category_id)),
+    [categories, filters.category_id]
   );
 
+  // Gestion des presets de prix
+  const handlePricePreset = (preset) => {
+    switch (preset) {
+      case "low":
+        updateFilters({ minPrice: 0, maxPrice: 10000 });
+        break;
+      case "mid":
+        updateFilters({ minPrice: 10000, maxPrice: 50000 });
+        break;
+      case "high":
+        updateFilters({ minPrice: 50000, maxPrice: 500000 });
+        break;
+      default:
+        updateFilters({ minPrice: 0, maxPrice: 500000 });
+    }
+  };
+
+  // Toggle d'une valeur d'attribut
+  const toggleAttributeValue = (attrId, val) => {
+    setFilters((prev) => {
+      const cur = new Set(prev.attributes[attrId] || []);
+      if (cur.has(val)) cur.delete(val);
+      else cur.add(val);
+      const nextAttrs = { ...prev.attributes, [attrId]: Array.from(cur) };
+      if (!nextAttrs[attrId] || nextAttrs[attrId].length === 0) delete nextAttrs[attrId];
+      return { ...prev, attributes: nextAttrs };
+    });
+  };
+
+  // Gestion sélection de zone (remonte la commune)
+  const handleSelectZone = (loc) => {
+    const commune = selectZone(loc);
+    updateFilters({ freeDeliveryCommune: commune });
+  };
+
+  const handleClearZone = () => {
+    clearZone();
+    updateFilters({ freeDeliveryCommune: "" });
+  };
+
+  // Rendu (exactement le même JSX, juste les handlers adaptés)
   return (
     <div className="space-y-4">
+      {/* En-tête reset */}
       <div className="flex items-center justify-between mb-8">
         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-base-content/40">Configuration</h4>
-        <button onClick={clearFilters} className="flex items-center gap-1.5 text-xs font-black text-primary hover:underline">
+        <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs font-black text-primary hover:underline">
           <RotateCcw size={12} /> Reset
         </button>
       </div>
 
-
-
-      {/* Promotion Types */}
+      {/* Section Zone */}
       <div className="border-b border-base-200">
-        <SectionHeader title="Promotions & Offres" sectionKey="promo" icon={Sparkles} />
+        <SectionHeader
+          title="Livraison gratuite"
+          sectionKey="zone"
+          icon={Truck}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
+        <AnimatePresence>
+          {openSections.zone && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-6 overflow-hidden"
+            >
+              <div className="space-y-2 relative" ref={wrapperRef}>
+                <p className="text-[10px] font-medium text-base-content/40 px-1 mb-1">
+                  Cherchez votre quartier pour voir les produits livrables gratuitement chez vous.
+                </p>
+
+                {selectedZone ? (
+                  <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                    <div className="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                      <Check className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-xs text-base-content truncate">{selectedZone.quartier_label}</p>
+                      <p className="text-[10px] text-base-content/50 font-medium truncate">
+                        {selectedZone.arrondissement_label}, {selectedZone.commune_label}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearZone}
+                      className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 transition-all"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      {locationsLoading ? (
+                        <Loader2 className="h-4 w-4 text-base-content/30 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4 text-base-content/30" />
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      disabled={locationsLoading}
+                      value={zoneQuery}
+                      onChange={(e) => {
+                        setZoneQuery(e.target.value);
+                        setShowZoneSuggestions(true);
+                      }}
+                      onFocus={() => setShowZoneSuggestions(true)}
+                      placeholder={locationsLoading ? "Chargement des zones..." : "Ex: Akassato, Godomey..."}
+                      className="w-full h-11 bg-base-200 border border-transparent rounded-xl pl-10 pr-4 text-xs font-bold text-base-content placeholder:font-medium placeholder:text-base-content/30 focus:bg-base-100 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all disabled:opacity-60"
+                    />
+
+                    {showZoneSuggestions && zoneQuery && filteredZones.length > 0 && (
+                      <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl shadow-base-content/10 border border-base-200 max-h-56 overflow-y-auto">
+                        {filteredZones.map((loc) => (
+                          <div
+                            key={loc.formattedAddress}
+                            onClick={() => handleSelectZone(loc)}
+                            className="px-4 py-2.5 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
+                          >
+                            <div className="font-bold text-xs text-base-content">{loc.quartier_label}</div>
+                            <div className="text-[10px] text-base-content/50 font-medium">
+                              {loc.arrondissement_label}, {loc.commune_label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {showZoneSuggestions && zoneQuery && !locationsLoading && filteredZones.length === 0 && (
+                      <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl border border-base-200 p-3 text-center">
+                        <p className="text-xs font-bold text-base-content/50">Aucune zone trouvée.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Section Promotions */}
+      <div className="border-b border-base-200">
+        <SectionHeader
+          title="Promotions & Offres"
+          sectionKey="promo"
+          icon={Sparkles}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
         <AnimatePresence>
           {openSections.promo && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-6 overflow-hidden"
+            >
               <div className="space-y-2">
                 {[
                   { id: "all_promos", label: "Toutes les promotions" },
@@ -153,7 +412,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                   { id: "isFlashSale", label: "Ventes Flash" },
                   { id: "hasVolumePricing", label: "Prix Dégressifs" },
                   { id: "isKit", label: "Packs & Kits" },
-                  { id: "none", label: "Aucune (Normal)" }
+                  { id: "none", label: "Aucune (Normal)" },
                 ].map((p) => {
                   const handleSelect = () => {
                     if (p.id === "all_promos") {
@@ -162,7 +421,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                         isFlashSale: "",
                         isKit: "",
                         hasVolumePricing: "",
-                        isAnyPromo: "true"
+                        isAnyPromo: "true",
                       });
                     } else if (p.id === "none") {
                       updateFilters({
@@ -170,7 +429,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                         isFlashSale: "",
                         isKit: "",
                         hasVolumePricing: "",
-                        isAnyPromo: ""
+                        isAnyPromo: "",
                       });
                     } else {
                       updateFilters({
@@ -178,21 +437,31 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
                         isFlashSale: p.id === "isFlashSale" ? "true" : "",
                         isKit: p.id === "isKit" ? "true" : "",
                         hasVolumePricing: p.id === "hasVolumePricing" ? "true" : "",
-                        isAnyPromo: ""
+                        isAnyPromo: "",
                       });
                     }
                   };
 
-                  const isCurrentlyActive = 
-                    p.id === "all_promos" ? filters.isAnyPromo === "true" :
-                    p.id === "none" ? (!filters.isPromo && !filters.isFlashSale && !filters.isKit && !filters.hasVolumePricing && !filters.isAnyPromo) :
-                    filters[p.id] === "true";
+                  const isCurrentlyActive =
+                    p.id === "all_promos"
+                      ? filters.isAnyPromo === "true"
+                      : p.id === "none"
+                      ? !filters.isPromo &&
+                        !filters.isFlashSale &&
+                        !filters.isKit &&
+                        !filters.hasVolumePricing &&
+                        !filters.isAnyPromo
+                      : filters[p.id] === "true";
 
                   return (
                     <button
                       key={p.id}
                       onClick={handleSelect}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${isCurrentlyActive ? 'bg-neutral text-white shadow-lg' : 'text-base-content/50 hover:bg-base-200'}`}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                        isCurrentlyActive
+                          ? "bg-neutral text-white shadow-lg"
+                          : "text-base-content/50 hover:bg-base-200"
+                      }`}
                     >
                       {p.label}
                     </button>
@@ -204,18 +473,31 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Sorting */}
+      {/* Section Tri */}
       <div className="border-b border-base-200">
-        <SectionHeader title="Tri" sectionKey="sort" icon={LayoutGrid} />
+        <SectionHeader
+          title="Tri"
+          sectionKey="sort"
+          icon={LayoutGrid}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
         <AnimatePresence>
           {openSections.sort && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-6 overflow-hidden"
+            >
               <div className="space-y-2">
                 {["recent", "price_asc", "price_desc"].map((s) => (
                   <button
                     key={s}
                     onClick={() => updateFilters({ sort: s })}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${filters.sort === s ? 'bg-neutral text-white shadow-lg' : 'text-base-content/50 hover:bg-base-200'}`}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                      filters.sort === s ? "bg-neutral text-white shadow-lg" : "text-base-content/50 hover:bg-base-200"
+                    }`}
                   >
                     {s === "recent" ? "Plus récents" : s === "price_asc" ? "Prix croissant" : "Prix décroissant"}
                   </button>
@@ -226,19 +508,34 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Category Selection (New Premium Style) */}
+      {/* Section Catégorie */}
       <div className="border-b border-base-200">
-        <SectionHeader title="Catégorie" sectionKey="category" icon={Tag} />
+        <SectionHeader
+          title="Catégorie"
+          sectionKey="category"
+          icon={Tag}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
         <AnimatePresence>
           {openSections.category && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden">
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-6 overflow-hidden"
+            >
               <button
                 type="button"
                 onClick={() => setShowCategoryModal(true)}
                 className="w-full bg-base-200 border border-base-200 rounded-2xl px-5 py-4 text-left flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
               >
                 <div className="flex flex-col">
-                  <span className={`text-xs font-bold ${selectedCategory ? 'text-base-content' : 'text-base-content/40'}`}>
+                  <span
+                    className={`text-xs font-bold ${
+                      selectedCategory ? "text-base-content" : "text-base-content/40"
+                    }`}
+                  >
                     {selectedCategory ? selectedCategory.name : "Toutes les catégories"}
                   </span>
                   {selectedCategory && (
@@ -254,40 +551,73 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Price */}
+      {/* Section Prix */}
       <div className="border-b border-base-200">
-        <SectionHeader title="Bilan Prix" sectionKey="price" icon={DollarSign} />
+        <SectionHeader
+          title="Bilan Prix"
+          sectionKey="price"
+          icon={DollarSign}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
         <AnimatePresence>
           {openSections.price && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-8 overflow-hidden space-y-6">
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-8 overflow-hidden space-y-6"
+            >
               <div className="flex flex-wrap gap-2">
-                {[["< 10k", "low"], ["10k-50k", "mid"], ["> 50k", "high"]].map(([label, val]) => (
-                  <button key={val} onClick={() => handlePricePreset(val)} className="px-4 py-2 bg-base-200 rounded-full text-[10px] font-black uppercase text-base-content/50 hover:bg-primary/10 hover:text-primary transition-all border border-base-200">{label}</button>
+                {[
+                  ["< 10k", "low"],
+                  ["10k-50k", "mid"],
+                  ["> 50k", "high"],
+                ].map(([label, val]) => (
+                  <button
+                    key={val}
+                    onClick={() => handlePricePreset(val)}
+                    className="px-4 py-2 bg-base-200 rounded-full text-[10px] font-black uppercase text-base-content/50 hover:bg-primary/10 hover:text-primary transition-all border border-base-200"
+                  >
+                    {label}
+                  </button>
                 ))}
               </div>
 
               <div className="space-y-6 px-2">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">Min (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">
+                      Min (FCFA)
+                    </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">CFA</span>
-                      <input 
-                        type="number" 
-                        value={filters.minPrice} 
-                        onChange={(e) => updateFilters({ minPrice: Math.max(0, Number(e.target.value)) })}
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">
+                        CFA
+                      </span>
+                      <input
+                        type="number"
+                        value={filters.minPrice}
+                        onChange={(e) =>
+                          updateFilters({ minPrice: Math.max(0, Number(e.target.value)) })
+                        }
                         className="w-full bg-base-200 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-base-content focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">Max (FCFA)</label>
+                    <label className="text-[10px] font-black uppercase text-base-content/40 ml-2 tracking-widest">
+                      Max (FCFA)
+                    </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">CFA</span>
-                      <input 
-                        type="number" 
-                        value={filters.maxPrice} 
-                        onChange={(e) => updateFilters({ maxPrice: Math.max(0, Number(e.target.value)) })}
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30 text-xs text-bold">
+                        CFA
+                      </span>
+                      <input
+                        type="number"
+                        value={filters.maxPrice}
+                        onChange={(e) =>
+                          updateFilters({ maxPrice: Math.max(0, Number(e.target.value)) })
+                        }
                         className="w-full bg-base-200 border-2 border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-base-content focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                       />
                     </div>
@@ -296,31 +626,39 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
 
                 <div className="relative h-6 flex items-center">
                   <div className="absolute w-full h-1.5 bg-base-200 rounded-full">
-                    <div 
-                      className="absolute h-full bg-orange-400 rounded-full" 
-                      style={{ 
-                        left: `${(filters.minPrice / 500000) * 100}%`, 
-                        right: `${100 - (filters.maxPrice / 500000) * 100}%` 
-                      }} 
+                    <div
+                      className="absolute h-full bg-orange-400 rounded-full"
+                      style={{
+                        left: `${(filters.minPrice / 500000) * 100}%`,
+                        right: `${100 - (filters.maxPrice / 500000) * 100}%`,
+                      }}
                     />
                   </div>
-                  <input 
-                    type="range" 
-                    min={0} 
-                    max={500000} 
-                    step={1000} 
-                    value={filters.minPrice} 
-                    onChange={(e) => updateFilters({ minPrice: Math.min(Number(e.target.value), filters.maxPrice - 1000) })} 
-                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                  <input
+                    type="range"
+                    min={0}
+                    max={500000}
+                    step={1000}
+                    value={filters.minPrice}
+                    onChange={(e) =>
+                      updateFilters({
+                        minPrice: Math.min(Number(e.target.value), filters.maxPrice - 1000),
+                      })
+                    }
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md"
                   />
-                  <input 
-                    type="range" 
-                    min={0} 
-                    max={500000} 
-                    step={1000} 
-                    value={filters.maxPrice} 
-                    onChange={(e) => updateFilters({ maxPrice: Math.max(Number(e.target.value), filters.minPrice + 1000) })} 
-                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md" 
+                  <input
+                    type="range"
+                    min={0}
+                    max={500000}
+                    step={1000}
+                    value={filters.maxPrice}
+                    onChange={(e) =>
+                      updateFilters({
+                        maxPrice: Math.max(Number(e.target.value), filters.minPrice + 1000),
+                      })
+                    }
+                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-base-100 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-orange-500 [&::-webkit-slider-thumb]:shadow-md"
                   />
                 </div>
               </div>
@@ -329,37 +667,60 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Attributes */}
+      {/* Section Attributs */}
       <div className="border-b border-base-200">
-        <SectionHeader title="Propriétés" sectionKey="attributes" icon={Box} />
+        <SectionHeader
+          title="Propriétés"
+          sectionKey="attributes"
+          icon={Box}
+          toggleSection={toggleSection}
+          openSections={openSections}
+        />
         <AnimatePresence>
           {openSections.attributes && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pb-6 overflow-hidden space-y-4">
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="pb-6 overflow-hidden space-y-4"
+            >
               <select
                 className="w-full h-12 px-4 bg-base-100 border border-base-300 rounded-xl text-xs font-black text-base-content shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                 value={selectedAttrId}
                 onChange={(e) => setSelectedAttrId(e.target.value)}
               >
                 <option value="">Sélectionner un attribut...</option>
-                {attributes.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                {attributes.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
               </select>
 
               {selectedAttrId && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Valeurs disponibles</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                    Valeurs disponibles
+                  </div>
                   <div className="flex flex-wrap gap-2">
-                    {attributes.find(a => String(a.id) === String(selectedAttrId))?.values?.map((v) => {
-                      const isSelected = (filters.attributes[selectedAttrId] || []).includes(v.value);
-                      return (
-                        <button
-                          key={v.id}
-                          onClick={() => toggleAttributeValue(selectedAttrId, v.value)}
-                          className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-base-200 text-base-content/50 border border-base-200 hover:border-primary/30'}`}
-                        >
-                          {v.value}
-                        </button>
-                      );
-                    })}
+                    {attributes
+                      .find((a) => String(a.id) === String(selectedAttrId))
+                      ?.values?.map((v) => {
+                        const isSelected = (filters.attributes[selectedAttrId] || []).includes(v.value);
+                        return (
+                          <button
+                            key={v.id}
+                            onClick={() => toggleAttributeValue(selectedAttrId, v.value)}
+                            className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                              isSelected
+                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                : "bg-base-200 text-base-content/50 border border-base-200 hover:border-primary/30"
+                            }`}
+                          >
+                            {v.value}
+                          </button>
+                        );
+                      })}
                   </div>
                 </motion.div>
               )}
@@ -367,10 +728,13 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
               {Object.entries(filters.attributes).length > 0 && (
                 <div className="pt-4 border-t border-base-200 space-y-2">
                   {Object.entries(filters.attributes).map(([attrId, vals]) => {
-                    const attrName = attributes.find(a => String(a.id) === String(attrId))?.name || "Attribut";
+                    const attrName =
+                      attributes.find((a) => String(a.id) === String(attrId))?.name || "Attribut";
                     return (
                       <div key={attrId} className="bg-base-200 p-3 rounded-xl border border-base-200 relative group">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">{attrName}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                          {attrName}
+                        </p>
                         <p className="text-xs font-bold text-base-content/80 truncate pr-6">{vals.join(", ")}</p>
                         <button
                           onClick={() => {
@@ -392,7 +756,7 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
         </AnimatePresence>
       </div>
 
-      {/* Category Search Modal - Rendered outside overflow container for better stacking context */}
+      {/* Modal Catégorie */}
       {showCategoryModal && (
         <div className="fixed inset-0 z-[999999] pointer-events-auto">
           <CategorySearchModal
@@ -405,7 +769,12 @@ export default function FiltersPanel({ onFilterChange = () => { } }) {
           />
         </div>
       )}
-
     </div>
   );
 }
+
+// Fonction utilitaire pour enlever les accents (inchangée)
+const removeAccents = (str) => {
+  if (!str) return "";
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
