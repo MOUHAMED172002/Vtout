@@ -126,6 +126,58 @@ export const updateMe = async (req, res) => {
     }
 };
 
+// Enregistre le jeton de push Expo de l'appareil courant (app mobile).
+// Un même compte peut avoir plusieurs jetons (plusieurs appareils) — on
+// dédoublonne simplement dans le tableau. Stocké dans profiles.metadata
+// pour éviter une migration de schéma.
+export const registerPushToken = async (req, res) => {
+    try {
+        const { userId } = req.auth;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+
+        const { token } = req.body;
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ error: 'Jeton push manquant' });
+        }
+
+        const profile = await Profile.findByPk(userId);
+        if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        const existing = Array.isArray(profile.metadata?.expo_push_tokens) ? profile.metadata.expo_push_tokens : [];
+        const tokens = Array.from(new Set([...existing, token]));
+        profile.metadata = { ...profile.metadata, expo_push_tokens: tokens };
+        await profile.save();
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur lors de l'enregistrement du jeton push" });
+    }
+};
+
+// Retire le jeton de push de l'appareil courant. Sans `token` dans le
+// corps de la requête (cas de la déconnexion mobile), retire TOUS les
+// jetons du compte — plus simple et sûr que de traquer le jeton précis de
+// l'appareil jusqu'à l'appel de déconnexion.
+export const removePushToken = async (req, res) => {
+    try {
+        const { userId } = req.auth;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+
+        const { token } = req.body || {};
+        const profile = await Profile.findByPk(userId);
+        if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        const existing = Array.isArray(profile.metadata?.expo_push_tokens) ? profile.metadata.expo_push_tokens : [];
+        const remaining = token ? existing.filter((t) => t !== token) : [];
+        profile.metadata = { ...profile.metadata, expo_push_tokens: remaining };
+        await profile.save();
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur lors du retrait du jeton push" });
+    }
+};
+
 export const getAllProfiles = async (req, res) => {
     try {
         const profiles = await Profile.findAll();

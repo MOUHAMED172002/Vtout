@@ -32,4 +32,16 @@ const Notification = sequelize.define('Notification', {
     underscored: true
 });
 
+// Relaie chaque notification in-app vers les appareils mobiles enregistrés
+// (push Expo) — voir services/pushNotificationService.js. Import dynamique
+// pour éviter tout risque de cycle d'import avec les controllers.
+Notification.addHook('afterCreate', async (notification) => {
+    try {
+        const { sendPushToUser } = await import('../services/pushNotificationService.js');
+        await sendPushToUser(notification.user_id, notification.title, notification.message);
+    } catch (err) {
+        console.error('[Notification afterCreate] push relay failed:', err.message);
+    }
+});
+
 export default Notification;
