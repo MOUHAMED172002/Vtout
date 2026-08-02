@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BadgeCheck, ShieldCheck, Clock, History, ChevronRight, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { BadgeCheck, ShieldCheck, Clock, History, ChevronRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../components/clerk-shim';
 import { getMyBadgeStatus, subscribeToBadge } from '../services/badgeService';
+
+const MONTH_OPTIONS = [1, 3, 6, 12];
 
 export default function SupplierBadge() {
     const { getToken } = useAuth();
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [subscribing, setSubscribing] = useState(false);
+    const [selectedMonths, setSelectedMonths] = useState(1);
 
     const fetchStatus = useCallback(async () => {
         try {
@@ -29,7 +31,7 @@ export default function SupplierBadge() {
         setSubscribing(true);
         try {
             const token = await getToken();
-            const { checkoutUrl } = await subscribeToBadge(token);
+            const { checkoutUrl } = await subscribeToBadge(token, selectedMonths);
             if (checkoutUrl) {
                 window.location.href = checkoutUrl;
             } else {
@@ -47,6 +49,8 @@ export default function SupplierBadge() {
     const isCertified = status?.is_certified;
     const expiresAt = status?.certified_badge_expires_at ? new Date(status.certified_badge_expires_at) : null;
     const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+    const monthlyPrice = Number(status?.monthly_price || 0);
+    const totalPrice = monthlyPrice * selectedMonths;
 
     return (
         <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
@@ -68,28 +72,72 @@ export default function SupplierBadge() {
                     </div>
 
                     {isCertified ? (
-                        <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-slate-300">
-                            <Clock size={16} className="text-blue-400" />
-                            Actif jusqu'au {expiresAt?.toLocaleDateString('fr-FR')} ({daysLeft} jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''})
-                        </div>
+                        <>
+                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-slate-300">
+                                <Clock size={16} className="text-blue-400" />
+                                Actif jusqu'au {expiresAt?.toLocaleDateString('fr-FR')}
+                            </div>
+
+                            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-[2rem] px-8 py-5">
+                                <CheckCircle2 size={22} className="text-blue-400" />
+                                <div className="text-left">
+                                    <p className="text-3xl font-black tracking-tighter leading-none">
+                                        {daysLeft} <span className="text-sm font-black text-slate-400 uppercase tracking-widest">jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                disabled
+                                className="bg-white/5 text-slate-400 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 cursor-not-allowed border border-white/10"
+                            >
+                                Badge déjà actif
+                            </button>
+
+                            <p className="text-[11px] font-bold text-slate-500">
+                                Le renouvellement sera possible à l'expiration de votre abonnement actuel.
+                            </p>
+                        </>
                     ) : (
-                        <p className="text-sm font-bold text-slate-300 max-w-md">
-                            Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
-                        </p>
+                        <>
+                            <p className="text-sm font-bold text-slate-300 max-w-md">
+                                Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
+                            </p>
+
+                            <div className="space-y-3">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Choisissez la durée</p>
+                                <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                                    {MONTH_OPTIONS.map(m => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setSelectedMonths(m)}
+                                            className={`px-5 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest transition-all ${
+                                                selectedMonths === m
+                                                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                                                    : 'border-white/10 text-slate-400 hover:border-white/20'
+                                            }`}
+                                        >
+                                            {m} mois
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleSubscribe}
+                                disabled={subscribing}
+                                className="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-600/40 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-60 disabled:hover:scale-100"
+                            >
+                                {subscribing ? 'Redirection…' : `Activer pour ${totalPrice.toLocaleString('fr-FR')} FCFA`}
+                                <ChevronRight size={18} />
+                            </button>
+
+                            <p className="text-[11px] font-bold text-slate-400">
+                                {monthlyPrice.toLocaleString('fr-FR')} FCFA / mois × {selectedMonths} mois · Paiement sécurisé via FedaPay
+                            </p>
+                        </>
                     )}
-
-                    <button
-                        onClick={handleSubscribe}
-                        disabled={subscribing}
-                        className="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-600/40 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-60 disabled:hover:scale-100"
-                    >
-                        {subscribing ? 'Redirection…' : isCertified ? 'Renouveler le badge' : 'Activer le badge'}
-                        <ChevronRight size={18} />
-                    </button>
-
-                    <p className="text-[11px] font-bold text-slate-400">
-                        {Number(status?.monthly_price || 0).toLocaleString('fr-FR')} FCFA / mois · Paiement sécurisé via FedaPay
-                    </p>
                 </div>
             </div>
 
@@ -98,7 +146,7 @@ export default function SupplierBadge() {
                 {[
                     { icon: ShieldCheck, title: 'Confiance client', desc: 'Le badge rassure les acheteurs et augmente le taux de conversion.' },
                     { icon: Sparkles, title: 'Visible partout', desc: 'Affiché automatiquement sur tous vos produits, sans action supplémentaire.' },
-                    { icon: BadgeCheck, title: 'Renouvelable', desc: 'Valable 30 jours, renouvelable en un clic avant expiration.' },
+                    { icon: BadgeCheck, title: 'Multi-mois', desc: 'Payez pour 1, 3, 6 ou 12 mois en une seule fois, comme vous le souhaitez.' },
                 ].map(({ icon: Icon, title, desc }) => (
                     <div key={title} className="bg-white p-6 rounded-3xl border border-slate-50 shadow-sm space-y-3">
                         <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
@@ -125,7 +173,7 @@ export default function SupplierBadge() {
                                     {new Date(h.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                    {Number(h.amount).toLocaleString('fr-FR')} FCFA
+                                    {Number(h.amount).toLocaleString('fr-FR')} FCFA · {h.months || 1} mois
                                 </p>
                             </div>
                             <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${

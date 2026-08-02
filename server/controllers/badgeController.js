@@ -74,21 +74,29 @@ export const subscribe = async (req, res) => {
         const supplier = await Supplier.findOne({ where: { id: req.auth.supplierId } });
         if (!supplier) return res.status(404).json({ error: 'Fournisseur introuvable' });
 
-        const amount = await getBadgePrice();
-        if (!amount || amount <= 0) {
+        const now = new Date();
+        const currentExpiry = supplier.certified_badge_expires_at ? new Date(supplier.certified_badge_expires_at) : null;
+        if (supplier.is_certified && currentExpiry && currentExpiry > now) {
+            return res.status(400).json({ error: 'Vous avez déjà un badge certifié actif. Le renouvellement sera possible à son expiration.' });
+        }
+
+        const monthlyPrice = await getBadgePrice();
+        if (!monthlyPrice || monthlyPrice <= 0) {
             return res.status(400).json({ error: "Le montant de l'abonnement n'a pas encore été configuré par l'administrateur" });
         }
 
-        const now = new Date();
-        const currentExpiry = supplier.certified_badge_expires_at ? new Date(supplier.certified_badge_expires_at) : null;
-        const periodStart = currentExpiry && currentExpiry > now ? currentExpiry : now;
-        const periodEnd = new Date(periodStart.getTime() + BADGE_DURATION_DAYS * 24 * 60 * 60 * 1000);
+        const months = Math.min(24, Math.max(1, parseInt(req.body.months, 10) || 1));
+        const amount = monthlyPrice * months;
+
+        const periodStart = now;
+        const periodEnd = new Date(periodStart.getTime() + months * BADGE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
         const subscriptionId = crypto.randomUUID();
         await SellerBadgeSubscription.create({
             id: subscriptionId,
             supplier_id: supplier.id,
             amount,
+            months,
             status: 'pending',
             period_start: periodStart,
             period_end: periodEnd
@@ -123,6 +131,7 @@ export const subscribe = async (req, res) => {
         res.json({
             checkoutUrl: result.checkoutUrl,
             amount,
+            months,
             subscriptionId
         });
     } catch (error) {

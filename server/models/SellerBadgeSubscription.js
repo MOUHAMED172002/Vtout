@@ -20,6 +20,10 @@ const SellerBadgeSubscription = sequelize.define('SellerBadgeSubscription', {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false
     },
+    months: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1
+    },
     status: {
         type: DataTypes.ENUM('pending', 'paid', 'failed'),
         defaultValue: 'pending'

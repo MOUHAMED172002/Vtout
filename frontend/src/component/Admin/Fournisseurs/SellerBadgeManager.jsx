@@ -233,7 +233,7 @@ export default function SellerBadgeManager({ globalSearchQuery = "" }) {
                                     <div className="min-w-0">
                                         <p className="font-bold text-sm text-gray-900 truncate">{sub.supplier?.name || "Fournisseur supprimé"}</p>
                                         <p className="text-xs text-gray-400">
-                                            {new Date(sub.created_at).toLocaleDateString("fr-FR")} · {Number(sub.amount).toLocaleString("fr-FR")} F
+                                            {new Date(sub.created_at).toLocaleDateString("fr-FR")} · {Number(sub.amount).toLocaleString("fr-FR")} F · {sub.months || 1} mois
                                         </p>
                                     </div>
                                     {statusBadge(sub.status)}

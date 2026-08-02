@@ -14,8 +14,8 @@ export const getMyBadgeStatus = async (token) => {
     return data;
 };
 
-export const subscribeToBadge = async (token) => {
-    const { data } = await api.post('/badge/subscribe', {}, {
+export const subscribeToBadge = async (token, months = 1) => {
+    const { data } = await api.post('/badge/subscribe', { months }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
     return data;

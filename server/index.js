@@ -823,6 +823,14 @@ sequelize.authenticate()
                 }
             }
 
+            // ── Badge "Vendeur Certifié" — colonne months (nb de mois payés) ──
+            try {
+                await sequelize.query(`ALTER TABLE \`seller_badge_subscriptions\` ADD COLUMN \`months\` INT NOT NULL DEFAULT 1`);
+                console.log('  ✅ [MIGRATION] Added seller_badge_subscriptions.months');
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ seller_badge_subscriptions.months:', e.message);
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
