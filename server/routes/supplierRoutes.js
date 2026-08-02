@@ -26,6 +26,10 @@ router.post('/me/boutiques', requireAuth, requireFournisseur, supplierController
 router.patch('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.updateMyBoutique);
 router.delete('/me/boutiques/:id', requireAuth, requireFournisseur, supplierController.deleteMyBoutique);
 
+// ---- Public ----
+// Annuaire des boutiques pour l'app mobile (avant /:id pour éviter toute collision de route).
+router.get('/boutiques', supplierController.getPublicBoutiques);
+
 // ---- Routes Admin uniquement ----
 router.get('/', requireAdmin, supplierController.getAllSuppliers);
 router.post('/', requireAdmin, supplierController.createSupplier);

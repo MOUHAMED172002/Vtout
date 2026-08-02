@@ -448,6 +448,41 @@ export const getAllBoutiques = async (req, res) => {
     }
 };
 
+// Annuaire public des boutiques (utilisé par l'app mobile pour parcourir/filtrer
+// par vendeur). Contrairement à getAllBoutiques (admin), ne renvoie que des
+// champs sûrs à exposer publiquement — pas de téléphone, WhatsApp, adresse
+// exacte ou coordonnées GPS.
+export const getPublicBoutiques = async (req, res) => {
+    try {
+        const { search, commune_id } = req.query;
+        const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+
+        const where = { status: 'active' };
+        if (commune_id) where.commune_id = commune_id;
+        if (search) where.name = { [Op.like]: `%${search}%` };
+
+        const boutiques = await Boutique.findAll({
+            where,
+            attributes: [
+                'id', 'name', 'commune_label', 'departement_label', 'quartier_label', 'supplier_id',
+                [
+                    sequelize.literal(
+                        `(SELECT COUNT(*) FROM products WHERE products.boutique_id = \`Boutique\`.\`id\` AND products.approval_status = 'approved')`
+                    ),
+                    'product_count'
+                ]
+            ],
+            order: [['name', 'ASC']],
+            limit
+        });
+
+        res.json(boutiques);
+    } catch (error) {
+        console.error('getPublicBoutiques error:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des boutiques' });
+    }
+};
+
 export const adminCreateBoutique = async (req, res) => {
     try {
         const { supplier_id } = req.body;
