@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap, Store } from "lucide-react";
+import { ShoppingCart, Truck, ShieldCheck, RotateCcw, Star, ChevronLeft, ChevronRight, Zap, Store, BadgeCheck } from "lucide-react";
 import SimilarProducts from "./SimilarProducts";
 import ProductReviews from "./ProductReviews";
 
@@ -446,6 +446,12 @@ export default function ProductPages() {
                 )}
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-base-content leading-tight">{product.name}</h1>
+
+              {product.supplier?.is_certified && (
+                <div className="inline-flex items-center gap-1.5 bg-blue-600/10 text-blue-600 text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-tight">
+                  <BadgeCheck size={14} strokeWidth={2.5} /> Vendeur certifié
+                </div>
+              )}
 
               {/* Delivery Info Badge */}
               {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (

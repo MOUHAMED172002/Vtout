@@ -39,7 +39,10 @@ const initialConfigs = [
     // API & Services
     { key: 'api_mapbox_token', value: 'pk.eyJ1IjoibW91aGFtZWQxNzIwMDIiLCJhbiI6ImNsdW8ycG04ejBndG0yaW1vbmF6am1wZzIifQ', group: 'api', description: 'Token Public Mapbox' },
     { key: 'api_fedapay_public', value: 'pk_live_xxxx', group: 'api', description: 'Clé Publique FedaPay' },
-    { key: 'site_mode', value: 'live', group: 'api', description: 'Mode du site (live / maintenance)' }
+    { key: 'site_mode', value: 'live', group: 'api', description: 'Mode du site (live / maintenance)' },
+
+    // Badge "Vendeur Certifié"
+    { key: 'seller_badge_monthly_price', value: '5000', group: 'seller_badge', description: 'Montant mensuel (XOF) du badge Vendeur Certifié' },
 ];
 
 export async function seedConfigs() {

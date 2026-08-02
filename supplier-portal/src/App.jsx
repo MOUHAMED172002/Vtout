@@ -23,6 +23,8 @@ import SupplierBoutiques from './pages/SupplierBoutiques';
 import SupplierPromotions from './pages/SupplierPromotions';
 import SupplierDisputes from './pages/SupplierDisputes';
 import HowItWorksVendeur from './pages/HowItWorksVendeur';
+import SupplierBadge from './pages/SupplierBadge';
+import SupplierBadgeSuccess from './pages/SupplierBadgeSuccess';
 
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
@@ -108,6 +110,8 @@ function App() {
             <Route path="/conditions" element={<ProtectedRoute><SupplierPolicies /></ProtectedRoute>} />
             <Route path="/mes-boutiques" element={<ProtectedRoute><SupplierBoutiques /></ProtectedRoute>} />
             <Route path="/mes-litiges" element={<ProtectedRoute><SupplierDisputes /></ProtectedRoute>} />
+            <Route path="/badge-certifie" element={<ProtectedRoute><SupplierBadge /></ProtectedRoute>} />
+            <Route path="/badge-certifie/success" element={<SupplierBadgeSuccess />} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />

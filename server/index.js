@@ -76,6 +76,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 // import kitRoutes from "./routes/kitRoutes.js"; // KIT PROMOTIONS — DÉSACTIVÉ
 import adminRoutes from "./routes/adminRoutes.js";
+import badgeRoutes from "./routes/badgeRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
@@ -520,6 +521,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 // app.use("/api/kits", kitRoutes); // KIT PROMOTIONS — DÉSACTIVÉ
 app.use("/api/admin", adminRoutes);
+app.use("/api/badge", badgeRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/resend-verification", resendVerificationRoutes);
@@ -712,6 +714,7 @@ const startServer = () => {
 };
 
 import { startDisputeCron } from './services/disputeCronService.js';
+import { startSellerBadgeCron } from './services/sellerBadgeCronService.js';
 
 // --- STARTUP LOGIC ---
 console.log("🚀 [BOOT] Starting Vtout API...");
@@ -720,6 +723,7 @@ console.log(">>> [BOOT] Configured ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGIN
 // Start HTTP server immediately so port 3000 is open
 startServer();
 startDisputeCron();
+startSellerBadgeCron();
 
 // Initialize Database in background
 console.log("💾 [BOOT] Connecting to Database...");
@@ -806,6 +810,19 @@ sequelize.authenticate()
                 }
             }
 
+            // ── Badge "Vendeur Certifié" — colonnes suppliers ──
+            for (const [col, def] of [
+                ['is_certified',               'TINYINT(1) NOT NULL DEFAULT 0'],
+                ['certified_badge_expires_at', 'DATETIME NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`suppliers\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added suppliers.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ suppliers.${col}:`, e.message);
+                }
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
@@ -815,7 +832,7 @@ sequelize.authenticate()
                     'product_variants', 'product_variant_prices', 'categories',
                     'financial_transactions', 'support_messages', 'blogs',
                     'boutiques', 'suppliers', 'profiles', 'configs',
-                    'cart_items', 'delivery_persons',
+                    'cart_items', 'delivery_persons', 'seller_badge_subscriptions',
                 ];
                 for (const tbl of tablesToConvert) {
                     try {

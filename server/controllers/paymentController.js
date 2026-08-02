@@ -1,8 +1,59 @@
-import { Order, FinancialTransaction, OrderItem } from '../models/index.js';
+import { Order, FinancialTransaction, OrderItem, SellerBadgeSubscription, Supplier, Profile, Notification } from '../models/index.js';
 import { verifyFedapayTransaction } from '../services/fedapayService.js';
 import { sendOrderUpdateToCustomer, sendOrderNotificationToAdmin, sendInvoiceEmail } from '../services/mailService.js';
 import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 import crypto from 'crypto';
+
+const activateSellerBadge = async (subscriptionId) => {
+    const subscription = await SellerBadgeSubscription.findByPk(subscriptionId);
+    if (!subscription || subscription.status === 'paid') return;
+
+    await subscription.update({ status: 'paid' });
+
+    const supplier = await Supplier.findByPk(subscription.supplier_id);
+    if (!supplier) return;
+
+    await supplier.update({
+        is_certified: true,
+        certified_badge_expires_at: subscription.period_end
+    });
+
+    if (supplier.user_id) {
+        await Notification.create({
+            id: crypto.randomUUID(),
+            user_id: supplier.user_id,
+            title: '✅ Badge Vendeur Certifié activé',
+            message: `Votre paiement a été confirmé. Votre badge "Vendeur Certifié" est actif jusqu'au ${new Date(subscription.period_end).toLocaleDateString('fr-FR')}.`,
+            type: 'success',
+            is_read: false
+        }).catch(() => {});
+    }
+
+    // Trace la recette pour l'admin dans le suivi financier existant
+    try {
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        let admin = await Profile.findOne({ where: { role: 'admin' } });
+        if (!admin && adminEmails.length > 0) {
+            const { Op } = await import('sequelize');
+            admin = await Profile.findOne({ where: { email: { [Op.in]: adminEmails } } });
+        }
+        if (admin) {
+            await FinancialTransaction.create({
+                id: crypto.randomUUID(),
+                user_id: admin.id,
+                type: 'earning',
+                source: 'seller_badge',
+                amount: subscription.amount,
+                description: `Abonnement Badge Certifié — ${supplier.name}`,
+                status: 'completed'
+            });
+        }
+    } catch (finErr) {
+        console.warn('[Webhook] FinancialTransaction badge non créée:', finErr.message);
+    }
+
+    console.log(`[Webhook] Badge certifié activé pour le fournisseur ${supplier.id} jusqu'au ${subscription.period_end}`);
+};
 
 export const fedapayCallback = async (req, res) => {
     try {
@@ -83,6 +134,9 @@ export const fedapayWebhook = async (req, res) => {
                         await order.update({ payment_status: 'payé' });
                         console.log(`[Webhook] Cash reversé pour commande ${orderIdStr}`);
                     }
+                } else if (txType === 'seller_badge_subscription') {
+                    // Abonnement badge "Vendeur Certifié" : pas de commande, on active le badge fournisseur
+                    await activateSellerBadge(orderIdStr.trim());
                 } else {
                     // Paiement client classique
                     const orderIds = orderIdStr.split(',');

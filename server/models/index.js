@@ -39,6 +39,7 @@ import Otp from './Otp.js';
 import Newsletter from './Newsletter.js';
 import Kit from './Kit.js'; // gardé pour orderController.js (calcul prix kit)
 import KitComponent from './KitComponent.js'; // gardé pour orderController.js
+import SellerBadgeSubscription from './SellerBadgeSubscription.js';
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -262,6 +263,9 @@ Profile.hasMany(Dispute, { foreignKey: 'user_id', as: 'disputes' });
 Dispute.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
 
 Supplier.hasMany(Dispute, { foreignKey: 'supplier_id', as: 'disputes' });
+
+Supplier.hasMany(SellerBadgeSubscription, { foreignKey: 'supplier_id', as: 'badgeSubscriptions' });
+SellerBadgeSubscription.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 Dispute.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 
 Order.hasMany(Dispute, { foreignKey: 'order_id', as: 'disputes' });
@@ -326,5 +330,6 @@ export {
     Verification,
     Newsletter,
     Kit,         // gardé pour orderController.js
-    KitComponent // gardé pour orderController.js
+    KitComponent, // gardé pour orderController.js
+    SellerBadgeSubscription
 };

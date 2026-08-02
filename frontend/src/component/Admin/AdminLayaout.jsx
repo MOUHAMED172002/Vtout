@@ -28,7 +28,8 @@ import {
   MapPin,
   PenTool,
   BarChart3,
-  UserCircle
+  UserCircle,
+  BadgeCheck
 } from "lucide-react";
 import DashboardPage from "./Dashboard/Dashboard";
 import SalesChart from "./Dashboard/SalesChart";
@@ -72,6 +73,7 @@ import InvoiceButton from "./Order/InvoiceButton";
 import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
+import SellerBadgeManager from "./Fournisseurs/SellerBadgeManager";
 // import KitsManager from "./Kits/KitsManager"; // KIT PROMOTIONS — DÉSACTIVÉ
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/AuthHooks";
@@ -135,6 +137,7 @@ const AdminLayout = () => {
         { key: "suppliersList", name: "Validation Fournisseurs", icon: <Users size={16} /> },
         { key: "productsApproval", name: "Validation Produits", icon: <Package size={16} /> },
         { key: "boutiquesCatalog", name: "Catalogue Boutiques", icon: <Store size={16} /> },
+        { key: "sellerBadge", name: "Badge Certifié", icon: <BadgeCheck size={16} /> },
       ],
     },
     {
@@ -228,6 +231,7 @@ const AdminLayout = () => {
           case "suppliersList": return <SuppliersManager globalSearchQuery={searchQuery} />;
           case "productsApproval": return <SupplierProductsApproval globalSearchQuery={searchQuery} />;
           case "boutiquesCatalog": return <BoutiquesCatalogManager globalSearchQuery={searchQuery} />;
+          case "sellerBadge": return <SellerBadgeManager globalSearchQuery={searchQuery} />;
           default: return <SuppliersManager globalSearchQuery={searchQuery} />;
         }
       case "Commandes":

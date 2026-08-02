@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Eye, Star, Zap, Truck, MapPin, X } from "lucide-react";
+import { ShoppingCart, Eye, Star, Zap, Truck, MapPin, X, BadgeCheck } from "lucide-react";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
@@ -318,6 +318,16 @@ export default function ProductCard({ product, onFavoriteChange }) {
               className="backdrop-blur-xl bg-orange-600/90 text-white text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-orange-500/20 border border-white/20"
             >
               -{finalDiscount}%
+            </motion.span>
+          )}
+          {product.supplier?.is_certified && (
+            <motion.span
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              title="Vendeur certifié"
+              className="backdrop-blur-xl bg-blue-600/90 text-white text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-blue-500/20 border border-white/20 flex items-center gap-1"
+            >
+              <BadgeCheck size={12} strokeWidth={2.5} /> Certifié
             </motion.span>
           )}
         </div>

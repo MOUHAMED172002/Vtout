@@ -71,6 +71,14 @@ const Supplier = sequelize.define('Supplier', {
     lng: {
         type: DataTypes.DECIMAL(11, 8),
         allowNull: true
+    },
+    is_certified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    certified_badge_expires_at: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'suppliers',

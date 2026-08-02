@@ -279,7 +279,7 @@ export const getAllProducts = async (req, res) => {
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
                 // Only expose the supplier id — name and contact info stay server-side
-                { model: Supplier, as: 'supplier', attributes: ['id'] },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'is_certified'] },
                 { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         };
@@ -343,7 +343,7 @@ export const getProductById = async (req, res) => {
                 },
                 { model: SupplierProduct, as: 'supplierLink' },
                 // Only id exposed — name, commune and contact stay server-side
-                { model: Supplier, as: 'supplier', attributes: ['id'] },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'is_certified'] },
                 { model: Boutique, as: 'boutique' }
             ]
         });
@@ -436,7 +436,7 @@ export const searchProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label', 'is_certified'] },
                 { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ],
             limit: 20
@@ -484,7 +484,7 @@ export const searchProducts = async (req, res) => {
                         as: 'variants',
                         include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                     },
-                    { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                    { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label', 'is_certified'] },
                     { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
                 ],
                 limit: 10
@@ -1311,7 +1311,7 @@ export const getRelatedProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label'] },
+                { model: Supplier, as: 'supplier', attributes: ['id', 'name', 'commune_label', 'is_certified'] },
                 { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ],
             limit: 12,
