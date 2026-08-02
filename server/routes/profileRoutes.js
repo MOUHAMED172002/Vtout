@@ -15,4 +15,7 @@ router.patch('/:id/status', requireAuth, requireAdmin, profileController.updateP
 
 router.post('/switch-role', requireAuth, profileController.switchRole);
 
+router.post('/push-token', requireAuth, profileController.registerPushToken);
+router.delete('/push-token', requireAuth, profileController.removePushToken);
+
 export default router;
