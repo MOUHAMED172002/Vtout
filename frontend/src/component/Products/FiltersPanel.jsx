@@ -4,7 +4,7 @@ import { getHierarchy } from "../../services/locationService";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
-import { ChevronDown, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search, Truck, Check, X, Loader2, MapPin, Building, Globe } from "lucide-react";
+import { ChevronDown, RotateCcw, Box, Plus, Tag, DollarSign, LayoutGrid, ChevronRight, Sparkles, Search, Truck, Check, X, Loader2, MapPin, Building, Globe, BadgeCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CategorySearchModal from "../Shared/CategorySearchModal";
 
@@ -409,6 +409,7 @@ function useFilters(initialFilters = {}) {
     hasVolumePricing: "",
     isAnyPromo: "",
     freeDeliveryCommune: "",
+    isCertified: "",
     ...initialFilters,
   });
 
@@ -429,6 +430,7 @@ function useFilters(initialFilters = {}) {
       hasVolumePricing: "",
       isAnyPromo: "",
       freeDeliveryCommune: "",
+      isCertified: "",
     });
   }, []);
 
@@ -443,6 +445,7 @@ function useSections(initialOpen = {}) {
     sort: true,
     promo: true,
     zone: true,
+    seller: true,
     ...initialOpen,
   });
   const toggleSection = useCallback((key) => {
@@ -628,6 +631,45 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
                     </button>
                   )}
                 </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Section Vendeur certifié */}
+        <div className="border-b border-base-200">
+          <SectionHeader
+            title="Vendeur"
+            sectionKey="seller"
+            icon={BadgeCheck}
+            toggleSection={toggleSection}
+            openSections={openSections}
+          />
+          <AnimatePresence>
+            {openSections.seller && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="pb-6 overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateFilters({ isCertified: filters.isCertified === "true" ? "" : "true" })
+                  }
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 transition-all ${
+                    filters.isCertified === "true"
+                      ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                      : "border-base-200 text-base-content/50 hover:border-blue-500/30"
+                  }`}
+                >
+                  <BadgeCheck size={18} className="shrink-0" />
+                  <span className="text-xs font-black uppercase tracking-widest flex-1 text-left">
+                    Vendeurs certifiés uniquement
+                  </span>
+                  {filters.isCertified === "true" && <Check size={16} className="shrink-0" />}
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
