@@ -40,6 +40,7 @@ import Newsletter from './Newsletter.js';
 import Kit from './Kit.js'; // gardé pour orderController.js (calcul prix kit)
 import KitComponent from './KitComponent.js'; // gardé pour orderController.js
 import SellerBadgeSubscription from './SellerBadgeSubscription.js';
+import Referral from './Referral.js';
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -282,6 +283,12 @@ Profile.hasMany(Blog, { foreignKey: 'author_id', as: 'blogs' });
 // Kit.belongsToMany(Product, { through: KitComponent, foreignKey: 'kit_id', otherKey: 'product_id', as: 'components' });
 // Product.belongsToMany(Kit, { through: KitComponent, foreignKey: 'product_id', otherKey: 'kit_id', as: 'kits' });
 
+// Parrainage
+Profile.hasMany(Referral, { foreignKey: 'referrer_id', as: 'referralsGiven' });
+Referral.belongsTo(Profile, { foreignKey: 'referrer_id', as: 'referrer' });
+Profile.hasOne(Referral, { foreignKey: 'referred_id', as: 'referralReceived' });
+Referral.belongsTo(Profile, { foreignKey: 'referred_id', as: 'referred' });
+
 // --- Final Consolidations ---
 // (Avoiding duplicates that caused 'alias user' errors)
 
@@ -331,5 +338,6 @@ export {
     Newsletter,
     Kit,         // gardé pour orderController.js
     KitComponent, // gardé pour orderController.js
-    SellerBadgeSubscription
+    SellerBadgeSubscription,
+    Referral
 };
