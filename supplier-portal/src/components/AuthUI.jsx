@@ -53,14 +53,14 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
     return (
         <div className="w-full relative py-4">
             {/* Effet de fond Premium */}
-            <div className="absolute -inset-2 bg-gradient-to-r from-primary/10 to-indigo-500/10 blur-2xl opacity-50 rounded-[40px] pointer-events-none"></div>
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary/10 to-primary/10 blur-2xl opacity-50 rounded-[40px] pointer-events-none"></div>
             
             <div className="relative space-y-8">
                 <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter">
+                    <h2 className="text-3xl font-black text-base-content tracking-tighter">
                         {isForgotPath ? "Récupération" : (isSign ? "Bon Retour !" : "Prêt à vendre ?")}
                     </h2>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                    <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em]">
                         {isForgotPath ? "Lien sécurisé par e-mail" : (isSign ? "Console Vendeur Vtout" : "Créez votre boutique en 2 min")}
                     </p>
                 </div>
@@ -68,15 +68,15 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {!isSign && !isForgotPath && (
                         <div className="group space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 px-5 tracking-widest group-focus-within:text-primary transition-colors">Nom de l'administrateur</label>
+                            <label className="text-[10px] font-black uppercase text-base-content/40 px-5 tracking-widest group-focus-within:text-primary transition-colors">Nom de l'administrateur</label>
                             <div className="relative">
-                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors" size={18} />
                                 <input
                                     type="text"
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    className="w-full pl-14 pr-7 py-5 bg-slate-50 border-2 border-transparent rounded-[24px] font-bold text-sm text-slate-900 focus:bg-white focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                    className="w-full pl-14 pr-7 py-5 bg-base-200 border-2 border-transparent rounded-[24px] font-bold text-sm text-base-content focus:bg-base-100 focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                                     placeholder="Nom complet"
                                 />
                             </div>
@@ -84,15 +84,15 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                     )}
 
                     <div className="group space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-400 px-5 tracking-widest group-focus-within:text-primary transition-colors">Adresse E-mail Professionnelle</label>
+                        <label className="text-[10px] font-black uppercase text-base-content/40 px-5 tracking-widest group-focus-within:text-primary transition-colors">Adresse E-mail Professionnelle</label>
                         <div className="relative">
-                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors" size={18} />
                             <input
                                 type="email"
                                 required
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                className="w-full pl-14 pr-7 py-5 bg-slate-50 border-2 border-transparent rounded-[24px] font-bold text-sm text-slate-900 focus:bg-white focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                className="w-full pl-14 pr-7 py-5 bg-base-200 border-2 border-transparent rounded-[24px] font-bold text-sm text-base-content focus:bg-base-100 focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                                 placeholder="votre@agence.com"
                             />
                         </div>
@@ -100,15 +100,15 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
 
                     {!isForgotPath && (
                         <div className="group space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 px-5 tracking-widest group-focus-within:text-primary transition-colors">Mot de passe</label>
+                            <label className="text-[10px] font-black uppercase text-base-content/40 px-5 tracking-widest group-focus-within:text-primary transition-colors">Mot de passe</label>
                             <div className="relative">
-                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors" size={18} />
                                 <input
                                     type="password"
                                     required
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    className="w-full pl-14 pr-7 py-5 bg-slate-50 border-2 border-transparent rounded-[24px] font-bold text-sm text-slate-900 focus:bg-white focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                                    className="w-full pl-14 pr-7 py-5 bg-base-200 border-2 border-transparent rounded-[24px] font-bold text-sm text-base-content focus:bg-base-100 focus:border-primary/10 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -118,7 +118,7 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-primary transition-all shadow-xl shadow-slate-200 hover:shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-3 mt-4 active:scale-95"
+                        className="w-full py-5 bg-neutral text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-primary transition-all shadow-xl shadow-base-300 hover:shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-3 mt-4 active:scale-95"
                     >
                         {loading ? <Loader2 size={20} className="animate-spin" /> : (
                             <>
@@ -132,9 +132,9 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                 {!isForgotPath && (
                     <>
                         <div className="relative py-4">
-                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
-                            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                <span className="bg-white px-4">Ou continuer avec</span>
+                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-base-300"></div></div>
+                            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                                <span className="bg-base-100 px-4">Ou continuer avec</span>
                             </div>
                         </div>
 
@@ -146,10 +146,10 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                                         callbackURL: window.location.origin + '/register' 
                                     });
                                 }}
-                                className="flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-50 rounded-[24px] hover:border-primary/20 transition-all active:scale-95"
+                                className="flex items-center justify-center gap-3 py-4 bg-base-100 border-2 border-base-200 rounded-[24px] hover:border-primary/20 transition-all active:scale-95"
                             >
                                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Google</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-base-content/70">Google</span>
                             </button>
                             <button
                                 onClick={async () => {
@@ -158,10 +158,10 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                                         callbackURL: window.location.origin + '/register' 
                                     });
                                 }}
-                                className="flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-50 rounded-[24px] hover:border-primary/20 transition-all active:scale-95"
+                                className="flex items-center justify-center gap-3 py-4 bg-base-100 border-2 border-base-200 rounded-[24px] hover:border-primary/20 transition-all active:scale-95"
                             >
                                 <Facebook className="text-blue-600" size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Facebook</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-base-content/70">Facebook</span>
                             </button>
                         </div>
                     </>
@@ -174,7 +174,7 @@ export const AuthUI = ({ mode = 'signIn', role = 'user' }) => {
                             setIsForgotPath(false);
                             setIsSign(!isSign);
                         }}
-                        className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors p-2"
+                        className="text-[10px] font-black text-base-content/40 uppercase tracking-widest hover:text-primary transition-colors p-2"
                     >
                         {isForgotPath ? "Retour à la connexion" : (isSign ? "Devenir vendeur" : "Déjà inscrit ? Connexion")}
                     </button>
@@ -202,13 +202,13 @@ export const UserDropdown = () => {
 
             {open && (
                 <div className="absolute right-0 mt-2 w-64 bg-white/90 backdrop-blur-xl rounded-[28px] shadow-2xl border border-white p-3 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="px-5 py-4 border-b border-slate-50">
-                        <p className="text-sm font-black text-slate-900 truncate">{user.name}</p>
+                    <div className="px-5 py-4 border-b border-base-200">
+                        <p className="text-sm font-black text-base-content truncate">{user.name}</p>
                         <p className="text-[10px] font-bold text-primary uppercase mt-1 tracking-widest">{user.role || 'Vendeur'}</p>
                     </div>
 
                     <div className="py-2">
-                        <a href="/dashboard" className="flex items-center gap-3 px-5 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-2xl transition-colors">
+                        <a href="/dashboard" className="flex items-center gap-3 px-5 py-3 text-xs font-bold text-base-content/70 hover:bg-base-200 rounded-2xl transition-colors">
                             Tableau de bord
                         </a>
                         <button

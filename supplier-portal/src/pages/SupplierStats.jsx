@@ -36,23 +36,23 @@ export default function SupplierStats() {
     }, []);
 
     if (loading) return <div className="p-20 text-center"><span className="loading loading-spinner"></span></div>;
-    if (!data) return <div className="p-20 text-center text-slate-400 font-bold">Impossible de charger les données.</div>;
+    if (!data) return <div className="p-20 text-center text-base-content/40 font-bold">Impossible de charger les données.</div>;
 
     const summaryCards = [
         { label: "Chiffre d'affaires (30j)", value: `${data.revenue.toLocaleString()} F`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
-        { label: "Commandes (30j)", value: data.orderCount, icon: ShoppingBag, color: "bg-indigo-50 text-indigo-600" },
-        { label: "Alertes Stock", value: data.lowStock.length, icon: AlertTriangle, color: data.lowStock.length > 0 ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-400" },
+        { label: "Commandes (30j)", value: data.orderCount, icon: ShoppingBag, color: "bg-primary/10 text-primary" },
+        { label: "Alertes Stock", value: data.lowStock.length, icon: AlertTriangle, color: data.lowStock.length > 0 ? "bg-rose-50 text-rose-600" : "bg-base-200 text-base-content/40" },
     ];
 
     return (
         <div className="p-8 md:p-12 space-y-12 max-w-7xl mx-auto">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Pilotage <span className="text-primary">&</span> Performance</h1>
-                    <p className="text-slate-500 font-bold mt-1">Analysez vos ventes et gérez vos approvisionnements.</p>
+                    <h1 className="text-4xl font-black text-base-content tracking-tighter">Pilotage <span className="text-primary">&</span> Performance</h1>
+                    <p className="text-base-content/50 font-bold mt-1">Analysez vos ventes et gérez vos approvisionnements.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="bg-white border border-slate-100 px-6 py-3 rounded-2xl flex items-center gap-2 text-sm font-black text-slate-500 hover:bg-slate-50 transition-all">
+                    <button className="bg-base-100 border border-base-300 px-6 py-3 rounded-2xl flex items-center gap-2 text-sm font-black text-base-content/50 hover:bg-base-200 transition-all">
                         <Filter size={16} /> Derniers 30 Jours
                     </button>
                 </div>
@@ -66,11 +66,11 @@ export default function SupplierStats() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         key={idx} 
-                        className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center justify-between group hover:border-primary/30 transition-all"
+                        className="bg-base-100 p-8 rounded-[2.5rem] border border-base-300 shadow-xl shadow-base-300/20 flex items-center justify-between group hover:border-primary/30 transition-all"
                     >
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{card.label}</p>
-                            <p className="text-3xl font-black text-slate-900">{card.value}</p>
+                            <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">{card.label}</p>
+                            <p className="text-3xl font-black text-base-content">{card.value}</p>
                         </div>
                         <div className={`w-16 h-16 ${card.color} rounded-2xl flex items-center justify-center`}>
                             <card.icon size={28} />
@@ -81,8 +81,8 @@ export default function SupplierStats() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Revenue Chart */}
-                <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/20 space-y-8">
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                <div className="lg:col-span-2 bg-base-100 p-10 rounded-[3rem] border border-base-300 shadow-xl shadow-base-300/20 space-y-8">
+                    <h3 className="text-xl font-black text-base-content tracking-tight flex items-center gap-3">
                         <TrendingUp className="text-primary" /> Évolution du Chiffre d'Affaires
                     </h3>
                     <div className="h-80 w-full">
@@ -108,7 +108,7 @@ export default function SupplierStats() {
                 </div>
 
                 {/* Top Products */}
-                <div className="bg-slate-900 rounded-[3rem] p-10 text-white space-y-8 shadow-2xl">
+                <div className="bg-neutral rounded-[3rem] p-10 text-white space-y-8 shadow-2xl">
                     <h3 className="text-xl font-black tracking-tight flex items-center gap-3">
                         <Package className="text-primary" /> Top Ventes
                     </h3>
@@ -124,7 +124,7 @@ export default function SupplierStats() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-sm truncate uppercase tracking-tight">{item.product?.name}</p>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.sold} Unités Vendues</p>
+                                    <p className="text-[10px] font-black text-base-content/50 uppercase tracking-widest">{item.sold} Unités Vendues</p>
                                 </div>
                                 <div className="text-primary font-black text-sm">#{idx + 1}</div>
                             </div>
@@ -136,22 +136,22 @@ export default function SupplierStats() {
             {/* Low Stock Section */}
             <div className="space-y-8">
                 <div className="flex items-center justify-between px-4">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
+                    <h3 className="text-2xl font-black text-base-content tracking-tighter flex items-center gap-4">
                         <AlertTriangle className="text-rose-500" /> Alertes de Stock Critiques
                     </h3>
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50 px-4 py-2 rounded-full">Seuil : &lt; 5 unités</span>
+                    <span className="text-[10px] font-black uppercase text-base-content/40 tracking-widest bg-base-200 px-4 py-2 rounded-full">Seuil : &lt; 5 unités</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {data.lowStock.map(product => (
-                        <div key={product.id} className="bg-white border-2 border-rose-50 p-6 rounded-[2rem] flex items-center gap-6 shadow-sm hover:shadow-xl hover:shadow-rose-100/20 transition-all">
+                        <div key={product.id} className="bg-base-100 border-2 border-rose-50 p-6 rounded-[2rem] flex items-center gap-6 shadow-sm hover:shadow-xl hover:shadow-rose-100/20 transition-all">
                             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shrink-0">
                                 <Package size={28} />
                             </div>
                             <div className="flex-1 space-y-1">
-                                <p className="font-black text-slate-900 line-clamp-1">{product.name}</p>
+                                <p className="font-black text-base-content line-clamp-1">{product.name}</p>
                                 <div className="flex items-center gap-3">
-                                    <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-2 flex-1 bg-base-300 rounded-full overflow-hidden">
                                         <div className="h-full bg-rose-500" style={{ width: `${((product.total_stock !== undefined ? product.total_stock : product.stock) / 5) * 100}%` }}></div>
                                     </div>
                                     <span className="text-xs font-black text-rose-500">{product.total_stock !== undefined ? product.total_stock : product.stock} restants</span>
@@ -160,8 +160,8 @@ export default function SupplierStats() {
                         </div>
                     ))}
                     {data.lowStock.length === 0 && (
-                        <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">
-                            <p className="text-slate-400 font-bold italic">Toutes vos boutiques sont bien approvisionnées !</p>
+                        <div className="col-span-full py-20 text-center bg-base-200 rounded-[3rem] border border-dashed border-base-300">
+                            <p className="text-base-content/40 font-bold italic">Toutes vos boutiques sont bien approvisionnées !</p>
                         </div>
                     )}
                 </div>

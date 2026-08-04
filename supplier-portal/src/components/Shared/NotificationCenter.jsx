@@ -96,9 +96,9 @@ const NotificationCenter = () => {
         if (isWallet) return <div className="p-2 bg-green-100 text-green-600 rounded-lg" title="Finances"><Wallet size={16} /></div>;
 
         switch (type) {
-            case 'order': return <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg" title="Achat"><ShoppingBag size={16} /></div>;
+            case 'order': return <div className="p-2 bg-primary/10 text-primary rounded-lg" title="Achat"><ShoppingBag size={16} /></div>;
             case 'system': return <div className="p-2 bg-rose-100 text-rose-600 rounded-lg" title="Système"><Bell size={16} /></div>;
-            default: return <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Bell size={16} /></div>;
+            default: return <div className="p-2 bg-base-300 text-base-content/70 rounded-lg"><Bell size={16} /></div>;
         }
     };
 
@@ -107,7 +107,7 @@ const NotificationCenter = () => {
         <div className="relative" ref={dropdownRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-3 rounded-2xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-slate-600 hover:shadow-md transition-all"
+                className="relative p-3 rounded-2xl bg-base-100 border border-base-300 shadow-sm text-base-content/40 hover:text-base-content/70 hover:shadow-md transition-all"
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -123,12 +123,12 @@ const NotificationCenter = () => {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-4 w-96 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-50 overflow-hidden"
+                        className="absolute right-0 mt-4 w-96 bg-base-100 rounded-[2rem] shadow-2xl border border-base-300 z-50 overflow-hidden"
                     >
-                        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                        <div className="p-6 border-b border-base-200 flex items-center justify-between">
                             <div>
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Notifications</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{unreadCount} non lues</p>
+                                <h3 className="text-sm font-black uppercase tracking-widest text-base-content">Notifications</h3>
+                                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-1">{unreadCount} non lues</p>
                             </div>
                             {unreadCount > 0 && (
                                 <button 
@@ -143,35 +143,35 @@ const NotificationCenter = () => {
                         <div className="max-h-[400px] overflow-y-auto">
                             {notifications.length === 0 ? (
                                 <div className="py-12 text-center space-y-4">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
+                                    <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mx-auto text-base-content/20">
                                         <Bell size={32} />
                                     </div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Rien à signaler pour l'instant</p>
+                                    <p className="text-xs font-bold text-base-content/40 uppercase tracking-widest">Rien à signaler pour l'instant</p>
                                 </div>
                             ) : (
                                 notifications.map(notif => (
                                     <div 
                                         key={notif.id}
                                         onClick={() => !notif.is_read && markAsRead(notif.id)}
-                                        className={`p-5 border-b border-slate-50 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer relative group ${!notif.is_read ? 'bg-indigo-50/30' : ''}`}
+                                        className={`p-5 border-b border-base-200 flex gap-4 hover:bg-base-200 transition-colors cursor-pointer relative group ${!notif.is_read ? 'bg-primary/30' : ''}`}
                                     >
                                         <div className="shrink-0">
                                             {getIcon(notif.type)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start gap-2">
-                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-black text-slate-900' : 'font-bold text-slate-500'}`}>
+                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-black text-base-content' : 'font-bold text-base-content/50'}`}>
                                                     {notif.title}
                                                 </p>
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 transition-all"
+                                                    className="opacity-0 group-hover:opacity-100 p-1 text-base-content/30 hover:text-rose-500 transition-all"
                                                 >
                                                     <Trash2 size={12} />
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{notif.message}</p>
-                                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
+                                            <p className="text-xs text-base-content/40 mt-1 line-clamp-2">{notif.message}</p>
+                                            <p className="text-[9px] font-black text-base-content/30 uppercase tracking-widest mt-2">
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
@@ -184,8 +184,8 @@ const NotificationCenter = () => {
                         </div>
 
                         {notifications.length > 0 && (
-                            <div className="p-4 bg-slate-50 border-t border-slate-100">
-                                <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                            <div className="p-4 bg-base-200 border-t border-base-300">
+                                <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-base-content/40 hover:text-base-content/70 transition-colors">
                                     Voir tout l'historique
                                 </button>
                             </div>

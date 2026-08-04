@@ -70,12 +70,12 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
         <div className="p-6 md:p-12 space-y-10">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Mes Boutiques</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Gérez vos points de vente et leurs localisations</p>
+                    <h1 className="text-4xl font-black tracking-tighter text-base-content mb-2">Mes Boutiques</h1>
+                    <p className="text-base-content/50 font-bold uppercase tracking-[0.2em] text-[10px]">Gérez vos points de vente et leurs localisations</p>
                 </div>
                 <button 
                     onClick={() => { setSelectedBoutique(null); setIsModalOpen(true); }}
-                    className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl hover:bg-slate-900 transition-all shadow-xl shadow-primary/20 text-[11px] font-black uppercase tracking-widest"
+                    className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl hover:brightness-90 transition-all shadow-xl shadow-primary/20 text-[11px] font-black uppercase tracking-widest"
                 >
                     <Plus size={18} /> Ajouter une Boutique
                 </button>
@@ -88,16 +88,16 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
                             key={boutique.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col group"
+                            className="bg-base-100 rounded-[2.5rem] border border-base-300 shadow-xl shadow-base-300/50 overflow-hidden flex flex-col group"
                         >
                             <div className="p-8 space-y-6">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                        <div className="w-16 h-16 bg-neutral text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                             <Store size={28} />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-black text-slate-900">{boutique.name}</h3>
+                                            <h3 className="text-xl font-black text-base-content">{boutique.name}</h3>
                                             <div className="flex items-center gap-2 mt-1">
                                                 {isComplete(boutique) ? (
                                                     <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-500">
@@ -114,7 +114,7 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={() => { setSelectedBoutique(boutique); setIsModalOpen(true); }}
-                                            className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center border border-slate-100"
+                                            className="w-10 h-10 rounded-xl bg-base-200 text-base-content/40 hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center border border-base-300"
                                         >
                                             <Edit size={18} />
                                         </button>
@@ -130,24 +130,24 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                            <div className="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center text-base-content/40 shrink-0">
                                                 <MapPin size={16} />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Localisation</p>
-                                                <p className="text-xs font-bold text-slate-900 leading-snug">
+                                                <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Localisation</p>
+                                                <p className="text-xs font-bold text-base-content leading-snug">
                                                     {boutique.quartier_label}, {boutique.commune_label}<br/>
-                                                    <span className="text-slate-400">{boutique.departement_label}</span>
+                                                    <span className="text-base-content/40">{boutique.departement_label}</span>
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                            <div className="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center text-base-content/40 shrink-0">
                                                 <AlertCircle size={16} />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Adresse précise</p>
-                                                <p className="text-xs font-bold text-slate-900 leading-snug">
+                                                <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Adresse précise</p>
+                                                <p className="text-xs font-bold text-base-content leading-snug">
                                                     {boutique.address_line || "Non renseignée"}
                                                 </p>
                                             </div>
@@ -156,12 +156,12 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
 
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                            <div className="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center text-base-content/40 shrink-0">
                                                 <Phone size={16} />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</p>
-                                                <p className="text-xs font-bold text-slate-900">{boutique.phone || "Non renseigné"}</p>
+                                                <p className="text-[10px] font-black text-base-content/40 uppercase tracking-widest">Contact</p>
+                                                <p className="text-xs font-bold text-base-content">{boutique.phone || "Non renseigné"}</p>
                                             </div>
                                         </div>
                                         {boutique.whatsapp && (
@@ -171,7 +171,7 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">WhatsApp</p>
-                                                    <p className="text-xs font-bold text-slate-900">{boutique.whatsapp}</p>
+                                                    <p className="text-xs font-bold text-base-content">{boutique.whatsapp}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -181,10 +181,10 @@ const SupplierBoutiques = ({ globalSearchQuery }) => {
                         </motion.div>
                     ))
                 ) : (
-                    <div className="lg:col-span-2 py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 text-slate-300">
+                    <div className="lg:col-span-2 py-20 bg-base-200 rounded-[3rem] border-2 border-dashed border-base-300 flex flex-col items-center justify-center gap-6 text-base-content/30">
                         <Store size={64} strokeWidth={1} />
                         <div className="text-center space-y-2">
-                            <p className="font-black text-slate-400 uppercase tracking-widest">Aucune boutique pour le moment</p>
+                            <p className="font-black text-base-content/40 uppercase tracking-widest">Aucune boutique pour le moment</p>
                             <button onClick={() => setIsModalOpen(true)} className="text-primary text-xs font-black hover:underline uppercase tracking-widest">Créer ma première boutique</button>
                         </div>
                     </div>

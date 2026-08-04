@@ -23,12 +23,12 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-primary/10 transition-all outline-none flex items-center justify-between shadow-sm hover:shadow-md"
+                className="w-full bg-base-200 border-none rounded-3xl px-8 py-5 text-sm font-bold text-base-content focus:ring-4 focus:ring-primary/10 transition-all outline-none flex items-center justify-between shadow-sm hover:shadow-md"
             >
-                <span className={selectedOption ? 'text-slate-900' : 'text-slate-400'}>
+                <span className={selectedOption ? 'text-base-content' : 'text-base-content/40'}>
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
-                <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={18} className={`text-base-content/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -38,7 +38,7 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute z-50 w-full mt-2 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
+                        className="absolute z-50 w-full mt-2 bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden"
                     >
                         <div className="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1">
                             {options.map((opt) => (
@@ -52,7 +52,7 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
                                     className={`w-full text-left px-6 py-4 rounded-2xl text-sm font-bold flex items-center justify-between transition-all duration-200 ${
                                         String(value) === String(opt.value) 
                                             ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[0.98]' 
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                            : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
                                     }`}
                                 >
                                     {opt.label}
@@ -60,7 +60,7 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
                                 </button>
                             ))}
                             {options.length === 0 && (
-                                <div className="px-6 py-4 text-sm font-bold text-slate-400 text-center">
+                                <div className="px-6 py-4 text-sm font-bold text-base-content/40 text-center">
                                     Aucune option
                                 </div>
                             )}

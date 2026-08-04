@@ -86,16 +86,16 @@ const PortalSwitcher = () => {
         <div className="relative z-[9999]" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-sm transition-all"
+                className="flex items-center gap-3 px-4 py-2 bg-base-100 border border-base-300 hover:border-base-content rounded-2xl shadow-sm transition-all"
             >
                 <div className={`p-1.5 rounded-xl ${currentPortal.bg} ${currentPortal.color}`}>
                     <currentPortal.icon size={16} strokeWidth={2.5} />
                 </div>
                 <div className="flex flex-col items-start hidden sm:flex">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">Espace actuel</span>
-                    <span className="text-sm font-bold text-slate-900 leading-tight">{currentPortal.name}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-base-content/40 leading-none">Espace actuel</span>
+                    <span className="text-sm font-bold text-base-content leading-tight">{currentPortal.name}</span>
                 </div>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-base-content/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -105,22 +105,22 @@ const PortalSwitcher = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
+                        className="absolute right-0 mt-2 w-56 bg-base-100 rounded-2xl shadow-xl shadow-base-300/50 border border-base-300 overflow-hidden"
                     >
-                        <div className="p-3 bg-slate-50 border-b border-slate-100">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Basculer vers</p>
+                        <div className="p-3 bg-base-200 border-b border-base-300">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Basculer vers</p>
                         </div>
                         <div className="p-2 space-y-1">
                             {availablePortals.map((portal) => (
                                 <button
                                     key={portal.id}
                                     onClick={() => handleSwitch(portal)}
-                                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors group text-left"
+                                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-base-200 transition-colors group text-left"
                                 >
                                     <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${portal.bg} ${portal.color}`}>
                                         <portal.icon size={16} strokeWidth={2.5} />
                                     </div>
-                                    <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                                    <span className="font-bold text-sm text-base-content/80 group-hover:text-base-content transition-colors">
                                         Espace {portal.name}
                                     </span>
                                 </button>

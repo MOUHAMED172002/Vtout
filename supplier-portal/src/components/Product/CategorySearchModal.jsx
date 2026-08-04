@@ -59,7 +59,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
             <div key={node.id} className="select-none ">
                 <motion.div
                     initial={false}
-                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer hover:bg-slate-50 group ${depth === 0 ? 'mt-2' : ''
+                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer hover:bg-base-200 group ${depth === 0 ? 'mt-2' : ''
                         }`}
                     onClick={() => onSelect(node)}
                 >
@@ -67,7 +67,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                         {hasChildren ? (
                             <button
                                 onClick={(e) => toggleExpand(node.id, e)}
-                                className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-400 transition-colors"
+                                className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-base-300 text-base-content/40 transition-colors"
                             >
                                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                             </button>
@@ -75,18 +75,18 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                             <div className="w-6" />
                         )}
 
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${isExpanded ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-400 group-hover:bg-primary/5'
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${isExpanded ? 'bg-primary/10 text-primary' : 'bg-base-300 text-base-content/40 group-hover:bg-primary/5'
                             }`}>
                             {hasChildren ? (isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />) : <Tag size={16} />}
                         </div>
 
                         <div className="flex-1">
-                            <span className={`text-sm font-bold tracking-tight transition-colors ${isExpanded ? 'text-slate-900 font-black' : 'text-slate-600'
+                            <span className={`text-sm font-bold tracking-tight transition-colors ${isExpanded ? 'text-base-content font-black' : 'text-base-content/70'
                                 }`}>
                                 {node.name}
                             </span>
                             {node.parent_id && !searchTerm && (
-                                <span className="ml-2 text-[8px] font-black uppercase tracking-widest text-slate-300">Sous-catégorie</span>
+                                <span className="ml-2 text-[8px] font-black uppercase tracking-widest text-base-content/30">Sous-catégorie</span>
                             )}
                         </div>
 
@@ -112,31 +112,31 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-md">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white w-full max-w-2xl h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+                className="bg-base-100 w-full max-w-2xl h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
             >
                 {/* Header */}
-                <div className="p-8 border-b border-slate-50">
+                <div className="p-8 border-b border-base-200">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
                                 <Sparkles size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tighter">Choisir une <span className="text-slate-300">Catégorie.</span></h2>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Navigation hiérarchique</p>
+                                <h2 className="text-xl font-black text-base-content tracking-tighter">Choisir une <span className="text-base-content/30">Catégorie.</span></h2>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Navigation hiérarchique</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all">
                             <X size={20} />
                         </button>
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30 group-focus-within:text-primary transition-colors">
                             <SearchIcon size={18} />
                         </div>
                         <input
@@ -144,7 +144,7 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                             placeholder="Rechercher une catégorie..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-50 border-none rounded-2xl pl-16 pr-6 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary/5 outline-none transition-all placeholder:text-slate-300"
+                            className="w-full bg-base-200 border-none rounded-2xl pl-16 pr-6 py-4 text-sm font-bold text-base-content/80 focus:ring-4 focus:ring-primary/5 outline-none transition-all placeholder:text-base-content/30"
                         />
                     </div>
                 </div>
@@ -155,20 +155,20 @@ export default function CategorySearchModal({ categories, onSelect, onClose }) {
                         filteredTree.map(root => renderNode(root))
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-20">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-                                <SearchIcon size={32} className="text-slate-200" />
+                            <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center">
+                                <SearchIcon size={32} className="text-base-content/20" />
                             </div>
                             <div>
-                                <p className="text-sm font-black text-slate-900">Aucun résultat</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Essayez une autre recherche</p>
+                                <p className="text-sm font-black text-base-content">Aucun résultat</p>
+                                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-1">Essayez une autre recherche</p>
                             </div>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+                <div className="p-6 bg-base-200 border-t border-base-300 flex items-center justify-center">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 italic">
                         Astuce : Sélectionnez la catégorie la plus précise possible
                     </p>
                 </div>

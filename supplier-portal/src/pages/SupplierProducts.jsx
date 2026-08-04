@@ -248,66 +248,66 @@ const SupplierProducts = ({ globalSearchQuery }) => {
   }
 
   return (
-    <div className="p-6 md:p-12 space-y-8 bg-slate-50 min-h-screen">
+    <div className="p-6 md:p-12 space-y-8 bg-base-200 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Mes Produits</h1>
-          <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Gérez votre catalogue d'articles</p>
+          <h1 className="text-4xl font-black tracking-tighter text-base-content mb-2">Mes Produits</h1>
+          <p className="text-base-content/50 font-bold uppercase tracking-[0.2em] text-[10px]">Gérez votre catalogue d'articles</p>
         </div>
 
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" size={18} />
             <input
               type="text"
               placeholder="Rechercher..."
               value={searchQuery}
               onChange={(e) => globalSearchQuery !== undefined ? null : setLocalSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"
+              className="w-full pl-12 pr-4 py-3 bg-base-100 border border-base-300 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
+      <div className="bg-base-100 rounded-[40px] border border-base-300 shadow-2xl shadow-base-300/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-50/50">
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Produit</th>
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Prix de vente</th>
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Stock</th>
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Promotions</th>
-                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
+              <tr className="bg-base-200/50">
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40">Produit</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40">Prix de vente</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40">Stock</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40">Promotions</th>
+                <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-base-content/40">Status</th>
+                <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-base-content/40">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-base-200">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <motion.tr
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     key={product.id}
-                    className="hover:bg-slate-50/50 transition-colors group"
+                    className="hover:bg-base-200/50 transition-colors group"
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+                        <div className="w-16 h-16 bg-base-300 rounded-2xl overflow-hidden border border-base-300">
                           {product.images?.[0] ? (
                             <img src={product.images[0].image_url} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <Package className="w-full h-full p-4 text-slate-300" />
+                            <Package className="w-full h-full p-4 text-base-content/30" />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-black text-slate-900">{product.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.category?.name || 'Général'}</p>
+                          <p className="text-sm font-black text-base-content">{product.name}</p>
+                          <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">{product.category?.name || 'Général'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="text-sm font-black text-slate-900">{product.supplier_price?.toLocaleString()} F</span>
+                      <span className="text-sm font-black text-base-content">{product.supplier_price?.toLocaleString()} F</span>
                     </td>
                     <td className="px-8 py-6">
                       {(() => {
@@ -327,7 +327,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                                 if (e.key === 'Escape') setEditingStockId(null);
                               }}
                               autoFocus
-                              className="w-20 border-2 border-indigo-400 rounded-xl px-3 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20"
+                              className="w-20 border-2 border-primary rounded-xl px-3 py-1.5 text-sm font-black text-base-content outline-none focus:ring-2 focus:ring-primary/20"
                             />
                           );
                         }
@@ -335,14 +335,14 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                           <div
                             onClick={() => isVariant ? openVariantStockModal(product) : startEditStock(product)}
                             title={isVariant ? "Cliquer pour modifier le stock par variante" : "Cliquer pour modifier le stock"}
-                            className="inline-flex items-center gap-2 cursor-pointer group/stock hover:bg-slate-100 rounded-xl px-2 py-1 -mx-2 transition-colors"
+                            className="inline-flex items-center gap-2 cursor-pointer group/stock hover:bg-base-300 rounded-xl px-2 py-1 -mx-2 transition-colors"
                           >
-                            <span className="text-sm font-black text-slate-900">{displayStock}</span>
+                            <span className="text-sm font-black text-base-content">{displayStock}</span>
                             <div className={`w-2 h-2 rounded-full ${dotColor}`} />
                             {isVariant && (
-                              <span className="text-[8px] font-black text-slate-300 uppercase tracking-wider">var.</span>
+                              <span className="text-[8px] font-black text-base-content/30 uppercase tracking-wider">var.</span>
                             )}
-                            <Edit size={11} className="text-slate-300 opacity-0 group-hover/stock:opacity-100 transition-opacity" />
+                            <Edit size={11} className="text-base-content/30 opacity-0 group-hover/stock:opacity-100 transition-opacity" />
                           </div>
                         );
                       })()}
@@ -365,7 +365,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                           </span>
                         )}
                         {!product.is_flash_sale && !product.volume_pricing && !product.is_kit && (
-                          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">—</span>
+                          <span className="text-[10px] font-bold text-base-content/30 uppercase tracking-widest">—</span>
                         )}
                       </div>
                     </td>
@@ -384,26 +384,26 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openPromoModal(product)}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                          className="p-2 text-base-content/40 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
                           title="Gérer les promotions"
                         >
                           <Sparkles size={18} />
                         </button>
                         <button
                           onClick={() => navigate(`/edit-product/${product.id}`)}
-                          className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                          className="p-2 text-base-content/40 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                           title="Modifier le produit"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(product.id)}
-                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                          className="p-2 text-base-content/40 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
 
-                        <button onClick={() => handleShare(product.id)} className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all">
+                        <button onClick={() => handleShare(product.id)} className="p-2 text-base-content/40 hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
                           <Share2 size={18} />
                         </button>
                       </div>
@@ -414,8 +414,8 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                 <tr>
                   <td colSpan="4" className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-4">
-                      <Package size={48} className="text-slate-200" />
-                      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Aucun produit trouvé</p>
+                      <Package size={48} className="text-base-content/20" />
+                      <p className="text-base-content/40 font-bold text-xs uppercase tracking-widest">Aucun produit trouvé</p>
                     </div>
                   </td>
                 </tr>
@@ -427,16 +427,16 @@ const SupplierProducts = ({ globalSearchQuery }) => {
 
       {/* Variant Stock Modal */}
       {variantStockModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-md p-6 md:p-8 space-y-5">
+        <div className="fixed inset-0 bg-neutral/60 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-200">
+          <div className="bg-base-100 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-md p-6 md:p-8 space-y-5">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-lg font-black text-slate-900 tracking-tight">Stock par variante</h2>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-0.5 line-clamp-1">{variantStockModal.name}</p>
+                <h2 className="text-lg font-black text-base-content tracking-tight">Stock par variante</h2>
+                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mt-0.5 line-clamp-1">{variantStockModal.name}</p>
               </div>
               <button
                 onClick={() => setVariantStockModal(null)}
-                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold text-lg"
+                className="w-9 h-9 rounded-full bg-base-300 flex items-center justify-center text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold text-lg"
               >×</button>
             </div>
 
@@ -450,16 +450,16 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                     } catch { return 'Variante'; }
                   })();
                   return (
-                    <div key={pr.id} className="flex items-center justify-between gap-4 bg-slate-50 rounded-2xl px-4 py-3">
-                      <span className="text-xs font-black text-slate-700 capitalize flex-1">{combo}</span>
+                    <div key={pr.id} className="flex items-center justify-between gap-4 bg-base-200 rounded-2xl px-4 py-3">
+                      <span className="text-xs font-black text-base-content/80 capitalize flex-1">{combo}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Stock</span>
+                        <span className="text-[9px] font-bold text-base-content/40 uppercase">Stock</span>
                         <input
                           type="number"
                           min="0"
                           value={variantStockInputs[pr.id] ?? '0'}
                           onChange={e => setVariantStockInputs(prev => ({ ...prev, [pr.id]: e.target.value }))}
-                          className="w-20 border-2 border-indigo-300 rounded-xl px-3 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:border-indigo-500"
+                          className="w-20 border-2 border-primary/30 rounded-xl px-3 py-1.5 text-sm font-black text-base-content text-center outline-none focus:border-primary"
                         />
                       </div>
                     </div>
@@ -468,15 +468,15 @@ const SupplierProducts = ({ globalSearchQuery }) => {
               )}
             </div>
 
-            <div className="flex gap-3 pt-2 border-t border-slate-100">
+            <div className="flex gap-3 pt-2 border-t border-base-300">
               <button
                 onClick={() => setVariantStockModal(null)}
-                className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-all"
+                className="flex-1 py-3.5 bg-base-300 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/40 hover:text-base-content/80 transition-all"
               >Annuler</button>
               <button
                 onClick={handleSaveVariantStocks}
                 disabled={savingVariantStock}
-                className="flex-[2] py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+                className="flex-[2] py-3.5 bg-primary hover:brightness-90 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
                 {savingVariantStock ? 'Enregistrement...' : 'Enregistrer les stocks'}
               </button>
@@ -487,22 +487,22 @@ const SupplierProducts = ({ globalSearchQuery }) => {
 
       {/* Quick Promotions Modal */}
       {activePromoProduct && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-xl w-full p-8 md:p-10 space-y-6 relative overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 bg-neutral/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-base-100 rounded-[2.5rem] shadow-2xl border border-base-300 max-w-xl w-full p-8 md:p-10 space-y-6 relative overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar">
             
             {/* Header */}
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <Sparkles className="text-indigo-500 animate-pulse" /> Gérer les Promotions
+                <h2 className="text-2xl font-black text-base-content tracking-tight flex items-center gap-2">
+                  <Sparkles className="text-primary animate-pulse" /> Gérer les Promotions
                 </h2>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mt-1">
                   Produit : {activePromoProduct.name}
                 </p>
               </div>
               <button 
                 onClick={() => setActivePromoProduct(null)}
-                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold"
+                className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold"
               >
                 ×
               </button>
@@ -512,7 +512,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
             <div className="space-y-6 pt-4">
               
               {/* 1. Flash Sales Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+              <div className="p-6 bg-base-200 rounded-2xl border border-base-300 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input 
                     type="checkbox" 
@@ -521,28 +521,28 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                     className="checkbox checkbox-rose rounded-lg"
                   />
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                    <h4 className="font-black text-base-content text-sm flex items-center gap-1.5">
                       <Flame size={16} className="text-rose-500 fill-rose-500" /> Activer la Vente Flash
                     </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Offre à durée limitée</p>
+                    <p className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest mt-0.5">Offre à durée limitée</p>
                   </div>
                 </label>
 
                 {promoForm.is_flash_sale && (
-                  <div className="space-y-2 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-2 pt-2 border-t border-base-300/50 animate-in slide-in-from-top-2 duration-200">
                     <label className="text-[9px] font-black uppercase text-rose-500 block">Fin de la promotion</label>
                     <input 
                       type="datetime-local" 
                       value={promoForm.flash_sale_end}
                       onChange={(e) => setPromoForm({ ...promoForm, flash_sale_end: e.target.value })}
-                      className="w-full bg-white border border-rose-100 rounded-xl px-4 py-3 text-xs font-black text-rose-600 outline-none"
+                      className="w-full bg-base-100 border border-rose-100 rounded-xl px-4 py-3 text-xs font-black text-rose-600 outline-none"
                     />
                   </div>
                 )}
               </div>
 
               {/* 2. Volume Pricing Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+              <div className="p-6 bg-base-200 rounded-2xl border border-base-300 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input 
                     type="checkbox" 
@@ -551,19 +551,19 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                     className="checkbox checkbox-primary rounded-lg"
                   />
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                    <h4 className="font-black text-base-content text-sm flex items-center gap-1.5">
                       <Percent size={16} className="text-blue-500" /> Activer des remises sur quantité
                     </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Plus l'acheteur achète, moins il paie</p>
+                    <p className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest mt-0.5">Plus l'acheteur achète, moins il paie</p>
                   </div>
                 </label>
 
                 {promoForm.volume_pricing_enabled && (
-                  <div className="space-y-4 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-4 pt-2 border-t border-base-300/50 animate-in slide-in-from-top-2 duration-200">
                     <div className="grid grid-cols-2 gap-3">
                       {/* Tier 1 */}
-                      <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase block">Palier 1</span>
+                      <div className="bg-base-100 p-3 rounded-xl border border-blue-100 space-y-1">
+                        <span className="text-[8px] font-black text-base-content/40 uppercase block">Palier 1</span>
                         <div className="flex gap-1.5">
                           <input 
                             type="number" 
@@ -574,7 +574,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                               newTiers[0] = { ...newTiers[0], qty: parseInt(e.target.value) || 0 };
                               setPromoForm({ ...promoForm, volume_pricing: newTiers });
                             }}
-                            className="w-12 bg-slate-50 rounded p-1 text-center text-xs font-black"
+                            className="w-12 bg-base-200 rounded p-1 text-center text-xs font-black"
                           />
                           <input 
                             type="number" 
@@ -585,14 +585,14 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                               newTiers[0] = { ...newTiers[0], discount: parseInt(e.target.value) || 0 };
                               setPromoForm({ ...promoForm, volume_pricing: newTiers });
                             }}
-                            className="flex-1 bg-slate-50 rounded p-1 text-center text-xs font-black text-blue-600"
+                            className="flex-1 bg-base-200 rounded p-1 text-center text-xs font-black text-blue-600"
                           />
                         </div>
                       </div>
 
                       {/* Tier 2 */}
-                      <div className="bg-white p-3 rounded-xl border border-blue-100 space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase block">Palier 2</span>
+                      <div className="bg-base-100 p-3 rounded-xl border border-blue-100 space-y-1">
+                        <span className="text-[8px] font-black text-base-content/40 uppercase block">Palier 2</span>
                         <div className="flex gap-1.5">
                           <input 
                             type="number" 
@@ -603,7 +603,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                               newTiers[1] = { ...newTiers[1], qty: parseInt(e.target.value) || 0 };
                               setPromoForm({ ...promoForm, volume_pricing: newTiers });
                             }}
-                            className="w-12 bg-slate-50 rounded p-1 text-center text-xs font-black"
+                            className="w-12 bg-base-200 rounded p-1 text-center text-xs font-black"
                           />
                           <input 
                             type="number" 
@@ -614,7 +614,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                               newTiers[1] = { ...newTiers[1], discount: parseInt(e.target.value) || 0 };
                               setPromoForm({ ...promoForm, volume_pricing: newTiers });
                             }}
-                            className="flex-1 bg-slate-50 rounded p-1 text-center text-xs font-black text-blue-600"
+                            className="flex-1 bg-base-200 rounded p-1 text-center text-xs font-black text-blue-600"
                           />
                         </div>
                       </div>
@@ -624,7 +624,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
               </div>
 
               {/* 3. Product Kits Option */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+              <div className="p-6 bg-base-200 rounded-2xl border border-base-300 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input 
                     type="checkbox" 
@@ -633,19 +633,19 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                     className="checkbox checkbox-secondary rounded-lg"
                   />
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                    <h4 className="font-black text-base-content text-sm flex items-center gap-1.5">
                       <Package size={16} className="text-emerald-500" /> Vendre comme Kit / Pack
                     </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Associer ce produit à d'autres</p>
+                    <p className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest mt-0.5">Associer ce produit à d'autres</p>
                   </div>
                 </label>
 
                 {promoForm.is_kit && (
-                  <div className="space-y-2 pt-2 border-t border-slate-200/50 animate-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-2 pt-2 border-t border-base-300/50 animate-in slide-in-from-top-2 duration-200">
                     <span className="text-[9px] font-black uppercase text-emerald-600 block mb-1">Sélectionner les articles du Kit</span>
-                    <div className="max-h-32 overflow-y-auto space-y-1.5 bg-white p-3 rounded-xl border border-emerald-100">
+                    <div className="max-h-32 overflow-y-auto space-y-1.5 bg-base-100 p-3 rounded-xl border border-emerald-100">
                       {products.filter(p => p.id !== activePromoProduct.id).map(p => (
-                        <label key={p.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-slate-50 rounded">
+                        <label key={p.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-base-200 rounded">
                           <input 
                             type="checkbox" 
                             value={p.id}
@@ -660,7 +660,7 @@ const SupplierProducts = ({ globalSearchQuery }) => {
                             }}
                             className="checkbox checkbox-secondary checkbox-xs rounded"
                           />
-                          <span className="text-xs font-bold text-slate-700">{p.name}</span>
+                          <span className="text-xs font-bold text-base-content/80">{p.name}</span>
                         </label>
                       ))}
                     </div>
@@ -671,17 +671,17 @@ const SupplierProducts = ({ globalSearchQuery }) => {
             </div>
 
             {/* Footer Actions */}
-            <div className="flex gap-3 pt-6 border-t border-slate-100">
+            <div className="flex gap-3 pt-6 border-t border-base-300">
               <button 
                 onClick={() => setActivePromoProduct(null)}
-                className="flex-1 py-4 bg-slate-50 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all"
+                className="flex-1 py-4 bg-base-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/40 hover:text-base-content transition-all"
               >
                 Annuler
               </button>
               <button 
                 onClick={handleSavePromo}
                 disabled={savingPromo}
-                className="flex-1 py-4 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-neutral hover:bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-primary flex items-center justify-center gap-2"
               >
                 {savingPromo ? "Enregistrement..." : "Enregistrer"}
               </button>

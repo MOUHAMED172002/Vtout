@@ -44,8 +44,8 @@ export default function SupplierLogin() {
     }, [isLoaded, isSignedIn, navigate]);
 
     if (!isLoaded) return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50">
-            <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+        <div className="min-h-screen flex items-center justify-center bg-base-200">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
         </div>
     );
 
@@ -131,22 +131,22 @@ export default function SupplierLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-base-200 flex flex-col relative overflow-hidden">
             {/* Design elements from main AuthUI */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 opacity-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 opacity-10"></div>
 
             {/* Header */}
             <header className="px-8 py-6 flex items-center justify-between relative z-10">
                 <Link to="/" className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary group-hover:scale-105 transition-transform">
                         <Store size={20} className="text-white" />
                     </div>
                     <div>
-                        <span className="font-black text-lg tracking-tighter text-slate-900 leading-none block">Vtout</span>
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-500">Business</span>
+                        <span className="font-black text-lg tracking-tighter text-base-content leading-none block">Vtout</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary">Business</span>
                     </div>
                 </Link>
-                <Link to="/inscription" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-slate-100">
+                <Link to="/inscription" className="text-[10px] font-black uppercase tracking-widest text-base-content/40 hover:text-primary transition-colors bg-white/50 backdrop-blur px-4 py-2 rounded-full border border-base-300">
                     S'inscrire →
                 </Link>
             </header>
@@ -154,7 +154,7 @@ export default function SupplierLogin() {
             <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
                 <div className="w-full max-w-md relative">
                     {/* Skewed background effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-[3rem] opacity-20"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-purple-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-[3rem] opacity-20"></div>
 
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -163,13 +163,13 @@ export default function SupplierLogin() {
                     >
                         {/* Icon + title */}
                         <div className="text-center space-y-3">
-                            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-200">
+                            <div className="w-16 h-16 bg-gradient-to-tr from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary">
                                 <Lock size={28} className="text-white" />
                             </div>
-                            <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-tight">
+                            <h1 className="text-4xl font-black tracking-tighter text-base-content leading-tight">
                                 {forgotMode ? 'Récupérer' : 'Bon Retour !'}
                             </h1>
-                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-base-content/40">
                                 {forgotMode ? 'Lien de réinitialisation' : 'Console Vendeur Vtout'}
                             </p>
                         </div>
@@ -178,15 +178,15 @@ export default function SupplierLogin() {
                             <form onSubmit={forgotMode ? handleForgot : handleLogin} className="space-y-6">
                                 <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">E-mail</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 px-1 ml-1">E-mail</label>
                                         <div className="relative">
-                                            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30" />
                                             <input
                                                 type="email"
                                                 required
                                                 value={email}
                                                 onChange={e => setEmail(e.target.value)}
-                                                className="w-full pl-12 pr-5 py-4 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 rounded-2xl font-bold text-sm text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm"
+                                                className="w-full pl-12 pr-5 py-4 bg-base-200/50 border border-base-300 focus:border-primary rounded-2xl font-bold text-sm text-base-content focus:bg-base-100 focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all shadow-sm"
                                                 placeholder="votre@boutique.com"
                                             />
                                         </div>
@@ -195,20 +195,20 @@ export default function SupplierLogin() {
                                     {!forgotMode && (
                                         <div className="space-y-1.5">
                                             <div className="flex items-center justify-between px-1 ml-1">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mot de passe</label>
-                                                <button type="button" onClick={() => setForgotMode(true)} className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline">Oublié ?</button>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Mot de passe</label>
+                                                <button type="button" onClick={() => setForgotMode(true)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Oublié ?</button>
                                             </div>
                                             <div className="relative">
-                                                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30" />
                                                 <input
                                                     type={showPass ? 'text' : 'password'}
                                                     required
                                                     value={password}
                                                     onChange={e => setPassword(e.target.value)}
-                                                    className="w-full pl-12 pr-12 py-4 bg-slate-50/50 border border-slate-200 focus:border-indigo-500 rounded-2xl font-bold text-sm text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm"
+                                                    className="w-full pl-12 pr-12 py-4 bg-base-200/50 border border-base-300 focus:border-primary rounded-2xl font-bold text-sm text-base-content focus:bg-base-100 focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all shadow-sm"
                                                     placeholder="••••••••"
                                                 />
-                                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-base-content/40">
                                                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                                                 </button>
                                             </div>
@@ -219,13 +219,13 @@ export default function SupplierLogin() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-slate-900 hover:to-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-200 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
+                                    className="w-full py-4 bg-gradient-to-r from-primary to-primary hover:from-neutral hover:to-neutral text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 transition-all shadow-xl shadow-primary hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
                                 >
                                     {loading ? <Loader2 size={18} className="animate-spin" /> : <>{forgotMode ? 'Réinitialiser' : 'Se Connecter'} <ArrowRight size={18} /></>}
                                 </button>
 
                                 {forgotMode && (
-                                    <button type="button" onClick={() => setForgotMode(false)} className="w-full py-2 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 tracking-widest">
+                                    <button type="button" onClick={() => setForgotMode(false)} className="w-full py-2 text-[10px] font-black uppercase text-base-content/40 hover:text-base-content/70 flex items-center justify-center gap-2 tracking-widest">
                                         <ChevronLeft size={16} /> Retour à la connexion
                                     </button>
                                 )}
@@ -234,22 +234,22 @@ export default function SupplierLogin() {
                             <form onSubmit={whatsappMode === 'request' ? handleRequestOTP : handleVerifyOTP} className="space-y-6">
                                 {whatsappMode === 'request' ? (
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Numéro WhatsApp</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 px-1 ml-1">Numéro WhatsApp</label>
                                         <div className="relative">
-                                            <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                            <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30" />
                                             <input
                                                 type="text"
                                                 required
                                                 value={phone}
                                                 onChange={e => setPhone(e.target.value)}
-                                                className="w-full pl-12 pr-5 py-4 bg-slate-50/50 border border-slate-200 focus:border-emerald-500 rounded-2xl font-bold text-sm text-slate-900 focus:bg-white focus:ring-4 focus:ring-emerald-50 focus:outline-none transition-all shadow-sm"
+                                                className="w-full pl-12 pr-5 py-4 bg-base-200/50 border border-base-300 focus:border-emerald-500 rounded-2xl font-bold text-sm text-base-content focus:bg-base-100 focus:ring-4 focus:ring-emerald-50 focus:outline-none transition-all shadow-sm"
                                                 placeholder="229XXXXXXXX"
                                             />
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center block">Code OTP envoyé sur WhatsApp</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 text-center block">Code OTP envoyé sur WhatsApp</label>
                                         <input
                                             type="text"
                                             maxLength={6}
@@ -257,7 +257,7 @@ export default function SupplierLogin() {
                                             autoFocus
                                             value={otp}
                                             onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                                            className="w-full text-center tracking-[1em] text-3xl py-5 bg-emerald-50/30 border-2 border-emerald-100 focus:border-emerald-500 rounded-3xl font-black text-slate-900 focus:bg-white focus:outline-none transition-all"
+                                            className="w-full text-center tracking-[1em] text-3xl py-5 bg-emerald-50/30 border-2 border-emerald-100 focus:border-emerald-500 rounded-3xl font-black text-base-content focus:bg-base-100 focus:outline-none transition-all"
                                             placeholder="000000"
                                         />
                                     </div>
@@ -271,7 +271,7 @@ export default function SupplierLogin() {
                                     {loading ? <Loader2 size={18} className="animate-spin" /> : <>{whatsappMode === 'request' ? 'Recevoir le code' : 'Confirmer'} <ArrowRight size={18} /></>}
                                 </button>
 
-                                <button type="button" onClick={() => setWhatsappMode('none')} className="w-full py-2 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 flex items-center justify-center gap-2 tracking-widest">
+                                <button type="button" onClick={() => setWhatsappMode('none')} className="w-full py-2 text-[10px] font-black uppercase text-base-content/40 hover:text-base-content/70 flex items-center justify-center gap-2 tracking-widest">
                                     <ChevronLeft size={16} /> Retour
                                 </button>
                             </form>
@@ -280,24 +280,24 @@ export default function SupplierLogin() {
                         {!forgotMode && (
                             <>
                                 <div className="relative">
-                                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100" /></div>
-                                    <div className="relative flex justify-center"><span className="bg-white/0 px-4 text-[10px] font-black uppercase tracking-widest text-slate-300">Ou continuer avec</span></div>
+                                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-base-300" /></div>
+                                    <div className="relative flex justify-center"><span className="bg-white/0 px-4 text-[10px] font-black uppercase tracking-widest text-base-content/30">Ou continuer avec</span></div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <button onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: window.location.origin + '/dashboard' })} className="flex items-center justify-center gap-3 py-3.5 bg-white border border-slate-200 rounded-2xl hover:border-indigo-300 transition-all active:scale-95 shadow-sm group">
+                                    <button onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: window.location.origin + '/dashboard' })} className="flex items-center justify-center gap-3 py-3.5 bg-base-100 border border-base-300 rounded-2xl hover:border-primary/30 transition-all active:scale-95 shadow-sm group">
                                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-4 h-4 group-hover:scale-110 transition-transform" alt="Google" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Google</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-base-content/70">Google</span>
                                     </button>
-                                    <button onClick={() => setWhatsappMode('request')} className="flex items-center justify-center gap-3 py-3.5 bg-white border border-slate-200 rounded-2xl hover:border-emerald-300 group transition-all active:scale-95 shadow-sm">
+                                    <button onClick={() => setWhatsappMode('request')} className="flex items-center justify-center gap-3 py-3.5 bg-base-100 border border-base-300 rounded-2xl hover:border-emerald-300 group transition-all active:scale-95 shadow-sm">
                                         <MessageCircle size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">WhatsApp</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-base-content/70">WhatsApp</span>
                                     </button>
                                 </div>
                             </>
                         )}
 
-                        <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Sécurisé par Vtout Encryption</p>
+                        <p className="text-center text-[10px] font-black text-base-content/30 uppercase tracking-[0.2em]">Sécurisé par Vtout Encryption</p>
                     </motion.div>
                 </div>
             </div>
