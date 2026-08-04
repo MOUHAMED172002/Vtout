@@ -4,7 +4,8 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../components/clerk-shim';
 import { getMyBadgeStatus, subscribeToBadge } from '../services/badgeService';
 
-const MONTH_OPTIONS = [1, 3, 6, 12];
+const MONTH_PRESETS = [1, 3, 6, 12];
+const MAX_MONTHS = 36;
 
 export default function SupplierBadge() {
     const { getToken } = useAuth();
@@ -50,7 +51,16 @@ export default function SupplierBadge() {
     const expiresAt = status?.certified_badge_expires_at ? new Date(status.certified_badge_expires_at) : null;
     const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24))) : 0;
     const monthlyPrice = Number(status?.monthly_price || 0);
+    const priceNotConfigured = monthlyPrice <= 0;
     const totalPrice = monthlyPrice * selectedMonths;
+
+    const handleMonthsInputChange = (e) => {
+        const raw = e.target.value;
+        if (raw === '') { setSelectedMonths(''); return; }
+        const n = parseInt(raw, 10);
+        if (Number.isNaN(n)) return;
+        setSelectedMonths(Math.min(MAX_MONTHS, Math.max(1, n)));
+    };
 
     return (
         <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
@@ -98,6 +108,15 @@ export default function SupplierBadge() {
                                 Le renouvellement sera possible à l'expiration de votre abonnement actuel.
                             </p>
                         </>
+                    ) : priceNotConfigured ? (
+                        <>
+                            <p className="text-sm font-bold text-neutral-content/30 max-w-md">
+                                Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
+                            </p>
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-4 text-amber-400 text-xs font-bold max-w-md">
+                                L'abonnement n'est pas encore disponible — l'administrateur n'a pas configuré de prix. Réessayez plus tard.
+                            </div>
+                        </>
                     ) : (
                         <>
                             <p className="text-sm font-bold text-neutral-content/30 max-w-md">
@@ -107,7 +126,7 @@ export default function SupplierBadge() {
                             <div className="space-y-3">
                                 <p className="text-[11px] font-black uppercase tracking-widest text-neutral-content/40">Choisissez la durée</p>
                                 <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                                    {MONTH_OPTIONS.map(m => (
+                                    {MONTH_PRESETS.map(m => (
                                         <button
                                             key={m}
                                             type="button"
@@ -121,12 +140,26 @@ export default function SupplierBadge() {
                                             {m} mois
                                         </button>
                                     ))}
+                                    <div className="flex items-center gap-2 px-2">
+                                        <span className="text-[10px] font-bold text-neutral-content/30">ou</span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={MAX_MONTHS}
+                                            value={selectedMonths}
+                                            onChange={handleMonthsInputChange}
+                                            onBlur={() => { if (!selectedMonths) setSelectedMonths(1); }}
+                                            placeholder="Nb"
+                                            className="w-20 px-3 py-3 rounded-2xl border-2 border-white/10 bg-transparent text-center font-black text-xs text-white focus:border-blue-500 outline-none transition-all"
+                                        />
+                                        <span className="text-[10px] font-bold text-neutral-content/30">mois</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <button
                                 onClick={handleSubscribe}
-                                disabled={subscribing}
+                                disabled={subscribing || !selectedMonths}
                                 className="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-600/40 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-60 disabled:hover:scale-100"
                             >
                                 {subscribing ? 'Redirection…' : `Activer pour ${totalPrice.toLocaleString('fr-FR')} FCFA`}
@@ -134,7 +167,7 @@ export default function SupplierBadge() {
                             </button>
 
                             <p className="text-[11px] font-bold text-neutral-content/40">
-                                {monthlyPrice.toLocaleString('fr-FR')} FCFA / mois × {selectedMonths} mois · Paiement sécurisé via FedaPay
+                                {monthlyPrice.toLocaleString('fr-FR')} FCFA / mois × {selectedMonths || 0} mois · Paiement sécurisé via FedaPay
                             </p>
                         </>
                     )}

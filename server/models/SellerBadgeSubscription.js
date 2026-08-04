@@ -32,6 +32,10 @@ const SellerBadgeSubscription = sequelize.define('SellerBadgeSubscription', {
         type: DataTypes.STRING(64),
         allowNull: true
     },
+    granted_by_admin_id: {
+        type: DataTypes.CHAR(36),
+        allowNull: true
+    },
     period_start: {
         type: DataTypes.DATE,
         allowNull: true
