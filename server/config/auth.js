@@ -1,4 +1,6 @@
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
+import { jwtVerify, createRemoteJWKSet } from "jose";
 import { Resend } from "resend";
 import mysql from "mysql2";
 import { Kysely, MysqlDialect } from "kysely";
@@ -72,6 +74,21 @@ const allTrustedOrigins = [
     ])
 ].filter(Boolean);
 
+
+// Le web utilise un client OAuth Google de type "Web" (avec secret) pour
+// l'échange serveur classique. L'app mobile ne peut pas embarquer ce secret :
+// elle utilise ses propres clients OAuth "iOS" / "Android" (sans secret,
+// échange par PKCE) pour obtenir un ID token. Google grave l'identifiant du
+// client demandeur dans la revendication `aud` du jeton, donc la vérification
+// par défaut de Better Auth (qui ne fait confiance qu'à un seul clientId)
+// rejetterait ces jetons mobiles. `verifyIdToken` ci-dessous accepte les
+// jetons émis pour n'importe lequel des clients déclarés.
+const googleClientIds = [
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_IOS_CLIENT_ID,
+    process.env.GOOGLE_ANDROID_CLIENT_ID,
+].filter(Boolean);
+const googleJWKS = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
 
 export const auth = betterAuth({
     database: {
@@ -184,7 +201,21 @@ export const auth = betterAuth({
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || '',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            verifyIdToken: async (token, nonce) => {
+                if (googleClientIds.length === 0) return false;
+                try {
+                    const { payload } = await jwtVerify(token, googleJWKS, {
+                        issuer: ["https://accounts.google.com", "accounts.google.com"],
+                        audience: googleClientIds,
+                        maxTokenAge: "1h"
+                    });
+                    if (nonce && payload.nonce !== nonce) return false;
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
         }
     },
     user: {
@@ -195,7 +226,17 @@ export const auth = betterAuth({
                 defaultValue: "user"
             }
         }
-    }
+    },
+    // L'app mobile (React Native) ne peut pas s'appuyer sur les cookies —
+    // withCredentials est désactivé côté client (voir api/client.js) car RN
+    // n'envoie jamais d'en-tête Origin. Elle s'authentifie donc uniquement
+    // via `Authorization: Bearer <session.token>`. Sans ce plugin, les
+    // endpoints natifs de Better Auth (dont /get-session, appelé juste
+    // après chaque connexion/inscription) ignorent ce header et ne lisent
+    // que le cookie de session signé, absent côté mobile : la session
+    // paraît alors immédiatement invalide et l'app se retrouve déconnectée
+    // juste après l'inscription ou la connexion.
+    plugins: [bearer()]
 });
 console.log('[auth] BetterAuth initialized.');
 

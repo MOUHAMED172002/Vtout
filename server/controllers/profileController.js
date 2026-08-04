@@ -81,6 +81,45 @@ export const getMe = async (req, res) => {
 };
 
 
+// Désactivation de compte (soft delete) : le profil est anonymisé et
+// marqué `deleted_at`, ce qui bloque immédiatement tout accès à l'API
+// applicative (voir authMiddleware.js, qui neutralise req.auth pour tout
+// profil ainsi marqué). L'historique (commandes, avis, paiements) est
+// conservé intact pour les vendeurs et la comptabilité — voir décision
+// produit : suppression = désactivation, pas d'effacement définitif.
+export const deleteMe = async (req, res) => {
+    try {
+        const { userId } = req.auth;
+        if (!userId) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        const profile = await Profile.findByPk(userId);
+        if (!profile) return res.status(404).json({ error: 'Profil non trouvé' });
+
+        profile.fullname = 'Compte supprimé';
+        profile.first_name = null;
+        profile.last_name = null;
+        profile.phone = null;
+        profile.avatar_url = null;
+        profile.deleted_at = new Date();
+        await profile.save();
+
+        // Révoque les sessions actives (best-effort — l'accès est de toute
+        // façon déjà coupé côté API applicative même si ceci échoue).
+        try {
+            await sequelize.query('DELETE FROM `session` WHERE `userId` = :userId', {
+                replacements: { userId }
+            });
+        } catch (revokeError) {
+            console.warn('[deleteMe] Session revocation failed:', revokeError.message);
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('deleteMe error:', error);
+        res.status(500).json({ error: 'Erreur lors de la suppression du compte' });
+    }
+};
+
 export const updateMe = async (req, res) => {
     try {
         const { userId } = req.auth;

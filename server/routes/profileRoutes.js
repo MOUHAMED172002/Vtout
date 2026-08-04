@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/sync', requireAuth, profileController.syncProfile);
 router.get('/me', requireAuth, profileController.getMe);
 router.patch('/me', requireAuth, profileController.updateMe);
+router.delete('/me', requireAuth, profileController.deleteMe);
 router.get('/', requireAuth, requireAdmin, profileController.getAllProfiles);
 router.get('/:id', requireAuth, profileController.getProfile);
 router.patch('/:id/status', requireAuth, requireAdmin, profileController.updateProfileStatus);

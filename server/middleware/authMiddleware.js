@@ -122,6 +122,15 @@ export const authMiddleware = async (req, res, next) => {
                 }
             }
 
+            if (profile.deleted_at) {
+                // Compte désactivé (soft delete) : la session Better Auth peut
+                // encore être techniquement valide, mais l'accès à l'API
+                // applicative est refusé comme si l'utilisateur n'était pas
+                // authentifié.
+                req.auth = { userId: null, clerkId: null, role: 'user', email: null };
+                return next();
+            }
+
             req.auth = {
                 clerkId: session.user.id,
                 userId: profile.id,
