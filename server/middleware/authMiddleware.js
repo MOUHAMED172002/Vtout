@@ -126,8 +126,11 @@ export const authMiddleware = async (req, res, next) => {
                 // Compte désactivé (soft delete) : la session Better Auth peut
                 // encore être techniquement valide, mais l'accès à l'API
                 // applicative est refusé comme si l'utilisateur n'était pas
-                // authentifié.
-                req.auth = { userId: null, clerkId: null, role: 'user', email: null };
+                // authentifié. `accountDeleted` permet à requireAuth de
+                // distinguer ce cas précis d'un simple 401 générique, pour
+                // que le client n'affiche "Ce compte a été supprimé" que
+                // lorsque c'est vraiment le cas (voir requireAuth ci-dessous).
+                req.auth = { userId: null, clerkId: null, role: 'user', email: null, accountDeleted: true };
                 return next();
             }
 
@@ -153,6 +156,13 @@ export const authMiddleware = async (req, res, next) => {
 
 export const requireAuth = (req, res, next) => {
     if (!req.auth || !req.auth.userId) {
+        // Cas distinct : profil réellement marqué deleted_at. Un code dédié
+        // permet au client de n'afficher "compte supprimé" que dans ce cas
+        // précis, et pas pour un 401 ordinaire (jeton pas encore propagé,
+        // session momentanément introuvable, etc.).
+        if (req.auth?.accountDeleted) {
+            return res.status(403).json({ error: 'Ce compte a été supprimé.', code: 'ACCOUNT_DELETED' });
+        }
         return res.status(401).json({ error: 'Non autorisé' });
     }
     next();
