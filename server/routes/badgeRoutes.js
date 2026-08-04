@@ -16,5 +16,6 @@ router.patch('/price', requireAdmin, badgeController.updatePrice);
 router.get('/admin/subscriptions', requireAdmin, badgeController.getAllSubscriptions);
 router.get('/admin/certified', requireAdmin, badgeController.getCertifiedSuppliers);
 router.patch('/admin/:supplierId/revoke', requireAdmin, badgeController.revokeBadge);
+router.post('/admin/grant', requireAdmin, badgeController.grantBadge);
 
 export default router;
