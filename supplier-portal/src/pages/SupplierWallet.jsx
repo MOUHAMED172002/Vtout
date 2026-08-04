@@ -80,7 +80,7 @@ export default function SupplierWallet() {
                             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
                                 <Wallet size={24} className="text-primary" />
                             </div>
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40">Solde Disponible</span>
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-content/40">Solde Disponible</span>
                         </div>
                         <h1 className="text-6xl md:text-7xl font-black tracking-tighter">
                             {Number(stats.balance).toLocaleString()} <span className="text-primary text-3xl">FCFA</span>

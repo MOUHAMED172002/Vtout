@@ -61,10 +61,10 @@ export default function SupplierBadge() {
                 <div className="relative z-10 space-y-6 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center backdrop-blur-md ${isCertified ? 'bg-blue-500/20' : 'bg-white/10'}`}>
-                            <BadgeCheck size={26} className={isCertified ? 'text-blue-400' : 'text-base-content/40'} />
+                            <BadgeCheck size={26} className={isCertified ? 'text-blue-400' : 'text-neutral-content/40'} />
                         </div>
                         <div className="text-left">
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40">Badge Vendeur Certifié</span>
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-content/40">Badge Vendeur Certifié</span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight">
                                 {isCertified ? 'Votre boutique est certifiée' : 'Pas encore certifié'}
                             </h1>
@@ -73,7 +73,7 @@ export default function SupplierBadge() {
 
                     {isCertified ? (
                         <>
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-base-content/30">
+                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-neutral-content/30">
                                 <Clock size={16} className="text-blue-400" />
                                 Actif jusqu'au {expiresAt?.toLocaleDateString('fr-FR')}
                             </div>
@@ -82,30 +82,30 @@ export default function SupplierBadge() {
                                 <CheckCircle2 size={22} className="text-blue-400" />
                                 <div className="text-left">
                                     <p className="text-3xl font-black tracking-tighter leading-none">
-                                        {daysLeft} <span className="text-sm font-black text-base-content/40 uppercase tracking-widest">jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''}</span>
+                                        {daysLeft} <span className="text-sm font-black text-neutral-content/40 uppercase tracking-widest">jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''}</span>
                                     </p>
                                 </div>
                             </div>
 
                             <button
                                 disabled
-                                className="bg-white/5 text-base-content/40 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 cursor-not-allowed border border-white/10"
+                                className="bg-white/5 text-neutral-content/40 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 cursor-not-allowed border border-white/10"
                             >
                                 Badge déjà actif
                             </button>
 
-                            <p className="text-[11px] font-bold text-base-content/50">
+                            <p className="text-[11px] font-bold text-neutral-content/50">
                                 Le renouvellement sera possible à l'expiration de votre abonnement actuel.
                             </p>
                         </>
                     ) : (
                         <>
-                            <p className="text-sm font-bold text-base-content/30 max-w-md">
+                            <p className="text-sm font-bold text-neutral-content/30 max-w-md">
                                 Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
                             </p>
 
                             <div className="space-y-3">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-base-content/40">Choisissez la durée</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-neutral-content/40">Choisissez la durée</p>
                                 <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                     {MONTH_OPTIONS.map(m => (
                                         <button
@@ -115,7 +115,7 @@ export default function SupplierBadge() {
                                             className={`px-5 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest transition-all ${
                                                 selectedMonths === m
                                                     ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                                                    : 'border-white/10 text-base-content/40 hover:border-white/20'
+                                                    : 'border-white/10 text-neutral-content/40 hover:border-white/20'
                                             }`}
                                         >
                                             {m} mois
@@ -133,7 +133,7 @@ export default function SupplierBadge() {
                                 <ChevronRight size={18} />
                             </button>
 
-                            <p className="text-[11px] font-bold text-base-content/40">
+                            <p className="text-[11px] font-bold text-neutral-content/40">
                                 {monthlyPrice.toLocaleString('fr-FR')} FCFA / mois × {selectedMonths} mois · Paiement sécurisé via FedaPay
                             </p>
                         </>
