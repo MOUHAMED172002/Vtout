@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierProduct, Category, FailedSearch, Supplier, Profile, Boutique, Review, Config, sequelize } from '../models/index.js';
+import { Product, ProductImage, ProductVariant, ProductVariantPrice, SupplierProduct, Category, FailedSearch, Supplier, Profile, Boutique, Review, Config, ProductAttribute, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
@@ -39,6 +39,53 @@ const applyFreeDeliveryFilter = async (where, freeDeliveryCommune) => {
   ];
 
   where[Op.and].push({ [Op.or]: orConditions });
+};
+
+// =====================================================================
+// UTILITAIRE : filtre par valeurs d'attributs de variante (ex: Couleur=Rouge)
+// attributesParam : JSON string ou objet { "NomAttribut": ["valeur1", "valeur2"] }
+// Un produit correspond s'il a au moins une variante dont la combinaison
+// satisfait TOUS les attributs demandés simultanément (une même variante).
+// =====================================================================
+const applyAttributeFilter = async (where, attributesParam) => {
+  if (!attributesParam) return;
+
+  let attrFilter;
+  try {
+    attrFilter = typeof attributesParam === 'string' ? JSON.parse(attributesParam) : attributesParam;
+  } catch (e) {
+    return; // filtre malformé : ignoré silencieusement, ne doit jamais faire planter la requête
+  }
+  if (!attrFilter || typeof attrFilter !== 'object') return;
+
+  const entries = Object.entries(attrFilter).filter(([name, vals]) => name && Array.isArray(vals) && vals.length > 0);
+  if (entries.length === 0) return;
+
+  // On ne retient que des noms d'attributs qui existent réellement en base,
+  // pour ne jamais construire de chemin JSON à partir d'une entrée arbitraire.
+  const knownAttributes = await ProductAttribute.findAll({
+    where: { name: { [Op.in]: entries.map(([name]) => name) } },
+    attributes: ['name']
+  });
+  const knownNames = new Set(knownAttributes.map((a) => a.name));
+
+  const conditions = entries
+    .filter(([name]) => knownNames.has(name))
+    .map(([name, vals]) => {
+      const jsonPath = `CONCAT('$.', JSON_QUOTE(${sequelize.escape(name)}))`;
+      const valuesSql = vals.map((v) => sequelize.escape(String(v))).join(', ');
+      return `JSON_UNQUOTE(JSON_EXTRACT(pv.combination, ${jsonPath})) IN (${valuesSql})`;
+    });
+  if (conditions.length === 0) return;
+
+  where[Op.and] = where[Op.and] || [];
+  where[Op.and].push(
+    sequelize.literal(`EXISTS (
+      SELECT 1 FROM product_variants AS pv
+      WHERE pv.product_id = \`Product\`.id
+      AND ${conditions.join(' AND ')}
+    )`)
+  );
 };
 
 // =====================================================================
@@ -107,7 +154,7 @@ export const processProductsForCommunes = async (products) => {
 // =====================================================================
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products, freeDeliveryCommune, isCertified } = req.query;
+        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products, freeDeliveryCommune, isCertified, attributes } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -227,6 +274,9 @@ export const getAllProducts = async (req, res) => {
 
         // ===== NOUVEAU : filtre livraison gratuite =====
         await applyFreeDeliveryFilter(where, freeDeliveryCommune);
+
+        // ===== NOUVEAU : filtre par valeurs d'attributs (ex: Couleur, Taille) =====
+        await applyAttributeFilter(where, attributes);
 
         // Only expose the supplier id — name and contact info stay server-side
         const supplierInclude = { model: Supplier, as: 'supplier', attributes: ['id', 'is_certified'] };

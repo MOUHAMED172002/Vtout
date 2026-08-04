@@ -495,9 +495,29 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
     if (categoryId) updateFilters({ category_id: categoryId });
   }, [location.search, updateFilters]);
 
+  // Le state interne `filters.attributes` est indexé par ID d'attribut (pratique
+  // pour l'UI : toggle, retrouver le nom pour l'affichage des badges...).
+  // Le backend, lui, stocke les combinaisons de variantes par NOM d'attribut
+  // (voir Product/AddProductModal.jsx : combination[attr.name] = value), donc
+  // on convertit ID -> nom uniquement au moment d'informer le parent, sans
+  // toucher au state interne.
   useEffect(() => {
-    onFilterChange(filters);
-  }, [filters, onFilterChange]);
+    const attributesByName = {};
+    Object.entries(filters.attributes || {}).forEach(([attrId, vals]) => {
+      if (!Array.isArray(vals) || vals.length === 0) return;
+      const attr = attributes.find((a) => String(a.id) === String(attrId));
+      if (attr) attributesByName[attr.name] = vals;
+    });
+
+    const payload = { ...filters };
+    if (Object.keys(attributesByName).length > 0) {
+      payload.attributes = JSON.stringify(attributesByName);
+    } else {
+      delete payload.attributes;
+    }
+
+    onFilterChange(payload);
+  }, [filters, attributes, onFilterChange]);
 
   const selectedCategory = useMemo(
     () => categories.find((c) => String(c.id) === String(filters.category_id)),
