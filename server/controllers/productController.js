@@ -107,7 +107,7 @@ export const processProductsForCommunes = async (products) => {
 // =====================================================================
 export const getAllProducts = async (req, res) => {
     try {
-        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products, freeDeliveryCommune } = req.query;
+        const { category_id, supplier_id, minPrice, maxPrice, sort, limit, page, search, isFlashSale, isKit, hasVolumePricing, isPromo, isAnyPromo, approval_status, my_products, freeDeliveryCommune, isCertified } = req.query;
         const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
         const userEmail = req.auth?.email?.toLowerCase();
         const isAdmin = req.auth?.role === 'admin' || (userEmail && adminEmails.includes(userEmail));
@@ -228,6 +228,13 @@ export const getAllProducts = async (req, res) => {
         // ===== NOUVEAU : filtre livraison gratuite =====
         await applyFreeDeliveryFilter(where, freeDeliveryCommune);
 
+        // Only expose the supplier id — name and contact info stay server-side
+        const supplierInclude = { model: Supplier, as: 'supplier', attributes: ['id', 'is_certified'] };
+        if (isCertified === 'true') {
+            supplierInclude.where = { is_certified: true };
+            supplierInclude.required = true;
+        }
+
         let order = sequelize?.literal('RAND()'); // Default random order;
         if (sort === 'price_asc') order = [['price', 'ASC']];
         if (sort === 'price_desc') order = [['price', 'DESC']];
@@ -278,8 +285,7 @@ export const getAllProducts = async (req, res) => {
                     as: 'variants',
                     include: [{ model: ProductVariantPrice, as: 'priceRows' }]
                 },
-                // Only expose the supplier id — name and contact info stay server-side
-                { model: Supplier, as: 'supplier', attributes: ['id', 'is_certified'] },
+                supplierInclude,
                 { model: Boutique, as: 'boutique', attributes: ['id', 'name', 'commune_label', 'commune_id', 'departement_id'] }
             ]
         };
