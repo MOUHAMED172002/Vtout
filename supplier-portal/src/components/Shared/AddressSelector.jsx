@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { MapPin, Check, Search, ShieldCheck, Phone, X, Edit2, Loader2, AlertTriangle } from "lucide-react";
 import { getHierarchy } from "../../services/locationService";
 
@@ -27,6 +28,9 @@ export default function AddressSelector({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const wrapperRef = useRef(null);
+  const inputBoxRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [dropdownRect, setDropdownRect] = useState(null);
 
   // Chargement des localités depuis la base de données (aucun fallback JSON local)
   useEffect(() => {
@@ -114,13 +118,39 @@ export default function AddressSelector({
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+      const insideWrapper = wrapperRef.current && wrapperRef.current.contains(event.target);
+      const insideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
+      if (!insideWrapper && !insideDropdown) {
         setShowSuggestions(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // La liste de suggestions est rendue via un portail (voir plus bas) pour
+  // échapper à l'overflow-hidden de la carte animée qui l'englobe (SupplierWelcome) —
+  // on doit donc calculer sa position manuellement à partir du champ de recherche.
+  const updateDropdownRect = useCallback(() => {
+    if (!inputBoxRef.current) return;
+    const rect = inputBoxRef.current.getBoundingClientRect();
+    setDropdownRect({
+      top: rect.bottom + window.scrollY + 6,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showSuggestions) return;
+    updateDropdownRect();
+    window.addEventListener("scroll", updateDropdownRect, true);
+    window.addEventListener("resize", updateDropdownRect);
+    return () => {
+      window.removeEventListener("scroll", updateDropdownRect, true);
+      window.removeEventListener("resize", updateDropdownRect);
+    };
+  }, [showSuggestions, updateDropdownRect]);
 
   const handlePhoneBlur = () => {
     const s = String(phoneRaw).trim();
@@ -206,7 +236,7 @@ export default function AddressSelector({
           </div>
         ) : (
           /* ── État recherche ── */
-          <div className="relative">
+          <div className="relative" ref={inputBoxRef}>
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               {loading ? (
                 <Loader2 className="h-5 w-5 text-base-content/30 animate-spin" />
@@ -227,31 +257,42 @@ export default function AddressSelector({
               onFocus={() => setShowSuggestions(true)}
             />
 
-            {showSuggestions && searchQuery && filteredLocations.length > 0 && (
-              <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl shadow-base-content/10 border border-base-200 max-h-64 overflow-y-auto">
-                {filteredLocations.map((loc) => (
-                  <div
-                    key={loc.quartier_id}
-                    onClick={() => {
-                      setSelectedLocation(loc);
-                      setSearchQuery(loc.formattedAddress);
-                      setShowSuggestions(false);
-                    }}
-                    className="px-5 py-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
-                  >
-                    <div className="font-bold text-sm text-base-content">{loc.quartier_label}</div>
-                    <div className="text-xs text-base-content/50 font-medium">
-                      {loc.arrondissement_label && `${loc.arrondissement_label}, `}{loc.commune_label} ({loc.departement_label})
-                    </div>
+            {/* Rendue en portail (document.body) pour échapper à l'overflow-hidden
+                de la carte animée qui englobe ce composant (ex: SupplierWelcome) —
+                sinon la liste est mal empilée par rapport aux boutons suivants. */}
+            {showSuggestions && searchQuery && dropdownRect && createPortal(
+              <div
+                ref={dropdownRef}
+                style={{ position: "absolute", top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+              >
+                {filteredLocations.length > 0 ? (
+                  <div className="bg-base-100 rounded-2xl shadow-xl shadow-base-content/10 border border-base-200 max-h-64 overflow-y-auto">
+                    {filteredLocations.map((loc) => (
+                      <div
+                        key={loc.quartier_id}
+                        onClick={() => {
+                          setSelectedLocation(loc);
+                          setSearchQuery(loc.formattedAddress);
+                          setShowSuggestions(false);
+                        }}
+                        className="px-5 py-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-0 transition-colors"
+                      >
+                        <div className="font-bold text-sm text-base-content">{loc.quartier_label}</div>
+                        <div className="text-xs text-base-content/50 font-medium">
+                          {loc.arrondissement_label && `${loc.arrondissement_label}, `}{loc.commune_label} ({loc.departement_label})
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-
-            {showSuggestions && searchQuery && !loading && !loadError && filteredLocations.length === 0 && (
-              <div className="absolute z-50 mt-1 w-full bg-base-100 rounded-2xl shadow-xl border border-base-200 p-4 text-center">
-                <p className="text-sm font-bold text-base-content/50">Aucune localité trouvée.</p>
-              </div>
+                ) : (
+                  !loading && !loadError && (
+                    <div className="bg-base-100 rounded-2xl shadow-xl border border-base-200 p-4 text-center">
+                      <p className="text-sm font-bold text-base-content/50">Aucune localité trouvée.</p>
+                    </div>
+                  )
+                )}
+              </div>,
+              document.body
             )}
           </div>
         )}
