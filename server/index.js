@@ -754,6 +754,20 @@ sequelize.authenticate()
                 console.warn('  ⚠️ [MIGRATION] Could not ensure financial_transactions.source:', sourceCheckErr.message);
             }
 
+            // Ensure `profiles.referral_code` exists — missing column was breaking authMiddleware on every request.
+            try {
+                const [referralColRows] = await sequelize.query(`
+                    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'referral_code'
+                `);
+                if (!referralColRows || referralColRows.length === 0) {
+                    await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
+                    console.log('  ✅ [MIGRATION] Added missing profiles.referral_code via raw SQL');
+                }
+            } catch (referralCheckErr) {
+                console.warn('  ⚠️ [MIGRATION] Could not ensure profiles.referral_code:', referralCheckErr.message);
+            }
+
             // Ensure `order_items.original_price` exists (used by orderController for discount tracking).
             try {
                 await sequelize.query(`ALTER TABLE order_items ADD COLUMN original_price DECIMAL(15,2) NULL`);
