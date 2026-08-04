@@ -124,7 +124,7 @@ export default function SupplierStats() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-sm truncate uppercase tracking-tight">{item.product?.name}</p>
-                                    <p className="text-[10px] font-black text-base-content/50 uppercase tracking-widest">{item.sold} Unités Vendues</p>
+                                    <p className="text-[10px] font-black text-neutral-content/50 uppercase tracking-widest">{item.sold} Unités Vendues</p>
                                 </div>
                                 <div className="text-primary font-black text-sm">#{idx + 1}</div>
                             </div>

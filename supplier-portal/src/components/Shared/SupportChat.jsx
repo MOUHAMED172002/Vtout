@@ -73,7 +73,7 @@ export default function SupportChat() {
                                     <h4 className="text-sm font-black tracking-tight">Support Vendeur</h4>
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                                        <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Support en ligne</p>
+                                        <p className="text-[10px] font-bold text-neutral-content/40 uppercase tracking-widest">Support en ligne</p>
                                     </div>
                                 </div>
                             </div>

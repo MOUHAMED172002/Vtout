@@ -177,7 +177,7 @@ export default function SupplierLanding() {
                         </div>
                         <div className="space-y-6">
                             <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Transparence & Sécurité</h2>
-                            <p className="text-xl text-base-content/40 font-medium leading-relaxed max-w-2xl mx-auto">
+                            <p className="text-xl text-neutral-content/60 font-medium leading-relaxed max-w-2xl mx-auto">
                                 Chaque marchand signe une charte de qualité Vtout. Nous garantissons la confidentialité de vos informations commerciales et la ponctualité de vos versements.
                             </p>
                         </div>
