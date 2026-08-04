@@ -1238,6 +1238,41 @@ const ConfigManager = () => {
                 });
             }
 
+            // Parrainage — montants à 0 par défaut (aucun coupon n'est
+            // généré tant que l'administrateur n'a pas fixé un montant > 0).
+            if (!uniqueData.find(c => c.key === 'referral_referrer_reward')) {
+                uniqueData.push({
+                    key: 'referral_referrer_reward',
+                    value: '0',
+                    group: 'referral',
+                    description: "Montant (FCFA) du coupon offert au parrain après la 1ère commande confirmée de son filleul — 0 = désactivé"
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'referral_referred_reward')) {
+                uniqueData.push({
+                    key: 'referral_referred_reward',
+                    value: '0',
+                    group: 'referral',
+                    description: "Montant (FCFA) du coupon de bienvenue offert au filleul dès son inscription — 0 = désactivé"
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'referral_min_order_amount')) {
+                uniqueData.push({
+                    key: 'referral_min_order_amount',
+                    value: '5000',
+                    group: 'referral',
+                    description: "Montant minimum de commande (FCFA) pour utiliser un coupon de parrainage"
+                });
+            }
+            if (!uniqueData.find(c => c.key === 'referral_coupon_validity_days')) {
+                uniqueData.push({
+                    key: 'referral_coupon_validity_days',
+                    value: '60',
+                    group: 'referral',
+                    description: "Durée de validité (jours) des coupons de parrainage"
+                });
+            }
+
             const grouped = uniqueData.reduce((acc, curr) => {
                 const g = curr.group || 'general';
                 if (!acc[g]) acc[g] = [];
@@ -1331,6 +1366,7 @@ const ConfigManager = () => {
         api: "API & Services Externes",
         about: "Page À Propos (Équipe)",
         supplier: "Portail Fournisseur",
+        referral: "Parrainage",
         messages: "Textes de notification & messages",
         general: "Paramètres Généraux"
     };

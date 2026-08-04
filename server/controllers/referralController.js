@@ -17,9 +17,12 @@ function generateCode(length = 7) {
 // au code. Crée les entrées avec des valeurs par défaut au premier appel
 // si elles n'existent pas encore.
 async function getReferralSettings() {
+    // Démarrent à 0 : tant que l'administrateur n'a pas fixé de montant
+    // depuis Admin > Paramètres (groupe "referral"), aucun coupon n'est
+    // généré (voir createPersonalCoupon, qui n'émet rien si amount <= 0).
     const defaults = [
-        { key: 'referral_referrer_reward', value: '2000', group: 'referral', description: "Montant (FCFA) du coupon offert au parrain après la 1ère commande confirmée de son filleul" },
-        { key: 'referral_referred_reward', value: '1000', group: 'referral', description: "Montant (FCFA) du coupon de bienvenue offert au filleul dès son inscription" },
+        { key: 'referral_referrer_reward', value: '0', group: 'referral', description: "Montant (FCFA) du coupon offert au parrain après la 1ère commande confirmée de son filleul — 0 = désactivé" },
+        { key: 'referral_referred_reward', value: '0', group: 'referral', description: "Montant (FCFA) du coupon de bienvenue offert au filleul dès son inscription — 0 = désactivé" },
         { key: 'referral_min_order_amount', value: '5000', group: 'referral', description: "Montant minimum de commande (FCFA) pour utiliser un coupon de parrainage" },
         { key: 'referral_coupon_validity_days', value: '60', group: 'referral', description: "Durée de validité (jours) des coupons de parrainage" },
     ];
@@ -29,8 +32,8 @@ async function getReferralSettings() {
     const map = {};
     rows.forEach((r) => { map[r.key] = r.value; });
     return {
-        referrerReward: Number(map.referral_referrer_reward) || 2000,
-        referredReward: Number(map.referral_referred_reward) || 1000,
+        referrerReward: Number(map.referral_referrer_reward) || 0,
+        referredReward: Number(map.referral_referred_reward) || 0,
         minOrderAmount: Number(map.referral_min_order_amount) || 5000,
         validityDays: Number(map.referral_coupon_validity_days) || 60,
     };
@@ -51,7 +54,10 @@ async function ensureReferralCode(profile) {
     return code;
 }
 
+// Tant que l'administrateur n'a pas fixé de montant > 0 pour cette
+// récompense (Admin > Paramètres > Parrainage), aucun coupon n'est créé.
 async function createPersonalCoupon({ amount, minOrderAmount, validityDays, description }) {
+    if (!amount || amount <= 0) return null;
     const now = new Date();
     const end = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
     let code;
@@ -148,10 +154,10 @@ export const applyReferralCode = async (req, res) => {
             referrer_id: referrer.id,
             referred_id: userId,
             status: 'pending',
-            referred_coupon_code: referredCouponCode,
+            referred_coupon_code: referredCouponCode || null,
         });
 
-        res.status(201).json({ referral, welcomeCouponCode: referredCouponCode });
+        res.status(201).json({ referral, welcomeCouponCode: referredCouponCode || null });
     } catch (error) {
         console.error('applyReferralCode error:', error);
         res.status(500).json({ error: "Erreur lors de l'application du code de parrainage" });
@@ -177,7 +183,7 @@ export async function rewardReferrerIfPending(userId, orderId) {
 
     referral.status = 'rewarded';
     referral.order_id = orderId;
-    referral.referrer_coupon_code = referrerCouponCode;
+    referral.referrer_coupon_code = referrerCouponCode || null;
     referral.rewarded_at = new Date();
     await referral.save();
 }

@@ -43,6 +43,15 @@ const initialConfigs = [
 
     // Badge "Vendeur Certifié"
     { key: 'seller_badge_monthly_price', value: '5000', group: 'seller_badge', description: 'Montant mensuel (XOF) du badge Vendeur Certifié' },
+
+    // Parrainage — montants à 0 par défaut (aucun coupon n'est généré tant
+    // que l'administrateur n'a pas fixé un montant > 0). Voir aussi
+    // controllers/referralController.js, qui crée ces mêmes clés à la
+    // volée si ce script n'a jamais été exécuté.
+    { key: 'referral_referrer_reward', value: '0', group: 'referral', description: "Montant (FCFA) du coupon offert au parrain après la 1ère commande confirmée de son filleul — 0 = désactivé" },
+    { key: 'referral_referred_reward', value: '0', group: 'referral', description: "Montant (FCFA) du coupon de bienvenue offert au filleul dès son inscription — 0 = désactivé" },
+    { key: 'referral_min_order_amount', value: '5000', group: 'referral', description: "Montant minimum de commande (FCFA) pour utiliser un coupon de parrainage" },
+    { key: 'referral_coupon_validity_days', value: '60', group: 'referral', description: "Durée de validité (jours) des coupons de parrainage" },
 ];
 
 export async function seedConfigs() {
