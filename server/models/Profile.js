@@ -65,6 +65,10 @@ const Profile = sequelize.define('Profile', {
     deleted_at: {
         type: DataTypes.DATE
     },
+    referral_code: {
+        type: DataTypes.STRING(64),
+        allowNull: true
+    },
     providers: {
         type: DataTypes.JSON,
         defaultValue: []
