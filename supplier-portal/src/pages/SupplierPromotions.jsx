@@ -361,21 +361,21 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 bg-slate-50 min-h-screen">
+    <div className="p-4 md:p-8 space-y-8 bg-base-200 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            <Sparkles className="text-indigo-500" size={32} />
+          <h1 className="text-3xl md:text-4xl font-black text-base-content tracking-tight flex items-center gap-3">
+            <Sparkles className="text-primary" size={32} />
             Mes Promotions
           </h1>
-          <p className="text-slate-500 font-medium mt-2 max-w-xl">
+          <p className="text-base-content/50 font-medium mt-2 max-w-xl">
             Boostez vos ventes en créant des offres attractives. Gérez vos ventes flash, remises directes, prix dégressifs et packs.
           </p>
         </div>
         <button 
           onClick={handleStartNewPromo}
-          className="group relative px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 hover:shadow-indigo-600/40 transition-all flex items-center gap-2 overflow-hidden"
+          className="group relative px-6 py-3.5 bg-primary text-white rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:brightness-90 hover:shadow-primary/40 transition-all flex items-center gap-2 overflow-hidden"
         >
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
           <Plus size={18} className="relative z-10" />
@@ -386,26 +386,26 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
         {[
-          { label: 'Total Actives', count: stats.total, icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Total Actives', count: stats.total, icon: Sparkles, color: 'text-primary', bg: 'bg-primary/10' },
           { label: 'Réductions', count: stats.promo, icon: Tag, color: 'text-violet-500', bg: 'bg-violet-50' },
           { label: 'Ventes Flash', count: stats.flash, icon: Flame, color: 'text-rose-500', bg: 'bg-rose-50' },
           { label: 'Prix Dégressifs', count: stats.volume, icon: Percent, color: 'text-blue-500', bg: 'bg-blue-50' },
           { label: 'Packs & Kits', count: stats.kit, icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-50' }
         ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-[2rem] p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div key={i} className="bg-base-100 rounded-[2rem] p-5 md:p-6 shadow-sm border border-base-300 flex flex-col justify-between hover:shadow-md transition-shadow">
             <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
               <stat.icon size={24} />
             </div>
             <div>
-              <p className="text-3xl font-black text-slate-900">{stat.count}</p>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">{stat.label}</p>
+              <p className="text-3xl font-black text-base-content">{stat.count}</p>
+              <p className="text-xs font-bold text-base-content/40 uppercase tracking-wider mt-1">{stat.label}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 bg-white p-2 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100">
+      <div className="flex flex-col md:flex-row justify-between gap-4 bg-base-100 p-2 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-base-300">
         <div className="flex overflow-x-auto no-scrollbar p-2">
           {[
             { id: 'all', label: 'Toutes' },
@@ -419,8 +419,8 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                 activeTab === tab.id 
-                  ? 'bg-slate-900 text-white shadow-md' 
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-neutral text-white shadow-md' 
+                  : 'text-base-content/50 hover:bg-base-200 hover:text-base-content'
               }`}
             >
               {tab.label}
@@ -428,13 +428,13 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
           ))}
         </div>
         <div className="relative flex-1 max-w-sm p-2">
-          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/40" size={18} />
           <input 
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Rechercher une promotion..."
-            className="w-full bg-slate-50 border border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-slate-900 focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 transition-all outline-none"
+            className="w-full bg-base-200 border border-transparent rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-base-content focus:bg-base-100 focus:border-primary/10 focus:ring-4 focus:ring-primary/10 transition-all outline-none"
           />
         </div>
       </div>
@@ -443,7 +443,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1,2,3].map(i => (
-             <div key={i} className="bg-white h-64 rounded-[2rem] border border-slate-100 animate-pulse" />
+             <div key={i} className="bg-base-100 h-64 rounded-[2rem] border border-base-300 animate-pulse" />
           ))}
         </div>
       ) : promoProducts.length > 0 ? (
@@ -454,13 +454,13 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               key={p.id} 
-              className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+              className="bg-base-100 rounded-[2rem] border border-base-300 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
             >
-              <div className="h-40 bg-slate-50 relative flex items-center justify-center p-4">
+              <div className="h-40 bg-base-200 relative flex items-center justify-center p-4">
                  {p.images && p.images[0] ? (
                     <img src={p.images[0].image_url} alt={p.name} className="w-full h-full object-contain mix-blend-multiply" />
                  ) : (
-                    <ImageIcon size={48} className="text-slate-200" />
+                    <ImageIcon size={48} className="text-base-content/20" />
                  )}
                  <div className="absolute top-4 right-4 flex flex-col gap-2">
                     {p.old_price && parseFloat(p.old_price) > parseFloat(p.price) && <div className="w-8 h-8 rounded-full bg-violet-500 text-white flex items-center justify-center shadow-lg"><Tag size={14} /></div>}
@@ -470,11 +470,11 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                  </div>
               </div>
               <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-lg font-black text-slate-900 line-clamp-1">{p.name}</h3>
+                <h3 className="text-lg font-black text-base-content line-clamp-1">{p.name}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <p className="text-sm font-black text-slate-900">{p.price} F CFA</p>
+                  <p className="text-sm font-black text-base-content">{p.price} F CFA</p>
                   {p.old_price && parseFloat(p.old_price) > parseFloat(p.price) && (
-                    <p className="text-xs font-bold text-slate-400 line-through">{p.old_price} F CFA</p>
+                    <p className="text-xs font-bold text-base-content/40 line-through">{p.old_price} F CFA</p>
                   )}
                 </div>
                 
@@ -502,7 +502,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                 </div>
 
                 <div className="flex gap-2 mt-6">
-                  <button onClick={() => handleEditPromo(p)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-2">
+                  <button onClick={() => handleEditPromo(p)} className="flex-1 py-3 bg-base-300 hover:brightness-95 text-base-content rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-2">
                     <Edit size={14} /> Modifier
                   </button>
                   <button onClick={() => handleRemovePromo(p)} className="w-12 h-12 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl flex items-center justify-center transition-colors">
@@ -514,13 +514,13 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-[3rem] p-16 text-center border border-slate-100 flex flex-col items-center justify-center">
-          <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-            <Sparkles size={40} className="text-slate-300" />
+        <div className="bg-base-100 rounded-[3rem] p-16 text-center border border-base-300 flex flex-col items-center justify-center">
+          <div className="w-24 h-24 bg-base-200 rounded-full flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-base-content/30" />
           </div>
-          <h3 className="text-2xl font-black text-slate-900">Aucune promotion active</h3>
-          <p className="text-slate-500 mt-2 max-w-sm">Créez votre première promotion pour augmenter la visibilité et les ventes de vos produits.</p>
-          <button onClick={handleStartNewPromo} className="mt-8 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all">
+          <h3 className="text-2xl font-black text-base-content">Aucune promotion active</h3>
+          <p className="text-base-content/50 mt-2 max-w-sm">Créez votre première promotion pour augmenter la visibilité et les ventes de vos produits.</p>
+          <button onClick={handleStartNewPromo} className="mt-8 px-8 py-4 bg-primary text-white rounded-2xl font-black shadow-xl shadow-primary/20 hover:brightness-90 transition-all">
             Créer une promotion
           </button>
         </div>
@@ -535,57 +535,57 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-neutral/40 backdrop-blur-sm"
             />
             
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-full flex flex-col relative z-10 overflow-hidden"
+              className="bg-base-100 rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-full flex flex-col relative z-10 overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="px-8 py-6 border-b border-base-300 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-4">
                   {modalStep === 2 && isAddMode && (
-                    <button onClick={() => setModalStep(1)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 transition-colors">
-                      <ArrowLeft size={18} className="text-slate-600" />
+                    <button onClick={() => setModalStep(1)} className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center hover:bg-base-300 transition-colors">
+                      <ArrowLeft size={18} className="text-base-content/70" />
                     </button>
                   )}
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black text-slate-900">
+                    <h2 className="text-xl md:text-2xl font-black text-base-content">
                       {isAddMode ? 'Nouvelle Promotion' : 'Modifier la Promotion'}
                     </h2>
-                    <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                    <p className="text-xs font-bold text-base-content/40 mt-1 uppercase tracking-wider">
                       {modalStep === 1 ? 'Étape 1: Choix du produit' : 'Étape 2: Configuration'}
                     </p>
                   </div>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-colors">
                   <X size={20} />
                 </button>
               </div>
 
               {/* Modal Body - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-slate-50/50">
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-base-200/50">
                 
                 {modalStep === 1 && (
                   <div className="space-y-6">
                     <div className="relative max-w-md mx-auto">
-                      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                       <input 
                         type="text"
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
                         placeholder="Rechercher un produit à promouvoir..."
-                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-4 bg-base-100 border border-base-300 rounded-2xl text-sm font-bold text-base-content shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                       />
                     </div>
                     
                     {eligibleProductsForPromo.length === 0 ? (
                       <div className="text-center py-12">
-                        <Package size={48} className="mx-auto text-slate-300 mb-4" />
-                        <p className="text-slate-500 font-bold">Aucun produit trouvé.</p>
+                        <Package size={48} className="mx-auto text-base-content/30 mb-4" />
+                        <p className="text-base-content/50 font-bold">Aucun produit trouvé.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -599,7 +599,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                             <div
                               key={prod.id}
                               onClick={() => handleSelectProduct(prod)}
-                              className={`relative bg-white p-4 rounded-2xl border cursor-pointer transition-all flex flex-col gap-3 group hover:shadow-lg ${hasAny ? 'border-indigo-200 hover:border-indigo-400' : 'border-slate-200 hover:border-indigo-500 hover:shadow-indigo-500/10'}`}
+                              className={`relative bg-base-100 p-4 rounded-2xl border cursor-pointer transition-all flex flex-col gap-3 group hover:shadow-lg ${hasAny ? 'border-primary/20 hover:border-primary' : 'border-base-300 hover:border-primary hover:shadow-primary/10'}`}
                             >
                               {hasAny && (
                                 <div className="absolute top-2 right-2 flex flex-wrap gap-1 justify-end">
@@ -609,17 +609,17 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                   {hasPromo && <span className="text-[8px] font-black bg-violet-500 text-white px-1.5 py-0.5 rounded-full uppercase">Promo</span>}
                                 </div>
                               )}
-                              <div className="h-32 bg-slate-50 rounded-xl flex items-center justify-center overflow-hidden">
+                              <div className="h-32 bg-base-200 rounded-xl flex items-center justify-center overflow-hidden">
                                 {prod.images && prod.images[0] ? (
                                   <img src={prod.images[0].image_url} alt={prod.name} className="h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
                                 ) : (
-                                  <ImageIcon size={32} className="text-slate-300" />
+                                  <ImageIcon size={32} className="text-base-content/30" />
                                 )}
                               </div>
                               <div>
-                                <h4 className="font-black text-slate-800 text-sm line-clamp-1">{prod.name}</h4>
-                                <p className="text-xs font-bold text-slate-400 mt-1">{prod.price} F CFA</p>
-                                {hasAny && <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1">Modifier la promo</p>}
+                                <h4 className="font-black text-base-content text-sm line-clamp-1">{prod.name}</h4>
+                                <p className="text-xs font-bold text-base-content/40 mt-1">{prod.price} F CFA</p>
+                                {hasAny && <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">Modifier la promo</p>}
                               </div>
                             </div>
                           );
@@ -632,75 +632,75 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                 {modalStep === 2 && activePromoProduct && (
                   <div className="space-y-8 max-w-3xl mx-auto">
                     {/* Selected Product Banner */}
-                    <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
-                      <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center">
-                        {activePromoProduct.images?.[0] ? <img src={activePromoProduct.images[0].image_url} className="w-full h-full object-contain" alt=""/> : <ImageIcon size={24} className="text-slate-300"/>}
+                    <div className="bg-base-100 p-4 rounded-2xl border border-base-300 flex items-center gap-4">
+                      <div className="w-16 h-16 bg-base-200 rounded-xl flex items-center justify-center">
+                        {activePromoProduct.images?.[0] ? <img src={activePromoProduct.images[0].image_url} className="w-full h-full object-contain" alt=""/> : <ImageIcon size={24} className="text-base-content/30"/>}
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Produit sélectionné</p>
-                        <h4 className="font-black text-slate-900">{activePromoProduct.name}</h4>
+                        <p className="text-[10px] font-black uppercase text-base-content/40 tracking-wider">Produit sélectionné</p>
+                        <h4 className="font-black text-base-content">{activePromoProduct.name}</h4>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {/* Simple Discount Toggle Card */}
-                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_promo ? 'border-violet-500 bg-violet-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_promo ? 'border-violet-500 bg-violet-50/30' : 'border-base-300 bg-base-100 hover:border-base-300'}`}>
                         <div className="flex justify-between items-start mb-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_promo ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_promo ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30' : 'bg-base-300 text-base-content/40'}`}>
                             <Tag size={24} />
                           </div>
                           <input type="checkbox" className="checkbox checkbox-primary" checked={promoForm.is_promo} onChange={(e) => setPromoForm({...promoForm, is_promo: e.target.checked})} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">Réduction</h4>
-                        <p className="text-xs font-bold text-slate-500 mt-1">Prix barré simple</p>
+                        <h4 className="font-black text-base-content text-lg">Réduction</h4>
+                        <p className="text-xs font-bold text-base-content/50 mt-1">Prix barré simple</p>
                       </label>
 
                       {/* Flash Sale Toggle Card */}
-                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_flash_sale ? 'border-rose-500 bg-rose-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_flash_sale ? 'border-rose-500 bg-rose-50/30' : 'border-base-300 bg-base-100 hover:border-base-300'}`}>
                         <div className="flex justify-between items-start mb-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_flash_sale ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_flash_sale ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-base-300 text-base-content/40'}`}>
                             <Flame size={24} />
                           </div>
                           <input type="checkbox" className="checkbox checkbox-rose" checked={promoForm.is_flash_sale} onChange={(e) => setPromoForm({...promoForm, is_flash_sale: e.target.checked})} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">Vente Flash</h4>
-                        <p className="text-xs font-bold text-slate-500 mt-1">Durée limitée</p>
+                        <h4 className="font-black text-base-content text-lg">Vente Flash</h4>
+                        <p className="text-xs font-bold text-base-content/50 mt-1">Durée limitée</p>
                       </label>
 
                       {/* Volume Pricing Toggle Card */}
-                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.volume_pricing_enabled ? 'border-blue-500 bg-blue-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.volume_pricing_enabled ? 'border-blue-500 bg-blue-50/30' : 'border-base-300 bg-base-100 hover:border-base-300'}`}>
                         <div className="flex justify-between items-start mb-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.volume_pricing_enabled ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.volume_pricing_enabled ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-base-300 text-base-content/40'}`}>
                             <Percent size={24} />
                           </div>
                           <input type="checkbox" className="checkbox checkbox-info" checked={promoForm.volume_pricing_enabled} onChange={(e) => setPromoForm({...promoForm, volume_pricing_enabled: e.target.checked})} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">Dégressif</h4>
-                        <p className="text-xs font-bold text-slate-500 mt-1">Prix par quantité</p>
+                        <h4 className="font-black text-base-content text-lg">Dégressif</h4>
+                        <p className="text-xs font-bold text-base-content/50 mt-1">Prix par quantité</p>
                       </label>
 
                       {/* Kit Toggle Card */}
-                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_kit ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
+                      <label className={`cursor-pointer rounded-3xl border-2 p-5 transition-all ${promoForm.is_kit ? 'border-emerald-500 bg-emerald-50/30' : 'border-base-300 bg-base-100 hover:border-base-300'}`}>
                         <div className="flex justify-between items-start mb-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_kit ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 text-slate-400'}`}>
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${promoForm.is_kit ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-base-300 text-base-content/40'}`}>
                             <Package size={24} />
                           </div>
                           <input type="checkbox" className="checkbox checkbox-success" checked={promoForm.is_kit} onChange={(e) => setPromoForm({...promoForm, is_kit: e.target.checked})} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">Pack Kit</h4>
-                        <p className="text-xs font-bold text-slate-500 mt-1">Vente groupée</p>
+                        <h4 className="font-black text-base-content text-lg">Pack Kit</h4>
+                        <p className="text-xs font-bold text-base-content/50 mt-1">Vente groupée</p>
                       </label>
                     </div>
 
                     {/* Settings Sections */}
                     <div className="space-y-4">
                       {(promoForm.is_promo || promoForm.is_flash_sale || promoForm.is_kit) && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-violet-100 space-y-4">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-base-100 p-6 rounded-3xl border border-violet-100 space-y-4">
                           <h4 className="font-black text-violet-600 mb-2 flex items-center gap-2"><Tag size={18}/> Configuration du Prix Promo</h4>
                           {promoForm.is_promo && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                               <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase">Ancien Prix Vendeur</label>
+                                <label className="text-[10px] font-black text-base-content/40 uppercase">Ancien Prix Vendeur</label>
                                 <input 
                                   type="number" 
                                   placeholder="Ex: 10000"
@@ -714,11 +714,11 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                     }
                                     setPromoForm({ ...promoForm, old_supplier_price: e.target.value, supplier_price: newVal });
                                   }}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
+                                  className="w-full bg-base-200 border border-base-300 rounded-xl px-4 py-2.5 text-xs font-bold text-base-content outline-none focus:bg-base-100 focus:border-primary/20"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase">Remise (%)</label>
+                                <label className="text-[10px] font-black text-base-content/40 uppercase">Remise (%)</label>
                                 <input 
                                   type="number" 
                                   placeholder="Ex: 15"
@@ -732,7 +732,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                     }
                                     setPromoForm({ ...promoForm, discount_percent: e.target.value, supplier_price: newVal });
                                   }}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-200"
+                                  className="w-full bg-base-200 border border-base-300 rounded-xl px-4 py-2.5 text-xs font-bold text-base-content outline-none focus:bg-base-100 focus:border-primary/20"
                                 />
                               </div>
                             </div>
@@ -740,31 +740,31 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <label className="text-[10px] font-black text-slate-400 uppercase">Prix Vendeur Promo</label>
+                              <label className="text-[10px] font-black text-base-content/40 uppercase">Prix Vendeur Promo</label>
                               <input 
                                 type="number" 
                                 placeholder="Ex: 8500"
                                 value={promoForm.supplier_price}
                                 onChange={(e) => setPromoForm({ ...promoForm, supplier_price: e.target.value })}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-emerald-600 outline-none focus:bg-white focus:border-emerald-200"
+                                className="w-full bg-base-200 border border-base-300 rounded-xl px-4 py-2.5 text-xs font-bold text-emerald-600 outline-none focus:bg-base-100 focus:border-emerald-200"
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[10px] font-black text-slate-400 uppercase">Prix public estimé</label>
-                              <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black text-slate-900">
+                              <label className="text-[10px] font-black text-base-content/40 uppercase">Prix public estimé</label>
+                              <div className="w-full bg-base-200 border border-base-300 rounded-xl px-4 py-3 text-xs font-black text-base-content">
                                 {computePublicPrice(parseFloat(promoForm.supplier_price) || activePromoProduct?.supplier_price || 0, deliveryTiers).toLocaleString()} F CFA
                               </div>
                             </div>
                           </div>
 
                           {promoForm.is_promo && parseFloat(promoForm.old_supplier_price) > 0 && (
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col gap-1">
-                              <span className="text-[9px] font-black text-slate-400 uppercase">Aperçu du prix sur l'application :</span>
+                            <div className="bg-base-200 p-4 rounded-xl border border-base-300 flex flex-col gap-1">
+                              <span className="text-[9px] font-black text-base-content/40 uppercase">Aperçu du prix sur l'application :</span>
                               <div className="flex items-baseline gap-3">
-                                <span className="text-sm font-bold text-slate-400 line-through">
+                                <span className="text-sm font-bold text-base-content/40 line-through">
                                   {computePublicPrice(parseFloat(promoForm.old_supplier_price) || 0, deliveryTiers).toLocaleString()} F CFA
                                 </span>
-                                <span className="text-xl font-black text-slate-900">
+                                <span className="text-xl font-black text-base-content">
                                   {computePublicPrice(parseFloat(promoForm.supplier_price) || 0, deliveryTiers).toLocaleString()} F CFA
                                 </span>
                                 {parseFloat(promoForm.old_supplier_price) > parseFloat(promoForm.supplier_price) && (
@@ -777,7 +777,7 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                           )}
 
                           {(!promoForm.is_promo && (promoForm.is_flash_sale || promoForm.is_kit)) && (
-                            <p className="text-[10px] text-slate-500 leading-relaxed">
+                            <p className="text-[10px] text-base-content/50 leading-relaxed">
                               Saisissez un prix vendeur réduit pour cette offre. La page affichera ensuite le prix promo correspondant.
                             </p>
                           )}
@@ -785,30 +785,30 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                       )}
 
                       {promoForm.is_flash_sale && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-rose-100">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-base-100 p-6 rounded-3xl border border-rose-100">
                           <h4 className="font-black text-rose-600 mb-4 flex items-center gap-2"><Clock size={18}/> Configuration Vente Flash</h4>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 block mb-2">Date et heure de fin</label>
+                            <label className="text-xs font-bold text-base-content/50 block mb-2">Date et heure de fin</label>
                             <input 
                               type="datetime-local" 
                               value={promoForm.flash_sale_end}
                               onChange={(e) => setPromoForm({ ...promoForm, flash_sale_end: e.target.value })}
-                              className="w-full max-w-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-50 transition-all"
+                              className="w-full max-w-sm bg-base-200 border border-base-300 rounded-xl px-4 py-3 text-sm font-black text-base-content outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-50 transition-all"
                             />
                           </div>
                         </motion.div>
                       )}
 
                       {promoForm.volume_pricing_enabled && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-blue-100">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-base-100 p-6 rounded-3xl border border-blue-100">
                           <h4 className="font-black text-blue-600 mb-4 flex items-center gap-2"><Percent size={18}/> Configuration Prix Dégressif</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[0, 1].map(index => (
-                              <div key={index} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Palier {index + 1}</span>
+                              <div key={index} className="bg-base-200 p-4 rounded-2xl border border-base-300 space-y-3">
+                                <span className="text-[10px] font-black uppercase text-base-content/40 tracking-wider">Palier {index + 1}</span>
                                 <div className="flex items-center gap-3">
                                   <div className="flex-1">
-                                    <label className="text-xs font-bold text-slate-500 block mb-1">Quantité (min)</label>
+                                    <label className="text-xs font-bold text-base-content/50 block mb-1">Quantité (min)</label>
                                     <input 
                                       type="number" min="1"
                                       value={promoForm.volume_pricing[index]?.qty || ''}
@@ -817,11 +817,11 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                         newTiers[index] = { ...newTiers[index], qty: parseInt(e.target.value) || 0 };
                                         setPromoForm({ ...promoForm, volume_pricing: newTiers });
                                       }}
-                                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-slate-900 outline-none"
+                                      className="w-full bg-base-100 border border-base-300 rounded-xl px-3 py-2 text-sm font-black text-base-content outline-none"
                                     />
                                   </div>
                                   <div className="flex-1">
-                                    <label className="text-xs font-bold text-slate-500 block mb-1">Remise (%)</label>
+                                    <label className="text-xs font-bold text-base-content/50 block mb-1">Remise (%)</label>
                                     <input 
                                       type="number" min="1" max="99"
                                       value={promoForm.volume_pricing[index]?.discount || ''}
@@ -830,26 +830,26 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                         newTiers[index] = { ...newTiers[index], discount: parseInt(e.target.value) || 0 };
                                         setPromoForm({ ...promoForm, volume_pricing: newTiers });
                                       }}
-                                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 outline-none"
+                                      className="w-full bg-base-100 border border-base-300 rounded-xl px-3 py-2 text-sm font-black text-blue-600 outline-none"
                                     />
                                   </div>
                                 </div>
                               </div>
                             ))}
                           </div>
-                          <div className="mt-4 bg-blue-50 border border-blue-100 rounded-3xl p-4 text-slate-700">
+                          <div className="mt-4 bg-blue-50 border border-blue-100 rounded-3xl p-4 text-base-content/80">
                             <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">Aperçu des paliers</p>
                             {promoForm.volume_pricing.map((tier, index) => {
                               const baseSupplier = parseFloat(promoForm.supplier_price) || activePromoProduct.supplier_price || 0;
                               const tierSupplier = baseSupplier * (1 - (parseFloat(tier.discount) || 0) / 100);
                               const tierPublic = computePublicPrice(tierSupplier, deliveryTiers);
                               return (
-                                <div key={index} className="mt-3 rounded-2xl bg-white border border-blue-100 p-3 text-[11px] font-bold text-slate-700">
+                                <div key={index} className="mt-3 rounded-2xl bg-base-100 border border-blue-100 p-3 text-[11px] font-bold text-base-content/80">
                                   <div className="flex justify-between gap-3">
                                     <span>{tier.qty || 0}+ unités</span>
                                     <span>-{tier.discount || 0}%</span>
                                   </div>
-                                  <div className="mt-2 flex justify-between gap-3 text-slate-500">
+                                  <div className="mt-2 flex justify-between gap-3 text-base-content/50">
                                     <span>Prix unitaire env.</span>
                                     <span>{tierPublic.toLocaleString()} F CFA</span>
                                   </div>
@@ -861,13 +861,13 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                       )}
 
                       {promoForm.is_kit && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white p-6 rounded-3xl border border-emerald-100">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-base-100 p-6 rounded-3xl border border-emerald-100">
                           <h4 className="font-black text-emerald-600 mb-4 flex items-center gap-2"><Package size={18}/> Produits Complémentaires (Kit)</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                             {products.filter(item => item.id !== activePromoProduct.id).map(item => {
                               const isChecked = promoForm.kit_items.includes(item.id);
                               return (
-                                <label key={item.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-emerald-200'}`}>
+                                <label key={item.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-emerald-50 border-emerald-200' : 'bg-base-200 border-base-300 hover:border-emerald-200'}`}>
                                   <input 
                                     type="checkbox"
                                     checked={isChecked}
@@ -880,24 +880,24 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
                                     className="checkbox checkbox-success checkbox-sm"
                                   />
                                   <div className="flex-1">
-                                    <span className="text-xs font-bold text-slate-800 line-clamp-1">{item.name}</span>
-                                    <span className="text-[10px] font-bold text-slate-400">{item.price} F CFA</span>
+                                    <span className="text-xs font-bold text-base-content line-clamp-1">{item.name}</span>
+                                    <span className="text-[10px] font-bold text-base-content/40">{item.price} F CFA</span>
                                   </div>
                                 </label>
                               );
                             })}
                           </div>
                           {promoForm.kit_items.length > 0 && (
-                            <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-3xl p-4 text-slate-700">
+                            <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-3xl p-4 text-base-content/80">
                               <p className="text-xs font-black uppercase tracking-widest text-emerald-700">Valeur totale du kit</p>
-                              <p className="mt-2 text-lg font-black text-slate-900">{kitBundleValue.toLocaleString()} F CFA</p>
-                              <p className="text-[10px] text-slate-500 mt-1">Prix public estimé avec le prix vendeur actuel : <span className="font-black text-slate-900">{kitPublicPreview.toLocaleString()} F CFA</span></p>
+                              <p className="mt-2 text-lg font-black text-base-content">{kitBundleValue.toLocaleString()} F CFA</p>
+                              <p className="text-[10px] text-base-content/50 mt-1">Prix public estimé avec le prix vendeur actuel : <span className="font-black text-base-content">{kitPublicPreview.toLocaleString()} F CFA</span></p>
                               {kitBundleValue > kitPublicPreview && (
                                 <p className="mt-2 text-[11px] font-black text-emerald-600">Économie potentielle : {(kitBundleValue - kitPublicPreview).toLocaleString()} F CFA</p>
                               )}
                             </div>
                           )}
-                          <p className="mt-4 text-[10px] text-slate-500 leading-relaxed">
+                          <p className="mt-4 text-[10px] text-base-content/50 leading-relaxed">
                             Le prix vendeur réduit ci-dessus s'appliquera au kit. Sélectionnez vos produits, puis ajustez le prix vendeur promo pour définir votre offre de pack.
                           </p>
                         </motion.div>
@@ -909,17 +909,17 @@ const SupplierPromotions = ({ globalSearchQuery }) => {
 
               {/* Modal Footer */}
               {modalStep === 2 && activePromoProduct && (
-                <div className="px-8 py-5 border-t border-slate-100 bg-white flex gap-4 shrink-0">
+                <div className="px-8 py-5 border-t border-base-300 bg-base-100 flex gap-4 shrink-0">
                   <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-wider text-xs transition-colors"
+                    className="flex-1 py-4 bg-base-300 hover:brightness-95 text-base-content/80 rounded-2xl font-black uppercase tracking-wider text-xs transition-colors"
                   >
                     Annuler
                   </button>
                   <button 
                     onClick={handleSavePromo}
                     disabled={savingPromo}
-                    className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-wider text-xs transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
+                    className="flex-[2] py-4 bg-primary hover:brightness-90 text-white rounded-2xl font-black uppercase tracking-wider text-xs transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                   >
                     {savingPromo ? <span className="loading loading-spinner loading-sm"></span> : <span>Sauvegarder la Promotion</span>}
                   </button>

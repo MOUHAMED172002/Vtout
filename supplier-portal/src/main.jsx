@@ -7,6 +7,7 @@ if (import.meta.env.PROD) {
 import ReactDOM from 'react-dom/client'
 import { ClerkProvider } from './components/clerk-shim';
 import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from './components/Shared/ThemeContext.jsx'
 import App from './App.jsx'
 import './index.css'
 
@@ -19,9 +20,11 @@ if (!PUBLISHABLE_KEY) {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} clerkJSVersion="5.22.0">
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
     </ClerkProvider>
   </React.StrictMode>
 )

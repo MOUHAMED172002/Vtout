@@ -46,7 +46,7 @@ const InlineAdder = ({ label, onAdd, loading }) => {
         <button
             type="button"
             onClick={() => setShow(true)}
-            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline transition-all"
+            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary hover:underline transition-all"
         >
             <Plus size={12} /> {label}
         </button>
@@ -518,34 +518,34 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
     return (
-        <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden min-h-[600px] flex flex-col">
+        <div className="max-w-4xl mx-auto bg-base-100 rounded-[2.5rem] shadow-2xl border border-base-300 overflow-hidden min-h-[600px] flex flex-col">
             {/* Header */}
-            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+            <div className="p-8 border-b border-base-200 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                    <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg">
                         <Plus size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 tracking-tighter">{initialData ? 'Modifier le produit' : 'Ajouter un produit'}</h2>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section Vendeur</p>
+                        <h2 className="text-xl font-black text-base-content tracking-tighter">{initialData ? 'Modifier le produit' : 'Ajouter un produit'}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Section Vendeur</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                <button onClick={onClose} className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all">
                     <X size={20} />
                 </button>
             </div>
 
             {/* Stepper */}
-            <div className="px-8 py-4 bg-slate-50/50 flex items-center justify-between border-b border-slate-50">
+            <div className="px-8 py-4 bg-base-200/50 flex items-center justify-between border-b border-base-200">
                 {steps.map((step, idx) => (
                     <React.Fragment key={step.id}>
-                        <div className={`flex items-center gap-3 transition-all ${idx <= currentStep ? 'text-indigo-500' : 'text-slate-300'}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${idx === currentStep ? 'bg-indigo-500 text-white shadow-md' : idx < currentStep ? 'bg-emerald-500 text-white' : 'bg-white border'}`}>
+                        <div className={`flex items-center gap-3 transition-all ${idx <= currentStep ? 'text-primary' : 'text-base-content/30'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${idx === currentStep ? 'bg-primary text-white shadow-md' : idx < currentStep ? 'bg-emerald-500 text-white' : 'bg-base-100 border'}`}>
                                 {idx < currentStep ? <Check size={14} /> : idx + 1}
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{step.title}</span>
                         </div>
-                        {idx < steps.length - 1 && <div className={`flex-1 h-px mx-4 ${idx < currentStep ? 'bg-emerald-200' : 'bg-slate-200'}`} />}
+                        {idx < steps.length - 1 && <div className={`flex-1 h-px mx-4 ${idx < currentStep ? 'bg-emerald-200' : 'bg-base-300'}`} />}
                     </React.Fragment>
                 ))}
             </div>
@@ -556,28 +556,28 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                     {currentStep === 0 && (
                         <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Nom de l'article</label>
-                                <input {...register("name", { required: true })} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-lg font-black text-slate-900 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
+                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Nom de l'article</label>
+                                <input {...register("name", { required: true })} className="w-full bg-base-200 border-none rounded-3xl px-8 py-5 text-lg font-black text-base-content focus:ring-4 focus:ring-primary/20 transition-all outline-none" placeholder="Ex: iPhone 15 Pro Max..." />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Catégorie</label>
-                                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-left flex items-center justify-between group transition-all">
-                                    <span className={`font-bold ${selectedCategory ? 'text-slate-900' : 'text-slate-300'}`}>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Catégorie</label>
+                                <button type="button" onClick={() => setShowCategoryModal(true)} className="w-full bg-base-200 border-none rounded-3xl px-8 py-5 text-left flex items-center justify-between group transition-all">
+                                    <span className={`font-bold ${selectedCategory ? 'text-base-content' : 'text-base-content/30'}`}>
                                         {selectedCategory ? selectedCategory.name : "Choisir une catégorie..."}
                                     </span>
-                                    <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                    <ChevronRight size={18} className="text-base-content/30 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4 flex items-center gap-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4 flex items-center gap-2">
                                     <Truck size={14} className="text-primary" /> Zones de Livraison Gratuite (Vos Boutiques)
                                 </label>
                                 <div className="space-y-2">
                                     {boutiques.length > 0 ? (
                                         boutiques.map(b => (
-                                            <label key={b.id} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${selectedBoutiques.includes(b.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-slate-50 border-transparent text-slate-600 hover:bg-slate-100'}`}>
+                                            <label key={b.id} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${selectedBoutiques.includes(b.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-base-200 border-transparent text-base-content/70 hover:bg-base-300'}`}>
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedBoutiques.includes(b.id)}
@@ -612,34 +612,34 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-[10px] text-slate-400 font-bold ml-4 italic">Note: Le produit sera considéré comme expédié depuis la première boutique sélectionnée. Les communes de toutes les boutiques sélectionnées bénéficieront de la livraison gratuite.</p>
+                                <p className="text-[10px] text-base-content/40 font-bold ml-4 italic">Note: Le produit sera considéré comme expédié depuis la première boutique sélectionnée. Les communes de toutes les boutiques sélectionnées bénéficieront de la livraison gratuite.</p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Description (Optionnel)</label>
-                                <textarea {...register("description")} rows={4} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 focus:ring-4 focus:ring-indigo-500/20 transition-all outline-none" placeholder="Détails du produit..." />
+                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Description (Optionnel)</label>
+                                <textarea {...register("description")} rows={4} className="w-full bg-base-200 border-none rounded-3xl px-8 py-5 text-sm font-bold text-base-content/70 focus:ring-4 focus:ring-primary/20 transition-all outline-none" placeholder="Détails du produit..." />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Note pour l'Admin</label>
-                                <input {...register("supplier_note")} className="w-full bg-slate-50 border-none rounded-3xl px-8 py-5 text-sm font-bold text-slate-600 outline-none" placeholder="Ex: Disponible seulement en pack de 10..." />
+                                <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40 ml-4">Note pour l'Admin</label>
+                                <input {...register("supplier_note")} className="w-full bg-base-200 border-none rounded-3xl px-8 py-5 text-sm font-bold text-base-content/70 outline-none" placeholder="Ex: Disponible seulement en pack de 10..." />
                             </div>
                         </motion.div>
                     )}
 
                     {currentStep === 1 && (
                         <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                            <div className="bg-indigo-900 rounded-[2.5rem] p-10 text-white space-y-10">
+                            <div className="bg-primary rounded-[2.5rem] p-10 text-white space-y-10">
                                 <div className="space-y-6">
-                                    <h3 className="text-2xl font-black text-white">Sélection des <span className="text-indigo-400">Attributs.</span></h3>
+                                    <h3 className="text-2xl font-black text-white">Sélection des <span className="text-primary">Attributs.</span></h3>
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-2">
                                             <div className="relative flex-1">
-                                                <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                                <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/50" size={16} />
                                                 <input type="text" value={attrSearchQuery} onChange={e => setAttrSearchQuery(e.target.value)} placeholder="Chercher ou créer attribut..." className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-8 py-4 text-xs font-bold" />
                                             </div>
                                             {attrSearchQuery.trim() && !availableAttributes.find(a => a.name.toLowerCase() === attrSearchQuery.trim().toLowerCase()) && (
-                                                <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-6 py-4 bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] whitespace-nowrap shadow-xl">
+                                                <button type="button" onClick={() => createAttributeLocal(attrSearchQuery)} disabled={inlineLoading} className="px-6 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[9px] whitespace-nowrap shadow-xl">
                                                     {inlineLoading ? "..." : "+ Créer"}
                                                 </button>
                                             )}
@@ -649,7 +649,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                 <button key={attr.id} type="button" onClick={() => {
                                                     if (selectedAttributes.find(a => a.id === attr.id)) setSelectedAttributes(selectedAttributes.filter(a => a.id !== attr.id));
                                                     else setSelectedAttributes([...selectedAttributes, attr]);
-                                                }} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white/5 text-slate-400 border-white/10'}`}>
+                                                }} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${selectedAttributes.find(a => a.id === attr.id) ? 'bg-primary text-white border-primary' : 'bg-white/5 text-base-content/40 border-white/10'}`}>
                                                     {attr.name}
                                                 </button>
                                             ))}
@@ -661,14 +661,14 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {selectedAttributes.map(attr => (
                                             <div key={attr.id} className="p-5 bg-white/5 rounded-[2rem] border border-white/10 space-y-4">
-                                                <span className="text-[10px] font-black uppercase text-indigo-400">{attr.name}</span>
+                                                <span className="text-[10px] font-black uppercase text-primary">{attr.name}</span>
                                                 <div className="flex flex-wrap gap-2">
                                                     {attr.values.map(v => (
                                                         <button key={v.id} type="button" onClick={() => {
                                                             const current = selectedValuesMap[attr.id] || [];
                                                             if (current.includes(v.id)) setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: current.filter(id => id !== v.id) });
                                                             else setSelectedValuesMap({ ...selectedValuesMap, [attr.id]: [...current, v.id] });
-                                                        }} className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white/5 text-white border-white/10'}`}>
+                                                        }} className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${selectedValuesMap[attr.id]?.includes(v.id) ? 'bg-primary text-white border-primary' : 'bg-white/5 text-white border-white/10'}`}>
                                                             {v.value}
                                                         </button>
                                                     ))}
@@ -690,7 +690,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     type="button"
                                     onClick={() => nextStep()}
                                     disabled={selectedAttributes.length === 0 || !variants || variants.length === 0}
-                                    className="w-full py-5 bg-indigo-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                    className="w-full py-5 bg-primary text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                 >
                                     {variants && variants.length > 0
                                         ? `Continuer (${variants.length} variante${variants.length > 1 ? 's' : ''} générée${variants.length > 1 ? 's' : ''})`
@@ -703,8 +703,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                     {currentStep === 2 && (
                         <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-black text-slate-900 tracking-tight">Photos du produit</h3>
-                                <label className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-slate-900 transition-all">
+                                <h3 className="text-xl font-black text-base-content tracking-tight">Photos du produit</h3>
+                                <label className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:brightness-90 transition-all">
                                     <Upload size={14} /> Ajouter
                                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
                                 </label>
@@ -712,7 +712,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                                 {imageFiles.map((img, idx) => (
-                                    <div key={idx} className={`relative aspect-square rounded-[1.5rem] overflow-hidden border-4 group ${img.isMain ? 'border-indigo-500 shadow-lg shadow-indigo-500/20' : 'border-slate-50'}`}>
+                                    <div key={idx} className={`relative aspect-square rounded-[1.5rem] overflow-hidden border-4 group ${img.isMain ? 'border-primary shadow-lg shadow-primary/20' : 'border-base-200'}`}>
                                         <img src={img.preview} className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                                             <button type="button" onClick={() => removeImage(idx)} className="bg-rose-500 text-white p-2 rounded-full hover:scale-110 transition-transform"><Trash2 size={16} /></button>
@@ -720,7 +720,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     </div>
                                 ))}
                                 {imageFiles.length === 0 && (
-                                    <div className="col-span-full py-20 border-2 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-300">
+                                    <div className="col-span-full py-20 border-2 border-dashed border-base-300 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-base-content/30">
                                         <ImageIcon size={48} strokeWidth={1} />
                                         <p className="text-[10px] font-black uppercase tracking-widest">Aucune image ajoutée</p>
                                     </div>
@@ -733,22 +733,22 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
                             {/* Global Supplier Info */}
                             {variants.length === 0 && (
-                            <div className="p-8 bg-indigo-50 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8 shadow-inner">
+                            <div className="p-8 bg-primary/10 rounded-[2.5rem] grid grid-cols-1 sm:grid-cols-2 gap-8 shadow-inner">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Votre prix de vente souhaité (FCFA)</label>
-                                        <input type="number" {...register("supplier_price")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-indigo-600 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ex: 7000" />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-primary px-4">Votre prix de vente souhaité (FCFA)</label>
+                                        <input type="number" {...register("supplier_price")} className="w-full bg-base-100 border-none rounded-3xl px-8 py-5 font-black text-lg text-primary shadow-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all" placeholder="Ex: 7000" />
                                     </div>
                                     <div className="space-y-2 px-4">
-                                        <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
+                                        <div className="flex justify-between items-center text-[9px] font-black uppercase text-base-content/40">
                                             <span>Frais de livraison (Marketing) :</span>
-                                            <span className="text-indigo-500">+ {computeDeliveryFee(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
+                                            <span className="text-primary">+ {computeDeliveryFee(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
+                                        <div className="flex justify-between items-center text-[9px] font-black uppercase text-base-content/40">
                                             <span>Commission Vtout ({commissionRate}%) :</span>
                                             <span className="text-orange-500">- {Math.round((globalSupplierPrice || 0) * (commissionRate / 100)).toLocaleString()} F</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-xs font-black text-slate-900 pt-2 border-t border-indigo-100">
+                                        <div className="flex justify-between items-center text-xs font-black text-base-content pt-2 border-t border-primary/10">
                                             <span>Prix affiché aux clients :</span>
                                             <span className="text-lg text-primary">{computePublicPrice(globalSupplierPrice, deliveryTiers).toLocaleString()} F</span>
                                         </div>
@@ -761,15 +761,15 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 px-4">Stock Total</label>
-                                    <input type="number" {...register("stock")} className="w-full bg-white border-none rounded-3xl px-8 py-5 font-black text-lg text-slate-900 shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all" />
-                                    <p className="text-[9px] font-bold text-slate-400 px-4 mt-2 italic">Note: Le prix final inclut les frais de livraison calculés selon la grille. Le client verra "Livraison Gratuite".</p>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary px-4">Stock Total</label>
+                                    <input type="number" {...register("stock")} className="w-full bg-base-100 border-none rounded-3xl px-8 py-5 font-black text-lg text-base-content shadow-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                                    <p className="text-[9px] font-bold text-base-content/40 px-4 mt-2 italic">Note: Le prix final inclut les frais de livraison calculés selon la grille. Le client verra "Livraison Gratuite".</p>
                                 </div>
                             </div>
                             )}
 
                             <div className="space-y-6">
-                                <h4 className="text-xl font-black text-slate-900 tracking-tighter">Personnalisation des Variantes</h4>
+                                <h4 className="text-xl font-black text-base-content tracking-tighter">Personnalisation des Variantes</h4>
                                 {variants.length > 0 ? (
                                     <div className="space-y-6">
                                         {variants.map((v, idx) => {
@@ -778,16 +778,16 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                             const vPublic = computePublicPrice(vPrice, deliveryTiers);
 
                                             return (
-                                            <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:shadow-slate-100 transition-all">
+                                            <div key={idx} className="p-8 bg-base-100 border border-base-300 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:shadow-base-300 transition-all">
                                                 {/* Variant Image Selector */}
                                                 <div className="w-32 h-32 relative group/img">
-                                                    <div className="w-full h-full bg-slate-50 rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 overflow-hidden relative">
+                                                    <div className="w-full h-full bg-base-200 rounded-[1.5rem] flex flex-col items-center justify-center border-2 border-dashed border-base-300 overflow-hidden relative">
                                                         {watch(`variants.${idx}.preview_url`) ? (
                                                             <img src={watch(`variants.${idx}.preview_url`)} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <>
-                                                                <ImageIcon className="w-6 h-6 text-slate-300" />
-                                                                <span className="text-[8px] font-black uppercase text-slate-400 mt-1">Image</span>
+                                                                <ImageIcon className="w-6 h-6 text-base-content/30" />
+                                                                <span className="text-[8px] font-black uppercase text-base-content/40 mt-1">Image</span>
                                                             </>
                                                         )}
                                                         <input
@@ -807,15 +807,15 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                 <div className="flex-1 space-y-4">
                                                     <div className="flex flex-wrap gap-2">
                                                         {Object.entries(v.combination).map(([a, val], i) => (
-                                                            <span key={i} className="px-4 py-1.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">{a}: {val}</span>
+                                                            <span key={i} className="px-4 py-1.5 bg-neutral text-white rounded-xl text-[9px] font-black uppercase tracking-widest">{a}: {val}</span>
                                                         ))}
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black uppercase text-slate-400">Votre prix souhaité</label>
-                                                            <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black text-indigo-500" placeholder="Prix" />
+                                                            <label className="text-[9px] font-black uppercase text-base-content/40">Votre prix souhaité</label>
+                                                            <input type="number" {...register(`variants.${idx}.supplier_price`)} className="w-full bg-base-200 border-none rounded-xl px-5 py-3 text-xs font-black text-primary" placeholder="Prix" />
                                                             <div className="flex flex-col gap-1 mt-2">
-                                                                <div className="text-[8px] font-bold text-slate-400">
+                                                                <div className="text-[8px] font-bold text-base-content/40">
                                                                     + {vFee.toLocaleString()} F Livr. = <span className="text-primary">{vPublic.toLocaleString()} F (Public)</span>
                                                                 </div>
                                                                 {vPrice && (
@@ -826,8 +826,8 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                                             </div>
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black uppercase text-slate-400">Stock</label>
-                                                            <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-slate-50 border-none rounded-xl px-5 py-3 text-xs font-black" placeholder="Stock" />
+                                                            <label className="text-[9px] font-black uppercase text-base-content/40">Stock</label>
+                                                            <input type="number" {...register(`variants.${idx}.stock`)} className="w-full bg-base-200 border-none rounded-xl px-5 py-3 text-xs font-black" placeholder="Stock" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -836,10 +836,10 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center gap-4 text-slate-300 text-center">
+                                    <div className="py-20 bg-base-200 rounded-[3rem] border-2 border-dashed border-base-300 flex flex-col items-center justify-center gap-4 text-base-content/30 text-center">
                                         <Layers size={48} strokeWidth={1} />
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Aucune variante générée</p>
-                                        <button type="button" onClick={() => setCurrentStep(1)} className="text-indigo-500 text-[10px] font-black uppercase underline">Retourner aux attributs</button>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Aucune variante générée</p>
+                                        <button type="button" onClick={() => setCurrentStep(1)} className="text-primary text-[10px] font-black uppercase underline">Retourner aux attributs</button>
                                     </div>
                                 )}
                             </div>
@@ -851,17 +851,17 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             </div>
 
             {/* Footer */}
-            <div className="p-8 border-t border-slate-50 bg-white flex justify-between">
-                <button onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-slate-50 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all disabled:opacity-0">
+            <div className="p-8 border-t border-base-200 bg-base-100 flex justify-between">
+                <button onClick={prevStep} disabled={currentStep === 0} className="px-8 py-4 bg-base-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-base-content/40 hover:text-base-content transition-all disabled:opacity-0">
                     Précédent
                 </button>
                 <div className="flex gap-4">
                     {currentStep < steps.length - 1 ? (
-                        <button onClick={nextStep} className="px-10 py-4 bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-indigo-500/20">
+                        <button onClick={nextStep} className="px-10 py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-90 transition-all shadow-xl shadow-primary/20">
                             Continuer
                         </button>
                     ) : (
-                        <button onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2">
+                        <button onClick={handleSubmit(onSubmit)} disabled={loading} className="px-16 py-4 bg-neutral text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl flex items-center gap-2">
                             {loading ? <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span> : <><Check size={14} /> Envoyer</>}
                         </button>
                     )}

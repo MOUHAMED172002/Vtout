@@ -55,16 +55,16 @@ export default function SupplierBadge() {
     return (
         <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
             {/* Header / Summary Card */}
-            <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-slate-200">
+            <div className="bg-neutral rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-base-300">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
 
                 <div className="relative z-10 space-y-6 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-4">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center backdrop-blur-md ${isCertified ? 'bg-blue-500/20' : 'bg-white/10'}`}>
-                            <BadgeCheck size={26} className={isCertified ? 'text-blue-400' : 'text-slate-400'} />
+                            <BadgeCheck size={26} className={isCertified ? 'text-blue-400' : 'text-base-content/40'} />
                         </div>
                         <div className="text-left">
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Badge Vendeur Certifié</span>
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-base-content/40">Badge Vendeur Certifié</span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight">
                                 {isCertified ? 'Votre boutique est certifiée' : 'Pas encore certifié'}
                             </h1>
@@ -73,7 +73,7 @@ export default function SupplierBadge() {
 
                     {isCertified ? (
                         <>
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-slate-300">
+                            <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-base-content/30">
                                 <Clock size={16} className="text-blue-400" />
                                 Actif jusqu'au {expiresAt?.toLocaleDateString('fr-FR')}
                             </div>
@@ -82,30 +82,30 @@ export default function SupplierBadge() {
                                 <CheckCircle2 size={22} className="text-blue-400" />
                                 <div className="text-left">
                                     <p className="text-3xl font-black tracking-tighter leading-none">
-                                        {daysLeft} <span className="text-sm font-black text-slate-400 uppercase tracking-widest">jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''}</span>
+                                        {daysLeft} <span className="text-sm font-black text-base-content/40 uppercase tracking-widest">jour{daysLeft > 1 ? 's' : ''} restant{daysLeft > 1 ? 's' : ''}</span>
                                     </p>
                                 </div>
                             </div>
 
                             <button
                                 disabled
-                                className="bg-white/5 text-slate-400 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 cursor-not-allowed border border-white/10"
+                                className="bg-white/5 text-base-content/40 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs flex items-center gap-3 cursor-not-allowed border border-white/10"
                             >
                                 Badge déjà actif
                             </button>
 
-                            <p className="text-[11px] font-bold text-slate-500">
+                            <p className="text-[11px] font-bold text-base-content/50">
                                 Le renouvellement sera possible à l'expiration de votre abonnement actuel.
                             </p>
                         </>
                     ) : (
                         <>
-                            <p className="text-sm font-bold text-slate-300 max-w-md">
+                            <p className="text-sm font-bold text-base-content/30 max-w-md">
                                 Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
                             </p>
 
                             <div className="space-y-3">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Choisissez la durée</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-base-content/40">Choisissez la durée</p>
                                 <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                     {MONTH_OPTIONS.map(m => (
                                         <button
@@ -115,7 +115,7 @@ export default function SupplierBadge() {
                                             className={`px-5 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest transition-all ${
                                                 selectedMonths === m
                                                     ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                                                    : 'border-white/10 text-slate-400 hover:border-white/20'
+                                                    : 'border-white/10 text-base-content/40 hover:border-white/20'
                                             }`}
                                         >
                                             {m} mois
@@ -133,7 +133,7 @@ export default function SupplierBadge() {
                                 <ChevronRight size={18} />
                             </button>
 
-                            <p className="text-[11px] font-bold text-slate-400">
+                            <p className="text-[11px] font-bold text-base-content/40">
                                 {monthlyPrice.toLocaleString('fr-FR')} FCFA / mois × {selectedMonths} mois · Paiement sécurisé via FedaPay
                             </p>
                         </>
@@ -148,12 +148,12 @@ export default function SupplierBadge() {
                     { icon: Sparkles, title: 'Visible partout', desc: 'Affiché automatiquement sur tous vos produits, sans action supplémentaire.' },
                     { icon: BadgeCheck, title: 'Multi-mois', desc: 'Payez pour 1, 3, 6 ou 12 mois en une seule fois, comme vous le souhaitez.' },
                 ].map(({ icon: Icon, title, desc }) => (
-                    <div key={title} className="bg-white p-6 rounded-3xl border border-slate-50 shadow-sm space-y-3">
+                    <div key={title} className="bg-base-100 p-6 rounded-3xl border border-base-200 shadow-sm space-y-3">
                         <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
                             <Icon size={20} />
                         </div>
-                        <p className="font-black text-slate-900 text-sm">{title}</p>
-                        <p className="text-xs font-bold text-slate-400 leading-relaxed">{desc}</p>
+                        <p className="font-black text-base-content text-sm">{title}</p>
+                        <p className="text-xs font-bold text-base-content/40 leading-relaxed">{desc}</p>
                     </div>
                 ))}
             </div>
@@ -161,18 +161,18 @@ export default function SupplierBadge() {
             {/* Historique */}
             <div className="space-y-6">
                 <div className="flex items-center gap-2 px-4">
-                    <History size={18} className="text-slate-400" />
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Historique des paiements</h3>
+                    <History size={18} className="text-base-content/40" />
+                    <h3 className="text-xl font-black text-base-content tracking-tight">Historique des paiements</h3>
                 </div>
 
                 <div className="space-y-4">
                     {status?.history?.length > 0 ? status.history.map(h => (
-                        <div key={h.id} className="bg-white p-6 rounded-3xl border border-slate-50 flex items-center justify-between gap-4 shadow-sm">
+                        <div key={h.id} className="bg-base-100 p-6 rounded-3xl border border-base-200 flex items-center justify-between gap-4 shadow-sm">
                             <div>
-                                <p className="font-black text-slate-900 text-sm">
+                                <p className="font-black text-base-content text-sm">
                                     {new Date(h.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest mt-1">
                                     {Number(h.amount).toLocaleString('fr-FR')} FCFA · {h.months || 1} mois
                                 </p>
                             </div>
@@ -185,7 +185,7 @@ export default function SupplierBadge() {
                             </span>
                         </div>
                     )) : (
-                        <div className="text-center py-10 bg-slate-50 rounded-3xl text-slate-400 font-bold text-sm">
+                        <div className="text-center py-10 bg-base-200 rounded-3xl text-base-content/40 font-bold text-sm">
                             Aucun paiement effectué pour le moment.
                         </div>
                     )}

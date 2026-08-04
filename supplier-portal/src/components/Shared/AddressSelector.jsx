@@ -229,7 +229,7 @@ export default function AddressSelector({
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-emerald-200 text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-base-100 border border-emerald-200 text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0"
             >
               <Edit2 size={11} /> Modifier
             </button>

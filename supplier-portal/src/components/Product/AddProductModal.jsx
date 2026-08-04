@@ -191,7 +191,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
             {/* Main Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-base-content">
                 {/* List Section */}
-                <div className="xl:col-span-2 bg-base-100 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-base-200 overflow-hidden">
+                <div className="xl:col-span-2 bg-base-100 rounded-[40px] shadow-2xl shadow-base-300/50 border border-base-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
@@ -216,7 +216,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                         <tr
                                             key={product.id}
                                             className={`hover:bg-base-200/50 transition-colors cursor-pointer ${
-                                                selectedProduct?.id === product.id ? 'bg-indigo-50/30' : ''
+                                                selectedProduct?.id === product.id ? 'bg-primary/30' : ''
                                             }`}
                                             onClick={() => {
                                                 setSelectedProduct(product);
@@ -251,7 +251,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <p className="text-sm font-black text-indigo-600">
+                                                <p className="text-sm font-black text-primary">
                                                     {formatPrice(product.price)} FCFA
                                                 </p>
                                                 <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">
@@ -299,7 +299,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                 </div>
 
                 {/* Detail Panel - VERSION AVEC VÉRIFICATIONS */}
-                <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-base-200 p-8 h-fit sticky top-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div className="bg-base-100 rounded-[40px] shadow-2xl shadow-base-300/50 border border-base-200 p-8 h-fit sticky top-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <AnimatePresence mode="wait">
                         {selectedProduct ? (
                             <motion.div
@@ -364,15 +364,15 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                 </div>
 
                                 {/* SECTION 2: Prix et Paiement */}
-                                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-6 space-y-4 border border-indigo-100">
-                                    <div className="flex items-center gap-2 text-indigo-400">
+                                <div className="bg-gradient-to-br from-primary/10 to-purple-50 rounded-3xl p-6 space-y-4 border border-primary/10">
+                                    <div className="flex items-center gap-2 text-primary">
                                         <Percent size={16} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Prix & Paiement</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/70 rounded-2xl p-4">
-                                            <p className="text-[9px] font-black uppercase text-indigo-400">💰 Prix Public</p>
-                                            <p className="text-2xl font-black text-indigo-600">{formatPrice(selectedProduct.price)} FCFA</p>
+                                            <p className="text-[9px] font-black uppercase text-primary">💰 Prix Public</p>
+                                            <p className="text-2xl font-black text-primary">{formatPrice(selectedProduct.price)} FCFA</p>
                                         </div>
                                         <div className="bg-white/70 rounded-2xl p-4">
                                             <p className="text-[9px] font-black uppercase text-emerald-400">📦 Payout</p>
@@ -474,7 +474,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                                                     </div>
                                                                 )}
                                                                 <div className="flex gap-4 text-xs font-bold">
-                                                                    <span className="text-indigo-600">{formatPrice(variant.price)} FCFA</span>
+                                                                    <span className="text-primary">{formatPrice(variant.price)} FCFA</span>
                                                                     <span className="text-base-content/40">|</span>
                                                                     <span className={variant.stock > 0 ? 'text-emerald-600' : 'text-rose-500'}>
                                                                         Stock: {variant.stock || 0}
@@ -567,7 +567,7 @@ const AddProductModal = ({ globalSearchQuery = "" }) => {
                                 <div className="grid grid-cols-3 gap-3 pt-4">
                                     <button
                                         onClick={() => handleDelete(selectedProduct)}
-                                        className="flex items-center justify-center gap-2 py-4 bg-neutral/90 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-neutral transition-all shadow-xl shadow-slate-200 text-white"
+                                        className="flex items-center justify-center gap-2 py-4 bg-neutral/90 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:brightness-90 transition-all shadow-xl shadow-base-300 text-white"
                                     >
                                         <Trash2 size={14} /> Supprimer
                                     </button>

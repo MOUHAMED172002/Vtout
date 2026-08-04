@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
     'en_attente': { label: 'Nouvelle', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
-    'confirmée': { label: 'En Préparation', icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-200' },
-    'confirmee': { label: 'En Préparation', icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+    'confirmée': { label: 'En Préparation', icon: Package, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
+    'confirmee': { label: 'En Préparation', icon: Package, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
     'expédiée': { label: 'Expédiée', icon: Truck, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
     'expediee': { label: 'Expédiée', icon: Truck, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
     'livrée': { label: 'Livrée', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -123,36 +123,36 @@ const SupplierOrders = ({ globalSearchQuery }) => {
         return matchesStatus && matchesBoutique && matchesSearch;
     });
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse text-slate-300">CHARGEMENT...</div>;
+    if (loading) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse text-base-content/30">CHARGEMENT...</div>;
 
     return (
-        <div className="p-6 md:p-12 min-h-screen bg-slate-50 space-y-10">
+        <div className="p-6 md:p-12 min-h-screen bg-base-200 space-y-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">Gestion des Commandes</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Traitez et préparez vos livraisons</p>
+                    <h1 className="text-4xl font-black tracking-tighter text-base-content mb-2">Gestion des Commandes</h1>
+                    <p className="text-base-content/50 font-bold uppercase tracking-[0.2em] text-[10px]">Traitez et préparez vos livraisons</p>
                 </div>
             </div>
 
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                     <input
                         type="text"
                         placeholder="Rechercher par n° de commande ou client..."
                         value={searchQuery}
                         onChange={(e) => globalSearchQuery !== undefined ? null : setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 rounded-3xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 bg-white transition-shadow text-sm font-bold text-slate-700 placeholder:font-medium"
+                        className="w-full pl-12 pr-4 py-4 rounded-3xl border-none ring-1 ring-base-300 focus:ring-2 focus:ring-primary bg-base-100 transition-shadow text-sm font-bold text-base-content/80 placeholder:font-medium"
                     />
                 </div>
-                <div className="flex gap-1 bg-white p-2 rounded-full ring-1 ring-slate-200 overflow-x-auto no-scrollbar flex-nowrap">
+                <div className="flex gap-1 bg-base-100 p-2 rounded-full ring-1 ring-base-300 overflow-x-auto no-scrollbar flex-nowrap">
                     {['all', 'en_attente', 'confirmée', 'expédiée', 'livrée', 'annulée'].map(status => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterStatus === status ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                            className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterStatus === status ? 'bg-neutral text-white shadow-md' : 'text-base-content/50 hover:text-base-content hover:bg-base-200'}`}
                         >
                             {status === 'all' ? 'Toutes' : STATUS_CONFIG[status]?.label}
                         </button>
@@ -160,12 +160,12 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                 </div>
 
                 {uniqueBoutiques.length > 1 && (
-                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full ring-1 ring-slate-200">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Boutique :</span>
+                    <div className="flex items-center gap-2 bg-base-100 px-4 py-2 rounded-full ring-1 ring-base-300">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Boutique :</span>
                         <select 
                             value={selectedBoutiqueFilter}
                             onChange={(e) => setSelectedBoutiqueFilter(e.target.value)}
-                            className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-slate-900 outline-none pr-4"
+                            className="bg-transparent border-none text-[10px] font-black uppercase tracking-widest text-base-content outline-none pr-4"
                         >
                             <option value="all">Toutes</option>
                             {uniqueBoutiques.map(b => <option key={b} value={b}>{b}</option>)}
@@ -175,14 +175,14 @@ const SupplierOrders = ({ globalSearchQuery }) => {
             </div>
 
             {/* Orders Grid */}
-            <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 p-6 md:p-10">
+            <div className="bg-base-100 rounded-[40px] border border-base-300 shadow-2xl shadow-base-300/50 p-6 md:p-10">
                 {filteredOrders.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center text-center">
-                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
+                        <div className="w-24 h-24 bg-base-200 rounded-full flex items-center justify-center text-base-content/30 mb-6">
                             <Package size={48} />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-2">Aucune commande</h3>
-                        <p className="text-slate-400 font-bold text-xs">Modifiez vos filtres ou attendez de nouvelles ventes.</p>
+                        <h3 className="text-2xl font-black text-base-content tracking-tighter mb-2">Aucune commande</h3>
+                        <p className="text-base-content/40 font-bold text-xs">Modifiez vos filtres ou attendez de nouvelles ventes.</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -195,7 +195,7 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                     key={order.id}
                                     onClick={() => setSelectedOrder(order)}
-                                    className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-colors cursor-pointer gap-6 border border-slate-100/50"
+                                    className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-base-200 hover:bg-base-300 rounded-3xl transition-colors cursor-pointer gap-6 border border-base-300/50"
                                 >
                                     <div className="flex items-center gap-6">
                                         <div className={`w-14 h-14 ${config.bg} ${config.color} rounded-2xl flex items-center justify-center shrink-0 border ${config.border}`}>
@@ -203,17 +203,17 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-3 mb-1">
-                                                <h4 className="font-black text-slate-900">#{order.id.substring(0, 8)}</h4>
+                                                <h4 className="font-black text-base-content">#{order.id.substring(0, 8)}</h4>
                                                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${config.bg} ${config.color}`}>
                                                     {config.label}
                                                 </span>
                                             </div>
-                                            <p className="text-xs font-bold text-slate-400">
+                                            <p className="text-xs font-bold text-base-content/40">
                                                 {new Date(order.created_at || order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} • {order.items_count} article(s)
                                             </p>
                                             <div className="flex flex-wrap gap-2 mt-2">
                                                 {Array.from(new Set(order.items?.map(i => i.boutique?.name).filter(Boolean))).map(b => (
-                                                    <span key={b} className="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-lg text-[8px] font-black uppercase tracking-widest border border-indigo-100">
+                                                    <span key={b} className="px-2 py-0.5 bg-primary/10 text-primary rounded-lg text-[8px] font-black uppercase tracking-widest border border-primary/10">
                                                         {b}
                                                     </span>
                                                 ))}
@@ -223,10 +223,10 @@ const SupplierOrders = ({ globalSearchQuery }) => {
 
                                     <div className="flex items-center justify-between w-full md:w-auto gap-8">
                                         <div className="text-left md:text-right">
-                                            <p className="font-black text-slate-900">{getEstimatedGain(order).toLocaleString()} F</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gain Est.</p>
+                                            <p className="font-black text-base-content">{getEstimatedGain(order).toLocaleString()} F</p>
+                                            <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">Gain Est.</p>
                                         </div>
-                                        <div className="w-10 h-10 bg-white rounded-xl shadow-sm text-slate-400 flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-base-100 rounded-xl shadow-sm text-base-content/40 flex items-center justify-center">
                                             <ArrowRight size={18} />
                                         </div>
                                     </div>
@@ -244,39 +244,39 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => setSelectedOrder(null)}
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50"
+                            className="fixed inset-0 bg-neutral/60 backdrop-blur-sm z-50"
                         />
                         <motion.div
                             initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
-                            className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white z-50 shadow-2xl flex flex-col"
+                            className="fixed top-0 right-0 h-full w-full max-w-2xl bg-base-100 z-50 shadow-2xl flex flex-col"
                         >
-                            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <div className="p-8 border-b border-base-300 flex justify-between items-center bg-base-200">
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tighter">Commande #{selectedOrder.id.substring(0, 8)}</h2>
-                                    <p className="text-xs font-bold text-slate-400">{new Date(selectedOrder.created_at || selectedOrder.createdAt).toLocaleString()}</p>
+                                    <h2 className="text-2xl font-black text-base-content tracking-tighter">Commande #{selectedOrder.id.substring(0, 8)}</h2>
+                                    <p className="text-xs font-bold text-base-content/40">{new Date(selectedOrder.created_at || selectedOrder.createdAt).toLocaleString()}</p>
                                 </div>
-                                <button onClick={() => setSelectedOrder(null)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100">
+                                <button onClick={() => setSelectedOrder(null)} className="w-10 h-10 bg-base-100 rounded-full flex items-center justify-center text-base-content/40 hover:text-base-content shadow-sm border border-base-300">
                                     <XCircle size={20} />
                                 </button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-8 space-y-8">
                                 {/* Status Flow */}
-                                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</p>
+                                <div className="bg-base-200 p-6 rounded-3xl border border-base-300">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40 mb-4">Statut Actuel</p>
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${STATUS_CONFIG[selectedOrder.status]?.bg || 'bg-slate-100'} ${STATUS_CONFIG[selectedOrder.status]?.color || 'text-slate-400'}`}>
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${STATUS_CONFIG[selectedOrder.status]?.bg || 'bg-base-300'} ${STATUS_CONFIG[selectedOrder.status]?.color || 'text-base-content/40'}`}>
                                             {React.createElement(STATUS_CONFIG[selectedOrder.status]?.icon || Clock)}
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="font-black text-slate-900 text-lg">{STATUS_CONFIG[selectedOrder.status]?.label}</h4>
+                                            <h4 className="font-black text-base-content text-lg">{STATUS_CONFIG[selectedOrder.status]?.label}</h4>
                                         </div>
 
                                         {selectedOrder.status === 'en_attente' && (
                                             <button
                                                 onClick={() => handleAdvanceStatus(selectedOrder.id, 'en_attente')}
                                                 disabled={isUpdating}
-                                                className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-indigo-500/30"
+                                                className="px-6 py-3 bg-primary hover:brightness-90 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-primary/30"
                                             >
                                                 Accepter & Préparer
                                             </button>
@@ -307,19 +307,19 @@ const SupplierOrders = ({ globalSearchQuery }) => {
 
                 {/* Products */}
                 <div className="space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white sticky top-0 py-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-base-content/40 bg-base-100 sticky top-0 py-2">
                         Articles ({selectedOrder.items?.length || 0})
                     </h3>
                     <div className="space-y-3">
                         {selectedOrder.items?.map(item => (
-                            <div key={item.id} className="p-4 bg-white border border-slate-100 rounded-2xl space-y-3">
+                            <div key={item.id} className="p-4 bg-base-100 border border-base-300 rounded-2xl space-y-3">
                                 <div className="flex justify-between items-start">
                                     <div className="flex flex-col">
-                                        <span className="font-bold text-slate-900 text-sm">{item.product?.name || 'Produit inconnu'}</span>
+                                        <span className="font-bold text-base-content text-sm">{item.product?.name || 'Produit inconnu'}</span>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs text-slate-400">Qté: {item.quantity}</span>
+                                            <span className="text-xs text-base-content/40">Qté: {item.quantity}</span>
                                             {item.boutique && (
-                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-indigo-100">
+                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[9px] font-black uppercase tracking-widest border border-primary/10">
                                                     <MapPin size={8} /> {item.boutique.name} ({item.boutique.commune_label})
                                                 </span>
                                             )}
@@ -327,7 +327,7 @@ const SupplierOrders = ({ globalSearchQuery }) => {
                                     </div>
                                     <div className="text-right">
                                         {item.original_price && Number(item.original_price) > Number(item.price) && (
-                                            <p className="text-[10px] text-slate-400 line-through">{Number(item.original_price).toLocaleString()} F / u</p>
+                                            <p className="text-[10px] text-base-content/40 line-through">{Number(item.original_price).toLocaleString()} F / u</p>
                                         )}
                                         <div className="font-black text-emerald-600 text-sm bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
                                             {(parseFloat(item.price) * item.quantity).toLocaleString()} F
@@ -341,10 +341,10 @@ const SupplierOrders = ({ globalSearchQuery }) => {
 
                             </div>
 
-                            <div className="p-8 bg-slate-50 border-t border-slate-100">
+                            <div className="p-8 bg-base-200 border-t border-base-300">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Total Gains Estimés</span>
-                                    <span className="text-3xl font-black text-indigo-600 tracking-tighter">{getEstimatedGain(selectedOrder).toLocaleString()} F</span>
+                                    <span className="text-sm font-black text-base-content/40 uppercase tracking-widest">Total Gains Estimés</span>
+                                    <span className="text-3xl font-black text-primary tracking-tighter">{getEstimatedGain(selectedOrder).toLocaleString()} F</span>
                                 </div>
                             </div>
                         </motion.div>

@@ -14,13 +14,13 @@ const ProfileReminderModal = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }} 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                className="absolute inset-0 bg-neutral/60 backdrop-blur-md"
             />
             
             <motion.div 
                 initial={{ scale: 0.9, opacity: 0, y: 20 }} 
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden"
+                className="bg-base-100 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden"
             >
                 {/* Header Decoration */}
                 <div className="h-2 bg-gradient-to-r from-amber-400 to-orange-500" />
@@ -31,29 +31,29 @@ const ProfileReminderModal = ({ isOpen, onClose }) => {
                             <AlertCircle size={40} strokeWidth={2.5} />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">Boutique Incomplète</h3>
-                            <p className="text-sm font-bold text-slate-500 leading-relaxed px-4">
+                            <h3 className="text-2xl font-black text-base-content tracking-tighter">Boutique Incomplète</h3>
+                            <p className="text-sm font-bold text-base-content/50 leading-relaxed px-4">
                                 Pour commencer à vendre sur Vtout, vous devez configurer au moins une boutique avec une adresse et un contact valides.
                             </p>
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Informations requises :</p>
-                        <div className="flex items-center gap-4 text-slate-600">
-                            <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
+                    <div className="bg-base-200 rounded-2xl p-6 space-y-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-2">Informations requises :</p>
+                        <div className="flex items-center gap-4 text-base-content/70">
+                            <div className="w-8 h-8 rounded-lg bg-base-100 shadow-sm flex items-center justify-center text-primary">
                                 <Store size={16} />
                             </div>
                             <span className="text-xs font-black uppercase tracking-widest">Nom de la boutique</span>
                         </div>
-                        <div className="flex items-center gap-4 text-slate-600">
-                            <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
+                        <div className="flex items-center gap-4 text-base-content/70">
+                            <div className="w-8 h-8 rounded-lg bg-base-100 shadow-sm flex items-center justify-center text-primary">
                                 <Phone size={16} />
                             </div>
                             <span className="text-xs font-black uppercase tracking-widest">Numéro de téléphone</span>
                         </div>
-                        <div className="flex items-center gap-4 text-slate-600">
-                            <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary">
+                        <div className="flex items-center gap-4 text-base-content/70">
+                            <div className="w-8 h-8 rounded-lg bg-base-100 shadow-sm flex items-center justify-center text-primary">
                                 <MapPin size={16} />
                             </div>
                             <span className="text-xs font-black uppercase tracking-widest">Localisation précise</span>
@@ -66,13 +66,13 @@ const ProfileReminderModal = ({ isOpen, onClose }) => {
                                 navigate('/mes-boutiques');
                                 onClose();
                             }}
-                            className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-primary transition-all flex items-center justify-center gap-3"
+                            className="w-full py-5 bg-neutral text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl hover:bg-primary transition-all flex items-center justify-center gap-3"
                         >
                             Configurer ma boutique <ArrowRight size={18} />
                         </button>
                         <button 
                             onClick={onClose}
-                            className="w-full py-4 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-slate-600 transition-all"
+                            className="w-full py-4 text-base-content/40 font-bold text-[10px] uppercase tracking-widest hover:text-base-content/70 transition-all"
                         >
                             Continuer vers le tableau de bord
                         </button>

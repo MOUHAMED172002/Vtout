@@ -40,11 +40,11 @@ const RoleBlockModal = ({ role }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral/60 backdrop-blur-sm">
             <motion.div 
                 initial={{ opacity: 0, scale: 0.9, y: 20 }} 
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+                className="bg-base-100 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
             >
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-400 to-orange-500"></div>
                 
@@ -52,16 +52,16 @@ const RoleBlockModal = ({ role }) => {
                     <AlertCircle size={32} />
                 </div>
                 
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Accès Non Autorisé</h3>
-                <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
-                    Vous êtes actuellement connecté avec un compte <span className="font-bold text-slate-800">{role === 'livreur' ? 'Livreur' : 'Client standard'}</span>. 
+                <h3 className="text-2xl font-black text-base-content mb-2">Accès Non Autorisé</h3>
+                <p className="text-sm font-medium text-base-content/50 mb-8 leading-relaxed">
+                    Vous êtes actuellement connecté avec un compte <span className="font-bold text-base-content">{role === 'livreur' ? 'Livreur' : 'Client standard'}</span>. 
                     L'Espace Vendeur est exclusivement réservé aux marchands certifiés.
                 </p>
 
                 <div className="space-y-3">
                     <button 
                         onClick={handleContinueToMain}
-                        className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-4 px-6 bg-neutral text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:brightness-90 transition-colors flex items-center justify-center gap-2"
                     >
                         Continuer vers Vtout <ExternalLink size={16} />
                     </button>

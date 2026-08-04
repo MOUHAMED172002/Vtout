@@ -105,26 +105,26 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }} 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+                className="absolute inset-0 bg-neutral/60 backdrop-blur-sm" 
                 onClick={onClose} 
             />
             
             <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }}
-                className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
+                className="bg-base-100 w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
             >
-                <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <div className="p-8 border-b border-base-200 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
                             <Store size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tighter">{initialData ? "Modifier Boutique" : "Nouvelle Boutique"}</h3>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{initialData ? "Mettre à jour les infos" : "Ajouter un point de vente"}</p>
+                            <h3 className="text-xl font-black text-base-content tracking-tighter">{initialData ? "Modifier Boutique" : "Nouvelle Boutique"}</h3>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-base-content/40">{initialData ? "Mettre à jour les infos" : "Ajouter un point de vente"}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/40 hover:bg-rose-50 hover:text-rose-500 transition-all">
                         <X size={20} />
                     </button>
                 </div>
@@ -132,40 +132,40 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Nom de la boutique</label>
+                            <label className="text-[10px] font-black uppercase text-base-content/40 ml-4">Nom de la boutique</label>
                             <input 
                                 required
                                 value={formData.name}
                                 onChange={e => setFormData(prev => ({...prev, name: e.target.value}))}
-                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                                className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold text-base-content outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                 placeholder="Ma Super Boutique" 
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Téléphone Contact</label>
+                                <label className="text-[10px] font-black uppercase text-base-content/40 ml-4">Téléphone Contact</label>
                                 <input 
                                     required
                                     value={formData.phone}
                                     onChange={e => setFormData(prev => ({...prev, phone: e.target.value}))}
-                                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                                    className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold text-base-content outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                     placeholder="+229 ..." 
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Numéro WhatsApp</label>
+                                <label className="text-[10px] font-black uppercase text-base-content/40 ml-4">Numéro WhatsApp</label>
                                 <input 
                                     value={formData.whatsapp}
                                     onChange={e => setFormData(prev => ({...prev, whatsapp: e.target.value}))}
-                                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                                    className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold text-base-content outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                     placeholder="+229 ..." 
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Localisation & Adresse</label>
+                            <label className="text-[10px] font-black uppercase text-base-content/40 ml-4">Localisation & Adresse</label>
                             <AddressSelector 
                                 onChange={handleAddressChange} 
                                 initial={addressInitial}
@@ -173,12 +173,12 @@ export default function BoutiqueModal({ isOpen, onClose, onSuccess, initialData 
                         </div>
                         
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Adresse précise (Ruelle, Immeuble...)</label>
+                            <label className="text-[10px] font-black uppercase text-base-content/40 ml-4">Adresse précise (Ruelle, Immeuble...)</label>
                             <input 
                                 required
                                 value={formData.address_line}
                                 onChange={e => setFormData(prev => ({...prev, address_line: e.target.value}))}
-                                className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+                                className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold text-base-content outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
                                 placeholder="Ex: Maison X, face à Y..." 
                             />
                         </div>

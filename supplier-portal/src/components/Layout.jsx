@@ -9,6 +9,7 @@ import {
     Store, Menu, X, ChevronRight, Bell, FileText, Wallet, TrendingUp, ShoppingBag, Search as SearchIcon, Sparkles, AlertCircle, BadgeCheck
 } from 'lucide-react';
 import NotificationCenter from './Shared/NotificationCenter';
+import ThemeSelector from './Shared/ThemeSelector';
 import PortalSwitcher from './Shared/PortalSwitcher';
 import LogoText from './Shared/LogoText';
 import ProfileReminderModal from './Shared/ProfileReminderModal';
@@ -54,7 +55,7 @@ const Sidebar = ({ mobile, onClose }) => {
     };
 
     return (
-        <aside className="w-72 bg-slate-900 text-white flex flex-col h-screen overflow-hidden">
+        <aside className="w-72 bg-neutral text-white flex flex-col h-screen overflow-hidden">
             {/* Logo */}
             <div className="p-8 border-b border-white/5 flex items-center justify-between">
                 <div 
@@ -62,11 +63,11 @@ const Sidebar = ({ mobile, onClose }) => {
                     className="flex items-center gap-3 cursor-pointer group"
                     title="Retour au site principal"
                 >
-                    <div className="w-10 h-10 bg-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Store size={20} className="text-white" />
                     </div>
                     <div>
-                        <LogoText className="text-sm leading-none group-hover:text-indigo-400 transition-colors" />
+                        <LogoText className="text-sm leading-none group-hover:text-primary transition-colors" />
                         <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Espace Marchand</p>
                     </div>
                 </div>
@@ -105,7 +106,7 @@ const Sidebar = ({ mobile, onClose }) => {
                         onClick={onClose}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group ${isActive
-                                ? 'bg-indigo-500 text-white shadow-xl shadow-indigo-500/30'
+                                ? 'bg-primary text-white shadow-xl shadow-primary/30'
                                 : 'text-white/50 hover:text-white hover:bg-white/5'
                             }`
                         }
@@ -186,7 +187,7 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50">
+        <div className="flex h-screen overflow-hidden bg-base-200">
             {/* Desktop Sidebar */}
             <div className="hidden md:flex flex-shrink-0">
                 <Sidebar />
@@ -219,27 +220,27 @@ const Layout = ({ children }) => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header / TopBar */}
-                <header className="bg-white border-b border-slate-100 px-6 md:px-12 py-4 flex items-center justify-between z-30">
+                <header className="bg-base-100 border-b border-base-300 px-6 md:px-12 py-4 flex items-center justify-between z-30">
                     <div className="flex items-center gap-4 flex-1">
-                        <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 hover:text-slate-900 transition-colors">
+                        <button onClick={() => setSidebarOpen(true)} className="md:hidden text-base-content/70 hover:text-base-content transition-colors">
                             <Menu size={22} />
                         </button>
                         
                         {/* Desktop Search Bar */}
                         <div className="hidden lg:flex items-center flex-1 max-w-md ml-4">
                             <div className="relative w-full group">
-                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors" size={18} />
                                 <input 
                                     type="text" 
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Rechercher une commande, un produit..." 
-                                    className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
+                                    className="w-full pl-12 pr-4 py-2.5 bg-base-200 border border-base-300 rounded-2xl text-xs font-bold text-base-content placeholder:text-base-content/40 focus:bg-base-100 focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all outline-none"
                                 />
                                 {searchQuery && (
                                     <button 
                                         onClick={() => setSearchQuery("")}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-md text-slate-400"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-base-300 rounded-md text-base-content/40"
                                     >
                                         <X size={14} />
                                     </button>
@@ -248,8 +249,8 @@ const Layout = ({ children }) => {
                         </div>
 
                         <div className="lg:hidden flex items-center gap-2">
-                            <Store size={18} className="text-indigo-500" />
-                            <LogoText className="text-xs" /> <span className="font-black text-xs text-slate-400">Merchant</span>
+                            <Store size={18} className="text-primary" />
+                            <LogoText className="text-xs" /> <span className="font-black text-xs text-base-content/40">Merchant</span>
                         </div>
                     </div>
                     
@@ -257,7 +258,7 @@ const Layout = ({ children }) => {
                         <div className="lg:hidden">
                             <button 
                                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                                className={`p-2 rounded-xl transition-all ${isMobileSearchOpen ? 'bg-indigo-50 text-indigo-500' : 'text-slate-400 hover:text-indigo-500'}`}
+                                className={`p-2 rounded-xl transition-all ${isMobileSearchOpen ? 'bg-primary/10 text-primary' : 'text-base-content/40 hover:text-primary'}`}
                             >
                                 <SearchIcon size={20} />
                             </button>
@@ -268,20 +269,20 @@ const Layout = ({ children }) => {
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
-                                        className="absolute left-0 right-0 top-full p-4 bg-white border-b border-slate-100 shadow-xl"
+                                        className="absolute left-0 right-0 top-full p-4 bg-base-100 border-b border-base-300 shadow-xl"
                                     >
                                         <div className="relative group">
-                                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500" size={18} />
+                                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={18} />
                                             <input 
                                                 autoFocus
                                                 type="text" 
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                 placeholder="Rechercher..." 
-                                                className="w-full pl-12 pr-10 py-3 bg-slate-50 rounded-2xl text-sm font-bold focus:ring-0 outline-none border-none"
+                                                className="w-full pl-12 pr-10 py-3 bg-base-200 rounded-2xl text-sm font-bold focus:ring-0 outline-none border-none"
                                             />
                                             {searchQuery && (
-                                                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-base-content/40">
                                                     <X size={18} />
                                                 </button>
                                             )}
@@ -291,6 +292,7 @@ const Layout = ({ children }) => {
                             </AnimatePresence>
                         </div>
 
+                        <ThemeSelector />
                         <NotificationCenter />
                     </div>
 

@@ -26,22 +26,22 @@ export default function HowItWorksVendeur() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans">
+        <div className="min-h-screen bg-base-200 font-sans">
             {/* Header */}
-            <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-5 sticky top-0 z-50">
+            <header className="bg-white/80 backdrop-blur-md border-b border-base-300 px-6 py-5 sticky top-0 z-50">
                 <div className="max-w-5xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary">
                             <Store size={20} className="text-white" />
                         </div>
                         <div>
-                            <span className="font-black text-lg tracking-tighter text-slate-900 leading-none block">Vtout</span>
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600">Business</span>
+                            <span className="font-black text-lg tracking-tighter text-base-content leading-none block">Vtout</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Business</span>
                         </div>
                     </div>
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 text-base-content/50 hover:text-base-content text-[10px] font-black uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={14} /> Retour
                     </button>
@@ -51,14 +51,14 @@ export default function HowItWorksVendeur() {
             <main className="max-w-5xl mx-auto px-6 py-16">
                 {/* Title */}
                 <div className="text-center mb-16 space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full">
-                        <Zap size={12} className="text-indigo-500" fill="currentColor" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Simple & Rapide</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/10 rounded-full">
+                        <Zap size={12} className="text-primary" fill="currentColor" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Simple & Rapide</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900">
-                        Comment ça <span className="text-indigo-600">marche ?</span>
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-base-content">
+                        Comment ça <span className="text-primary">marche ?</span>
                     </h1>
-                    <p className="text-slate-500 font-medium max-w-lg mx-auto leading-relaxed text-lg">
+                    <p className="text-base-content/50 font-medium max-w-lg mx-auto leading-relaxed text-lg">
                         Vendez sur Vtout en 4 étapes simples. De l'inscription à votre première vente, on vous guide.
                     </p>
                 </div>
@@ -73,25 +73,25 @@ export default function HowItWorksVendeur() {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex gap-8 items-start"
+                                className="bg-base-100 rounded-[2.5rem] p-8 md:p-10 border border-base-300 shadow-sm hover:shadow-xl transition-all duration-300 flex gap-8 items-start"
                             >
                                 {/* Step number + icon */}
                                 <div className="shrink-0 flex flex-col items-center gap-2">
-                                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 relative">
+                                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary relative">
                                         <Icon size={28} />
-                                        <span className="absolute -top-2 -right-2 w-6 h-6 bg-indigo-600 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg shadow-indigo-200">
+                                        <span className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg shadow-primary">
                                             {i + 1}
                                         </span>
                                     </div>
                                     {i < steps.length - 1 && (
-                                        <div className="w-0.5 h-8 bg-indigo-100 mt-2" />
+                                        <div className="w-0.5 h-8 bg-primary/10 mt-2" />
                                     )}
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0 pt-2">
-                                    <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mb-3">{step.title}</h2>
-                                    <p className="text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+                                    <h2 className="text-xl md:text-2xl font-black text-base-content tracking-tight mb-3">{step.title}</h2>
+                                    <p className="text-base-content/50 font-medium leading-relaxed">{step.desc}</p>
                                 </div>
                             </motion.div>
                         );
@@ -99,7 +99,7 @@ export default function HowItWorksVendeur() {
                 </div>
 
                 {/* CTA */}
-                <div className="bg-indigo-600 rounded-[3rem] p-10 md:p-14 text-center relative overflow-hidden shadow-2xl shadow-indigo-200">
+                <div className="bg-primary rounded-[3rem] p-10 md:p-14 text-center relative overflow-hidden shadow-2xl shadow-primary">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
                     <div className="relative z-10 space-y-6">
                         <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">
@@ -112,7 +112,7 @@ export default function HowItWorksVendeur() {
                             <SignedOut>
                                 <button
                                     onClick={() => navigate('/inscription')}
-                                    className="px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 shadow-xl transition-all flex items-center justify-center gap-2"
+                                    className="px-10 py-4 bg-base-100 text-primary rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-base-200 shadow-xl transition-all flex items-center justify-center gap-2"
                                 >
                                     Créer ma boutique <ChevronRight size={16} />
                                 </button>
@@ -120,7 +120,7 @@ export default function HowItWorksVendeur() {
                             <SignedIn>
                                 <button
                                     onClick={() => navigate('/dashboard')}
-                                    className="px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 shadow-xl transition-all flex items-center justify-center gap-2"
+                                    className="px-10 py-4 bg-base-100 text-primary rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-base-200 shadow-xl transition-all flex items-center justify-center gap-2"
                                 >
                                     Accéder au dashboard <ChevronRight size={16} />
                                 </button>
