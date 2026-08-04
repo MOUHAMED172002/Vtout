@@ -44,8 +44,13 @@ const getEmailConfig = async () => {
     }
 };
 
-// Build a broad list of trusted origins covering localhost, WSL2/LAN IPs, and any explicit extras
-const DEV_PORTS = [5173, 5174, 5175, 5176, 5177, 3000, 3001];
+// Build a broad list of trusted origins covering localhost, WSL2/LAN IPs, and any explicit extras.
+// Ports 8081/19000/19006 couvrent l'app mobile testée via `expo start --web`
+// (Metro/Expo web) — un navigateur, contrairement à React Native natif,
+// envoie les en-têtes Sec-Fetch-* qui forcent la validation d'origine côté
+// Better Auth même sans cookie ; sans ces ports ici, /auth/sign-in/email
+// etc. répondaient 403 depuis l'app mobile lancée en mode web.
+const DEV_PORTS = [5173, 5174, 5175, 5176, 5177, 3000, 3001, 8081, 19000, 19006];
 const LAN_HOSTS = [
     'localhost', '127.0.0.1',
     '172.30.0.1',  // WSL2 host gateway (most common)
