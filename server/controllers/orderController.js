@@ -10,7 +10,7 @@ import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
-import { rewardReferrerIfPending } from './referralController.js';
+// import { rewardReferrerIfPending } from './referralController.js'; // Parrainage désactivé sur demande
 
 
 export const getMyOrders = async (req, res) => {
@@ -1010,15 +1010,14 @@ export const updateOrderStatus = async (req, res) => {
             notifyAdmin(`🔔 *VTOUT : Statut de commande modifié*\nCommande: #${order.id.slice(0, 8).toUpperCase()}\nStatut: *${oldStatus}* ➔ *${mappedStatus}*`).catch(() => {});
         }
 
-        // Récompense de parrainage : si le client de cette commande est un
-        // filleul en attente, son parrain reçoit son coupon maintenant que
-        // la commande est confirmée (fire-and-forget, ne doit jamais faire
-        // échouer la mise à jour de la commande).
-        if (mappedStatus === 'confirmée' && oldStatus === 'en_attente' && order.user_id) {
-            rewardReferrerIfPending(order.user_id, order.id).catch((e) =>
-                console.error('[Referral] rewardReferrerIfPending failed:', e.message)
-            );
-        }
+        // Récompense de parrainage — système désactivé sur demande (routes
+        // /api/referrals non montées dans index.js). Désactivé ici aussi pour
+        // ne pas récompenser d'éventuels parrainages restés "pending".
+        // if (mappedStatus === 'confirmée' && oldStatus === 'en_attente' && order.user_id) {
+        //     rewardReferrerIfPending(order.user_id, order.id).catch((e) =>
+        //         console.error('[Referral] rewardReferrerIfPending failed:', e.message)
+        //     );
+        // }
 
         // 1. Stock deduction on confirmation
         if (mappedStatus === 'confirmée' && oldStatus === 'en_attente') {
