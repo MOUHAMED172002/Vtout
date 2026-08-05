@@ -733,8 +733,28 @@ console.log("💾 [BOOT] Connecting to Database...");
 sequelize.authenticate()
     .then(async () => {
         console.log("✅ [DB] Database connected");
+
+        // ── CRITIQUE — exécuté indépendamment, AVANT sequelize.sync(), pour
+        // ne jamais dépendre d'une autre étape de migration/sync qui pourrait
+        // échouer. Une colonne manquante ici casse authMiddleware sur CHAQUE
+        // requête connectée (panne totale de connexion pour tout le site).
+        try {
+            const [referralColRows] = await sequelize.query(`
+                SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'referral_code'
+            `);
+            if (!referralColRows || referralColRows.length === 0) {
+                await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
+                console.log('  ✅ [MIGRATION-CRITIQUE] Added missing profiles.referral_code via raw SQL');
+            } else {
+                console.log('  ✓ [MIGRATION-CRITIQUE] profiles.referral_code already present');
+            }
+        } catch (referralCheckErr) {
+            console.error('  ❌ [MIGRATION-CRITIQUE] Could not ensure profiles.referral_code:', referralCheckErr.message);
+        }
+
         console.log(">>> [BOOT] Syncing database...");
-        
+
         try {
             // En production, on désactive alter:true par défaut pour éviter de corrompre les index
             // ou de dépasser la limite de 64 clés de MySQL lors de redémarrages fréquents.
@@ -753,20 +773,6 @@ sequelize.authenticate()
                 }
             } catch (sourceCheckErr) {
                 console.warn('  ⚠️ [MIGRATION] Could not ensure financial_transactions.source:', sourceCheckErr.message);
-            }
-
-            // Ensure `profiles.referral_code` exists — missing column was breaking authMiddleware on every request.
-            try {
-                const [referralColRows] = await sequelize.query(`
-                    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'referral_code'
-                `);
-                if (!referralColRows || referralColRows.length === 0) {
-                    await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
-                    console.log('  ✅ [MIGRATION] Added missing profiles.referral_code via raw SQL');
-                }
-            } catch (referralCheckErr) {
-                console.warn('  ⚠️ [MIGRATION] Could not ensure profiles.referral_code:', referralCheckErr.message);
             }
 
             // Ensure `order_items.original_price` exists (used by orderController for discount tracking).
