@@ -101,7 +101,13 @@ export default function CheckoutPage() {
     }
 
     setIsDynamicFeeLoading(true);
-    
+
+    const normalize = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    // Exception : Cotonou <-> Abomey-Calavi restent des communes différentes (donc des
+    // frais de livraison s'appliquent toujours), mais on tolère le paiement à la
+    // livraison entre elles vu la proximité réelle et le trafic entre les deux villes.
+    const COD_EXCEPTION_COMMUNES = new Set(['cotonou', 'abomeycalavi']);
+
     // Group items by boutique to calculate one supplement per boutique pickup point
     const boutiques = {};
     itemsFromCart.forEach(it => {
@@ -113,9 +119,10 @@ export default function CheckoutPage() {
     });
 
     let totalSupplement = 0;
+    let hasBlockingMismatch = false;
     Object.entries(boutiques).forEach(([bId, boutique]) => {
         if (!boutique) return;
-        
+
         // Find items for this specific boutique
         const boutiqueItems = itemsFromCart.filter(it => {
             const p = it.product || it;
@@ -124,8 +131,6 @@ export default function CheckoutPage() {
         });
 
         // Aggregating and normalizing free delivery zones
-        const normalize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
-        
         const allFreeCommunesNormalized = new Set();
         boutiqueItems.forEach(it => {
             const p = it.product || it;
@@ -135,17 +140,21 @@ export default function CheckoutPage() {
         });
         
         const targetCommuneNormalized = normalize(address.commune_label);
-        const isFreeZone = allFreeCommunesNormalized.has(targetCommuneNormalized) || 
+        const boutiqueCommuneNormalized = normalize(boutique.commune_label);
+        const isFreeZone = allFreeCommunesNormalized.has(targetCommuneNormalized) ||
                           String(boutique.commune_id) === String(address.commune_id);
+        const isCotonouCalavyException = COD_EXCEPTION_COMMUNES.has(boutiqueCommuneNormalized) &&
+                          COD_EXCEPTION_COMMUNES.has(targetCommuneNormalized);
 
         if (isFreeZone) {
             // Livraison incluse
         } else if (String(boutique.departement_id) === String(address.departement_id)) {
             totalSupplement += feesConfig.intra;
+            if (!isCotonouCalavyException) hasBlockingMismatch = true;
         } else {
             const key = `${boutique.departement_id}-${address.departement_id}`;
             const reverseKey = `${address.departement_id}-${boutique.departement_id}`;
-            
+
             if (feesConfig.crossing[key] !== undefined) {
                 totalSupplement += parseFloat(feesConfig.crossing[key]);
             } else if (feesConfig.crossing[reverseKey] !== undefined) {
@@ -153,13 +162,15 @@ export default function CheckoutPage() {
             } else {
                 totalSupplement += feesConfig.inter;
             }
+            if (!isCotonouCalavyException) hasBlockingMismatch = true;
         }
     });
 
     setDeliveryFee(totalSupplement);
     // Le paiement à la livraison est bloqué dès que des frais de livraison
-    // supplémentaires s'appliquent (zone différente de celle du vendeur).
-    setIsZoneMismatch(totalSupplement !== 0);
+    // supplémentaires s'appliquent (zone différente de celle du vendeur) —
+    // sauf exception Cotonou <-> Abomey-Calavi (voir COD_EXCEPTION_COMMUNES).
+    setIsZoneMismatch(hasBlockingMismatch);
     setIsDynamicFeeLoading(false);
   }, [address, itemsFromCart, feesConfig]);
 
