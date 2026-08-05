@@ -17,6 +17,7 @@ router.patch('/me', requireAuth, requireFournisseur, supplierController.updateMy
 
 // Un fournisseur récupère ses propres produits / boutiques
 router.get('/me/products', requireAuth, requireFournisseur, supplierController.getMyProducts);
+router.get('/me/products/:id', requireAuth, requireFournisseur, supplierController.getMyProductById);
 router.get('/me/boutiques', requireAuth, requireFournisseur, supplierController.getMyBoutiques);
 
 // Litiges du fournisseur

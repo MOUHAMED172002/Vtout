@@ -24,6 +24,15 @@ export const getMySupplierProducts = async (token) => {
 // Alias for compatibility
 export const getSupplierProducts = getMySupplierProducts;
 
+// Un seul produit du vendeur connecté — contrairement à l'endpoint public,
+// inclut cost_price (mémo privé du prix d'achat), pour préremplir le formulaire d'édition.
+export const getMySupplierProductById = async (id, token) => {
+    const { data } = await api.get(`/suppliers/me/products/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return data;
+};
+
 export const getMyBoutiques = async (token) => {
     const { data } = await api.get('/suppliers/me/boutiques', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}

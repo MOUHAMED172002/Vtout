@@ -3,6 +3,7 @@ import { Supplier, SupplierProduct, Product, ProductVariant, ProductVariantPrice
 import crypto from 'crypto';
 import { sendSupplierApprovalNotification } from '../services/mailService.js';
 import { notifySupplierStatusUpdate, notifyAdmin } from '../services/whatsappService.js';
+import { auth } from '../config/auth.js';
 
 export const getAllSuppliers = async (req, res) => {
     try {
@@ -43,14 +44,63 @@ export const getAllSupplierProducts = async (req, res) => {
     }
 };
 
+// Crée un marchand DEPUIS l'admin, avec un vrai compte de connexion (email + mot de
+// passe) — pas une simple fiche : ce compte doit pouvoir se connecter au supplier-portal
+// et avoir exactement les mêmes privilèges qu'un vendeur inscrit normalement (boutique,
+// produits, commandes, portefeuille…), immédiatement actif sans passer par la validation.
 export const createSupplier = async (req, res) => {
     try {
-        const supplierData = {
+        const { email, password, name, ...rest } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email et mot de passe sont obligatoires pour créer un compte marchand.' });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
+        }
+
+        const existingProfile = await Profile.findOne({ where: { email: email.trim().toLowerCase() } });
+        if (existingProfile) {
+            return res.status(409).json({ error: 'Un compte existe déjà avec cet email. Utilisez une autre adresse.' });
+        }
+
+        // 1. Compte de connexion (Better Auth) — même chemin que l'inscription classique,
+        // donc le mot de passe est haché de façon compatible avec la connexion normale.
+        let authResult;
+        try {
+            authResult = await auth.api.signUpEmail({
+                body: { email: email.trim().toLowerCase(), password, name: name || 'Marchand' }
+            });
+        } catch (authErr) {
+            console.error('CreateSupplier — signUpEmail error:', authErr);
+            return res.status(400).json({ error: authErr.message || "Impossible de créer le compte de connexion (email déjà utilisé ?)" });
+        }
+
+        const authUserId = authResult?.user?.id;
+        if (!authUserId) {
+            return res.status(500).json({ error: "Le compte de connexion n'a pas pu être créé." });
+        }
+
+        // 2. Profil applicatif — rôle fournisseur direct, email considéré vérifié
+        // (c'est l'admin qui crée le compte, pas d'auto-inscription à confirmer).
+        await Profile.upsert({
+            id: authUserId,
+            email: email.trim().toLowerCase(),
+            fullname: name || 'Marchand',
+            role: 'fournisseur',
+            email_verified: true
+        });
+
+        // 3. Fiche fournisseur, liée au compte, active immédiatement.
+        const supplier = await Supplier.create({
+            ...rest,
             id: crypto.randomUUID(),
-            ...req.body
-        };
-        const supplier = await Supplier.create(supplierData);
-        res.status(201).json(supplier);
+            user_id: authUserId,
+            name,
+            status: 'active'
+        });
+
+        res.status(201).json({ ...supplier.toJSON(), account_created: true });
     } catch (error) {
         console.error('CreateSupplier error:', error);
         res.status(500).json({ error: 'Erreur lors de la création du fournisseur' });
@@ -354,6 +404,36 @@ export const getMyProducts = async (req, res) => {
         res.json(products);
     } catch (error) {
         console.error('GetMyProducts error:', error);
+        res.status(500).json({ error: 'Erreur serveur', details: error.message });
+    }
+};
+
+// GET /suppliers/me/products/:id — un seul produit, pour le formulaire d'édition du
+// supplier-portal. Contrairement aux endpoints publics (productController.js), inclut
+// cost_price (mémo privé du prix d'achat), réservé au vendeur propriétaire du produit.
+export const getMyProductById = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        const supplier = await Supplier.findOne({ where: { user_id: userId } });
+        if (!supplier) return res.status(404).json({ error: 'Profil fournisseur non trouvé' });
+
+        const product = await Product.findOne({
+            where: { id: req.params.id, supplier_id: supplier.id },
+            include: [
+                { model: ProductImage, as: 'images' },
+                { model: Category, as: 'category', attributes: ['id', 'name'] },
+                {
+                    model: ProductVariant,
+                    as: 'variants',
+                    include: [{ model: ProductVariantPrice, as: 'priceRows' }]
+                }
+            ]
+        });
+        if (!product) return res.status(404).json({ error: 'Produit introuvable ou non autorisé' });
+
+        res.json(product);
+    } catch (error) {
+        console.error('GetMyProductById error:', error);
         res.status(500).json({ error: 'Erreur serveur', details: error.message });
     }
 };

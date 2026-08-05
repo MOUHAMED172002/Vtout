@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/clerk-shim';
-import { getMySupplierProfile } from '../services/supplierService';
-import { getProductById } from '../services/productService';
+import { getMySupplierProfile, getMySupplierProductById } from '../services/supplierService';
 import SupplierProductForm from '../components/Product/SupplierProductForm';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -23,7 +22,7 @@ const EditProductSupplier = () => {
 
                 const [profile, productData] = await Promise.all([
                     getMySupplierProfile(token),
-                    getProductById(id)
+                    getMySupplierProductById(id, token)
                 ]);
 
                 setSupplierStatus(profile.status);

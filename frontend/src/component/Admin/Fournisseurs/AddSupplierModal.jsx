@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, User, Phone, MessageCircle, CreditCard, Save, MapPin } from 'lucide-react';
+import { X, User, Phone, MessageCircle, CreditCard, Save, MapPin, Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import api from '../../../services/api';
@@ -16,6 +16,8 @@ export default function AddSupplierModal({ onClose, onCreated }) {
     const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
             name: '',
+            email: '',
+            password: '',
             phone: '',
             whatsapp: '',
             momo_number: '',
@@ -90,7 +92,7 @@ export default function AddSupplierModal({ onClose, onCreated }) {
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-base-content tracking-tight">Nouveau Marchand</h2>
-                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">Créer un compte partenaire ou votre propre profil vendeur</p>
+                            <p className="text-[10px] font-black uppercase text-base-content/40 tracking-widest">Crée un vrai compte vendeur, actif immédiatement, avec accès au supplier-portal</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-xl bg-base-200 text-base-content/40 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all">
@@ -102,6 +104,25 @@ export default function AddSupplierModal({ onClose, onCreated }) {
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Nom Complet / Raison Sociale</label>
                         <input {...register('name', { required: true })} className="w-full bg-base-200 border-none rounded-2xl px-6 py-4 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Ex: Vtout Officiel ou Nom du Partenaire" />
+                    </div>
+
+                    {/* Identifiants de connexion — ce compte doit pouvoir se connecter au
+                        supplier-portal avec tous les privilèges d'un vendeur normal. */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Email de connexion</label>
+                            <div className="relative">
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30" size={18} />
+                                <input type="email" {...register('email', { required: true })} className="w-full bg-base-200 border-none rounded-2xl pl-14 pr-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="vendeur@exemple.com" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-base-content/40">Mot de passe</label>
+                            <div className="relative">
+                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-base-content/30" size={18} />
+                                <input type="password" {...register('password', { required: true, minLength: 8 })} className="w-full bg-base-200 border-none rounded-2xl pl-14 pr-6 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="8 caractères minimum" />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

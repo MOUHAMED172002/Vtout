@@ -48,6 +48,14 @@ const Product = sequelize.define('Product', {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: true
     },
+    cost_price: {
+        // Prix d'achat réel noté par le vendeur (mémo privé, jamais exposé au client ni
+        // dans le catalogue admin général) — sert uniquement à calculer sa marge dans
+        // son propre supplier-portal. Voir supplierController.js pour l'exclusion des
+        // endpoints publics/admin.
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: true
+    },
     approval_status: {
         type: DataTypes.ENUM('En attente', 'approved', 'rejected'),
         defaultValue: 'En attente'

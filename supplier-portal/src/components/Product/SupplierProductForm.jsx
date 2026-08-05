@@ -107,6 +107,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             boutique_id: initialData.boutique_id || '',
             variants: initialData.variants || [],
             supplier_price: initialData.supplier_price || '',
+            cost_price: initialData.cost_price || '',
             stock: initialData.stock || 0,
             supplier_note: initialData.supplier_note || '',
             is_flash_sale: initialData.is_flash_sale || false,
@@ -125,6 +126,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
             boutique_id: '',
             variants: [],
             supplier_price: '',
+            cost_price: '',
             stock: 0,
             supplier_note: '',
             is_flash_sale: false,
@@ -468,6 +470,7 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                 price: finalPublicPrice,
                 old_price: finalOldPrice || 0,
                 supplier_price: finalSupplierPrice,
+                cost_price: data.cost_price ? parseFloat(data.cost_price) : null,
                 stock: parseInt(data.stock) || 0,
                 status: 'draft',
                 approval_status: 'En attente',
@@ -767,6 +770,31 @@ export default function SupplierProductForm({ onClose, initialData = null }) {
                                 </div>
                             </div>
                             )}
+
+                            {/* Mémo privé : combien CE produit vous a réellement coûté (achat, import…).
+                                Jamais visible du client ni de l'admin — uniquement dans votre portail,
+                                pour calculer votre marge réelle en un coup d'œil. */}
+                            <div className="p-8 bg-base-200/60 rounded-[2.5rem] space-y-4 border border-base-300">
+                                <div className="flex items-center gap-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50">Prix d'achat (mémo privé)</label>
+                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-base-300 text-base-content/50">Visible par vous seul</span>
+                                </div>
+                                <input
+                                    type="number"
+                                    {...register("cost_price")}
+                                    className="w-full max-w-xs bg-base-100 border-none rounded-2xl px-6 py-4 font-black text-base-content shadow-sm outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    placeholder="Ex: 8000"
+                                />
+                                <p className="text-[9px] font-bold text-base-content/40">Ce que vous avez payé pour vous procurer ce produit — n'apparaît nulle part ailleurs sur Vtout.</p>
+                                {watch('cost_price') && globalSupplierPrice > 0 && (
+                                    <div className="p-3 bg-indigo-50 rounded-2xl flex justify-between items-center border border-indigo-100">
+                                        <span className="text-[9px] font-black uppercase text-indigo-600">Votre marge réelle (gain net − achat) :</span>
+                                        <span className="text-sm font-black text-indigo-600">
+                                            {Math.round(globalSupplierPrice * (1 - commissionRate / 100) - parseFloat(watch('cost_price') || 0)).toLocaleString()} F
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="space-y-6">
                                 <h4 className="text-xl font-black text-base-content tracking-tighter">Personnalisation des Variantes</h4>

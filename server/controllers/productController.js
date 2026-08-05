@@ -300,7 +300,7 @@ export const getAllProducts = async (req, res) => {
             offset: offset,
             distinct: true,
             attributes: {
-                exclude: ['supplier_note'],
+                exclude: ['supplier_note', 'cost_price'],
                 include: [
                     [
                         sequelize.literal(`(
@@ -363,6 +363,7 @@ export const getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
             attributes: {
+                exclude: ['cost_price'],
                 include: [
                     [
                         sequelize.literal(`(
@@ -469,6 +470,7 @@ export const searchProducts = async (req, res) => {
         const products = await Product.findAll({
             where: whereClause,
             attributes: {
+                exclude: ['cost_price'],
                 include: [
                     [
                         sequelize.literal(`(
@@ -581,7 +583,9 @@ export const createProduct = async (req, res) => {
             // Promo fields
             is_flash_sale, flash_sale_end, is_kit, kit_items, volume_pricing,
             // Supplier fields
-            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids
+            supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids,
+            // Mémo privé vendeur (jamais exposé au client) — voir supplier-portal
+            cost_price
         } = req.body;
 
         if (!variants || variants.length === 0) {
@@ -749,6 +753,7 @@ export const createProduct = async (req, res) => {
             in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true,
             boutique_id: boutique_id || null,
             secondary_boutique_ids: secondary_boutique_ids || null,
+            cost_price: cost_price || null,
             total_sold: demoTotalSold
         }, { transaction });
 
@@ -862,6 +867,8 @@ export const updateProduct = async (req, res) => {
             is_flash_sale, flash_sale_end, is_kit, kit_items, volume_pricing,
             // Supplier fields
             supplier_id, supplier_price, approval_status, admin_feedback, in_stock_supplier, boutique_id, secondary_boutique_ids,
+            // Mémo privé vendeur (jamais exposé au client) — voir supplier-portal
+            cost_price,
             // Flag: promo-only update — preserve current approval status
             preserve_approval,
             // Per-variant stock map: { [priceRowId]: stockValue }
@@ -993,6 +1000,7 @@ export const updateProduct = async (req, res) => {
         if (in_stock_supplier !== undefined) updatePayload.in_stock_supplier = in_stock_supplier;
         if (boutique_id !== undefined) updatePayload.boutique_id = boutique_id;
         if (secondary_boutique_ids !== undefined) updatePayload.secondary_boutique_ids = secondary_boutique_ids;
+        if (cost_price !== undefined) updatePayload.cost_price = cost_price;
 
         const [updatedRows] = await Product.update(updatePayload, {
             where: { id },
@@ -1354,6 +1362,7 @@ export const getRelatedProducts = async (req, res) => {
                 ]
             },
             attributes: {
+                exclude: ['cost_price'],
                 include: [
                     [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.product_id = Product.id)`), 'review_count'],
                     [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.product_id = Product.id)`), 'average_rating']
@@ -1444,6 +1453,7 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
                     )`)
                 ]
             },
+            attributes: { exclude: ['cost_price'] },
             include: [
                 { model: Category, as: 'category' },
                 { model: ProductImage, as: 'images' },

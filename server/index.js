@@ -885,6 +885,14 @@ sequelize.authenticate()
                 }
             }
 
+            // ── Product.cost_price — mémo privé du prix d'achat vendeur (marge, supplier-portal) ──
+            try {
+                await sequelize.query(`ALTER TABLE \`products\` ADD COLUMN \`cost_price\` DECIMAL(15,2) NULL`);
+                console.log('  ✅ [MIGRATION] Added products.cost_price');
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ products.cost_price:', e.message);
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
