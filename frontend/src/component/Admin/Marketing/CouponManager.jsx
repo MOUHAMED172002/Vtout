@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
 import {
     Ticket, Plus, X, Save, RefreshCw, AlertCircle, CheckCircle,
-    Trash2, Power, Search, Percent, Tag, Truck, Gift, UserCheck, History
+    Trash2, Power, Search, Percent, Tag, Truck, Gift, UserCheck, History, Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,6 +16,22 @@ const TYPE_META = {
     fixed_amount: { label: "Montant fixe", icon: Tag, color: "text-amber-600 bg-amber-50 border-amber-100" },
     free_shipping: { label: "Livraison gratuite", icon: Truck, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
 };
+
+// Section 1 du formulaire — QUOI : la nature de la réduction.
+const REWARD_OPTIONS = [
+    { key: "percentage", label: "Réduction %", icon: Percent, desc: "Ex : -10% sur la commande" },
+    { key: "fixed_amount", label: "Montant fixe", icon: Tag, desc: "Ex : -1000 FCFA" },
+    { key: "free_shipping", label: "Livraison gratuite", icon: Truck, desc: "Annule les frais de livraison" },
+];
+
+// Section 2 du formulaire — QUI : les 4 façons de restreindre l'usage
+// (correspond aux types 1 bienvenue / 7 catégorie / 8 personnel du cahier des charges).
+const RESTRICTION_OPTIONS = [
+    { key: "none", label: "Tous les clients", icon: Users, desc: "Aucune restriction" },
+    { key: "first_order", label: "1ère commande", icon: Gift, desc: "Nouveaux clients (bienvenue)" },
+    { key: "category", label: "Une catégorie", icon: Tag, desc: "Articles d'une catégorie" },
+    { key: "personal", label: "Un client précis", icon: UserCheck, desc: "Code personnel" },
+];
 
 const emptyForm = {
     code: "",
@@ -33,6 +49,8 @@ const emptyForm = {
 
 const toInputDate = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
 
+const restrictionOf = (f) => f.first_order_only ? "first_order" : f.category_id ? "category" : f.assigned_user_id ? "personal" : "none";
+
 export default function CouponManager({ globalSearchQuery = "" }) {
     const { getToken } = useAuth();
     const [coupons, setCoupons] = useState([]);
@@ -43,6 +61,7 @@ export default function CouponManager({ globalSearchQuery = "" }) {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
+    const [restrictionType, setRestrictionType] = useState("none");
     const [saving, setSaving] = useState(false);
 
     const [customerQuery, setCustomerQuery] = useState("");
@@ -78,7 +97,7 @@ export default function CouponManager({ globalSearchQuery = "" }) {
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
     useEffect(() => {
-        if (!showForm) return;
+        if (!showForm || restrictionType !== "personal") return;
         const q = customerQuery.trim();
         if (q.length < 2) { setCustomers([]); return; }
         const timeout = setTimeout(async () => {
@@ -99,19 +118,19 @@ export default function CouponManager({ globalSearchQuery = "" }) {
             }
         }, 350);
         return () => clearTimeout(timeout);
-    }, [customerQuery, showForm, getToken]);
+    }, [customerQuery, showForm, restrictionType, getToken]);
 
     const openCreate = () => {
         setEditingId(null);
         setForm(emptyForm);
+        setRestrictionType("none");
         setCustomerQuery("");
         setCustomers([]);
         setShowForm(true);
     };
 
     const openEdit = (c) => {
-        setEditingId(c.id);
-        setForm({
+        const nextForm = {
             code: c.code,
             discount_type: c.discount_type,
             discount_value: c.discount_value ?? "",
@@ -123,10 +142,27 @@ export default function CouponManager({ globalSearchQuery = "" }) {
             start_date: toInputDate(c.start_date),
             end_date: toInputDate(c.end_date),
             usage_limit: c.usage_limit ?? "",
-        });
+        };
+        setEditingId(c.id);
+        setForm(nextForm);
+        setRestrictionType(restrictionOf(nextForm));
         setCustomerQuery(c.assignedUser ? (c.assignedUser.fullname || c.assignedUser.email) : "");
         setCustomers([]);
         setShowForm(true);
+    };
+
+    // Les 4 options de la section "Qui peut l'utiliser ?" sont mutuellement
+    // exclusives dans l'UI (même si le modèle autoriserait techniquement de
+    // les combiner) — bien plus clair pour l'admin que 3 champs indépendants.
+    const selectRestriction = (key) => {
+        setRestrictionType(key);
+        setForm(f => ({
+            ...f,
+            first_order_only: key === "first_order",
+            category_id: key === "category" ? f.category_id : "",
+            assigned_user_id: key === "personal" ? f.assigned_user_id : "",
+        }));
+        if (key !== "personal") { setCustomerQuery(""); setCustomers([]); }
     };
 
     const handleSave = async () => {
@@ -135,6 +171,8 @@ export default function CouponManager({ globalSearchQuery = "" }) {
         if (form.discount_type !== "free_shipping" && (!form.discount_value || Number(form.discount_value) <= 0)) {
             return showToast("La valeur de la réduction doit être supérieure à 0", "error");
         }
+        if (restrictionType === "category" && !form.category_id) return showToast("Choisissez une catégorie", "error");
+        if (restrictionType === "personal" && !form.assigned_user_id) return showToast("Choisissez un client", "error");
 
         const payload = {
             code: form.code.trim().toUpperCase(),
@@ -219,6 +257,9 @@ export default function CouponManager({ globalSearchQuery = "" }) {
         }
         return `-${Number(c.discount_value).toLocaleString("fr-FR")} F`;
     };
+
+    const fieldClass = "w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary";
+    const labelClass = "text-xs font-bold text-gray-500";
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 p-4 md:p-6">
@@ -352,188 +393,236 @@ export default function CouponManager({ globalSearchQuery = "" }) {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative bg-base-100 w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 my-8"
+                            className="relative bg-base-100 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]"
                         >
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-black text-gray-900">{editingId ? "Modifier le coupon" : "Créer un coupon"}</h3>
-                                <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+                                <div>
+                                    <h3 className="font-black text-gray-900 text-lg">{editingId ? "Modifier le coupon" : "Créer un coupon"}</h3>
+                                    <p className="text-xs text-gray-400 mt-0.5">Trois étapes : la réduction, qui peut l'utiliser, et les conditions.</p>
+                                </div>
+                                <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 shrink-0">
                                     <X size={18} />
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="col-span-2 space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Code</label>
+                            {/* Body (scrollable) */}
+                            <div className="overflow-y-auto px-6 py-5 space-y-6">
+                                {/* Code */}
+                                <div className="space-y-1.5">
+                                    <label className={labelClass}>Code du coupon</label>
                                     <input
                                         type="text"
                                         value={form.code}
                                         onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
-                                        placeholder="Ex : BIENVENUE10"
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                        placeholder="EX : BIENVENUE10"
+                                        className="w-full px-4 py-3 bg-base-100 border-2 border-gray-200 rounded-xl text-base font-black uppercase tracking-[0.15em] text-center focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                     />
                                 </div>
 
-                                <div className="col-span-2 space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Type de réduction</label>
-                                    <select
-                                        value={form.discount_type}
-                                        onChange={e => setForm(f => ({ ...f, discount_type: e.target.value }))}
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    >
-                                        <option value="percentage">Réduction en pourcentage</option>
-                                        <option value="fixed_amount">Montant fixe (FCFA)</option>
-                                        <option value="free_shipping">Livraison gratuite</option>
-                                    </select>
-                                </div>
-
-                                {form.discount_type !== "free_shipping" && (
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-500">
-                                            Valeur {form.discount_type === "percentage" ? "(%)" : "(FCFA)"}
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={1}
-                                            value={form.discount_value}
-                                            onChange={e => setForm(f => ({ ...f, discount_value: e.target.value }))}
-                                            className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                        />
+                                {/* Section 1 — Réduction */}
+                                <section className="space-y-3">
+                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px]">1</span>
+                                        Type de réduction
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {REWARD_OPTIONS.map(opt => {
+                                            const Icon = opt.icon;
+                                            const active = form.discount_type === opt.key;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={opt.key}
+                                                    onClick={() => setForm(f => ({ ...f, discount_type: opt.key }))}
+                                                    className={`p-3 rounded-2xl border-2 text-left transition-all ${active ? "border-primary bg-primary/5" : "border-gray-100 hover:border-gray-200"}`}
+                                                >
+                                                    <Icon size={17} className={active ? "text-primary" : "text-gray-400"} />
+                                                    <p className={`text-xs font-black mt-2 ${active ? "text-primary" : "text-gray-900"}`}>{opt.label}</p>
+                                                    <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">{opt.desc}</p>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                )}
 
-                                {form.discount_type === "percentage" && (
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-500">Plafond (FCFA, optionnel)</label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            value={form.max_discount_amount}
-                                            onChange={e => setForm(f => ({ ...f, max_discount_amount: e.target.value }))}
-                                            placeholder="Illimité"
-                                            className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Montant minimum (FCFA)</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={form.min_order_amount}
-                                        onChange={e => setForm(f => ({ ...f, min_order_amount: e.target.value }))}
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Limite d'utilisation (optionnel)</label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        value={form.usage_limit}
-                                        onChange={e => setForm(f => ({ ...f, usage_limit: e.target.value }))}
-                                        placeholder="Illimité"
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Date de début</label>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Date de fin</label>
-                                    <input
-                                        type="date"
-                                        value={form.end_date}
-                                        onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    />
-                                </div>
-
-                                <div className="col-span-2 space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500">Restreindre à une catégorie (optionnel)</label>
-                                    <select
-                                        value={form.category_id}
-                                        onChange={e => setForm(f => ({ ...f, category_id: e.target.value }))}
-                                        className="w-full px-4 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                                    >
-                                        <option value="">Toutes catégories</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="col-span-2 space-y-1.5 relative">
-                                    <label className="text-xs font-bold text-gray-500">Code personnel — client (optionnel)</label>
-                                    {form.assigned_user_id ? (
-                                        <div className="flex items-center justify-between px-4 py-2.5 bg-pink-50 border border-pink-100 rounded-xl">
-                                            <span className="text-sm font-bold text-gray-900 truncate">{customerQuery}</span>
-                                            <button onClick={() => { setForm(f => ({ ...f, assigned_user_id: "" })); setCustomerQuery(""); }} className="text-xs font-bold text-pink-600 hover:underline shrink-0 ml-2">Retirer</button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="relative">
-                                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    {form.discount_type !== "free_shipping" && (
+                                        <div className="grid grid-cols-2 gap-3 pt-1">
+                                            <div className="space-y-1.5">
+                                                <label className={labelClass}>
+                                                    Valeur {form.discount_type === "percentage" ? "(%)" : "(FCFA)"}
+                                                </label>
                                                 <input
-                                                    type="text"
-                                                    value={customerQuery}
-                                                    onChange={e => setCustomerQuery(e.target.value)}
-                                                    placeholder="Rechercher un client (nom, email, tél)…"
-                                                    className="w-full pl-9 pr-3 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                                    type="number"
+                                                    min={1}
+                                                    value={form.discount_value}
+                                                    onChange={e => setForm(f => ({ ...f, discount_value: e.target.value }))}
+                                                    className={fieldClass}
                                                 />
                                             </div>
-                                            {customerQuery.trim().length >= 2 && (
-                                                <div className="max-h-36 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
-                                                    {loadingCustomers ? (
-                                                        <div className="py-4 text-center text-xs text-gray-400">Recherche…</div>
-                                                    ) : customers.length === 0 ? (
-                                                        <div className="py-4 text-center text-xs text-gray-400">Aucun client trouvé.</div>
-                                                    ) : (
-                                                        customers.map(u => (
-                                                            <button
-                                                                key={u.id}
-                                                                onClick={() => { setForm(f => ({ ...f, assigned_user_id: u.id })); setCustomerQuery(u.fullname || u.email); }}
-                                                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
-                                                            >
-                                                                <p className="font-bold text-gray-900 truncate">{u.fullname || "Sans nom"}</p>
-                                                                <p className="text-[10px] text-gray-400 truncate">{u.email}</p>
-                                                            </button>
-                                                        ))
-                                                    )}
+                                            {form.discount_type === "percentage" && (
+                                                <div className="space-y-1.5">
+                                                    <label className={labelClass}>Plafond (FCFA, optionnel)</label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={form.max_discount_amount}
+                                                        onChange={e => setForm(f => ({ ...f, max_discount_amount: e.target.value }))}
+                                                        placeholder="Illimité"
+                                                        className={fieldClass}
+                                                    />
                                                 </div>
                                             )}
-                                        </>
+                                        </div>
                                     )}
-                                </div>
+                                </section>
 
-                                <label className="col-span-2 flex items-center gap-2.5 px-4 py-2.5 bg-purple-50/60 border border-purple-100 rounded-xl cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.first_order_only}
-                                        onChange={e => setForm(f => ({ ...f, first_order_only: e.target.checked }))}
-                                        className="checkbox checkbox-sm"
-                                    />
-                                    <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
-                                        <Gift size={14} className="text-purple-500" /> Code de bienvenue — 1ère commande uniquement
-                                    </span>
-                                </label>
+                                <div className="h-px bg-gray-100" />
+
+                                {/* Section 2 — Restriction (qui peut l'utiliser) */}
+                                <section className="space-y-3">
+                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px]">2</span>
+                                        Qui peut l'utiliser ?
+                                    </p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {RESTRICTION_OPTIONS.map(opt => {
+                                            const Icon = opt.icon;
+                                            const active = restrictionType === opt.key;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={opt.key}
+                                                    onClick={() => selectRestriction(opt.key)}
+                                                    className={`p-3 rounded-2xl border-2 text-left transition-all ${active ? "border-primary bg-primary/5" : "border-gray-100 hover:border-gray-200"}`}
+                                                >
+                                                    <Icon size={16} className={active ? "text-primary" : "text-gray-400"} />
+                                                    <p className={`text-[11px] font-black mt-1.5 ${active ? "text-primary" : "text-gray-900"}`}>{opt.label}</p>
+                                                    <p className="text-[9px] text-gray-400 mt-0.5 leading-snug">{opt.desc}</p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {restrictionType === "category" && (
+                                        <select
+                                            value={form.category_id}
+                                            onChange={e => setForm(f => ({ ...f, category_id: e.target.value }))}
+                                            className={fieldClass}
+                                        >
+                                            <option value="">Choisir une catégorie…</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
+
+                                    {restrictionType === "personal" && (
+                                        <div className="space-y-1.5 relative">
+                                            {form.assigned_user_id ? (
+                                                <div className="flex items-center justify-between px-4 py-2.5 bg-pink-50 border border-pink-100 rounded-xl">
+                                                    <span className="text-sm font-bold text-gray-900 truncate">{customerQuery}</span>
+                                                    <button onClick={() => { setForm(f => ({ ...f, assigned_user_id: "" })); setCustomerQuery(""); }} className="text-xs font-bold text-pink-600 hover:underline shrink-0 ml-2">Retirer</button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="relative">
+                                                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+                                                        <input
+                                                            type="text"
+                                                            value={customerQuery}
+                                                            onChange={e => setCustomerQuery(e.target.value)}
+                                                            placeholder="Rechercher un client (nom, email, tél)…"
+                                                            className="w-full pl-9 pr-3 py-2.5 bg-base-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                                        />
+                                                    </div>
+                                                    {customerQuery.trim().length >= 2 && (
+                                                        <div className="max-h-36 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
+                                                            {loadingCustomers ? (
+                                                                <div className="py-4 text-center text-xs text-gray-400">Recherche…</div>
+                                                            ) : customers.length === 0 ? (
+                                                                <div className="py-4 text-center text-xs text-gray-400">Aucun client trouvé.</div>
+                                                            ) : (
+                                                                customers.map(u => (
+                                                                    <button
+                                                                        key={u.id}
+                                                                        onClick={() => { setForm(f => ({ ...f, assigned_user_id: u.id })); setCustomerQuery(u.fullname || u.email); }}
+                                                                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                                                                    >
+                                                                        <p className="font-bold text-gray-900 truncate">{u.fullname || "Sans nom"}</p>
+                                                                        <p className="text-[10px] text-gray-400 truncate">{u.email}</p>
+                                                                    </button>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </section>
+
+                                <div className="h-px bg-gray-100" />
+
+                                {/* Section 3 — Conditions */}
+                                <section className="space-y-3">
+                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px]">3</span>
+                                        Conditions d'utilisation
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <label className={labelClass}>Montant minimum (FCFA)</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                value={form.min_order_amount}
+                                                onChange={e => setForm(f => ({ ...f, min_order_amount: e.target.value }))}
+                                                className={fieldClass}
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className={labelClass}>Limite d'utilisation</label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                value={form.usage_limit}
+                                                onChange={e => setForm(f => ({ ...f, usage_limit: e.target.value }))}
+                                                placeholder="Illimité"
+                                                className={fieldClass}
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className={labelClass}>Date de début</label>
+                                            <input
+                                                type="date"
+                                                value={form.start_date}
+                                                onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
+                                                className={fieldClass}
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className={labelClass}>Date de fin</label>
+                                            <input
+                                                type="date"
+                                                value={form.end_date}
+                                                onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
+                                                className={fieldClass}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
                             </div>
 
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                            >
-                                <Save size={16} /> {saving ? "Enregistrement…" : editingId ? "Mettre à jour" : "Créer le coupon"}
-                            </button>
+                            {/* Footer */}
+                            <div className="px-6 py-4 border-t border-gray-100 shrink-0">
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                >
+                                    <Save size={16} /> {saving ? "Enregistrement…" : editingId ? "Mettre à jour" : "Créer le coupon"}
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}
