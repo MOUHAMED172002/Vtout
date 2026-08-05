@@ -744,7 +744,9 @@ sequelize.authenticate()
                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'referral_code'
             `);
             if (!referralColRows || referralColRows.length === 0) {
-                await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
+                // Pas de UNIQUE : la table profiles a déjà atteint la limite MySQL
+                // de 64 index/clés (erreur 1069 sinon). Voir models/Profile.js.
+                await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL`);
                 console.log('  ✅ [MIGRATION-CRITIQUE] Added missing profiles.referral_code via raw SQL');
             } else {
                 console.log('  ✓ [MIGRATION-CRITIQUE] profiles.referral_code already present');

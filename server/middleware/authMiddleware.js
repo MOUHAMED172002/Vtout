@@ -17,7 +17,9 @@ async function repairReferralCodeColumn() {
     if (referralColumnRepairAttempted) return false;
     referralColumnRepairAttempted = true;
     try {
-        await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
+        // Pas de UNIQUE : la table profiles a déjà atteint la limite MySQL
+        // de 64 index/clés (erreur 1069 sinon). Voir models/Profile.js.
+        await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL`);
         console.log('  ✅ [AUTO-REPAIR] profiles.referral_code added at request-time');
         return true;
     } catch (e) {
