@@ -6,6 +6,26 @@ import sequelize from '../config/database.js';
 // Express middleware that handles Better Auth's endpoints directly
 export const betterAuthMiddleware = toNodeHandler(auth);
 
+// ── Auto-réparation défensive ──────────────────────────────────────────
+// Le boot ajoute déjà profiles.referral_code (voir index.js), mais si ce
+// process tourne sur un déploiement qui n'a pas exécuté cette migration
+// (déploiement figé, instance non redémarrée, etc.), CHAQUE requête
+// authentifiée plante ici. On corrige la colonne à la volée, une seule
+// fois par process, et on réessaie la requête qui a échoué.
+let referralColumnRepairAttempted = false;
+async function repairReferralCodeColumn() {
+    if (referralColumnRepairAttempted) return false;
+    referralColumnRepairAttempted = true;
+    try {
+        await sequelize.query(`ALTER TABLE profiles ADD COLUMN referral_code VARCHAR(12) NULL UNIQUE`);
+        console.log('  ✅ [AUTO-REPAIR] profiles.referral_code added at request-time');
+        return true;
+    } catch (e) {
+        console.error('  ❌ [AUTO-REPAIR] Failed to add profiles.referral_code:', e.message);
+        return false;
+    }
+}
+
 // Populates req.auth by verifying the session via header or cookie
 export const authMiddleware = async (req, res, next) => {
     try {
@@ -65,7 +85,7 @@ export const authMiddleware = async (req, res, next) => {
 
             // ── ATOMIC findOrCreate — prevents SequelizeUniqueConstraintError (ER_DUP_ENTRY)
             // caused by concurrent requests racing to create the same profile row.
-            const [profile, created] = await Profile.findOrCreate({
+            const findOrCreateProfile = () => Profile.findOrCreate({
                 where: { email: session.user.email },
                 defaults: {
                     id: session.user.id,
@@ -75,6 +95,18 @@ export const authMiddleware = async (req, res, next) => {
                     email_verified: false
                 }
             });
+
+            let profile, created;
+            try {
+                [profile, created] = await findOrCreateProfile();
+            } catch (dbErr) {
+                const isMissingReferralCode = dbErr?.original?.sqlMessage?.includes("Unknown column 'referral_code'");
+                if (isMissingReferralCode && await repairReferralCodeColumn()) {
+                    [profile, created] = await findOrCreateProfile();
+                } else {
+                    throw dbErr;
+                }
+            }
 
             if (created) {
                 // New profile created — sync role back to `user` table (non-blocking)
