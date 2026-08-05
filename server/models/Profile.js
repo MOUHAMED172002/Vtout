@@ -66,8 +66,11 @@ const Profile = sequelize.define('Profile', {
         type: DataTypes.DATE
     },
     referral_code: {
-        type: DataTypes.STRING(12),
-        unique: true
+        // Pas de contrainte unique en base : la table profiles a déjà atteint
+        // la limite MySQL de 64 index/clés (erreur 1069 si on en ajoute un).
+        // L'unicité est garantie applicativement dans referralController.js
+        // (ensureReferralCode boucle jusqu'à trouver un code libre).
+        type: DataTypes.STRING(12)
     },
     providers: {
         type: DataTypes.JSON,
