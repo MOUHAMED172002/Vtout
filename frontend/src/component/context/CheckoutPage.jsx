@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
+  const [freeShipping, setFreeShipping] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -201,20 +202,32 @@ export default function CheckoutPage() {
     if (!couponCode.trim()) return;
     try {
       setIsValidating(true);
-      const res = await validateCoupon(couponCode, totalFromCart);
+      // Pour les codes restreints à une catégorie (type 7), le serveur a besoin
+      // du détail du panier par catégorie pour calculer la bonne base de réduction.
+      const items = itemsFromCart.map(it => {
+        const p = it.product || it;
+        return {
+          category_id: p.category_id || p.category?.id || null,
+          subtotal: (Number(it.price_snapshot || it.price) || 0) * (Number(it.quantity) || 1),
+        };
+      });
+      const res = await validateCoupon(couponCode, totalFromCart, items);
       setAppliedCoupon(res);
-      setDiscount(res.discount);
-      toast.success("Code promo appliqué !");
+      setDiscount(res.discount || 0);
+      setFreeShipping(!!res.freeShipping);
+      toast.success(res.freeShipping ? "Livraison gratuite appliquée !" : "Code promo appliqué !");
     } catch (err) {
       toast.error(err.response?.data?.error || "Code promo invalide");
       setAppliedCoupon(null);
       setDiscount(0);
+      setFreeShipping(false);
     } finally {
       setIsValidating(false);
     }
   };
 
-  const finalTotal = Math.max(0, totalFromCart - discount + deliveryFee);
+  const effectiveDeliveryFee = freeShipping ? 0 : deliveryFee;
+  const finalTotal = Math.max(0, totalFromCart - discount + effectiveDeliveryFee);
 
   // Gère le clic sur le mode "Paiement à la livraison" : bloqué + toast si la zone
   // du client est différente de celle du vendeur.
@@ -496,7 +509,10 @@ export default function CheckoutPage() {
                     )}
                     <div className="flex justify-between text-sm font-bold">
                       <span className="text-base-content/50">Livraison</span>
-                      <span className="text-base-content font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
+                      <span className="text-base-content font-black">
+                        {freeShipping && deliveryFee > 0 && <span className="line-through text-base-content/30 mr-1.5">{deliveryFee.toLocaleString()} F</span>}
+                        {effectiveDeliveryFee === 0 ? "Gratuite" : `${effectiveDeliveryFee.toLocaleString()} F`}
+                      </span>
                     </div>
                     <div className="h-px bg-base-200 my-2"></div>
                     <div className="flex justify-between items-center">
@@ -750,7 +766,7 @@ export default function CheckoutPage() {
                       {isValidating ? <span className="loading loading-spinner loading-xs"></span> : <Check size={18} strokeWidth={3} />}
                     </button>
                   </div>
-                  {discount > 0 && <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 animate-bounce">ACTIF</span>}
+                  {(discount > 0 || freeShipping) && <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 animate-bounce">ACTIF</span>}
                 </div>
 
                 <div className="space-y-4 pt-2">
@@ -767,7 +783,7 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-base-content/40 font-bold text-sm">
                         <div className="flex flex-col">
                             <span>Livraison</span>
-                            {address?.is_valid && deliveryFee === 0 && (
+                            {address?.is_valid && effectiveDeliveryFee === 0 && (
                                 <span className="text-[10px] text-emerald-500 font-black uppercase tracking-tighter">
                                     Offerte
                                 </span>
@@ -775,8 +791,9 @@ export default function CheckoutPage() {
                         </div>
                         {address?.is_valid ? (
                             <div className="text-right">
-                                <span className="text-primary font-black">{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toLocaleString()} F`}</span>
-                                {deliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-base-content/40">Simulation Max.</p>}
+                                {freeShipping && deliveryFee > 0 && <span className="block text-xs font-bold text-base-content/30 line-through">{deliveryFee.toLocaleString()} F</span>}
+                                <span className="text-primary font-black">{effectiveDeliveryFee === 0 ? "Gratuite" : `${effectiveDeliveryFee.toLocaleString()} F`}</span>
+                                {effectiveDeliveryFee > 0 && <p className="text-[8px] uppercase tracking-widest text-base-content/40">Simulation Max.</p>}
                             </div>
                         ) : (
                             <span className="text-[10px] font-black uppercase text-base-content/30 italic">Attente adresse</span>

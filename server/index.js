@@ -53,7 +53,7 @@ import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import attributeRoutes from "./routes/attributeRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
-// import referralRoutes from "./routes/referralRoutes.js"; // Parrainage désactivé sur demande
+import referralRoutes from "./routes/referralRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
@@ -500,8 +500,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use('/api/attributes', attributeRoutes);
 app.use("/api/profiles", profileRoutes);
-// Système de parrainage désactivé sur demande — routes non montées.
-// app.use("/api/referrals", referralRoutes);
+app.use("/api/referrals", referralRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
@@ -864,6 +863,28 @@ sequelize.authenticate()
                 if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ seller_badge_subscriptions.granted_by_admin_id:', e.message);
             }
 
+            // ── Coupons — types 4 (livraison gratuite), 7 (catégorie), 8 (personnel), 1 (bienvenue) ──
+            try {
+                await sequelize.query(`ALTER TABLE \`coupons\` MODIFY COLUMN \`discount_type\` ENUM('percentage','fixed_amount','free_shipping') DEFAULT 'percentage'`);
+                await sequelize.query(`ALTER TABLE \`coupons\` MODIFY COLUMN \`discount_value\` DECIMAL(10,2) NULL`);
+                console.log('  ✅ [MIGRATION] coupons.discount_type/discount_value updated');
+            } catch (e) {
+                console.warn('  ⚠️ coupons.discount_type/discount_value:', e.message);
+            }
+            for (const [col, def] of [
+                ['max_discount_amount', 'DECIMAL(15,2) NULL'],
+                ['category_id',         'INT NULL'],
+                ['assigned_user_id',    'CHAR(36) NULL'],
+                ['first_order_only',    'TINYINT(1) NOT NULL DEFAULT 0'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`coupons\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added coupons.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ coupons.${col}:`, e.message);
+                }
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
@@ -874,6 +895,7 @@ sequelize.authenticate()
                     'financial_transactions', 'support_messages', 'blogs',
                     'boutiques', 'suppliers', 'profiles', 'configs',
                     'cart_items', 'delivery_persons', 'seller_badge_subscriptions',
+                    'coupons', 'coupon_usages', 'referrals',
                 ];
                 for (const tbl of tablesToConvert) {
                     try {

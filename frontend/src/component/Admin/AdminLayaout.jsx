@@ -29,7 +29,9 @@ import {
   PenTool,
   BarChart3,
   UserCircle,
-  BadgeCheck
+  BadgeCheck,
+  Ticket,
+  Share2
 } from "lucide-react";
 import DashboardPage from "./Dashboard/Dashboard";
 import SalesChart from "./Dashboard/SalesChart";
@@ -74,6 +76,8 @@ import DeliveryManager from "./Order/DeliveryManager";
 import FournisseurListe from "./Product/FournisseurListe";
 import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 import SellerBadgeManager from "./Fournisseurs/SellerBadgeManager";
+import CouponManager from "./Marketing/CouponManager";
+import ReferralAdminManager from "./Marketing/ReferralAdminManager";
 // import KitsManager from "./Kits/KitsManager"; // KIT PROMOTIONS — DÉSACTIVÉ
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/AuthHooks";
@@ -185,6 +189,14 @@ const AdminLayout = () => {
     },
     */
     {
+      name: "Marketing",
+      icon: <Ticket size={18} />,
+      subItems: [
+        { key: "coupons", name: "Codes Promo", icon: <Ticket size={16} /> },
+        { key: "referrals", name: "Parrainage", icon: <Share2 size={16} /> },
+      ],
+    },
+    {
       name: "Finances",
       icon: <DollarSign size={18} />,
       subItems: [
@@ -266,6 +278,12 @@ const AdminLayout = () => {
           default: return <KitsManager globalSearchQuery={searchQuery} />;
         }
       */
+      case "Marketing":
+        switch (selectedSub) {
+          case "coupons": return <CouponManager globalSearchQuery={searchQuery} />;
+          case "referrals": return <ReferralAdminManager globalSearchQuery={searchQuery} />;
+          default: return <CouponManager globalSearchQuery={searchQuery} />;
+        }
       case "Finances":
         switch (selectedSub) {
           case "payouts": return <PayoutManager globalSearchQuery={searchQuery} />;

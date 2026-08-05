@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, Category, Notification, Dispute, Kit, KitComponent } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, CouponUsage, Category, Notification, Dispute, Kit, KitComponent } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
@@ -10,7 +10,7 @@ import path from 'path';
 import { createFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
-// import { rewardReferrerIfPending } from './referralController.js'; // Parrainage désactivé sur demande
+import { rewardReferrerIfPending } from './referralController.js';
 
 
 export const getMyOrders = async (req, res) => {
@@ -556,8 +556,12 @@ export const createOrder = async (req, res) => {
         const boutiqueIds = Object.keys(itemsByBoutique);
         const createdOrders = [];
         
-        // 3. Coupon Logic
+        // 3. Coupon Logic — types 1 (bienvenue), 2 (pourcentage), 4 (livraison gratuite),
+        // 7 (catégorie), 8 (personnel). Ceci est la vérification AUTORITATIVE côté serveur ;
+        // /api/coupons/validate n'est qu'un aperçu côté client.
         let totalDiscount = 0;
+        let couponFreeShipping = false;
+        let couponBaseAmount = subtotal; // montant réellement soumis à la réduction (peut être < subtotal pour un coupon catégorie)
         let validatedCoupon = null;
         if (coupon_code) {
             const now = new Date();
@@ -570,18 +574,72 @@ export const createOrder = async (req, res) => {
                 },
                 transaction
             });
-            
+
             if (validatedCoupon) {
-                if (!validatedCoupon.usage_limit || validatedCoupon.used_count < validatedCoupon.usage_limit) {
-                    if (subtotal >= parseFloat(validatedCoupon.min_order_amount)) {
-                        totalDiscount = validatedCoupon.discount_type === 'percentage' 
-                            ? (subtotal * parseFloat(validatedCoupon.discount_value)) / 100 
-                            : parseFloat(validatedCoupon.discount_value);
-                        totalDiscount = Math.min(totalDiscount, subtotal);
+                let couponOk = true;
+
+                if (validatedCoupon.usage_limit && validatedCoupon.used_count >= validatedCoupon.usage_limit) {
+                    couponOk = false;
+                }
+
+                // Type 8 — code personnel : réservé à un client précis
+                if (couponOk && validatedCoupon.assigned_user_id) {
+                    if (!userId || validatedCoupon.assigned_user_id !== userId) couponOk = false;
+                }
+
+                // Type 1 — code de bienvenue : valable uniquement avant toute commande payée
+                if (couponOk && validatedCoupon.first_order_only) {
+                    if (!userId) {
+                        couponOk = false;
+                    } else {
+                        const hasOrdered = await Order.findOne({ where: { user_id: userId, payment_status: 'payé' }, transaction });
+                        if (hasOrdered) couponOk = false;
                     }
+                }
+
+                // Anti-fraude : un même compte ne réutilise pas un coupon déjà consommé
+                if (couponOk && userId) {
+                    const alreadyUsed = await CouponUsage.findOne({ where: { coupon_id: validatedCoupon.id, user_id: userId }, transaction });
+                    if (alreadyUsed) couponOk = false;
+                }
+
+                // Type 7 — restreint à une catégorie : la base de calcul n'est que
+                // le sous-total des articles de cette catégorie dans le panier.
+                if (couponOk && validatedCoupon.category_id) {
+                    couponBaseAmount = enrichedItems
+                        .filter(({ product }) => String(product.category_id) === String(validatedCoupon.category_id))
+                        .reduce((sum, { unitPrice, item }) => sum + unitPrice * item.quantity, 0);
+                    if (couponBaseAmount <= 0) couponOk = false;
+                }
+
+                if (couponOk && couponBaseAmount < parseFloat(validatedCoupon.min_order_amount || 0)) {
+                    couponOk = false;
+                }
+
+                if (couponOk) {
+                    if (validatedCoupon.discount_type === 'free_shipping') {
+                        // Type 4 — annule le supplément géographique de livraison (voir calculateBoutiqueSupplement
+                        // plus bas) ; n'affecte jamais le BASE_FEE, déjà inclus dans le prix affiché du produit.
+                        couponFreeShipping = true;
+                    } else if (validatedCoupon.discount_type === 'percentage') {
+                        totalDiscount = (couponBaseAmount * parseFloat(validatedCoupon.discount_value)) / 100;
+                        if (validatedCoupon.max_discount_amount) {
+                            totalDiscount = Math.min(totalDiscount, parseFloat(validatedCoupon.max_discount_amount));
+                        }
+                    } else {
+                        totalDiscount = parseFloat(validatedCoupon.discount_value) || 0;
+                    }
+                    totalDiscount = Math.min(totalDiscount, couponBaseAmount);
+                }
+
+                if (!couponOk) {
+                    // Coupon invalide dans ce contexte précis (limite atteinte, catégorie non présente,
+                    // déjà utilisé…) : on l'ignore silencieusement plutôt que de bloquer la commande.
+                    validatedCoupon = null;
                 }
             }
         }
+        const couponApplied = !!validatedCoupon && (totalDiscount > 0 || couponFreeShipping);
 
         // 4. Create individual orders per supplier
 
@@ -625,10 +683,22 @@ export const createOrder = async (req, res) => {
 
             // Pour le client, on n'affiche que le supplément géographique (intra/inter).
             // Le BASE_FEE marketing est déjà inclus dans le prix affiché du produit.
-            let sDeliveryFee = supplement; 
-            const orderShareOfSubtotal = subtotal > 0 ? (bSubtotal / subtotal) : 1;
-            const sDiscount = totalDiscount * orderShareOfSubtotal;
-            const sTotal = (bSubtotal - sDiscount) + supplement;
+            // Un coupon "livraison gratuite" annule ce supplément (jamais le BASE_FEE).
+            let sDeliveryFee = couponFreeShipping ? 0 : supplement;
+
+            // Répartition de la réduction entre les commandes-boutique : si le coupon est
+            // restreint à une catégorie, on répartit uniquement sur la part de CETTE boutique
+            // dans le sous-total éligible (pas le sous-total global) pour ne pas remiser les
+            // articles hors catégorie d'une autre boutique.
+            let bDiscountBase = bSubtotal;
+            if (validatedCoupon && validatedCoupon.category_id) {
+                bDiscountBase = boutiqueItems
+                    .filter(({ product }) => String(product.category_id) === String(validatedCoupon.category_id))
+                    .reduce((sum, { unitPrice, item }) => sum + unitPrice * item.quantity, 0);
+            }
+            const orderShareOfDiscountBase = couponBaseAmount > 0 ? (bDiscountBase / couponBaseAmount) : 0;
+            const sDiscount = totalDiscount * orderShareOfDiscountBase;
+            const sTotal = (bSubtotal - sDiscount) + sDeliveryFee;
             
             const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
             const orderId = crypto.randomUUID();
@@ -645,7 +715,7 @@ export const createOrder = async (req, res) => {
                 total_amount: sTotal,
                 delivery_fee: sDeliveryFee,
                 discount_amount: sDiscount,
-                coupon_code: sDiscount > 0 ? coupon_code : null,
+                coupon_code: couponApplied ? coupon_code : null,
                 notes,
                 delivery_code: deliveryCode,
                 supplier_id: actualSupplierId,
@@ -710,8 +780,15 @@ export const createOrder = async (req, res) => {
         if (userId) {
             await Cart.destroy({ where: { user_id: userId }, transaction });
         }
-        if (validatedCoupon && totalDiscount > 0) {
+        if (validatedCoupon && couponApplied) {
             await validatedCoupon.increment('used_count', { by: 1, transaction });
+            await CouponUsage.create({
+                id: crypto.randomUUID(),
+                coupon_id: validatedCoupon.id,
+                user_id: userId,
+                order_id: createdOrders[0]?.id || null,
+                discount_amount: totalDiscount
+            }, { transaction });
         }
 
         // --- FINAL WALLET DEBIT ---
@@ -1010,14 +1087,13 @@ export const updateOrderStatus = async (req, res) => {
             notifyAdmin(`🔔 *VTOUT : Statut de commande modifié*\nCommande: #${order.id.slice(0, 8).toUpperCase()}\nStatut: *${oldStatus}* ➔ *${mappedStatus}*`).catch(() => {});
         }
 
-        // Récompense de parrainage — système désactivé sur demande (routes
-        // /api/referrals non montées dans index.js). Désactivé ici aussi pour
-        // ne pas récompenser d'éventuels parrainages restés "pending".
-        // if (mappedStatus === 'confirmée' && oldStatus === 'en_attente' && order.user_id) {
-        //     rewardReferrerIfPending(order.user_id, order.id).catch((e) =>
-        //         console.error('[Referral] rewardReferrerIfPending failed:', e.message)
-        //     );
-        // }
+        // Récompense de parrainage — fire-and-forget, ne récompense que si
+        // le parrainage était "pending" et que l'admin a fixé un montant > 0.
+        if (mappedStatus === 'confirmée' && oldStatus === 'en_attente' && order.user_id) {
+            rewardReferrerIfPending(order.user_id, order.id).catch((e) =>
+                console.error('[Referral] rewardReferrerIfPending failed:', e.message)
+            );
+        }
 
         // 1. Stock deduction on confirmation
         if (mappedStatus === 'confirmée' && oldStatus === 'en_attente') {

@@ -13,16 +13,37 @@ const Coupon = sequelize.define('Coupon', {
         unique: true
     },
     discount_type: {
-        type: DataTypes.ENUM('percentage', 'fixed_amount'),
+        type: DataTypes.ENUM('percentage', 'fixed_amount', 'free_shipping'),
         defaultValue: 'percentage'
     },
     discount_value: {
+        // Sans objet pour 'free_shipping' (peut rester à 0/null dans ce cas).
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
+        allowNull: true
+    },
+    max_discount_amount: {
+        // Plafond en FCFA pour les réductions en pourcentage (ex: -10% plafonné à 5000 F). Null = pas de plafond.
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: true
     },
     min_order_amount: {
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0.00
+    },
+    category_id: {
+        // Si renseigné, la réduction ne s'applique qu'aux articles de cette catégorie.
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    assigned_user_id: {
+        // Code personnel : si renseigné, seul ce client peut l'utiliser.
+        type: DataTypes.CHAR(36),
+        allowNull: true
+    },
+    first_order_only: {
+        // Code de bienvenue : valable uniquement si le client n'a jamais eu de commande payée.
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     start_date: {
         type: DataTypes.DATE,

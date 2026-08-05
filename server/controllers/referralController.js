@@ -164,6 +164,79 @@ export const applyReferralCode = async (req, res) => {
     }
 };
 
+// GET /referrals/admin/settings — récompenses actuelles (0 = désactivé).
+export const getReferralSettingsAdmin = async (req, res) => {
+    try {
+        const settings = await getReferralSettings();
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// PATCH /referrals/admin/settings — c'est ici que l'admin active le parrainage
+// (les récompenses valent 0 par défaut tant qu'il n'a rien réglé).
+export const updateReferralSettings = async (req, res) => {
+    try {
+        const { referrerReward, referredReward, minOrderAmount, validityDays } = req.body;
+        const fields = [
+            ['referral_referrer_reward', referrerReward],
+            ['referral_referred_reward', referredReward],
+            ['referral_min_order_amount', minOrderAmount],
+            ['referral_coupon_validity_days', validityDays],
+        ];
+        for (const [key, val] of fields) {
+            if (val === undefined || val === null || val === '') continue;
+            const numeric = Number(val);
+            if (!Number.isFinite(numeric) || numeric < 0) {
+                return res.status(400).json({ error: `Valeur invalide pour ${key}` });
+            }
+            const [row] = await Config.findOrCreate({ where: { key }, defaults: { key, value: String(numeric), group: 'referral' } });
+            await row.update({ value: String(numeric) });
+        }
+        const settings = await getReferralSettings();
+        res.json(settings);
+    } catch (error) {
+        console.error('updateReferralSettings error:', error);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour' });
+    }
+};
+
+// GET /referrals/admin/all — liste complète pour le tableau de bord admin.
+export const getAllReferralsAdmin = async (req, res) => {
+    try {
+        const referrals = await Referral.findAll({
+            include: [
+                { model: Profile, as: 'referrer', attributes: ['id', 'fullname', 'email'] },
+                { model: Profile, as: 'referred', attributes: ['id', 'fullname', 'email'] },
+            ],
+            order: [['created_at', 'DESC']]
+        });
+        res.json(referrals);
+    } catch (error) {
+        console.error('getAllReferralsAdmin error:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// GET /referrals/admin/stats — agrégats pour les cartes du tableau de bord.
+export const getReferralStatsAdmin = async (req, res) => {
+    try {
+        const total = await Referral.count();
+        const rewarded = await Referral.count({ where: { status: 'rewarded' } });
+        const settings = await getReferralSettings();
+        res.json({
+            totalInvites: total,
+            totalRewarded: rewarded,
+            totalPending: total - rewarded,
+            estimatedPayout: rewarded * settings.referrerReward,
+            settings,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
 // Appelée par orderController.js quand une commande passe en "confirmée"
 // pour la première fois — récompense le parrain si l'utilisateur de cette
 // commande était un filleul en attente. Fire-and-forget, ne doit jamais

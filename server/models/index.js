@@ -41,6 +41,7 @@ import Kit from './Kit.js'; // gardé pour orderController.js (calcul prix kit)
 import KitComponent from './KitComponent.js'; // gardé pour orderController.js
 import SellerBadgeSubscription from './SellerBadgeSubscription.js';
 import Referral from './Referral.js';
+import CouponUsage from './CouponUsage.js';
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -272,6 +273,13 @@ Dispute.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
 Order.hasMany(Dispute, { foreignKey: 'order_id', as: 'disputes' });
 Dispute.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
 
+Coupon.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+Coupon.belongsTo(Profile, { foreignKey: 'assigned_user_id', as: 'assignedUser' });
+Coupon.hasMany(CouponUsage, { foreignKey: 'coupon_id', as: 'usages' });
+CouponUsage.belongsTo(Coupon, { foreignKey: 'coupon_id', as: 'coupon' });
+CouponUsage.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+CouponUsage.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
+
 // Blogs
 Blog.belongsTo(Profile, { foreignKey: 'author_id', as: 'author' });
 Profile.hasMany(Blog, { foreignKey: 'author_id', as: 'blogs' });
@@ -339,5 +347,6 @@ export {
     Kit,         // gardé pour orderController.js
     KitComponent, // gardé pour orderController.js
     SellerBadgeSubscription,
-    Referral
+    Referral,
+    CouponUsage
 };

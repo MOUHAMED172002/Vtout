@@ -29,6 +29,7 @@ import Register from './component/Auth/Register';
 import ResetPassword from './component/Auth/ResetPassword';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ProfileSync from './component/Auth/ProfileSync';
+import ReferralCapture from './component/Auth/ReferralCapture';
 import { notificationService } from './services/notificationService';
 import SEO from './component/Shared/SEO';
 
@@ -175,6 +176,7 @@ const AppContent = ({ products, loading }) => {
 
       <SEO />
       <ProfileSync />
+      <ReferralCapture />
 
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Home />} />

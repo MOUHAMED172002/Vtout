@@ -17,6 +17,7 @@ import SessionsManagers from "../User/SessionsManagers";
 import ReviewsManager from "../User/ReviewsManager";
 import CouponsPannel from "../User/CouponsPannel";
 import UserWallet from "../User/UserWallet";
+import ReferralPage from "../User/ReferralPage";
 
 /**
  * DashboardRoutes: import into your main router.
@@ -44,6 +45,7 @@ export default function DashboardRoutes() {
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="sessions" element={<SessionsManagers />} />
         <Route path="wallet" element={<UserWallet />} />
+        <Route path="referral" element={<ReferralPage />} />
       </Route>
     </Routes>
   );
