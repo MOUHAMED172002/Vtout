@@ -11,7 +11,7 @@ const EditProductSupplier = () => {
     const navigate = useNavigate();
     const { getToken } = useAuth();
     const [supplierStatus, setSupplierStatus] = useState(null);
-    const [isAdminCreated, setIsAdminCreated] = useState(false);
+    const [isAdminOwner, setIsAdminOwner] = useState(false);
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState(null);
 
@@ -27,7 +27,7 @@ const EditProductSupplier = () => {
                 ]);
 
                 setSupplierStatus(profile.status);
-                setIsAdminCreated(!!profile.created_by_admin);
+                setIsAdminOwner(!!profile.is_admin_owner);
 
                 if (!productData) {
                     toast.error("Produit introuvable");
@@ -95,7 +95,7 @@ const EditProductSupplier = () => {
                 <SupplierProductForm
                     initialData={product}
                     onClose={() => navigate('/mes-produits')}
-                    isAdminCreated={isAdminCreated}
+                    isAdminOwner={isAdminOwner}
                 />
             )}
         </div>

@@ -79,7 +79,7 @@ const InlineAdder = ({ label, onAdd, loading }) => {
     );
 };
 
-export default function SupplierProductForm({ onClose, initialData = null, isAdminCreated = false }) {
+export default function SupplierProductForm({ onClose, initialData = null, isAdminOwner = false }) {
     const { getToken, userId } = useAuth();
     const [currentStep, setCurrentStep] = useState(0);
     const [categories, setCategories] = useState([]);
@@ -774,7 +774,7 @@ export default function SupplierProductForm({ onClose, initialData = null, isAdm
                             {/* Mémo privé : combien CE produit vous a réellement coûté (achat, import…).
                                 Réservé aux comptes créés par l'administrateur — jamais visible du client,
                                 ni de l'admin, ni des vendeurs inscrits eux-mêmes. */}
-                            {isAdminCreated && (
+                            {isAdminOwner && (
                                 <div className="p-8 bg-base-200/60 rounded-[2.5rem] space-y-4 border border-base-300">
                                     <div className="flex items-center gap-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-base-content/50">Prix d'achat (mémo privé)</label>

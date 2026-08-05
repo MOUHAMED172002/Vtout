@@ -893,14 +893,6 @@ sequelize.authenticate()
                 if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ products.cost_price:', e.message);
             }
 
-            // ── Supplier.created_by_admin — restreint le mémo cost_price aux comptes créés par l'admin ──
-            try {
-                await sequelize.query(`ALTER TABLE \`suppliers\` ADD COLUMN \`created_by_admin\` TINYINT(1) NOT NULL DEFAULT 0`);
-                console.log('  ✅ [MIGRATION] Added suppliers.created_by_admin');
-            } catch (e) {
-                if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ suppliers.created_by_admin:', e.message);
-            }
-
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.

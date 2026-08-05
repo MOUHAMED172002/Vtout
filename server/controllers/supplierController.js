@@ -92,15 +92,12 @@ export const createSupplier = async (req, res) => {
         });
 
         // 3. Fiche fournisseur, liée au compte, active immédiatement.
-        // created_by_admin=true (jamais falsifiable par rest, réglé après le spread)
-        // conditionne l'accès au mémo Product.cost_price.
         const supplier = await Supplier.create({
             ...rest,
             id: crypto.randomUUID(),
             user_id: authUserId,
             name,
-            status: 'active',
-            created_by_admin: true
+            status: 'active'
         });
 
         res.status(201).json({ ...supplier.toJSON(), account_created: true });
@@ -336,7 +333,15 @@ export const getMyProfile = async (req, res) => {
         });
         // Return null gracefully — frontend handles the "register your shop" flow
         if (!supplier) return res.json(null);
-        res.json(supplier);
+
+        // Casquette double admin+vendeur : cette fiche fournisseur appartient-elle à un
+        // compte dont le PROFIL est admin ? (pas "créé par un admin" — le même login).
+        // Conditionne l'accès au mémo Product.cost_price côté supplier-portal.
+        const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase());
+        const ownerEmail = supplier.user?.email?.toLowerCase();
+        const is_admin_owner = supplier.user?.role === 'admin' || (ownerEmail && adminEmails.includes(ownerEmail));
+
+        res.json({ ...supplier.toJSON(), is_admin_owner });
     } catch (error) {
         console.error('GetMyProfile error:', error);
         res.status(500).json({ error: 'Erreur serveur' });
