@@ -9,6 +9,7 @@ const AddProductSupplier = () => {
     const navigate = useNavigate();
     const { getToken } = useAuth();
     const [supplierStatus, setSupplierStatus] = useState(null);
+    const [isAdminCreated, setIsAdminCreated] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -19,6 +20,7 @@ const AddProductSupplier = () => {
 
                 const profile = await getMySupplierProfile(token);
                 setSupplierStatus(profile.status);
+                setIsAdminCreated(!!profile.created_by_admin);
             } catch (err) {
                 console.error('Check status error:', err);
                 navigate('/dashboard');
@@ -59,6 +61,7 @@ const AddProductSupplier = () => {
         <div className="bg-base-200 min-h-screen py-10 px-4">
             <SupplierProductForm
                 onClose={() => navigate('/dashboard')}
+                isAdminCreated={isAdminCreated}
             />
         </div>
     );

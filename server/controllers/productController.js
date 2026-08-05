@@ -733,6 +733,15 @@ export const createProduct = async (req, res) => {
         // Seed a random starting sales count (0–20) before any real orders come in
         const demoTotalSold = Math.floor(Math.random() * 21);
 
+        // Le mémo cost_price n'est persisté que pour les comptes vendeurs créés par
+        // l'admin (voir Supplier.created_by_admin) — vérifié côté serveur, pas
+        // seulement caché dans l'UI, pour empêcher un vendeur normal de le forcer via l'API.
+        let allowCostPrice = false;
+        if (finalSupplierId) {
+            const supplierForCost = await Supplier.findByPk(finalSupplierId, { attributes: ['id', 'created_by_admin'], transaction });
+            allowCostPrice = !!supplierForCost?.created_by_admin;
+        }
+
         const product = await Product.create({
             id: productId,
             name,
@@ -753,7 +762,7 @@ export const createProduct = async (req, res) => {
             in_stock_supplier: in_stock_supplier !== undefined ? in_stock_supplier : true,
             boutique_id: boutique_id || null,
             secondary_boutique_ids: secondary_boutique_ids || null,
-            cost_price: cost_price || null,
+            cost_price: allowCostPrice ? (cost_price || null) : null,
             total_sold: demoTotalSold
         }, { transaction });
 
@@ -1000,7 +1009,17 @@ export const updateProduct = async (req, res) => {
         if (in_stock_supplier !== undefined) updatePayload.in_stock_supplier = in_stock_supplier;
         if (boutique_id !== undefined) updatePayload.boutique_id = boutique_id;
         if (secondary_boutique_ids !== undefined) updatePayload.secondary_boutique_ids = secondary_boutique_ids;
-        if (cost_price !== undefined) updatePayload.cost_price = cost_price;
+        if (cost_price !== undefined) {
+            // Même garde-fou serveur qu'à la création : mémo réservé aux comptes
+            // vendeurs créés par l'admin, jamais réglable par un vendeur normal via l'API.
+            const ownerSupplierId = productToEdit.supplier_id;
+            const supplierForCost = ownerSupplierId
+                ? await Supplier.findByPk(ownerSupplierId, { attributes: ['id', 'created_by_admin'], transaction })
+                : null;
+            if (supplierForCost?.created_by_admin) {
+                updatePayload.cost_price = cost_price;
+            }
+        }
 
         const [updatedRows] = await Product.update(updatePayload, {
             where: { id },

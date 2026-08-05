@@ -38,6 +38,13 @@ const Supplier = sequelize.define('Supplier', {
         type: DataTypes.ENUM('En attente', 'active', 'suspended'),
         defaultValue: 'En attente'
     },
+    created_by_admin: {
+        // true uniquement pour les comptes créés depuis Admin > Fournisseurs (voir
+        // supplierController.createSupplier) — jamais réglable par le vendeur lui-même.
+        // Conditionne l'accès au champ Product.cost_price (mémo prix d'achat).
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
     terms_accepted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

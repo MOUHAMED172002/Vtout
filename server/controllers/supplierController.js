@@ -92,12 +92,15 @@ export const createSupplier = async (req, res) => {
         });
 
         // 3. Fiche fournisseur, liée au compte, active immédiatement.
+        // created_by_admin=true (jamais falsifiable par rest, réglé après le spread)
+        // conditionne l'accès au mémo Product.cost_price.
         const supplier = await Supplier.create({
             ...rest,
             id: crypto.randomUUID(),
             user_id: authUserId,
             name,
-            status: 'active'
+            status: 'active',
+            created_by_admin: true
         });
 
         res.status(201).json({ ...supplier.toJSON(), account_created: true });
