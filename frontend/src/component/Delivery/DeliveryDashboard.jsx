@@ -606,7 +606,7 @@ export default function DeliveryDashboard() {
                                                         <h3 className="text-xl font-black text-base-content">Livraison Urbaine</h3>
                                                         <div className="flex items-center gap-2 mb-3">
                                                             <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black border border-amber-100 flex items-center gap-2">
-                                                                <Truck size={12} /> Collecte : {order.supplier?.name || "Plateforme Centrale"}
+                                                                <Truck size={12} /> Collecte : {order.boutique?.name || order.supplier?.name || "Plateforme Centrale"}
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-wrap gap-2 mt-4 mb-4">
@@ -732,7 +732,7 @@ export default function DeliveryDashboard() {
                                                         {/* Mobile stats line */}
                                                         <div className="px-5 pb-4 pt-0 flex sm:hidden items-center justify-between border-t border-dashed border-base-content/5 mt-[-4px]">
                                                             <div className="flex items-center gap-1.5 text-xs text-base-content/50">
-                                                                <Store size={12} /> <span className="font-bold truncate max-w-[120px]">{order.supplier?.name || "Vendeur"}</span>
+                                                                <Store size={12} /> <span className="font-bold truncate max-w-[120px]">{order.boutique?.name || order.supplier?.name || "Vendeur"}</span>
                                                             </div>
                                                             <p className="text-xs font-black text-primary">Gain : {deliveryFee.toLocaleString()} F</p>
                                                         </div>
@@ -779,19 +779,21 @@ export default function DeliveryDashboard() {
                                                                                 
                                                                                 <div className="space-y-3">
                                                                                     <div>
-                                                                                        <h4 className="text-sm font-black text-base-content">{order.supplier?.name || "Boutique Vendeur"}</h4>
+                                                                                        <h4 className="text-sm font-black text-base-content">{order.boutique?.name || order.supplier?.name || "Boutique Vendeur"}</h4>
                                                                                         <p className="text-[11px] text-base-content/60 leading-relaxed font-bold mt-0.5">
-                                                                                            {order.supplier?.address_line}, {order.supplier?.quartier_label || order.supplier?.commune_label}
+                                                                                            {order.boutique
+                                                                                                ? `${order.boutique.address_line || ''}, ${order.boutique.quartier_label || order.boutique.commune_label || ''}`
+                                                                                                : `${order.supplier?.address_line || ''}, ${order.supplier?.quartier_label || order.supplier?.commune_label || ''}`}
                                                                                         </p>
                                                                                     </div>
-                                                                                    
+
                                                                                     <div className="flex flex-wrap gap-2 pt-1">
-                                                                                        {order.supplier?.phone && (
-                                                                                            <a 
-                                                                                                href={`tel:${order.supplier.phone}`}
+                                                                                        {(order.boutique?.phone || order.boutique?.whatsapp || order.supplier?.phone) && (
+                                                                                            <a
+                                                                                                href={`tel:${order.boutique?.phone || order.boutique?.whatsapp || order.supplier?.phone}`}
                                                                                                 className="inline-flex items-center gap-1.5 px-3 py-2 bg-neutral hover:bg-primary hover:text-white text-neutral-content rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm"
                                                                                             >
-                                                                                                <Phone size={11} /> Appeler : {order.supplier.phone}
+                                                                                                <Phone size={11} /> Appeler : {order.boutique?.phone || order.boutique?.whatsapp || order.supplier?.phone}
                                                                                             </a>
                                                                                         )}
                                                                                     </div>
@@ -904,9 +906,9 @@ export default function DeliveryDashboard() {
                                                                                 <Navigation size={13} /> Itinéraire GPS de Livraison
                                                                             </p>
                                                                             <DeliveryMapLink
-                                                                                supplierLat={order.supplier?.lat}
-                                                                                supplierLng={order.supplier?.lng}
-                                                                                supplierAddress={order.supplier?.address_line || order.supplier?.commune_label}
+                                                                                supplierLat={order.boutique?.lat || order.supplier?.lat}
+                                                                                supplierLng={order.boutique?.lng || order.supplier?.lng}
+                                                                                supplierAddress={order.boutique ? (order.boutique.address_line || order.boutique.commune_label) : (order.supplier?.address_line || order.supplier?.commune_label)}
                                                                                 clientLat={order.address?.lat}
                                                                                 clientLng={order.address?.lng}
                                                                                 clientAddress={order.address?.quartier_label
@@ -1411,19 +1413,23 @@ export default function DeliveryDashboard() {
                                         <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
                                             <Store size={11} /> Point de Collecte
                                         </p>
-                                        <h4 className="text-sm font-black text-base-content">{previewOrder.supplier?.name || "Boutique Vendeur"}</h4>
-                                        {previewOrder.supplier?.phone && (
+                                        {/* La boutique retenue pour CETTE commande prime sur l'adresse générale
+                                            du vendeur — un vendeur peut avoir plusieurs boutiques à des adresses différentes. */}
+                                        <h4 className="text-sm font-black text-base-content">{previewOrder.boutique?.name || previewOrder.supplier?.name || "Boutique Vendeur"}</h4>
+                                        {(previewOrder.boutique?.phone || previewOrder.boutique?.whatsapp || previewOrder.supplier?.phone) && (
                                             <a
-                                                href={`tel:${previewOrder.supplier.phone}`}
+                                                href={`tel:${previewOrder.boutique?.phone || previewOrder.boutique?.whatsapp || previewOrder.supplier?.phone}`}
                                                 className="inline-flex items-center gap-1.5 text-[10px] font-black text-amber-600 hover:underline"
                                             >
-                                                <Phone size={11} /> {previewOrder.supplier.phone}
+                                                <Phone size={11} /> {previewOrder.boutique?.phone || previewOrder.boutique?.whatsapp || previewOrder.supplier?.phone}
                                             </a>
                                         )}
-                                        {(previewOrder.supplier?.address_line || previewOrder.supplier?.commune_label) && (
+                                        {(previewOrder.boutique?.address_line || previewOrder.boutique?.commune_label || previewOrder.supplier?.address_line || previewOrder.supplier?.commune_label) && (
                                             <p className="text-[11px] text-base-content/60 font-bold flex items-start gap-1.5 mt-1">
                                                 <MapPin size={11} className="mt-0.5 shrink-0" />
-                                                {[previewOrder.supplier.address_line, previewOrder.supplier.quartier_label || previewOrder.supplier.commune_label].filter(Boolean).join(", ")}
+                                                {previewOrder.boutique
+                                                    ? [previewOrder.boutique.address_line, previewOrder.boutique.quartier_label || previewOrder.boutique.commune_label].filter(Boolean).join(", ")
+                                                    : [previewOrder.supplier.address_line, previewOrder.supplier.quartier_label || previewOrder.supplier.commune_label].filter(Boolean).join(", ")}
                                             </p>
                                         )}
                                     </div>

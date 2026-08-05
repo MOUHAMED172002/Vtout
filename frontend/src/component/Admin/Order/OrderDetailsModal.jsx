@@ -99,8 +99,9 @@ export default function OrderDetailsModal({ order: initialOrder, isOpen, onClose
   const sortedLivreurs = useMemo(() => {
     if (!availableLivreurs) return [];
     
-    // We prioritize the supplier's location for pickup efficiency
-    const pickupCommune = order?.supplier?.commune_label || order?.supplier?.commune;
+    // On priorise la commune de la boutique retenue pour CETTE commande (un vendeur peut
+    // avoir plusieurs boutiques à des adresses différentes) ; à défaut, celle du vendeur.
+    const pickupCommune = order?.boutique?.commune_label || order?.supplier?.commune_label || order?.supplier?.commune;
     
     const safeLivreurs = Array.isArray(availableLivreurs) ? availableLivreurs : [];
     return [...safeLivreurs]

@@ -1,4 +1,4 @@
-import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, ProductVariant, sequelize } from '../models/index.js';
+import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, Boutique, ProductVariant, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
@@ -12,6 +12,7 @@ const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) =
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier', include: [{ model: Profile, as: 'user' }] },
+                { model: Boutique, as: 'boutique' },
                 { model: Profile, as: 'user' },
                 { model: DeliveryPerson, as: 'deliveryPerson', include: [{ model: Profile, as: 'profile' }] }
             ]
@@ -20,19 +21,29 @@ const sendLogisticsWhatsAppNotifications = async (orderId, type, details = {}) =
         if (!order) return;
 
         const customerPhone = order.whatsapp_notif_phone || order.guest_phone || order.user?.phone;
-        const supplierPhone = order.supplier?.whatsapp || order.supplier?.phone || order.supplier?.user?.phone;
+        // La boutique effectivement retenue pour CETTE commande (la plus proche du client,
+        // choisie à la création de la commande) prime toujours sur l'adresse générique du
+        // vendeur — un vendeur peut avoir plusieurs boutiques à des adresses différentes.
+        const pickupPhone = order.boutique?.whatsapp || order.boutique?.phone || order.supplier?.whatsapp || order.supplier?.phone || order.supplier?.user?.phone;
+        const pickupName = order.boutique?.name || order.supplier?.name || 'Vendeur';
+        const pickupAddress = order.boutique
+            ? [order.boutique.address_line, order.boutique.quartier_label || order.boutique.commune_label].filter(Boolean).join(', ')
+            : (order.supplier ? [order.supplier.address_line, order.supplier.quartier_label || order.supplier.commune_label].filter(Boolean).join(', ') : '');
         const delivererPhone = order.deliveryPerson?.phone || order.deliveryPerson?.profile?.phone || order.deliveryPerson?.whatsapp;
         const delivererName = order.deliveryPerson?.profile?.fullname || 'Livreur';
-        const supplierName = order.supplier?.name || 'Vendeur';
-        
+        // Conservés sous ces noms pour ne pas casser le reste de la fonction (notifs au
+        // vendeur/admin) : ils pointent maintenant vers le contact de la boutique retenue.
+        const supplierName = pickupName;
+        const supplierPhone = pickupPhone;
+
         const orderRef = order.id.slice(0, 8).toUpperCase();
         const amountStr = Number(order.total_amount).toLocaleString();
 
         if (type === 'assignToMe' || type === 'adminAssign') {
             // Deliverer assigned
             if (delivererPhone) {
-                const supplierAddress = order.address ? `${order.address.commune_label || ''}, ${order.address.address_line || ''}` : '';
-                await sendWhatsAppMessage(delivererPhone, `🛵 *VTOUT : Course assignée !*\nVous avez été assigné à la commande #${orderRef}.\nVeuillez récupérer le colis chez *${supplierName}* (${supplierPhone || ''}) pour livraison à : ${supplierAddress}.`).catch(() => {});
+                const destinationAddress = order.address ? `${order.address.commune_label || ''}, ${order.address.address_line || ''}` : '';
+                await sendWhatsAppMessage(delivererPhone, `🛵 *VTOUT : Course assignée !*\nVous avez été assigné à la commande #${orderRef}.\n📦 Récupération chez *${pickupName}* (${pickupPhone || ''})${pickupAddress ? ` — 📍 ${pickupAddress}` : ''}\n🏠 Livraison à : ${destinationAddress}.`).catch(() => {});
             }
             if (customerPhone) {
                 await sendWhatsAppMessage(customerPhone, `🛵 *VTOUT : Livreur assigné !*\nVotre commande #${orderRef} a été prise en charge par le livreur *${delivererName}* (${delivererPhone || ''}). Il est en route.`).catch(() => {});
@@ -93,6 +104,7 @@ export const getAvailableOrders = async (req, res) => {
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
+                { model: Boutique, as: 'boutique' }, // la boutique effectivement retenue pour cette commande (peut différer de l'adresse générale du vendeur s'il a plusieurs boutiques)
                 { model: Profile, as: 'user', attributes: ['fullname'] }, // Only show name, keep phone/email hidden until assignment
 
                 {
@@ -288,6 +300,7 @@ export const getMyDeliveries = async (req, res) => {
             include: [
                 { model: Address, as: 'address' },
                 { model: Supplier, as: 'supplier' },
+                { model: Boutique, as: 'boutique' }, // la boutique effectivement retenue pour cette commande (peut différer de l'adresse générale du vendeur s'il a plusieurs boutiques)
                 { model: Profile, as: 'user', attributes: ['fullname', 'email', 'phone'] },
                 {
                     model: OrderItem, as: 'items',
