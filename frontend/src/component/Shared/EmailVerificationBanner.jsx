@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProfile } from '../context/useProfile';
+import { useAuth } from '../../lib/AuthHooks';
 import { Mail, ArrowRight, Loader2, X, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
@@ -7,6 +8,7 @@ import toast from 'react-hot-toast';
 
 export default function EmailVerificationBanner() {
     const { user, isAuthenticated, refreshProfile } = useProfile();
+    const { getToken } = useAuth();
     const [isDismissed, setIsDismissed] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [sent, setSent] = useState(false);
@@ -19,9 +21,17 @@ export default function EmailVerificationBanner() {
     const handleResend = async () => {
         setIsSending(true);
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            // `token` était auparavant lu depuis localStorage/sessionStorage
+            // sous la clé 'token', qui n'est jamais écrite nulle part dans
+            // l'app (l'authentification web repose sur le cookie de
+            // session, voir services/api.js:withCredentials). Le résultat
+            // était `Bearer undefined` envoyé en plus du cookie valide, ce
+            // qui faisait échouer la requête avec "Non autorisé" malgré une
+            // session par ailleurs active — reproduisant exactement le bug
+            // rapporté après connexion Google.
+            const token = await getToken();
             const res = await api.post('/resend-verification', {}, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined
             });
             if (res.data.success) {
                 setSent(true);

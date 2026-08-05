@@ -17,9 +17,17 @@ export const ClerkProvider = ({ children }) => {
         const fetchProfile = async () => {
             if (data?.session) {
                 try {
+                    // Better Auth distingue session.id (clé primaire de la
+                    // ligne en base) de session.token (le jeton porteur
+                    // réellement attendu par le plugin bearer()). Envoyer
+                    // session.id ici ajoutait un en-tête Authorization
+                    // invalide en plus du cookie de session déjà valide,
+                    // ce qui pouvait faire échouer l'authentification de la
+                    // requête (d'où des "Non autorisé" ponctuels malgré une
+                    // session par ailleurs valide).
                     const response = await api.get('/profiles/me', {
                         headers: {
-                            'Authorization': `Bearer ${data.session.id}`
+                            'Authorization': `Bearer ${data.session.token}`
                         }
                     });
                     if (response.data) {
@@ -54,7 +62,7 @@ export const ClerkProvider = ({ children }) => {
 export const useAuth = () => {
     const { session, user, profile, isLoaded } = useContext(AuthContext);
 
-    const getToken = useCallback(async () => session?.id, [session?.id]);
+    const getToken = useCallback(async () => session?.token, [session?.token]);
     const signOut = useCallback(async () => await authClient.signOut(), []);
 
     const authObject = useMemo(() => ({
@@ -65,7 +73,7 @@ export const useAuth = () => {
         isSupplier: !!profile?.isSupplier || !!profile?.Supplier,
         isDelivery: !!profile?.isDelivery || !!profile?.DeliveryPerson,
         isAdmin: !!profile?.isAdmin || profile?.role === 'admin',
-        sessionId: session?.id || null,
+        sessionId: session?.token || null,
         getToken,
         signOut,
     }), [isLoaded, session, user?.id, profile, getToken, signOut]);
