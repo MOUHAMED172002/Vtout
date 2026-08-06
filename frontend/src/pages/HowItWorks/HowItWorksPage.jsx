@@ -6,7 +6,8 @@ import {
   ShoppingBag, Search, CreditCard, Package, Star,
   Truck, MapPin, Bell, Navigation, UserCheck, Wallet,
   Store, Upload, Send, DollarSign, BarChart3,
-  ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye, ShieldCheck
+  ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye, ShieldCheck,
+  Share2, Gift, Users, Ticket, Percent, Tag, Sparkles
 } from 'lucide-react';
 
 const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
@@ -86,7 +87,49 @@ const userTypes = {
       { num: 5, icon: <Eye size={22} />, title: 'Vous suivez les résultats', desc: "Vous ne payez que les vues réellement obtenues, avec un rapport détaillé en fin de diffusion." },
     ],
   },
+  parrainage: {
+    label: 'Parrainage',
+    emoji: '🎁',
+    description: "Invitez vos proches et gagnez des récompenses en FCFA",
+    gradient: 'from-[#f37021] to-[#f97316]',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-[#f37021]',
+    ctaLabel: 'Voir mon lien de parrainage',
+    ctaLink: '/user/dashboard/referral',
+    ctaExternal: false,
+    steps: [
+      { num: 1, icon: <Share2 size={22} />, title: 'Partagez votre lien', desc: "Depuis votre tableau de bord, récupérez votre code personnel et partagez-le par WhatsApp, Facebook ou en le copiant." },
+      { num: 2, icon: <UserCheck size={22} />, title: 'Un proche s\'inscrit', desc: "Votre filleul crée son compte Vtout en utilisant votre lien ou votre code au moment de l'inscription." },
+      { num: 3, icon: <Gift size={22} />, title: 'Il reçoit un cadeau de bienvenue', desc: "Votre filleul reçoit automatiquement une récompense de bienvenue dès son inscription." },
+      { num: 4, icon: <Package size={22} />, title: 'Il passe sa 1ère commande', desc: "Dès que sa première commande est confirmée et livrée, le parrainage est validé." },
+      { num: 5, icon: <Wallet size={22} />, title: 'Vous êtes récompensé', desc: "Votre récompense est automatiquement créditée sur votre portefeuille Vtout — sans limite du nombre de filleuls." },
+    ],
+  },
+  coupons: {
+    label: 'Coupon',
+    emoji: '🏷️',
+    description: "Comprenez les codes promo et profitez de vos réductions",
+    gradient: 'from-[#0054a6] to-[#1a73e8]',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-[#0054a6]',
+    ctaLabel: 'Voir les promotions',
+    ctaLink: '/promotions',
+    ctaExternal: false,
+    steps: [
+      { num: 1, icon: <Ticket size={22} />, title: 'Trouvez un code', desc: "Codes de bienvenue, promotions ponctuelles ou code personnel reçu par parrainage — plusieurs façons d'en obtenir un." },
+      { num: 2, icon: <Percent size={22} />, title: 'Plusieurs types de réduction', desc: "Pourcentage sur le panier, montant fixe, livraison gratuite ou réduction limitée à une catégorie de produits." },
+      { num: 3, icon: <CreditCard size={22} />, title: 'Entrez-le au paiement', desc: "Au moment de valider votre commande, saisissez le code dans le champ « Code promo » et validez." },
+      { num: 4, icon: <Sparkles size={22} />, title: 'La réduction s\'applique', desc: "Le montant est immédiatement recalculé — remise sur le panier ou frais de livraison offerts selon le coupon." },
+      { num: 5, icon: <Tag size={22} />, title: 'Vérifiez les conditions', desc: "Chaque code a ses règles : montant minimum, catégorie concernée, date de validité ou usage unique par client." },
+    ],
+  },
 };
+
+// Ordre + regroupement pour le sélecteur d'onglets affiché en haut de la page.
+const TAB_GROUPS = [
+  { label: 'Rôles', keys: ['acheteur', 'livreur', 'vendeur', 'annonceur'] },
+  { label: 'Avantages', keys: ['parrainage', 'coupons'] },
+];
 
 export default function HowItWorksPage() {
   const { tab } = useParams();
@@ -124,6 +167,32 @@ export default function HowItWorksPage() {
             Pour les <span style={{ color: '#f37021' }}>{active.label}s</span>
           </h1>
           <p className="text-base text-base-content/70 font-medium max-w-xl mx-auto">{active.description}</p>
+        </div>
+
+        {/* Sélecteur d'onglets */}
+        <div className="max-w-3xl mx-auto px-6 mt-8 relative z-10 space-y-3">
+          {TAB_GROUPS.map(group => (
+            <div key={group.label} className="flex flex-wrap items-center justify-center gap-2">
+              {group.keys.map(key => {
+                const t = userTypes[key];
+                const isActive = key === type;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => navigate(`/comment-ca-marche/${key}`)}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+                      isActive
+                        ? 'bg-base-content text-base-100 shadow-lg scale-105'
+                        : 'bg-base-100/80 text-base-content/50 hover:text-base-content hover:bg-base-100 border border-base-content/10'
+                    }`}
+                  >
+                    <span>{t.emoji}</span>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -170,6 +239,8 @@ export default function HowItWorksPage() {
               {type === 'livreur' && "Rejoignez notre équipe et commencez à gagner dès aujourd'hui !"}
               {type === 'vendeur' && "Ouvrez votre boutique et vendez partout au Bénin !"}
               {type === 'annonceur' && "Touchez des milliers de personnes et ne payez que les vues obtenues !"}
+              {type === 'parrainage' && "Partagez votre lien et gagnez à chaque nouvel ami qui commande !"}
+              {type === 'coupons' && "Ne manquez plus jamais une réduction disponible pour vous !"}
             </p>
             {active.ctaExternal ? (
               <a

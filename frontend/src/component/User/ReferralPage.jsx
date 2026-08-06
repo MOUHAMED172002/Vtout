@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../../lib/AuthHooks";
-import { Share2, Copy, Check, Gift, Users, Clock, MessageCircle, Facebook } from "lucide-react";
+import { Share2, Copy, Check, Gift, Users, Clock, MessageCircle, Facebook, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getMyReferralInfo } from "../../services/referralService";
 
@@ -81,6 +82,14 @@ export default function ReferralPage() {
                     </p>
                 </div>
             </div>
+
+            <Link
+                to="/comment-ca-marche/parrainage"
+                className="flex items-center justify-between px-5 py-3 bg-base-100 border border-base-200 rounded-2xl text-sm font-bold text-base-content/70 hover:text-primary hover:border-primary/20 transition-all group"
+            >
+                Voir le détail des étapes du parrainage
+                <ChevronRight size={16} className="text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            </Link>
 
             {/* Share card */}
             <motion.div

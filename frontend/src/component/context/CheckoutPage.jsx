@@ -760,7 +760,17 @@ export default function CheckoutPage() {
               <div className="space-y-4 pt-8 border-t border-slate-800 relative z-10">
                 {/* Coupon Input */}
                 <div className="space-y-3 p-6 bg-base-200 border border-base-200 rounded-3xl relative">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Coupon de réduction</label>
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Coupon de réduction</label>
+                    <a
+                      href="/comment-ca-marche/coupons"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-black uppercase tracking-widest text-primary/70 hover:text-primary transition-colors"
+                    >
+                      Comment ça marche ?
+                    </a>
+                  </div>
                   <div className="flex gap-2">
                     <input
                       type="text"
