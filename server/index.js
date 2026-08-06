@@ -897,6 +897,48 @@ sequelize.authenticate()
                 if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ products.cost_price:', e.message);
             }
 
+            // ── Distribution WhatsApp — récompense par vues (remplace le montant fixe
+            // initial) : ces tables ont pu être créées par sync() AVANT ce rework, donc
+            // les nouvelles colonnes doivent être ajoutées explicitement ici, comme pour
+            // toute évolution de schéma sur une table déjà existante en production. ──
+            try {
+                await sequelize.query(`ALTER TABLE \`ad_campaigns\` MODIFY COLUMN \`reward_amount\` DECIMAL(15,2) NULL`);
+                console.log('  ✅ [MIGRATION] ad_campaigns.reward_amount made nullable (legacy column)');
+            } catch (e) {
+                if (!e.message.includes("Unknown column")) console.warn('  ⚠️ ad_campaigns.reward_amount:', e.message);
+            }
+            for (const [col, def] of [
+                ['rate_per_view',     "DECIMAL(10,2) NOT NULL DEFAULT 0"],
+                ['min_views',         'INT NULL'],
+                ['max_reward_amount', 'DECIMAL(15,2) NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`ad_campaigns\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added ad_campaigns.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ad_campaigns.${col}:`, e.message);
+                }
+            }
+
+            try {
+                await sequelize.query(`ALTER TABLE \`ad_submissions\` MODIFY COLUMN \`reward_amount\` DECIMAL(15,2) NULL`);
+                console.log('  ✅ [MIGRATION] ad_submissions.reward_amount made nullable');
+            } catch (e) {
+                if (!e.message.includes("Unknown column")) console.warn('  ⚠️ ad_submissions.reward_amount:', e.message);
+            }
+            for (const [col, def] of [
+                ['views_reported',   'INT NULL'],
+                ['views_verified',   'INT NULL'],
+                ['claim_deadline_at', 'DATETIME NULL'],
+            ]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`ad_submissions\` ADD COLUMN \`${col}\` ${def}`);
+                    console.log(`  ✅ [MIGRATION] Added ad_submissions.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ad_submissions.${col}:`, e.message);
+                }
+            }
+
             // ── Fix charset tables: convert all text-heavy tables to utf8mb4 ──
             // Fixes French accents (é, è, à, ç...) showing as ? in dashboard, toasts, notifications.
             // Tables created without explicit charset default to server charset which may be latin1/utf8.
