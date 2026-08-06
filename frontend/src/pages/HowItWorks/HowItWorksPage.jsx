@@ -6,8 +6,8 @@ import {
   ShoppingBag, Search, CreditCard, Package, Star,
   Truck, MapPin, Bell, Navigation, UserCheck, Wallet,
   Store, Upload, Send, DollarSign, BarChart3,
-  ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye, ShieldCheck,
-  Share2, Gift, Users, Ticket, Percent, Tag, Sparkles
+  ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye,
+  Share2, Gift, Ticket, Percent, Tag, Sparkles
 } from 'lucide-react';
 
 const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
@@ -69,22 +69,22 @@ const userTypes = {
       { num: 6, icon: <BarChart3 size={22} />, title: 'Gérez votre activité', desc: "Suivez vos ventes, revenus et statistiques en temps réel depuis votre tableau de bord vendeur." },
     ],
   },
-  annonceur: {
-    label: 'Annonceur',
+  distributeur: {
+    label: 'Distributeur',
     emoji: '📢',
-    description: "Diffusez votre pub sur des centaines de Statuts WhatsApp au Bénin",
+    description: "Publiez les campagnes Vtout en Statut WhatsApp et gagnez selon vos vues",
     gradient: 'from-[#0054a6] to-[#1a73e8]',
     bgColor: 'bg-blue-50',
     textColor: 'text-[#0054a6]',
-    ctaLabel: 'Devenir annonceur',
-    ctaLink: '/devenir-annonceur',
+    ctaLabel: 'Devenir distributeur',
+    ctaLink: '/user/dashboard/distribution',
     ctaExternal: false,
     steps: [
-      { num: 1, icon: <MessageCircle size={22} />, title: 'Contactez-nous', desc: "Décrivez votre produit, votre visuel, votre budget et votre zone cible via WhatsApp." },
-      { num: 2, icon: <Megaphone size={22} />, title: 'Votre campagne est créée', desc: "Notre équipe met en ligne votre visuel avec un tarif par vue et un budget maximum défini par vous." },
-      { num: 3, icon: <Send size={22} />, title: 'Diffusion sur le réseau', desc: "Des distributeurs vérifiés partout au Bénin réclament votre campagne et la publient en Statut WhatsApp." },
-      { num: 4, icon: <ShieldCheck size={22} />, title: 'Vues vérifiées', desc: "Chaque diffusion est contrôlée (double capture, hash d'image, vérification live) avant d'être validée." },
-      { num: 5, icon: <Eye size={22} />, title: 'Vous suivez les résultats', desc: "Vous ne payez que les vues réellement obtenues, avec un rapport détaillé en fin de diffusion." },
+      { num: 1, icon: <MessageCircle size={22} />, title: 'Vérifiez votre compte', desc: "Confirmez votre numéro WhatsApp par code reçu et renseignez votre numéro Mobile Money pour être payé." },
+      { num: 2, icon: <Megaphone size={22} />, title: 'Réclamez une campagne', desc: "Choisissez une campagne publiée par Vtout parmi celles disponibles dans votre espace distributeur." },
+      { num: 3, icon: <Send size={22} />, title: 'Publiez en Statut', desc: "Postez le visuel en Statut WhatsApp et envoyez une 1ère capture d'écran dans l'heure qui suit." },
+      { num: 4, icon: <Eye size={22} />, title: 'Capture finale + vues', desc: "Juste avant les 24h, envoyez une 2nde capture avec le nombre de vues affiché sous votre Statut." },
+      { num: 5, icon: <Wallet size={22} />, title: 'Soyez payé', desc: "Après vérification par notre équipe, vous êtes payé selon le nombre de vues validées, sur votre Mobile Money." },
     ],
   },
   parrainage: {
@@ -127,7 +127,7 @@ const userTypes = {
 
 // Ordre + regroupement pour le sélecteur d'onglets affiché en haut de la page.
 const TAB_GROUPS = [
-  { label: 'Rôles', keys: ['acheteur', 'livreur', 'vendeur', 'annonceur'] },
+  { label: 'Rôles', keys: ['acheteur', 'livreur', 'vendeur', 'distributeur'] },
   { label: 'Avantages', keys: ['parrainage', 'coupons'] },
 ];
 
@@ -238,7 +238,7 @@ export default function HowItWorksPage() {
               {type === 'acheteur' && "Des milliers de produits vous attendent !"}
               {type === 'livreur' && "Rejoignez notre équipe et commencez à gagner dès aujourd'hui !"}
               {type === 'vendeur' && "Ouvrez votre boutique et vendez partout au Bénin !"}
-              {type === 'annonceur' && "Touchez des milliers de personnes et ne payez que les vues obtenues !"}
+              {type === 'distributeur' && "Publiez, gagnez en FCFA selon vos vues, et retirez sur Mobile Money !"}
               {type === 'parrainage' && "Partagez votre lien et gagnez à chaque nouvel ami qui commande !"}
               {type === 'coupons' && "Ne manquez plus jamais une réduction disponible pour vous !"}
             </p>

@@ -1,8 +1,9 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-// Une campagne publicitaire à diffuser via le Statut WhatsApp des distributeurs
-// (créée par l'admin — l'annonceur passe par lui, pas d'auto-service pour l'instant).
+// Une campagne publicitaire à diffuser via le Statut WhatsApp des distributeurs.
+// C'est toujours Vtout (l'admin) qui crée et finance ses propres campagnes —
+// il n'y a pas de tiers annonceur externe qui paie pour en lancer une.
 const AdCampaign = sequelize.define('AdCampaign', {
     id: {
         type: DataTypes.INTEGER,
