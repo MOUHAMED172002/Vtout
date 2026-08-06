@@ -6,7 +6,7 @@ import {
   ShoppingBag, Search, CreditCard, Package, Star,
   Truck, MapPin, Bell, Navigation, UserCheck, Wallet,
   Store, Upload, Send, DollarSign, BarChart3,
-  ArrowRight, ChevronRight
+  ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye, ShieldCheck
 } from 'lucide-react';
 
 const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
@@ -66,6 +66,24 @@ const userTypes = {
       { num: 4, icon: <Send size={22} />, title: 'Remettez au livreur', desc: "Préparez le colis et remettez-le au livreur assigné. Il s'occupe de la livraison jusqu'au client final." },
       { num: 5, icon: <DollarSign size={22} />, title: 'Touchez vos gains', desc: "Après chaque livraison réussie, vos gains nets sont crédités sur votre portefeuille automatiquement." },
       { num: 6, icon: <BarChart3 size={22} />, title: 'Gérez votre activité', desc: "Suivez vos ventes, revenus et statistiques en temps réel depuis votre tableau de bord vendeur." },
+    ],
+  },
+  annonceur: {
+    label: 'Annonceur',
+    emoji: '📢',
+    description: "Diffusez votre pub sur des centaines de Statuts WhatsApp au Bénin",
+    gradient: 'from-[#0054a6] to-[#1a73e8]',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-[#0054a6]',
+    ctaLabel: 'Devenir annonceur',
+    ctaLink: '/devenir-annonceur',
+    ctaExternal: false,
+    steps: [
+      { num: 1, icon: <MessageCircle size={22} />, title: 'Contactez-nous', desc: "Décrivez votre produit, votre visuel, votre budget et votre zone cible via WhatsApp." },
+      { num: 2, icon: <Megaphone size={22} />, title: 'Votre campagne est créée', desc: "Notre équipe met en ligne votre visuel avec un tarif par vue et un budget maximum défini par vous." },
+      { num: 3, icon: <Send size={22} />, title: 'Diffusion sur le réseau', desc: "Des distributeurs vérifiés partout au Bénin réclament votre campagne et la publient en Statut WhatsApp." },
+      { num: 4, icon: <ShieldCheck size={22} />, title: 'Vues vérifiées', desc: "Chaque diffusion est contrôlée (double capture, hash d'image, vérification live) avant d'être validée." },
+      { num: 5, icon: <Eye size={22} />, title: 'Vous suivez les résultats', desc: "Vous ne payez que les vues réellement obtenues, avec un rapport détaillé en fin de diffusion." },
     ],
   },
 };
@@ -151,6 +169,7 @@ export default function HowItWorksPage() {
               {type === 'acheteur' && "Des milliers de produits vous attendent !"}
               {type === 'livreur' && "Rejoignez notre équipe et commencez à gagner dès aujourd'hui !"}
               {type === 'vendeur' && "Ouvrez votre boutique et vendez partout au Bénin !"}
+              {type === 'annonceur' && "Touchez des milliers de personnes et ne payez que les vues obtenues !"}
             </p>
             {active.ctaExternal ? (
               <a

@@ -14,6 +14,7 @@ const FooterLinks = [
     { title: "À propos", link: "/about" },
     { title: "Devenir vendeur", link: import.meta.env.VITE_SUPPLIER_PORTAL_URL || "https://vendeur.vtout.com", external: true },
     { title: "Devenir livreur", link: "/devenir-livreur" },
+    { title: "Devenir annonceur", link: "/devenir-annonceur" },
 ];
 
 const FooterNav = [
