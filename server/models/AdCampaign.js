@@ -22,10 +22,22 @@ const AdCampaign = sequelize.define('AdCampaign', {
         type: DataTypes.TEXT,
         allowNull: false
     },
-    reward_amount: {
-        // Montant FCFA versé par soumission validée.
-        type: DataTypes.DECIMAL(15, 2),
+    rate_per_view: {
+        // FCFA versés par vue du Statut — la récompense réelle d'une soumission
+        // (AdSubmission.reward_amount) est calculée à l'approbation : vues × ce taux.
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false
+    },
+    min_views: {
+        // Nombre de vues minimum pour être éligible au paiement (informatif —
+        // affiché à l'admin en modération, qui garde la décision finale).
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    max_reward_amount: {
+        // Plafond FCFA par soumission, quel que soit le nombre de vues. Null = pas de plafond.
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: true
     },
     max_distributors: {
         // Nombre de places — null = illimité.
@@ -41,6 +53,9 @@ const AdCampaign = sequelize.define('AdCampaign', {
         defaultValue: 'active'
     },
     start_date: {
+        // Fenêtre pendant laquelle la campagne accepte de NOUVELLES réclamations —
+        // sans rapport avec le délai individuel de chaque distributeur, qui est
+        // toujours fixe à 24h après sa réclamation (voir AdSubmission.claim_deadline_at).
         type: DataTypes.DATE,
         allowNull: false
     },

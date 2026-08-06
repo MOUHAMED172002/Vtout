@@ -179,13 +179,17 @@ export const claimCampaign = async (req, res) => {
             return res.status(400).json({ error: 'Vous avez déjà réclamé cette campagne' });
         }
 
+        // Le délai individuel est TOUJOURS de 24h à partir de la réclamation,
+        // quelle que soit la durée d'ouverture de la campagne elle-même.
+        const claimDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
         const submission = await AdSubmission.create({
             id: crypto.randomUUID(),
             campaign_id: campaign.id,
             distributor_id: profile.id,
             status: 'pending',
-            reward_amount: campaign.reward_amount,
-            claimed_at: now
+            claimed_at: now,
+            claim_deadline_at: claimDeadline
         }, { transaction });
 
         await campaign.increment('claimed_count', { by: 1, transaction });
@@ -306,6 +310,14 @@ export const submitLateScreenshot = async (req, res) => {
             return res.status(400).json({ error: "Envoyez d'abord la capture précoce, ou cette étape est déjà complétée." });
         }
 
+        // La récompense dépend du nombre de vues — saisi ici par le distributeur
+        // (il lit le chiffre affiché sous son Statut), vérifié ensuite par l'admin
+        // en modération avant validation.
+        const viewsReported = parseInt(req.body?.views_reported, 10);
+        if (!Number.isFinite(viewsReported) || viewsReported < 0) {
+            return res.status(400).json({ error: 'Indiquez le nombre de vues affiché sous votre Statut.' });
+        }
+
         const hash = await computePerceptualHash(req.file.buffer);
         // On compare aussi à la capture précoce de CETTE soumission : deux captures
         // identiques espacées de 24h sont suspectes (statut probablement supprimé
@@ -319,6 +331,7 @@ export const submitLateScreenshot = async (req, res) => {
             screenshot_late_url: uploaded.secure_url,
             screenshot_late_hash: hash,
             screenshot_late_at: new Date(),
+            views_reported: viewsReported,
             status: 'under_review'
         });
 

@@ -33,8 +33,8 @@ export const getSubmissionDetail = async (id, token) => {
     const { data } = await api.get(`/ad-distribution/admin/submissions/${id}`, authHeaders(token));
     return data;
 };
-export const approveSubmission = async (id, token) => {
-    const { data } = await api.patch(`/ad-distribution/admin/submissions/${id}/approve`, {}, authHeaders(token));
+export const approveSubmission = async (id, views_verified, token) => {
+    const { data } = await api.patch(`/ad-distribution/admin/submissions/${id}/approve`, { views_verified }, authHeaders(token));
     return data;
 };
 export const rejectSubmission = async (id, reason, token) => {
@@ -93,14 +93,16 @@ export const getMySubmissions = async (token) => {
     const { data } = await api.get('/ad-distribution/submissions', authHeaders(token));
     return data;
 };
-const uploadScreenshot = async (path, id, file, token) => {
+const uploadScreenshot = async (path, id, file, token, extraFields = {}) => {
     const form = new FormData();
     form.append('screenshot', file);
+    Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
     const { data } = await api.post(`/ad-distribution/submissions/${id}/${path}`, form, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
     });
     return data;
 };
 export const submitEarlyScreenshot = (id, file, token) => uploadScreenshot('screenshot-early', id, file, token);
-export const submitLateScreenshot = (id, file, token) => uploadScreenshot('screenshot-late', id, file, token);
+// La récompense dépend des vues : le distributeur les déclare ici (lues sous son Statut).
+export const submitLateScreenshot = (id, file, viewsReported, token) => uploadScreenshot('screenshot-late', id, file, token, { views_reported: viewsReported });
 export const submitLiveCheckScreenshot = (id, file, token) => uploadScreenshot('live-check', id, file, token);

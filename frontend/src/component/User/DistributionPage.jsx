@@ -33,6 +33,7 @@ export default function DistributionPage() {
 
     const [momoInput, setMomoInput] = useState("");
     const [uploadingFor, setUploadingFor] = useState(null); // submission id currently uploading
+    const [lateViews, setLateViews] = useState({}); // { [submissionId]: viewsInputValue }
     const fileInputRefs = useRef({});
 
     const fetchAll = useCallback(async () => {
@@ -108,13 +109,20 @@ export default function DistributionPage() {
         }
     };
 
-    const handleFileUpload = async (submission, kind, file) => {
+    const handleFileUpload = async (submission, kind, file, viewsReported) => {
         if (!file) return;
+        if (kind === "late" && (!viewsReported || Number(viewsReported) < 0)) {
+            toast.error("Indiquez le nombre de vues affiché sous votre Statut avant d'envoyer la capture.");
+            return;
+        }
         setUploadingFor(submission.id);
         try {
             const token = await getToken();
-            const fn = kind === "early" ? submitEarlyScreenshot : kind === "late" ? submitLateScreenshot : submitLiveCheckScreenshot;
-            const res = await fn(submission.id, file, token);
+            const res = kind === "early"
+                ? await submitEarlyScreenshot(submission.id, file, token)
+                : kind === "late"
+                    ? await submitLateScreenshot(submission.id, file, Number(viewsReported), token)
+                    : await submitLiveCheckScreenshot(submission.id, file, token);
             if (res.flagged) {
                 toast.error("Capture envoyée, mais signalée pour vérification manuelle.");
             } else {
@@ -205,7 +213,8 @@ export default function DistributionPage() {
                                         <img src={c.creative_url} alt="" className="w-full aspect-video object-cover" />
                                         <div className="p-4 space-y-2">
                                             <p className="font-black text-sm text-base-content">{c.title}</p>
-                                            <p className="text-lg font-black text-primary">{Number(c.reward_amount).toLocaleString("fr-FR")} F</p>
+                                            <p className="text-lg font-black text-primary">{Number(c.rate_per_view).toLocaleString("fr-FR")} F <span className="text-xs font-bold text-base-content/40">/ vue</span></p>
+                                            {c.min_views && <p className="text-[10px] text-base-content/40">Minimum {c.min_views} vues pour être payé</p>}
                                             {c.already_claimed ? (
                                                 <span className="block text-center py-2 text-xs font-black text-base-content/30">Déjà réclamée</span>
                                             ) : (
@@ -241,10 +250,27 @@ export default function DistributionPage() {
                                                 </span>
                                             </div>
                                             <p className="text-xs text-base-content/40">
-                                                {Number(s.reward_amount).toLocaleString("fr-FR")} F
+                                                {s.reward_amount != null
+                                                    ? `${Number(s.reward_amount).toLocaleString("fr-FR")} F`
+                                                    : `${Number(s.campaign?.rate_per_view || 0).toLocaleString("fr-FR")} F / vue (calculé après vérification)`}
                                                 {s.status === "verified" && s.payout_eligible_at && ` · Payable à partir du ${new Date(s.payout_eligible_at).toLocaleString("fr-FR")}`}
                                                 {s.status === "rejected" && s.rejection_reason && ` · ${s.rejection_reason}`}
+                                                {s.claim_deadline_at && (needsEarly || needsLate) && ` · Délai : ${new Date(s.claim_deadline_at).toLocaleString("fr-FR")}`}
                                             </p>
+
+                                            {needsLate && (
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-base-content/50">Nombre de vues affiché sous votre Statut</label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={lateViews[s.id] ?? ""}
+                                                        onChange={e => setLateViews(v => ({ ...v, [s.id]: e.target.value }))}
+                                                        placeholder="Ex : 87"
+                                                        className="w-full px-4 py-2.5 bg-base-200 border-none rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                                    />
+                                                </div>
+                                            )}
 
                                             {(needsEarly || needsLate || needsLive) && (
                                                 <div>
@@ -254,11 +280,11 @@ export default function DistributionPage() {
                                                         capture="environment"
                                                         className="hidden"
                                                         ref={el => (fileInputRefs.current[s.id] = el)}
-                                                        onChange={e => handleFileUpload(s, needsEarly ? "early" : needsLate ? "late" : "live", e.target.files[0])}
+                                                        onChange={e => handleFileUpload(s, needsEarly ? "early" : needsLate ? "late" : "live", e.target.files[0], lateViews[s.id])}
                                                     />
                                                     <button
                                                         onClick={() => fileInputRefs.current[s.id]?.click()}
-                                                        disabled={isUploading}
+                                                        disabled={isUploading || (needsLate && !lateViews[s.id])}
                                                         className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-xs font-black hover:bg-primary/20 disabled:opacity-50"
                                                     >
                                                         <Camera size={14} />

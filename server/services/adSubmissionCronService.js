@@ -5,29 +5,31 @@ import { sendWhatsAppMessage } from './whatsappService.js';
 
 const LIVE_CHECK_TIMEOUT_HOURS = 6;
 
-// Rejette automatiquement les campagnes réclamées mais jamais complétées (les
-// 2 captures) une fois la fenêtre de la campagne expirée — libère la place
-// pour d'autres distributeurs plutôt que de la garder bloquée indéfiniment.
+// Rejette automatiquement les réclamations jamais complétées (les 2 captures)
+// une fois le délai INDIVIDUEL de 24h dépassé (claim_deadline_at, toujours fixe
+// — indépendant de la durée d'ouverture de la campagne) — libère la place pour
+// d'autres distributeurs plutôt que de la garder bloquée indéfiniment.
 async function expireIncompleteSubmissions() {
     try {
         const now = new Date();
         const stale = await AdSubmission.findAll({
-            where: { status: { [Op.in]: ['pending', 'awaiting_late'] } },
+            where: {
+                status: { [Op.in]: ['pending', 'awaiting_late'] },
+                claim_deadline_at: { [Op.lt]: now }
+            },
             include: [{ model: AdCampaign, as: 'campaign' }]
         });
 
         let expiredCount = 0;
         for (const submission of stale) {
-            if (!submission.campaign || new Date(submission.campaign.end_date) >= now) continue;
-
             await submission.update({
                 status: 'rejected',
                 rejection_reason: submission.status === 'pending'
-                    ? "Campagne expirée avant l'envoi de la 1ère capture."
-                    : "Campagne expirée avant l'envoi de la 2ème capture."
+                    ? "Délai de 24h expiré avant l'envoi de la 1ère capture."
+                    : "Délai de 24h expiré avant l'envoi de la 2ème capture."
             });
 
-            if (submission.campaign.claimed_count > 0) {
+            if (submission.campaign && submission.campaign.claimed_count > 0) {
                 await submission.campaign.decrement('claimed_count', { by: 1 });
             }
             expiredCount++;

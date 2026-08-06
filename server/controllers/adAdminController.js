@@ -8,18 +8,20 @@ const TRUST_UPGRADE_THRESHOLD = 5; // soumissions validées sans flag → passag
 
 export const createCampaign = async (req, res) => {
     try {
-        const { title, description, creative_url, reward_amount, max_distributors, start_date, end_date } = req.body;
-        if (!title || !creative_url || !reward_amount || !start_date || !end_date) {
-            return res.status(400).json({ error: 'Champs obligatoires manquants (titre, visuel, montant, dates)' });
+        const { title, description, creative_url, rate_per_view, min_views, max_reward_amount, max_distributors, start_date, end_date } = req.body;
+        if (!title || !creative_url || !rate_per_view || !start_date || !end_date) {
+            return res.status(400).json({ error: 'Champs obligatoires manquants (titre, visuel, taux par vue, dates)' });
         }
-        if (Number(reward_amount) <= 0) {
-            return res.status(400).json({ error: 'Le montant doit être supérieur à 0' });
+        if (Number(rate_per_view) <= 0) {
+            return res.status(400).json({ error: 'Le taux par vue doit être supérieur à 0' });
         }
         const campaign = await AdCampaign.create({
             title,
             description: description || null,
             creative_url,
-            reward_amount: Number(reward_amount),
+            rate_per_view: Number(rate_per_view),
+            min_views: min_views ? Number(min_views) : null,
+            max_reward_amount: max_reward_amount ? Number(max_reward_amount) : null,
             max_distributors: max_distributors ? Number(max_distributors) : null,
             start_date,
             end_date,
@@ -36,12 +38,14 @@ export const updateCampaign = async (req, res) => {
     try {
         const campaign = await AdCampaign.findByPk(req.params.id);
         if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' });
-        const { title, description, creative_url, reward_amount, max_distributors, start_date, end_date, status } = req.body;
+        const { title, description, creative_url, rate_per_view, min_views, max_reward_amount, max_distributors, start_date, end_date, status } = req.body;
         await campaign.update({
             ...(title !== undefined && { title }),
             ...(description !== undefined && { description }),
             ...(creative_url !== undefined && { creative_url }),
-            ...(reward_amount !== undefined && { reward_amount: Number(reward_amount) }),
+            ...(rate_per_view !== undefined && { rate_per_view: Number(rate_per_view) }),
+            ...(min_views !== undefined && { min_views: min_views ? Number(min_views) : null }),
+            ...(max_reward_amount !== undefined && { max_reward_amount: max_reward_amount ? Number(max_reward_amount) : null }),
             ...(max_distributors !== undefined && { max_distributors: max_distributors ? Number(max_distributors) : null }),
             ...(start_date !== undefined && { start_date }),
             ...(end_date !== undefined && { end_date }),
@@ -95,7 +99,7 @@ export const getModerationQueue = async (req, res) => {
         const submissions = await AdSubmission.findAll({
             where: { status: { [Op.in]: ['under_review', 'live_check'] } },
             include: [
-                { model: AdCampaign, as: 'campaign', attributes: ['id', 'title', 'reward_amount'] },
+                { model: AdCampaign, as: 'campaign', attributes: ['id', 'title', 'rate_per_view', 'min_views', 'max_reward_amount'] },
                 {
                     model: AdDistributorProfile, as: 'distributor',
                     attributes: ['id', 'verified_phone', 'trust_level', 'flag_count', 'total_submissions', 'total_verified'],
@@ -119,7 +123,7 @@ export const getPayoutQueue = async (req, res) => {
         const submissions = await AdSubmission.findAll({
             where: { status: 'verified' },
             include: [
-                { model: AdCampaign, as: 'campaign', attributes: ['id', 'title', 'reward_amount'] },
+                { model: AdCampaign, as: 'campaign', attributes: ['id', 'title', 'rate_per_view'] },
                 {
                     model: AdDistributorProfile, as: 'distributor',
                     attributes: ['id', 'verified_phone', 'momo_number', 'trust_level'],
@@ -171,13 +175,37 @@ export const approveSubmission = async (req, res) => {
             return res.status(400).json({ error: 'Cette soumission ne peut pas être approuvée dans son état actuel' });
         }
 
+        const campaign = await AdCampaign.findByPk(submission.campaign_id);
+        if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' });
+
+        // Vues retenues : celles corrigées par l'admin si fournies, sinon celles
+        // déclarées par le distributeur — c'est cette valeur qui fixe la récompense.
+        const viewsOverride = req.body?.views_verified;
+        const viewsVerified = viewsOverride != null && viewsOverride !== ''
+            ? Number(viewsOverride)
+            : (submission.views_reported ?? 0);
+        if (!Number.isFinite(viewsVerified) || viewsVerified < 0) {
+            return res.status(400).json({ error: 'Nombre de vues invalide' });
+        }
+
+        let rewardAmount = viewsVerified * Number(campaign.rate_per_view);
+        if (campaign.max_reward_amount) {
+            rewardAmount = Math.min(rewardAmount, Number(campaign.max_reward_amount));
+        }
+
         const profile = await AdDistributorProfile.findByPk(submission.distributor_id);
         const isNewAccount = !profile || profile.trust_level === 'new';
         const payoutEligibleAt = isNewAccount
             ? new Date(Date.now() + 48 * 60 * 60 * 1000)
             : new Date();
 
-        await submission.update({ status: 'verified', payout_eligible_at: payoutEligibleAt, admin_notes: req.body?.admin_notes || submission.admin_notes });
+        await submission.update({
+            status: 'verified',
+            views_verified: viewsVerified,
+            reward_amount: rewardAmount,
+            payout_eligible_at: payoutEligibleAt,
+            admin_notes: req.body?.admin_notes || submission.admin_notes
+        });
 
         if (profile) {
             const newVerifiedCount = profile.total_verified + 1;

@@ -26,7 +26,7 @@ const TRUST_META = {
 };
 
 const emptyCampaignForm = {
-    title: "", description: "", creative_url: "", reward_amount: "",
+    title: "", description: "", creative_url: "", rate_per_view: "", min_views: "", max_reward_amount: "",
     max_distributors: "", start_date: "", end_date: ""
 };
 
@@ -51,6 +51,7 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
     const [detail, setDetail] = useState(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [rejectReason, setRejectReason] = useState("");
+    const [viewsInput, setViewsInput] = useState("");
 
     // Payouts
     const [payouts, setPayouts] = useState([]);
@@ -118,7 +119,8 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
         setEditingId(c.id);
         setForm({
             title: c.title, description: c.description || "", creative_url: c.creative_url,
-            reward_amount: c.reward_amount, max_distributors: c.max_distributors ?? "",
+            rate_per_view: c.rate_per_view, min_views: c.min_views ?? "", max_reward_amount: c.max_reward_amount ?? "",
+            max_distributors: c.max_distributors ?? "",
             start_date: c.start_date?.slice(0, 10), end_date: c.end_date?.slice(0, 10)
         });
         setShowForm(true);
@@ -140,7 +142,7 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
     };
 
     const handleSaveCampaign = async () => {
-        if (!form.title.trim() || !form.creative_url || !form.reward_amount || !form.start_date || !form.end_date) {
+        if (!form.title.trim() || !form.creative_url || !form.rate_per_view || !form.start_date || !form.end_date) {
             return showToast("Remplissez tous les champs obligatoires", "error");
         }
         setSaving(true);
@@ -150,7 +152,9 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
                 title: form.title.trim(),
                 description: form.description || null,
                 creative_url: form.creative_url,
-                reward_amount: Number(form.reward_amount),
+                rate_per_view: Number(form.rate_per_view),
+                min_views: form.min_views ? Number(form.min_views) : null,
+                max_reward_amount: form.max_reward_amount ? Number(form.max_reward_amount) : null,
                 max_distributors: form.max_distributors ? Number(form.max_distributors) : null,
                 start_date: form.start_date,
                 end_date: form.end_date
@@ -194,10 +198,12 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
         setLoadingDetail(true);
         setDetail({ submission, history: [] });
         setRejectReason("");
+        setViewsInput(submission.views_reported ?? "");
         try {
             const token = await getToken();
             const data = await getSubmissionDetail(submission.id, token);
             setDetail(data);
+            setViewsInput(data.submission?.views_reported ?? "");
         } catch (err) { showToast("Erreur de chargement du détail", "error"); }
         finally { setLoadingDetail(false); }
     };
@@ -205,7 +211,7 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
     const handleApprove = async (id) => {
         try {
             const token = await getToken();
-            await approveSubmission(id, token);
+            await approveSubmission(id, viewsInput !== "" ? Number(viewsInput) : undefined, token);
             showToast("✅ Soumission validée !");
             setDetail(null);
             fetchQueue();
@@ -323,7 +329,8 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
                                             </span>
                                         </div>
                                         <p className="text-xs text-gray-400 mt-0.5">
-                                            {Number(c.reward_amount).toLocaleString("fr-FR")} F / soumission · {c.claimed_count}{c.max_distributors ? `/${c.max_distributors}` : ""} réclamées ·{" "}
+                                            {Number(c.rate_per_view).toLocaleString("fr-FR")} F / vue{c.max_reward_amount ? ` (plafond ${Number(c.max_reward_amount).toLocaleString("fr-FR")} F)` : ""}
+                                            {c.min_views ? ` · min. ${c.min_views} vues` : ""} · {c.claimed_count}{c.max_distributors ? `/${c.max_distributors}` : ""} réclamées ·{" "}
                                             {new Date(c.start_date).toLocaleDateString("fr-FR")} → {new Date(c.end_date).toLocaleDateString("fr-FR")}
                                         </p>
                                         {c.stats && (
@@ -494,22 +501,31 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className={labelClass}>Récompense (FCFA)</label>
-                                    <input type="number" min={1} value={form.reward_amount} onChange={e => setForm(f => ({ ...f, reward_amount: e.target.value }))} className={fieldClass} />
+                                    <label className={labelClass}>Taux par vue (FCFA)</label>
+                                    <input type="number" min={1} step="0.01" value={form.rate_per_view} onChange={e => setForm(f => ({ ...f, rate_per_view: e.target.value }))} className={fieldClass} placeholder="Ex : 5" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className={labelClass}>Plafond par soumission (optionnel)</label>
+                                    <input type="number" min={1} value={form.max_reward_amount} onChange={e => setForm(f => ({ ...f, max_reward_amount: e.target.value }))} className={fieldClass} placeholder="Illimité" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className={labelClass}>Vues minimum (optionnel)</label>
+                                    <input type="number" min={1} value={form.min_views} onChange={e => setForm(f => ({ ...f, min_views: e.target.value }))} className={fieldClass} placeholder="Aucun minimum" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className={labelClass}>Places (optionnel)</label>
                                     <input type="number" min={1} value={form.max_distributors} onChange={e => setForm(f => ({ ...f, max_distributors: e.target.value }))} className={fieldClass} placeholder="Illimité" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className={labelClass}>Début</label>
+                                    <label className={labelClass}>Début (nouvelles réclamations)</label>
                                     <input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} className={fieldClass} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className={labelClass}>Fin</label>
+                                    <label className={labelClass}>Fin (nouvelles réclamations)</label>
                                     <input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className={fieldClass} />
                                 </div>
                             </div>
+                            <p className="text-[10px] text-gray-400 -mt-2">Ces dates ne fixent que la période où de nouveaux distributeurs peuvent rejoindre. Une fois réclamée, chaque soumission a toujours 24h pour être complétée (précoce + tardive), quelle que soit cette fenêtre.</p>
 
                             <button onClick={handleSaveCampaign} disabled={saving || uploadingCreative}
                                 className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors">
@@ -542,6 +558,32 @@ export default function AdDistributionManager({ globalSearchQuery = "" }) {
                                             <p className="text-xs font-bold text-rose-700">{detail.submission.flag_reason}</p>
                                         </div>
                                     )}
+
+                                    <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-black text-indigo-700 uppercase tracking-widest">Vues déclarées par le distributeur</label>
+                                            <span className="text-lg font-black text-indigo-700">{detail.submission?.views_reported ?? "—"}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-indigo-500">Vues retenues (corrigez si la capture ne correspond pas)</label>
+                                            <input type="number" min={0} value={viewsInput} onChange={e => setViewsInput(e.target.value)}
+                                                className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-black text-indigo-700 outline-none focus:ring-2 focus:ring-indigo-300" />
+                                        </div>
+                                        {detail.submission?.campaign?.rate_per_view && (
+                                            <p className="text-xs font-bold text-indigo-600">
+                                                Récompense estimée :{" "}
+                                                {(() => {
+                                                    const v = viewsInput !== "" ? Number(viewsInput) : 0;
+                                                    let est = v * Number(detail.submission.campaign.rate_per_view);
+                                                    if (detail.submission.campaign.max_reward_amount) est = Math.min(est, Number(detail.submission.campaign.max_reward_amount));
+                                                    return est.toLocaleString("fr-FR");
+                                                })()} F
+                                                {detail.submission.campaign.min_views && Number(viewsInput || 0) < detail.submission.campaign.min_views && (
+                                                    <span className="block text-rose-500 mt-1">⚠️ En dessous du minimum requis ({detail.submission.campaign.min_views} vues) — envisagez de rejeter.</span>
+                                                )}
+                                            </p>
+                                        )}
+                                    </div>
 
                                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
                                         <div>

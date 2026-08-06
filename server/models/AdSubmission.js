@@ -31,15 +31,34 @@ const AdSubmission = sequelize.define('AdSubmission', {
         defaultValue: 'pending'
     },
     reward_amount: {
-        // Figé au moment de la réclamation — n'évolue pas si l'admin change le
-        // montant de la campagne ensuite.
+        // Calculé à l'approbation (views_verified × campaign.rate_per_view, plafonné
+        // par campaign.max_reward_amount le cas échéant) — null tant que non validé.
         type: DataTypes.DECIMAL(15, 2),
-        allowNull: false
+        allowNull: true
+    },
+    views_reported: {
+        // Nombre de vues saisi par le distributeur lui-même, au moment de la
+        // capture tardive (il lit le chiffre affiché sous son Statut WhatsApp).
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    views_verified: {
+        // Nombre retenu par l'admin après comparaison avec la capture — égal à
+        // views_reported par défaut, mais corrigible en modération avant validation.
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     claimed_at: {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW
+    },
+    claim_deadline_at: {
+        // TOUJOURS claimed_at + 24h, fixé à la réclamation — c'est ce délai (et non
+        // la date de fin de campagne) qui régit l'expiration individuelle de CETTE
+        // soumission si les 2 captures ne sont pas envoyées à temps.
+        type: DataTypes.DATE,
+        allowNull: true
     },
 
     // Capture précoce (dans l'heure suivant la publication)
