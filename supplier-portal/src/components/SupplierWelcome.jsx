@@ -238,11 +238,29 @@ export default function SupplierWelcome({ user }) {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="max-h-[150px] overflow-y-auto p-6 rounded-3xl bg-base-200 text-[10px] font-bold text-base-content/50 leading-relaxed custom-scrollbar border border-base-300">
-                                    <p className="mb-2 uppercase text-base-content font-black">{getConfig('supplier_welcome_terms_title', 'Règles de fonctionnement')}</p>
-                                    {getConfig('supplier_welcome_terms_list', '1. Les prix que vous saisissez sont les prix finaux affichés aux clients.\n2. Vtout prélève une commission en pourcentage sur chaque vente effectuée.\n3. Les colis doivent être prêts dès qu une commande est confirmée.\n4. Vos gains seront transférés via Mobile Money après livraison réussie au client.').split('\n').map((line, index) => (
-                                        <p key={index} className={index < 3 ? 'mb-2' : ''}>{line}</p>
-                                    ))}
+                                <div className="rounded-[2rem] bg-base-200 border-2 border-base-300 overflow-hidden">
+                                    <div className="flex items-center gap-2.5 px-6 md:px-8 py-4 border-b border-base-300 bg-base-100/60">
+                                        <ShieldCheck size={16} className="text-primary shrink-0" />
+                                        <p className="uppercase text-base-content font-black text-xs md:text-sm tracking-wide">{getConfig('supplier_welcome_terms_title', 'Règles de fonctionnement')}</p>
+                                    </div>
+                                    <div className="max-h-[320px] md:max-h-[380px] overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                                        <ol className="space-y-4">
+                                            {getConfig('supplier_welcome_terms_list', '1. Les prix que vous saisissez sont les prix finaux affichés aux clients.\n2. Vtout prélève une commission en pourcentage sur chaque vente effectuée.\n3. Les colis doivent être prêts dès qu une commande est confirmée.\n4. Vos gains seront transférés via Mobile Money après livraison réussie au client.')
+                                                .split('\n')
+                                                .filter(line => line.trim())
+                                                .map((line, index) => {
+                                                    const cleaned = line.replace(/^\s*\d+[.)]\s*/, '');
+                                                    return (
+                                                        <li key={index} className="flex items-start gap-3.5">
+                                                            <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-black flex items-center justify-center mt-0.5">
+                                                                {index + 1}
+                                                            </span>
+                                                            <p className="text-sm font-bold text-base-content/80 leading-relaxed">{cleaned}</p>
+                                                        </li>
+                                                    );
+                                                })}
+                                        </ol>
+                                    </div>
                                 </div>
 
                                 <label className="flex items-center gap-4 cursor-pointer p-6 rounded-3xl border-2 border-base-300 hover:border-primary/50 transition-all group">
