@@ -42,6 +42,9 @@ import KitComponent from './KitComponent.js'; // gardé pour orderController.js
 import SellerBadgeSubscription from './SellerBadgeSubscription.js';
 import Referral from './Referral.js';
 import CouponUsage from './CouponUsage.js';
+import AdCampaign from './AdCampaign.js';
+import AdDistributorProfile from './AdDistributorProfile.js';
+import AdSubmission from './AdSubmission.js';
 import { DataTypes } from 'sequelize';
 
 // --- Better Auth Tables (Declarations for sync) ---
@@ -297,6 +300,15 @@ Referral.belongsTo(Profile, { foreignKey: 'referrer_id', as: 'referrer' });
 Profile.hasOne(Referral, { foreignKey: 'referred_id', as: 'referralReceived' });
 Referral.belongsTo(Profile, { foreignKey: 'referred_id', as: 'referred' });
 
+// Distribution publicitaire via Statut WhatsApp
+Profile.hasOne(AdDistributorProfile, { foreignKey: 'user_id', as: 'adDistributorProfile' });
+AdDistributorProfile.belongsTo(Profile, { foreignKey: 'user_id', as: 'user' });
+AdCampaign.belongsTo(Profile, { foreignKey: 'created_by', as: 'creator' });
+AdCampaign.hasMany(AdSubmission, { foreignKey: 'campaign_id', as: 'submissions' });
+AdSubmission.belongsTo(AdCampaign, { foreignKey: 'campaign_id', as: 'campaign' });
+AdDistributorProfile.hasMany(AdSubmission, { foreignKey: 'distributor_id', as: 'submissions' });
+AdSubmission.belongsTo(AdDistributorProfile, { foreignKey: 'distributor_id', as: 'distributor' });
+
 // --- Final Consolidations ---
 // (Avoiding duplicates that caused 'alias user' errors)
 
@@ -348,5 +360,8 @@ export {
     KitComponent, // gardé pour orderController.js
     SellerBadgeSubscription,
     Referral,
-    CouponUsage
+    CouponUsage,
+    AdCampaign,
+    AdDistributorProfile,
+    AdSubmission
 };

@@ -75,6 +75,7 @@ import resendVerificationRoutes from "./routes/resendVerificationRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
+import adDistributionRoutes from "./routes/adDistributionRoutes.js";
 // import kitRoutes from "./routes/kitRoutes.js"; // KIT PROMOTIONS — DÉSACTIVÉ
 import adminRoutes from "./routes/adminRoutes.js";
 import badgeRoutes from "./routes/badgeRoutes.js";
@@ -521,6 +522,7 @@ app.use("/api/support", supportRoutes);
 app.use("/api/financials", financialRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/ad-distribution", adDistributionRoutes);
 // app.use("/api/kits", kitRoutes); // KIT PROMOTIONS — DÉSACTIVÉ
 app.use("/api/admin", adminRoutes);
 app.use("/api/badge", badgeRoutes);
@@ -717,6 +719,7 @@ const startServer = () => {
 
 import { startDisputeCron } from './services/disputeCronService.js';
 import { startSellerBadgeCron } from './services/sellerBadgeCronService.js';
+import { startAdSubmissionCron } from './services/adSubmissionCronService.js';
 
 // --- STARTUP LOGIC ---
 console.log("🚀 [BOOT] Starting Vtout API...");
@@ -726,6 +729,7 @@ console.log(">>> [BOOT] Configured ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGIN
 startServer();
 startDisputeCron();
 startSellerBadgeCron();
+startAdSubmissionCron();
 
 // Initialize Database in background
 console.log("💾 [BOOT] Connecting to Database...");
@@ -904,6 +908,7 @@ sequelize.authenticate()
                     'boutiques', 'suppliers', 'profiles', 'configs',
                     'cart_items', 'delivery_persons', 'seller_badge_subscriptions',
                     'coupons', 'coupon_usages', 'referrals',
+                    'ad_campaigns', 'ad_distributor_profiles', 'ad_submissions',
                 ];
                 for (const tbl of tablesToConvert) {
                     try {

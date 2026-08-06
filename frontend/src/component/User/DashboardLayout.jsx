@@ -16,7 +16,8 @@ import {
   User as UserIcon,
   Bell,
   X as CloseIcon,
-  Share2
+  Share2,
+  Megaphone
 } from "lucide-react";
 import { useProfile } from "../context/useProfile";
 import NotificationCenter from "../Shared/NotificationCenter";
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: "/user/dashboard/cart", label: "Mon Panier", icon: <ShoppingCart size={18} /> },
   { to: "/user/dashboard/addresses", label: "Mes Adresses", icon: <MapPin size={18} /> },
   { to: "/user/dashboard/referral", label: "Parrainage", icon: <Share2 size={18} /> },
+  { to: "/user/dashboard/distribution", label: "Distribution WhatsApp", icon: <Megaphone size={18} /> },
   { to: "/user/dashboard/settings", label: "Paramètres", icon: <Settings size={18} /> },
 ];
 

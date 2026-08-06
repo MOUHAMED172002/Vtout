@@ -31,7 +31,8 @@ import {
   UserCircle,
   BadgeCheck,
   Ticket,
-  Share2
+  Share2,
+  Megaphone
 } from "lucide-react";
 import DashboardPage from "./Dashboard/Dashboard";
 import SalesChart from "./Dashboard/SalesChart";
@@ -78,6 +79,7 @@ import BoutiquesCatalogManager from "./Fournisseurs/BoutiquesCatalogManager";
 import SellerBadgeManager from "./Fournisseurs/SellerBadgeManager";
 import CouponManager from "./Marketing/CouponManager";
 import ReferralAdminManager from "./Marketing/ReferralAdminManager";
+import AdDistributionManager from "./Marketing/AdDistributionManager";
 // import KitsManager from "./Kits/KitsManager"; // KIT PROMOTIONS — DÉSACTIVÉ
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../lib/AuthHooks";
@@ -194,6 +196,7 @@ const AdminLayout = () => {
       subItems: [
         { key: "coupons", name: "Codes Promo", icon: <Ticket size={16} /> },
         { key: "referrals", name: "Parrainage", icon: <Share2 size={16} /> },
+        { key: "adDistribution", name: "Distribution WhatsApp", icon: <Megaphone size={16} /> },
       ],
     },
     {
@@ -282,6 +285,7 @@ const AdminLayout = () => {
         switch (selectedSub) {
           case "coupons": return <CouponManager globalSearchQuery={searchQuery} />;
           case "referrals": return <ReferralAdminManager globalSearchQuery={searchQuery} />;
+          case "adDistribution": return <AdDistributionManager globalSearchQuery={searchQuery} />;
           default: return <CouponManager globalSearchQuery={searchQuery} />;
         }
       case "Finances":
