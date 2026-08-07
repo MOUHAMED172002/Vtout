@@ -69,14 +69,14 @@ const userTypes = {
       { num: 6, icon: <BarChart3 size={22} />, title: 'Gérez votre activité', desc: "Suivez vos ventes, revenus et statistiques en temps réel depuis votre tableau de bord vendeur." },
     ],
   },
-  distributeur: {
-    label: 'Distributeur',
+  annonceur: {
+    label: 'Annonceur',
     emoji: '📢',
     description: "Publiez les campagnes Vtout en Statut WhatsApp et gagnez selon vos vues",
     gradient: 'from-[#0054a6] to-[#1a73e8]',
     bgColor: 'bg-blue-50',
     textColor: 'text-[#0054a6]',
-    ctaLabel: 'Devenir distributeur',
+    ctaLabel: 'Devenir annonceur',
     ctaLink: '/user/dashboard/distribution',
     ctaExternal: false,
     steps: [
@@ -127,7 +127,7 @@ const userTypes = {
 
 // Ordre + regroupement pour le sélecteur d'onglets affiché en haut de la page.
 const TAB_GROUPS = [
-  { label: 'Rôles', keys: ['acheteur', 'livreur', 'vendeur', 'distributeur'] },
+  { label: 'Rôles', keys: ['acheteur', 'livreur', 'vendeur', 'annonceur'] },
   { label: 'Avantages', keys: ['parrainage', 'coupons'] },
 ];
 
@@ -238,7 +238,7 @@ export default function HowItWorksPage() {
               {type === 'acheteur' && "Des milliers de produits vous attendent !"}
               {type === 'livreur' && "Rejoignez notre équipe et commencez à gagner dès aujourd'hui !"}
               {type === 'vendeur' && "Ouvrez votre boutique et vendez partout au Bénin !"}
-              {type === 'distributeur' && "Publiez, gagnez en FCFA selon vos vues, et retirez sur Mobile Money !"}
+              {type === 'annonceur' && "Publiez, gagnez en FCFA selon vos vues, et retirez sur Mobile Money !"}
               {type === 'parrainage' && "Partagez votre lien et gagnez à chaque nouvel ami qui commande !"}
               {type === 'coupons' && "Ne manquez plus jamais une réduction disponible pour vous !"}
             </p>

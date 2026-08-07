@@ -506,6 +506,40 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
+                  {/* Coupon Input — visible only on mobile/tablet : la sidebar Résumé (qui
+                      contient le même champ) est "hidden lg:block", donc sans ceci les
+                      utilisateurs mobiles n'ont aucun moyen de saisir un code promo. */}
+                  <div className="lg:hidden space-y-3 p-6 bg-base-200 border border-base-200 rounded-[2rem] relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40">Coupon de réduction</label>
+                      <a
+                        href="/comment-ca-marche/coupons"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-black uppercase tracking-widest text-primary/70 hover:text-primary transition-colors"
+                      >
+                        Comment ça marche ?
+                      </a>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="ENTRER LE CODE"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        className="flex-1 bg-base-100 border-2 border-base-200 rounded-2xl h-12 px-4 text-xs font-black tracking-widest focus:border-primary outline-none transition-all placeholder:text-base-content/30"
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isValidating || !couponCode}
+                        className="bg-primary text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
+                      >
+                        {isValidating ? <span className="loading loading-spinner loading-xs"></span> : <Check size={18} strokeWidth={3} />}
+                      </button>
+                    </div>
+                    {(discount > 0 || freeShipping) && <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 animate-bounce">ACTIF</span>}
+                  </div>
+
                   {/* Summary Totals for Mobile Step */}
                   <div className="p-6 bg-base-100 border border-base-200 rounded-[2rem] space-y-4 shadow-sm">
                     <div className="flex justify-between text-sm font-bold">
