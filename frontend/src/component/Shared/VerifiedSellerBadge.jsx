@@ -8,10 +8,24 @@ import { BadgeCheck } from "lucide-react";
 // coche blanche, sans fond ni bordure superflus.
 //
 // - variant="icon"  → juste le sceau (à coller après un titre/nom qui peut
-//   wrapper sur plusieurs lignes) — utilisé sur les cartes produit compactes.
+//   wrapper sur plusieurs lignes), sans libellé.
+// - variant="chip"  → sceau + "Vérifié" en tout petit, sur sa propre ligne —
+//   utilisé sur les cartes produit compactes, sous le nom (même gabarit que
+//   la ligne "Livraison gratuite" juste en dessous).
 // - variant="pill"  → sceau + libellé "Vérifié", dans une pastille — utilisé
 //   là où il y a la place (page produit, en-tête boutique).
 export default function VerifiedSellerBadge({ variant = "icon", size = 14, className = "" }) {
+  if (variant === "chip") {
+    return (
+      <div title="Vendeur vérifié" className={`flex items-center gap-1 min-w-0 ${className}`}>
+        <BadgeCheck size={size} strokeWidth={2.5} fill="#1d9bf0" className="text-white shrink-0" />
+        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-[#1d9bf0] truncate">
+          Vendeur vérifié
+        </span>
+      </div>
+    );
+  }
+
   if (variant === "pill") {
     return (
       <span

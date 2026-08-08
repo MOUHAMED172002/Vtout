@@ -365,15 +365,17 @@ export default function ProductCard({ product, onFavoriteChange }) {
             </div>
           )}
 
-          {/* Name + badge vendeur vérifié */}
-          <Link to={`/products/${product.id}`} state={navState} className="flex items-start gap-1">
-            <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 hover:text-primary transition-colors leading-tight min-w-0">
+          {/* Name */}
+          <Link to={`/products/${product.id}`} state={navState} className="block">
+            <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 hover:text-primary transition-colors leading-tight">
               {product.name}
             </h3>
-            {product.supplier?.is_certified && (
-              <VerifiedSellerBadge size={12} className="mt-0.5" />
-            )}
           </Link>
+
+          {/* Vendeur vérifié — sa propre ligne, juste sous le nom */}
+          {product.supplier?.is_certified && (
+            <VerifiedSellerBadge variant="chip" size={10} />
+          )}
 
           {/* Free delivery badge — single truncated line, never wraps */}
           {product.free_delivery_communes && product.free_delivery_communes.length > 0 && (
