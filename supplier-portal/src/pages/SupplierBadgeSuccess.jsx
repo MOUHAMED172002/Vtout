@@ -47,7 +47,7 @@ export default function SupplierBadgeSuccess() {
                         </div>
                         <h1 className="text-2xl font-black text-base-content">Badge activé !</h1>
                         <p className="text-sm font-bold text-base-content/40">
-                            Votre paiement a été confirmé. Le badge "Vendeur Certifié" est maintenant visible sur tous vos produits.
+                            Votre paiement a été confirmé. Le badge "Vendeur Vérifié" est maintenant visible sur tous vos produits.
                         </p>
                     </>
                 ) : (
@@ -65,7 +65,7 @@ export default function SupplierBadgeSuccess() {
                     onClick={() => navigate('/badge-certifie')}
                     className="w-full py-4 bg-neutral text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:brightness-90 transition-all"
                 >
-                    Retour au badge certifié
+                    Retour au badge vérifié
                 </button>
             </div>
         </div>

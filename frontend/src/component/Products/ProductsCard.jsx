@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { ShoppingCart, Eye, Star, Zap, Truck, MapPin, X, BadgeCheck } from "lucide-react";
+import { ShoppingCart, Eye, Star, Zap, Truck, MapPin, X } from "lucide-react";
+import VerifiedSellerBadge from "../Shared/VerifiedSellerBadge";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import { checkFavorite, addFavorite, removeFavorite } from "../../services/favoriteService";
 import { motion, AnimatePresence } from "framer-motion";
@@ -320,16 +321,6 @@ export default function ProductCard({ product, onFavoriteChange }) {
               -{finalDiscount}%
             </motion.span>
           )}
-          {product.supplier?.is_certified && (
-            <motion.span
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              title="Vendeur certifié"
-              className="backdrop-blur-xl bg-blue-600/90 text-white text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-tighter shadow-xl shadow-blue-500/20 border border-white/20 flex items-center gap-1"
-            >
-              <BadgeCheck size={12} strokeWidth={2.5} /> Certifié
-            </motion.span>
-          )}
         </div>
 
         <motion.button
@@ -371,16 +362,17 @@ export default function ProductCard({ product, onFavoriteChange }) {
           {product.review_count > 0 && (
             <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-orange-400 font-bold uppercase tracking-widest">
               <Star size={9} fill="currentColor" /> {Number(product.average_rating).toFixed(1)}
-              <span className="text-base-content/30">•</span>
-              <span className="text-base-content/50">Certifié</span>
             </div>
           )}
 
-          {/* Name */}
-          <Link to={`/products/${product.id}`} state={navState} className="block">
-            <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 hover:text-primary transition-colors leading-tight">
+          {/* Name + badge vendeur vérifié */}
+          <Link to={`/products/${product.id}`} state={navState} className="flex items-start gap-1">
+            <h3 className="font-black text-base-content text-xs sm:text-sm md:text-base line-clamp-2 hover:text-primary transition-colors leading-tight min-w-0">
               {product.name}
             </h3>
+            {product.supplier?.is_certified && (
+              <VerifiedSellerBadge size={12} className="mt-0.5" />
+            )}
           </Link>
 
           {/* Free delivery badge — single truncated line, never wraps */}

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const PERKS = [
   { icon: Zap, label: 'Commandez en quelques clics' },
   { icon: Users, label: 'Communauté de milliers d\'acheteurs' },
-  { icon: BadgeCheck, label: 'Vendeurs certifiés & vérifiés' },
+  { icon: BadgeCheck, label: 'Vendeurs vérifiés' },
 ];
 
 export default function Register() {

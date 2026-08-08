@@ -93,7 +93,7 @@ export default function SellerBadgeManager({ globalSearchQuery = "" }) {
     };
 
     const handleRevoke = async (supplierId, supplierName) => {
-        if (!window.confirm(`Révoquer le badge certifié de "${supplierName}" ?`)) return;
+        if (!window.confirm(`Révoquer le badge vérifié de "${supplierName}" ?`)) return;
         try {
             const headers = await authHeaders();
             await axios.patch(`${API}/badge/admin/${supplierId}/revoke`, {}, { headers });
@@ -179,9 +179,9 @@ export default function SellerBadgeManager({ globalSearchQuery = "" }) {
                         <BadgeCheck size={20} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900">Badge Vendeur Certifié</h2>
+                        <h2 className="text-2xl font-black text-gray-900">Badge Vendeur Vérifié</h2>
                         <p className="text-sm text-gray-500 mt-0.5">
-                            Abonnement mensuel payant qui affiche un badge "Certifié" sur tous les produits du vendeur.
+                            Abonnement mensuel payant qui affiche un badge "Vérifié" sur tous les produits du vendeur.
                         </p>
                     </div>
                 </div>
@@ -256,7 +256,7 @@ export default function SellerBadgeManager({ globalSearchQuery = "" }) {
                     onClick={() => setTab("certified")}
                     className={`px-4 py-2.5 text-sm font-bold transition-colors border-b-2 -mb-px ${tab === "certified" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-700"}`}
                 >
-                    Vendeurs certifiés ({certified.length})
+                    Vendeurs vérifiés ({certified.length})
                 </button>
                 <button
                     onClick={() => setTab("history")}
@@ -271,7 +271,7 @@ export default function SellerBadgeManager({ globalSearchQuery = "" }) {
             ) : tab === "certified" ? (
                 <div className="bg-base-100 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                     {filteredCertified.length === 0 ? (
-                        <div className="py-12 text-center text-gray-400 text-sm">Aucun vendeur certifié pour le moment.</div>
+                        <div className="py-12 text-center text-gray-400 text-sm">Aucun vendeur vérifié pour le moment.</div>
                     ) : (
                         <div className="divide-y divide-gray-50">
                             {filteredCertified.map(s => (

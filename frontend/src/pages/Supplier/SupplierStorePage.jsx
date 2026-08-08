@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../../services/productService";
 import ProductCard from "../../component/Products/ProductsCard";
-import { ArrowLeft, Store, Package, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Store, Package } from "lucide-react";
 import { motion } from "framer-motion";
+import VerifiedSellerBadge from "../../component/Shared/VerifiedSellerBadge";
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-base-200 animate-pulse aspect-[3/4]" />
@@ -46,7 +47,7 @@ export default function SupplierStorePage() {
               <div className="flex items-center gap-1.5">
                 <p className="font-black text-base-content text-sm leading-none">Boutique du vendeur</p>
                 {products[0]?.supplier?.is_certified && (
-                  <BadgeCheck size={14} strokeWidth={2.5} className="text-blue-600" title="Vendeur certifié" />
+                  <VerifiedSellerBadge size={14} />
                 )}
               </div>
               <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">

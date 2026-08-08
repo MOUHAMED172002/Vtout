@@ -143,7 +143,7 @@ const AdminLayout = () => {
         { key: "suppliersList", name: "Validation Fournisseurs", icon: <Users size={16} /> },
         { key: "productsApproval", name: "Validation Produits", icon: <Package size={16} /> },
         { key: "boutiquesCatalog", name: "Catalogue Boutiques", icon: <Store size={16} /> },
-        { key: "sellerBadge", name: "Badge Certifié", icon: <BadgeCheck size={16} /> },
+        { key: "sellerBadge", name: "Vendeur Vérifié", icon: <BadgeCheck size={16} /> },
       ],
     },
     {

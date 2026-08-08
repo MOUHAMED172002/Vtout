@@ -24,7 +24,7 @@ const navLinks = [
     { to: '/promotions', icon: Sparkles, label: 'Mes Promotions' },
     { to: '/ajouter-produit', icon: PlusCircle, label: 'Ajouter un produit' },
     { to: '/portefeuille', icon: Wallet, label: 'Mon Portefeuille' },
-    { to: '/badge-certifie', icon: BadgeCheck, label: 'Badge Certifié' },
+    { to: '/badge-certifie', icon: BadgeCheck, label: 'Vendeur Vérifié' },
     { to: '/statistiques', icon: TrendingUp, label: 'Statistiques' },
     { to: '/mes-litiges', icon: AlertCircle, label: 'Mes Litiges' },
     { to: '/conditions', icon: FileText, label: 'Conditions & Politiques' },

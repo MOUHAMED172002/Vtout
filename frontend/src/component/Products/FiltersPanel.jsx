@@ -656,7 +656,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
           </AnimatePresence>
         </div>
 
-        {/* Section Vendeur certifié */}
+        {/* Section Vendeur vérifié */}
         <div className="border-b border-base-200">
           <SectionHeader
             title="Vendeur"
@@ -686,7 +686,7 @@ export default function FiltersPanel({ onFilterChange = () => {} }) {
                 >
                   <BadgeCheck size={18} className="shrink-0" />
                   <span className="text-xs font-black uppercase tracking-widest flex-1 text-left">
-                    Vendeurs certifiés uniquement
+                    Vendeurs vérifiés uniquement
                   </span>
                   {filters.isCertified === "true" && <Check size={16} className="shrink-0" />}
                 </button>

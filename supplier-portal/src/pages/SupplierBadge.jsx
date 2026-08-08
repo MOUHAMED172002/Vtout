@@ -74,9 +74,9 @@ export default function SupplierBadge() {
                             <BadgeCheck size={26} className={isCertified ? 'text-blue-400' : 'text-neutral-content/40'} />
                         </div>
                         <div className="text-left">
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-content/40">Badge Vendeur Certifié</span>
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-content/40">Badge Vendeur Vérifié</span>
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-                                {isCertified ? 'Votre boutique est certifiée' : 'Pas encore certifié'}
+                                {isCertified ? 'Votre boutique est vérifiée' : 'Pas encore vérifié'}
                             </h1>
                         </div>
                     </div>
@@ -111,7 +111,7 @@ export default function SupplierBadge() {
                     ) : priceNotConfigured ? (
                         <>
                             <p className="text-sm font-bold text-neutral-content/30 max-w-md">
-                                Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
+                                Activez le badge "Vérifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
                             </p>
                             <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-4 text-amber-400 text-xs font-bold max-w-md">
                                 L'abonnement n'est pas encore disponible — l'administrateur n'a pas configuré de prix. Réessayez plus tard.
@@ -120,7 +120,7 @@ export default function SupplierBadge() {
                     ) : (
                         <>
                             <p className="text-sm font-bold text-neutral-content/30 max-w-md">
-                                Activez le badge "Certifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
+                                Activez le badge "Vérifié" pour rassurer vos clients et vous démarquer sur tous vos produits.
                             </p>
 
                             <div className="space-y-3">
