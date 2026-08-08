@@ -208,12 +208,22 @@ export default function ProductCard({ product, onFavoriteChange }) {
     return Array.from(s);
   };
 
+  // Toutes les options de variante doivent être choisies avant qu'on considère
+  // qu'une variante précise est sélectionnée — une sélection partielle (ex:
+  // couleur choisie mais pas la taille) ne doit jamais matcher silencieusement
+  // la première variante trouvée.
+  const attributeKeys = useMemo(() => getAttributeKeys(parsedVariants), [parsedVariants]);
+  const allAttributesSelected = useMemo(
+    () => attributeKeys.length > 0 && attributeKeys.every(k => selectedAttributes[k] != null),
+    [attributeKeys, selectedAttributes]
+  );
+
   const matchedVariant = useMemo(() => {
-    if (!parsedVariants.length || !Object.keys(selectedAttributes).length) return null;
+    if (!parsedVariants.length || !allAttributesSelected) return null;
     return parsedVariants.find(v =>
-      Object.entries(selectedAttributes).every(([k, val]) => v.combination?.[k] === val)
+      attributeKeys.every(k => v.combination?.[k] === selectedAttributes[k])
     ) || null;
-  }, [parsedVariants, selectedAttributes]);
+  }, [parsedVariants, selectedAttributes, allAttributesSelected, attributeKeys]);
 
   const matchedVariantStock = matchedVariant?.priceRows?.[0]?.stock;
   const matchedVariantOutOfStock = matchedVariant != null && (matchedVariantStock ?? 0) <= 0;
@@ -516,7 +526,12 @@ export default function ProductCard({ product, onFavoriteChange }) {
 
             {/* CTA */}
             <div className="px-6 pt-4 pb-8 border-t border-base-200 flex-shrink-0 space-y-3">
-              {!matchedVariant && Object.keys(selectedAttributes).length > 0 && (
+              {!allAttributesSelected && Object.keys(selectedAttributes).length > 0 && (
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest text-center">
+                  Choisissez {attributeKeys.filter(k => selectedAttributes[k] == null).join(' et ')} pour continuer
+                </p>
+              )}
+              {allAttributesSelected && !matchedVariant && (
                 <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">
                   Cette combinaison n'est pas disponible
                 </p>

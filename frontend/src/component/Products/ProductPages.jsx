@@ -139,13 +139,23 @@ export default function ProductPages() {
     return map;
   }, [variants]);
 
+  // Toutes les options de variante (couleur, taille, ...) doivent être choisies
+  // avant qu'on considère qu'une variante précise est "sélectionnée" — une
+  // sélection partielle (ex: couleur choisie mais pas la taille) ne doit
+  // jamais matcher silencieusement la première variante trouvée.
+  const variantAttributeKeys = useMemo(() => getAttributeKeys(variants), [variants]);
+  const allVariantAttributesSelected = useMemo(
+    () => variantAttributeKeys.length > 0 && variantAttributeKeys.every(k => selectedAttributes[k] != null),
+    [variantAttributeKeys, selectedAttributes]
+  );
+
   const matchedVariant = useMemo(() => {
-    if (!variants.length || !Object.keys(selectedAttributes).length) return null;
+    if (!variants.length || !allVariantAttributesSelected) return null;
     return variants.find(v => {
       const combo = v.combination || {};
-      return Object.entries(selectedAttributes).every(([k, val]) => combo[k] === val);
+      return variantAttributeKeys.every(k => combo[k] === selectedAttributes[k]);
     }) || null;
-  }, [variants, selectedAttributes]);
+  }, [variants, selectedAttributes, allVariantAttributesSelected, variantAttributeKeys]);
 
   const isSaleActive = useMemo(() => {
     return Number(product?.old_price) > Number(product?.price);
@@ -753,7 +763,12 @@ export default function ProductPages() {
 
             {/* CTA */}
             <div className="px-6 pt-4 pb-8 border-t border-base-200 flex-shrink-0 space-y-3">
-              {!matchedVariant && Object.keys(selectedAttributes).length > 0 && (
+              {!allVariantAttributesSelected && Object.keys(selectedAttributes).length > 0 && (
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest text-center">
+                  Choisissez {variantAttributeKeys.filter(k => selectedAttributes[k] == null).join(' et ')} pour continuer
+                </p>
+              )}
+              {allVariantAttributesSelected && !matchedVariant && (
                 <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">
                   Cette combinaison n'est pas disponible
                 </p>
