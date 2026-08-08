@@ -2,7 +2,11 @@
 
 export const createFedapayTransaction = async (order, customerProfile, redirectUrl, extraMetadata = {}) => {
     try {
-        const apiKey = process.env.FEDAPAY_SECRET_KEY;
+        // Accepte les deux noms de variable (FEDAPAY_SECRET_KEY est le nom
+        // documenté/attendu ; FEDAPAY_SECRET est l'ancien nom encore présent
+        // dans certains .env) pour éviter qu'une clé déjà configurée sous
+        // l'un ou l'autre nom ne soit silencieusement ignorée.
+        const apiKey = process.env.FEDAPAY_SECRET_KEY || process.env.FEDAPAY_SECRET;
         // Utilisez 'api.fedapay.com' pour la production
         const env = process.env.FEDAPAY_ENV === 'live' ? 'api' : 'sandbox-api';
         const baseUrl = `https://${env}.fedapay.com/v1/transactions`;
@@ -78,7 +82,11 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
 
 export const verifyFedapayTransaction = async (transactionId) => {
     try {
-        const apiKey = process.env.FEDAPAY_SECRET_KEY;
+        // Accepte les deux noms de variable (FEDAPAY_SECRET_KEY est le nom
+        // documenté/attendu ; FEDAPAY_SECRET est l'ancien nom encore présent
+        // dans certains .env) pour éviter qu'une clé déjà configurée sous
+        // l'un ou l'autre nom ne soit silencieusement ignorée.
+        const apiKey = process.env.FEDAPAY_SECRET_KEY || process.env.FEDAPAY_SECRET;
         const env = process.env.FEDAPAY_ENV === 'live' ? 'api' : 'sandbox-api';
         const baseUrl = `https://${env}.fedapay.com/v1/transactions/${transactionId}`;
 
