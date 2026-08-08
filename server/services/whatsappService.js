@@ -17,16 +17,24 @@ const formatPhoneNumber = (phone) => {
         clean = clean.substring(2);
     }
 
-    // 3. Numéros courts sans indicatif : seul l'ancien format béninois à 8 chiffres
-    //    est conservé pour la rétrocompatibilité (ex: 97000000 → 22997000000)
+    // 3. Numéros locaux béninois sans indicatif — deux formats possibles :
+    //    - Ancien format à 8 chiffres, conservé pour rétrocompatibilité
+    //      (ex: 97000000 → 22997000000)
+    //    - Nouveau format à 10 chiffres depuis nov. 2024, commençant par 0
+    //      (ex: 0167703242 → 2290167703242). Sans ce cas, un numéro saisi/
+    //      stocké sans le "229" partait tel quel vers Green API, qui le
+    //      rejetait ("invalid phone number") — notification jamais envoyée.
     if (clean.length === 8) {
         return '229' + clean;
     }
+    if (clean.length === 10 && clean.startsWith('0')) {
+        return '229' + clean;
+    }
 
-    // 4. Tous les autres numéros (9 chiffres et plus) sont déjà en format
-    //    international ou semi-international — on passe directement
-    //    Exemples corrects : 2290197000000 (nouveau Bénin), 22997000000 (ancien),
-    //    22890000000 (Togo), 33600000000 (France), etc.
+    // 4. Tous les autres numéros (9 chiffres et plus, hors cas ci-dessus) sont
+    //    déjà en format international ou semi-international — on passe
+    //    directement. Exemples corrects : 2290197000000 (nouveau Bénin),
+    //    22997000000 (ancien), 22890000000 (Togo), 33600000000 (France), etc.
     return clean;
 };
 

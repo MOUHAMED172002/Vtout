@@ -7,6 +7,10 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
         // dans certains .env) pour éviter qu'une clé déjà configurée sous
         // l'un ou l'autre nom ne soit silencieusement ignorée.
         const apiKey = process.env.FEDAPAY_SECRET_KEY || process.env.FEDAPAY_SECRET;
+        // Log de diagnostic sans jamais exposer la clé en entier — juste de
+        // quoi vérifier côté logs qu'une clé est bien détectée et de quel
+        // type (sk_live_ vs sk_sandbox_/sk_test_) sans risque de fuite.
+        console.log(`[FedaPay] Config — clé: ${apiKey ? `${apiKey.slice(0, 9)}… (${apiKey.length} car.)` : 'AUCUNE (undefined)'} | env: ${process.env.FEDAPAY_ENV || '(non défini → sandbox)'}`);
         // Utilisez 'api.fedapay.com' pour la production
         const env = process.env.FEDAPAY_ENV === 'live' ? 'api' : 'sandbox-api';
         const baseUrl = `https://${env}.fedapay.com/v1/transactions`;
@@ -87,6 +91,10 @@ export const verifyFedapayTransaction = async (transactionId) => {
         // dans certains .env) pour éviter qu'une clé déjà configurée sous
         // l'un ou l'autre nom ne soit silencieusement ignorée.
         const apiKey = process.env.FEDAPAY_SECRET_KEY || process.env.FEDAPAY_SECRET;
+        // Log de diagnostic sans jamais exposer la clé en entier — juste de
+        // quoi vérifier côté logs qu'une clé est bien détectée et de quel
+        // type (sk_live_ vs sk_sandbox_/sk_test_) sans risque de fuite.
+        console.log(`[FedaPay] Config — clé: ${apiKey ? `${apiKey.slice(0, 9)}… (${apiKey.length} car.)` : 'AUCUNE (undefined)'} | env: ${process.env.FEDAPAY_ENV || '(non défini → sandbox)'}`);
         const env = process.env.FEDAPAY_ENV === 'live' ? 'api' : 'sandbox-api';
         const baseUrl = `https://${env}.fedapay.com/v1/transactions/${transactionId}`;
 
