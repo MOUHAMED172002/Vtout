@@ -895,7 +895,12 @@ export const createOrder = async (req, res) => {
                     message: 'Commande créée (Paiement Requis)',
                     order: mainOrder.toJSON(),
                     payment_url: fedaTx.checkoutUrl,
-                    transaction_id: fedaTx.transactionId
+                    transaction_id: fedaTx.transactionId,
+                    // Sans ce champ, CheckoutPage.jsx ne peut jamais ouvrir la
+                    // modale FedaPay intégrée (elle ne teste que
+                    // createResponse.token) et retombe systématiquement sur
+                    // la redirection pleine page vers payment_url.
+                    token: fedaTx.token
                 });
             } catch (fedaError) {
                 return res.status(201).json({ 
