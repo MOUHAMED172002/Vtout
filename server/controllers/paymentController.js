@@ -103,24 +103,25 @@ export const fedapayCallback = async (req, res) => {
 
 export const fedapayWebhook = async (req, res) => {
     try {
-        // SECURITE : secret partagé configuré côté FedaPay (en-tête HTTP
-        // personnalisé "X-Webhook-Secret" ajouté à chaque appel de webhook,
-        // voir dashboard FedaPay > Webhooks) — rejette tout appel qui ne le
-        // connaît pas, avant même de traiter le payload. Comparaison en
-        // temps constant pour éviter une attaque par mesure de timing.
+        // SECURITE (EN COURS DE FIABILISATION) : on ne sait pas encore avec
+        // certitude si FedaPay envoie le secret via l'en-tête personnalisé
+        // "X-Webhook-Secret" (configuré manuellement dans leur dashboard) ou
+        // via son propre mécanisme de signature (X-FEDAPAY-SIGNATURE, basé
+        // sur le "wh_live_..." généré à la création du webhook). Tant que ce
+        // n'est pas confirmé, on NE BLOQUE PAS les appels (pour ne jamais
+        // rater une confirmation de paiement réelle) — on se contente de
+        // logguer tous les en-têtes reçus pour identifier le bon mécanisme.
+        // ⚠️ À durcir en rejet strict (403) une fois le mécanisme confirmé.
         const expectedSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
         const providedSecret = req.headers['x-webhook-secret'];
-        if (expectedSecret) {
+        let secretMatches = false;
+        if (expectedSecret && providedSecret) {
             const expectedBuf = Buffer.from(expectedSecret);
-            const providedBuf = Buffer.from(String(providedSecret || ''));
-            const isValid = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
-            if (!isValid) {
-                console.warn('[FedaPay Webhook] Secret invalide ou manquant — appel rejeté.');
-                return res.status(403).send('Forbidden');
-            }
-        } else {
-            console.warn('[FedaPay Webhook] FEDAPAY_WEBHOOK_SECRET non configuré — vérification du secret ignorée.');
+            const providedBuf = Buffer.from(String(providedSecret));
+            secretMatches = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
         }
+        console.log('[FedaPay Webhook] En-têtes reçus:', JSON.stringify(req.headers));
+        console.log(`[FedaPay Webhook] Secret x-webhook-secret ${providedSecret ? (secretMatches ? 'présent et VALIDE' : 'présent mais INVALIDE') : 'ABSENT'} | x-fedapay-signature: ${req.headers['x-fedapay-signature'] ? 'présent' : 'absent'}`);
 
         console.log('[FedaPay Webhook] Received:', req.body);
 
