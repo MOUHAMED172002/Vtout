@@ -118,7 +118,7 @@ import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
 import { processReviewReminders } from "./services/reviewReminderService.js";
 import { processReengagement, processVipMessages } from "./services/reengagementService.js";
-import { expireStaleOrders, expireUnpaidOnlinePayments } from "./services/orderExpiryService.js";
+import { expireStaleOrders, expirePendingCheckouts } from "./services/orderExpiryService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
@@ -151,15 +151,17 @@ const startJobs = () => {
         expireStaleOrders().catch(err => console.error("[JOB ERROR] Order Expiry:", err));
     }, 60 * 60 * 1000);
 
-    // Annulation des paiements en ligne (FedaPay/mobile money/carte) non confirmés
-    // après 30 min (toutes les 10 min) — bien plus réactif que le nettoyage 48h
-    // ci-dessus, car un paiement abandonné doit libérer le stock rapidement.
+    // Expiration des tentatives de paiement en ligne (FedaPay/mobile money/carte)
+    // non confirmées après 30 min (toutes les 10 min). Depuis le passage à la
+    // création de commande différée jusqu'à confirmation du paiement, il n'y a
+    // plus de commande à annuler ici — seulement un PendingCheckout à expirer
+    // et sa réservation de stock à relâcher (voir orderExpiryService.js).
     setInterval(() => {
-        expireUnpaidOnlinePayments().catch(err => console.error("[JOB ERROR] Online Payment Expiry:", err));
+        expirePendingCheckouts().catch(err => console.error("[JOB ERROR] Pending Checkout Expiry:", err));
     }, 10 * 60 * 1000);
     // Premier passage peu après le démarrage (pas d'attente de 10 min avant le tout premier run)
     setTimeout(() => {
-        expireUnpaidOnlinePayments().catch(err => console.error("[JOB ERROR] Online Payment Expiry:", err));
+        expirePendingCheckouts().catch(err => console.error("[JOB ERROR] Pending Checkout Expiry:", err));
     }, 60 * 1000);
 
     // Nettoyage des ventes flash expirées (toutes les heures)

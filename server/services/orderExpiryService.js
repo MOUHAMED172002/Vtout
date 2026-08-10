@@ -1,7 +1,8 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, ProductVariantPrice, Profile } from '../models/index.js';
+import { Order, OrderItem, Product, ProductVariantPrice, Profile, PendingCheckout } from '../models/index.js';
 import { notifyCustomerOfStatusUpdate, sendWhatsAppMessage } from './whatsappService.js';
 import { sendOrderUpdateToCustomer } from './mailService.js';
+import { releasePendingCheckoutReservation } from '../controllers/orderController.js';
 
 const EXPIRY_HOURS = 48;
 
@@ -11,7 +12,6 @@ const EXPIRY_HOURS = 48;
 // et la commande n'apparaît jamais comme "vraie" commande en attente côté
 // admin/livreur si le paiement n'a jamais abouti.
 const ONLINE_PAYMENT_TIMEOUT_MINUTES = 30;
-const ONLINE_PAYMENT_METHODS = ['fedapay', 'mobile_money', 'card'];
 
 export async function expireStaleOrders() {
     const cutoff = new Date(Date.now() - EXPIRY_HOURS * 60 * 60 * 1000);
@@ -66,75 +66,61 @@ export async function expireStaleOrders() {
     }
 }
 
-// Annule les commandes payées en ligne (FedaPay, mobile money, carte) dont
-// le paiement n'a jamais été confirmé après ONLINE_PAYMENT_TIMEOUT_MINUTES —
-// distinct du nettoyage générique ci-dessus (48h, tous modes de paiement
-// confondus), car un paiement en ligne abandonné doit libérer le stock bien
-// plus vite qu'une commande "paiement à la livraison" en attente d'un livreur.
-export async function expireUnpaidOnlinePayments() {
+// Expire les tentatives de paiement en ligne (FedaPay, mobile money, carte)
+// jamais confirmées après ONLINE_PAYMENT_TIMEOUT_MINUTES. Depuis le passage
+// à la création de commande DIFFÉRÉE jusqu'à confirmation du paiement (voir
+// orderController.js createOrder/materializePendingCheckout), il n'y a plus
+// de commande à annuler ici — seulement un PendingCheckout à expirer et sa
+// réservation de stock à relâcher. Le panier du client n'a jamais été vidé
+// pour une tentative non aboutie, donc il peut simplement recommencer le
+// checkout sans rien perdre.
+export async function expirePendingCheckouts() {
     const cutoff = new Date(Date.now() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60 * 1000);
 
-    const unpaidOrders = await Order.findAll({
-        where: {
-            status: 'en_attente',
-            payment_status: { [Op.in]: ['en_attente', 'non_payé'] },
-            payment_method: { [Op.in]: ONLINE_PAYMENT_METHODS },
-            created_at: { [Op.lt]: cutoff }
-        },
-        include: [{ model: OrderItem, as: 'items' }]
+    const staleCheckouts = await PendingCheckout.findAll({
+        where: { status: 'pending', created_at: { [Op.lt]: cutoff } }
     });
 
-    for (const order of unpaidOrders) {
-        // Toujours 'en_attente' (voir requête ci-dessus) — même logique que
-        // expireStaleOrders : on relâche la réservation, le stock réel n'a
-        // jamais été décrémenté pour ces commandes.
-        for (const item of (order.items || [])) {
-            if (item.variant_id) {
-                await ProductVariantPrice.decrement('reserved_stock', { by: item.quantity, where: { variant_id: item.variant_id } });
-            } else if (item.product_id) {
-                await Product.decrement('reserved_stock', { by: item.quantity, where: { id: item.product_id } });
+    for (const pending of staleCheckouts) {
+        await releasePendingCheckoutReservation(pending);
+        await pending.update({ status: 'expired' });
+
+        try {
+            const payload = JSON.parse(pending.payload);
+            const bo = payload.boutiqueOrders?.[0];
+            if (!bo) continue;
+
+            const reasonMessage = `📦 *VTOUT : Paiement expiré*\nVotre tentative de paiement n'a pas été confirmée à temps. Votre panier est toujours disponible, vous pouvez réessayer quand vous voulez.`;
+            let customerPhone = bo.whatsapp_notif_phone || bo.guest_phone;
+            let customerEmail = bo.guest_email || null;
+            if ((!customerPhone || !customerEmail) && bo.user_id) {
+                try {
+                    const p = await Profile.findByPk(bo.user_id);
+                    if (!customerPhone) customerPhone = p?.phone || null;
+                    if (!customerEmail) customerEmail = p?.email || null;
+                } catch { /* ignore */ }
             }
-        }
-
-        let history = order.status_history || [];
-        if (typeof history === 'string') try { history = JSON.parse(history); } catch { history = []; }
-        history.push({ status: 'annulée', date: new Date(), reason: 'paiement_en_ligne_non_confirme' });
-
-        await order.update({ status: 'annulée', payment_status: 'non_payé', status_history: history });
-
-        // Message dédié (pas notifyCustomerOfStatusUpdate) pour expliquer la
-        // vraie raison — "annulée" tout court laisserait croire à une
-        // décision du vendeur, alors qu'ici c'est simplement le paiement
-        // qui n'a jamais été confirmé à temps. Repli email si WhatsApp
-        // échoue, même logique que expireStaleOrders ci-dessus.
-        const reasonMessage = `📦 *VTOUT : Commande annulée*\nVotre commande #${order.id.slice(0, 8).toUpperCase()} a été annulée car le paiement n'a pas été confirmé à temps. Vous pouvez recommander à tout moment.`;
-        let customerPhone = order.whatsapp_notif_phone || order.guest_phone;
-        let customerEmail = order.guest_email || null;
-        if ((!customerPhone || !customerEmail) && order.user_id) {
-            try {
-                const p = await Profile.findByPk(order.user_id);
-                if (!customerPhone) customerPhone = p?.phone || null;
-                if (!customerEmail) customerEmail = p?.email || null;
-            } catch { /* ignore */ }
-        }
-        const emailFallback = async () => {
-            if (!customerEmail) return;
-            try {
-                await sendOrderUpdateToCustomer({ id: order.id, guest_email: customerEmail }, 'Annulée (paiement non confirmé)');
-            } catch (mailErr) {
-                console.error('[Notif Fallback] Email de secours échoué:', mailErr);
+            const emailFallback = async () => {
+                if (!customerEmail) return;
+                try {
+                    await sendOrderUpdateToCustomer({ id: pending.id, guest_email: customerEmail }, 'Paiement expiré');
+                } catch (mailErr) {
+                    console.error('[Notif Fallback] Email de secours échoué:', mailErr);
+                }
+            };
+            if (customerPhone) {
+                sendWhatsAppMessage(customerPhone, reasonMessage).then(r => {
+                    if (!r?.success) emailFallback();
+                }).catch(() => emailFallback());
+            } else {
+                emailFallback();
             }
-        };
-        if (customerPhone) {
-            sendWhatsAppMessage(customerPhone, reasonMessage).then(r => {
-                if (!r?.success) emailFallback();
-            }).catch(() => emailFallback());
-        } else {
-            emailFallback();
+        } catch (notifErr) {
+            console.error('[ORDER EXPIRY] Notification échec expiration pending checkout:', notifErr);
         }
     }
 
-    if (unpaidOrders.length > 0) {
-        console.log(`[ORDER EXPIRY] ${unpaidOrders.length} commande(s) paiement en ligne annulée(s) automatiquement après ${ONLINE_PAYMENT_TIMEOUT_MINUTES}min sans confirmation`);
+    if (staleCheckouts.length > 0) {
+        console.log(`[ORDER EXPIRY] ${staleCheckouts.length} tentative(s) de paiement en ligne expirée(s) automatiquement après ${ONLINE_PAYMENT_TIMEOUT_MINUTES}min sans confirmation`);
     }
 }

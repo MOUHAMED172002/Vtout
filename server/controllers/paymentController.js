@@ -1,7 +1,8 @@
-import { Order, FinancialTransaction, OrderItem, SellerBadgeSubscription, Supplier, Profile, Notification } from '../models/index.js';
+import { Order, FinancialTransaction, OrderItem, SellerBadgeSubscription, Supplier, Profile, Notification, PendingCheckout } from '../models/index.js';
 import { verifyFedapayTransaction } from '../services/fedapayService.js';
 import { sendOrderUpdateToCustomer, sendOrderNotificationToAdmin, sendInvoiceEmail } from '../services/mailService.js';
 import { sendMetaCapiEvent } from '../services/metaCapiService.js';
+import { materializePendingCheckout, releasePendingCheckoutReservation } from './orderController.js';
 import crypto from 'crypto';
 
 const activateSellerBadge = async (subscriptionId) => {
@@ -57,38 +58,66 @@ const activateSellerBadge = async (subscriptionId) => {
 
 export const fedapayCallback = async (req, res) => {
     try {
-        const { id, status, order_id } = req.query;
+        const { id, order_id } = req.query;
         // param 'id' vient de FedaPay (ID de transaction)
-        
+
         if (!id || !order_id) {
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error`);
         }
 
         // On vérifie le statut réel via l'API FedaPay (sécurité)
         const fedaTx = await verifyFedapayTransaction(id);
-        
-        // order_id can contain multiple IDs separated by commas
+
+        const firstId = order_id.split(',')[0].trim();
+
+        // Nouveau flux différé (paiement en ligne) : order_id pointe en fait
+        // vers un PendingCheckout tant que le paiement n'a jamais été
+        // confirmé — aucune vraie commande n'existe encore à ce stade.
+        const pending = await PendingCheckout.findByPk(firstId);
+        if (pending) {
+            const txPendingId = fedaTx.custom_metadata?.order_id || fedaTx.metadata?.order_id;
+            if (txPendingId && !txPendingId.includes(firstId)) {
+                console.error('[Payment Callback] FedaPay Transaction does not match pending checkout. Fraud attempt?');
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=SecurityError`);
+            }
+
+            if (fedaTx.status === 'approved') {
+                const mainOrder = await materializePendingCheckout(pending.id);
+                if (!mainOrder) {
+                    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=OrderCreationFailed`);
+                }
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${mainOrder.id}`);
+            } else {
+                // Paiement refusé/abandonné : rien à annuler, aucune commande
+                // n'a jamais existé. La réservation de stock sera relâchée
+                // immédiatement (au lieu d'attendre le cron d'expiration).
+                if (pending.status === 'pending') {
+                    await releasePendingCheckoutReservation(pending).catch(() => {});
+                    await pending.update({ status: 'failed' }).catch(() => {});
+                }
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=PaymentFailed`);
+            }
+        }
+
+        // Flux legacy — commande déjà créée avant paiement (reversement cash,
+        // ou toute commande issue d'avant ce changement d'architecture).
         const orderIds = order_id.split(',');
-        const firstOrderId = orderIds[0].trim();
-        
-        const firstOrder = await Order.findByPk(firstOrderId);
+        const firstOrder = await Order.findByPk(firstId);
         if (!firstOrder) {
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=OrderNotFound`);
         }
- 
-        // Security check
+
         const txOrderId = fedaTx.custom_metadata?.order_id || fedaTx.metadata?.order_id;
-        if (txOrderId && !txOrderId.includes(firstOrderId)) {
+        if (txOrderId && !txOrderId.includes(firstId)) {
             console.error('[Payment Callback] FedaPay Transaction does not match. Fraud attempt?');
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/error?msg=SecurityError`);
         }
- 
+
         if (fedaTx.status === 'approved') {
-            // Update all linked orders
             for (const oId of orderIds) {
                 await Order.update({ payment_status: 'payé' }, { where: { id: oId.trim() } });
             }
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${firstOrderId}`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?order_id=${firstId}`);
         } else {
             for (const oId of orderIds) {
                 await Order.update({ payment_status: 'echec' }, { where: { id: oId.trim() } });
@@ -170,6 +199,23 @@ export const fedapayWebhook = async (req, res) => {
                 } else if (txType === 'seller_badge_subscription') {
                     // Abonnement badge "Vendeur Certifié" : pas de commande, on active le badge fournisseur
                     await activateSellerBadge(orderIdStr.trim());
+                } else if (txType === 'pending_checkout') {
+                    // Paiement client (flux différé) : la commande n'existe pas
+                    // encore, on la matérialise maintenant — idempotent, peut
+                    // arriver après (ou avant) le callback de redirection ou la
+                    // confirmation explicite du widget pour le même paiement.
+                    try {
+                        const mainOrder = await materializePendingCheckout(orderIdStr.trim());
+                        if (mainOrder) {
+                            sendMetaCapiEvent({
+                                eventName: 'Purchase',
+                                eventSourceUrl: `${process.env.FRONTEND_URL || 'https://vtout.com'}/checkout/success`,
+                                customData: { currency: 'XOF', value: parseFloat(mainOrder.total_amount || 0) }
+                            }).catch(err => console.error('[CAPI Purchase]', err));
+                        }
+                    } catch (materializeErr) {
+                        console.error('[Webhook] materializePendingCheckout failed:', materializeErr);
+                    }
                 } else {
                     // Paiement client classique
                     const orderIds = orderIdStr.split(',');

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useUser } from "../../lib/AuthHooks";
 import AddressSelector from "./AddressSelector";
 import { useCart } from "./CartContext";
-import { createOrder, updateOrderStatus } from "../../services/orderService";
+import { createOrder, updateOrderStatus, confirmPendingPayment } from "../../services/orderService";
 import { createAddress } from "../../services/addressService";
 import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
@@ -330,25 +330,50 @@ export default function CheckoutPage() {
                     id: createResponse.transaction_id,
                     amount: Math.round(backendTotal)
                 },
-                container: '#fedapay-embed'
+                container: '#fedapay-embed',
+                // La commande n'existe pas encore à ce stade — elle n'est créée
+                // qu'après confirmation RÉELLE du paiement (voir orderController.js
+                // materializePendingCheckout). onComplete est le signal du widget
+                // FedaPay qu'un paiement est terminé côté navigateur ; on ne lui
+                // fait jamais confiance seul — confirmPendingCheckout re-vérifie
+                // tout côté serveur avant de matérialiser la commande. Le webhook
+                // FedaPay sert de filet de sécurité si cet appel échoue (réseau,
+                // onglet fermé trop tôt, etc.) — il matérialisera quand même la
+                // commande de façon asynchrone.
+                onComplete: async ({ reason, transaction: fedaTransaction }) => {
+                    if (reason === window.FedaPay.CHECKOUT_COMPLETED) {
+                        try {
+                            const confirmRes = await confirmPendingPayment(createResponse.pending_checkout_id, fedaTransaction.id);
+                            await refreshCart();
+                            setShowFedaPayModal(false);
+                            setIsSuccess(true);
+                            haptics.successBig();
+                            window.gtag?.('event', 'purchase', { transaction_id: confirmRes.order?.id, currency: 'XOF', value: backendTotal });
+                            window.fbq?.('track', 'Purchase', { currency: 'XOF', value: backendTotal });
+                            toast.success("Paiement confirmé !");
+                            const nextPath = isGuest ? `/order-confirmation/${confirmRes.order.id}` : `/user/dashboard/orders/${confirmRes.order.id}`;
+                            setTimeout(() => navigate(nextPath), 2000);
+                        } catch (confirmErr) {
+                            // Le paiement a probablement réussi côté FedaPay mais la
+                            // confirmation immédiate a échoué (réseau…) — le webhook
+                            // matérialisera quand même la commande en asynchrone,
+                            // donc on ne doit surtout pas dire au client que le
+                            // paiement a échoué.
+                            console.error("[FedaPay onComplete] Confirmation error:", confirmErr);
+                            setShowFedaPayModal(false);
+                            toast("Paiement reçu, finalisation en cours… Vous recevrez une confirmation sous peu.", { duration: 7000, icon: "⏳" });
+                        }
+                    } else {
+                        // DIALOG_DISMISSED — fermé sans payer. Aucune commande n'a
+                        // été créée et le panier est intact : le client peut
+                        // simplement retenter directement depuis cette page.
+                        setShowFedaPayModal(false);
+                    }
+                }
             });
             return;
         } else if (createResponse.payment_url) {
             window.location.href = createResponse.payment_url;
-            return;
-        } else if (createResponse.payment_error && createResponse.order) {
-            // La commande a bien été créée côté serveur mais la génération du
-            // lien FedaPay a échoué (ex: clé/API mal configurée) — on ne doit
-            // surtout pas laisser croire au client qu'il peut relancer sa
-            // commande depuis zéro (doublon), on l'oriente vers son suivi de
-            // commande où il pourra retenter le paiement.
-            await refreshCart();
-            toast.error(
-                "Votre commande est enregistrée, mais le paiement en ligne a échoué. Notre équipe va vous contacter pour finaliser le règlement.",
-                { duration: 8000 }
-            );
-            const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
-            setTimeout(() => navigate(nextPath), 2500);
             return;
         } else {
             toast.error("Erreur de génération du lien de paiement");

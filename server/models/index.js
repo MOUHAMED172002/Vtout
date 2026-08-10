@@ -38,6 +38,7 @@ import Blog from './Blog.js';
 import Otp from './Otp.js';
 import Newsletter from './Newsletter.js';
 import Kit from './Kit.js'; // gardé pour orderController.js (calcul prix kit)
+import PendingCheckout from './PendingCheckout.js';
 import KitComponent from './KitComponent.js'; // gardé pour orderController.js
 import SellerBadgeSubscription from './SellerBadgeSubscription.js';
 import Referral from './Referral.js';
@@ -363,5 +364,6 @@ export {
     CouponUsage,
     AdCampaign,
     AdDistributorProfile,
-    AdSubmission
+    AdSubmission,
+    PendingCheckout
 };

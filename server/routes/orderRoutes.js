@@ -19,6 +19,10 @@ router.get('/:id', orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
 router.post('/', orderController.createOrder); // guests allowed — controller handles null userId
 router.post('/:id/retry-payment', orderController.retryOrderPayment); // guests allowed — self-service retry for failed online payments
+// Confirmation explicite depuis le widget FedaPay embarqué (onComplete) —
+// guests inclus, re-vérifiée serveur-à-serveur dans le contrôleur, jamais
+// fait confiance au seul signal du navigateur.
+router.post('/pending-checkout/:id/confirm', orderController.confirmPendingCheckout);
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
 router.patch('/:id/dispute/response', requireAuth, orderController.respondToDisputeResolution);

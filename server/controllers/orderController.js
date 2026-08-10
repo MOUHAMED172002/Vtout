@@ -1,13 +1,14 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, CouponUsage, Category, Notification, Dispute, Kit, KitComponent } from '../models/index.js';
+import { Order, OrderItem, Product, Address, Cart, ProductVariant, ProductImage, ProductVariantPrice, Profile, DeliveryPerson, Supplier, SupplierProduct, FinancialTransaction, Config, SupportMessage, Boutique, Coupon, CouponUsage, Category, Notification, Dispute, Kit, KitComponent, PendingCheckout } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { getRoadDistance, calculateDeliveryFee } from '../services/distanceService.js';
 import { sendInvoiceEmail, sendOrderNotificationToAdmin, sendOrderUpdateToCustomer } from '../services/mailService.js';
+import { sendMetaCapiEvent } from '../services/metaCapiService.js';
 import { processOrderFinancials } from '../services/financialService.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { createFedapayTransaction } from '../services/fedapayService.js';
+import { createFedapayTransaction, verifyFedapayTransaction } from '../services/fedapayService.js';
 import { sendNewOrderWhatsApp, notifySupplierOfNewOrder, notifyDelivererOfAssignment, notifyCustomerOfStatusUpdate, notifyAdmin, notifySupplierOfLowStock, notifySupplierOfOrderStatusUpdate, notifyDelivererOfOrderStatusUpdate, sendWhatsAppMessage } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, decomposePublicPrice, getDeliveryMultiplierTiers, computeDeliveryMultiplier } from '../services/deliveryFeeService.js';
 import { rewardReferrerIfPending } from './referralController.js';
@@ -649,6 +650,19 @@ export const createOrder = async (req, res) => {
 
         // 4. Create individual orders per supplier
 
+        // Paiement en ligne (fedapay/mobile_money/card) : la commande n'est
+        // matérialisée qu'APRÈS confirmation réelle du paiement (voir
+        // materializePendingCheckout plus bas, appelée par le webhook, le
+        // callback de redirection, ou la confirmation explicite du widget
+        // embarqué). On calcule et réserve le stock MAINTENANT (comme avant)
+        // pour ne pas survendre pendant la fenêtre de paiement, mais on
+        // n'écrit AUCUNE ligne `orders`/`order_items` tant que le paiement
+        // n'est pas confirmé — le payload complet déjà calculé est stocké
+        // tel quel dans PendingCheckout et rejoué sans recalcul à la
+        // confirmation, pour ne jamais dupliquer cette logique de tarification.
+        const isOnlinePayment = ['fedapay', 'mobile_money', 'card'].includes(payment_method);
+        const pendingBoutiqueOrders = [];
+
         for (const bId of boutiqueIds) {
             const boutiqueItems = itemsByBoutique[bId];
             const actualBoutiqueId = bId === 'no_boutique' ? null : bId;
@@ -709,14 +723,16 @@ export const createOrder = async (req, res) => {
             const deliveryCode = Math.floor(1000 + Math.random() * 9000).toString();
             const orderId = crypto.randomUUID();
 
-            const order = await Order.create({
+            // Payload commun aux deux chemins (créé tout de suite vs différé) —
+            // c'est littéralement ce qui deviendra les colonnes `orders` une
+            // fois la commande matérialisée (immédiatement ci-dessous, ou plus
+            // tard dans materializePendingCheckout pour le paiement en ligne).
+            const orderPayload = {
                 id: orderId,
                 user_id: userId,
                 guest_name, guest_email, guest_phone,
                 address_id,
                 payment_method: payment_method || 'delivery',
-                payment_status: 'en_attente',
-                status: 'en_attente',
                 whatsapp_notif_phone,
                 total_amount: sTotal,
                 delivery_fee: sDeliveryFee,
@@ -727,7 +743,15 @@ export const createOrder = async (req, res) => {
                 supplier_id: actualSupplierId,
                 boutique_id: actualBoutiqueId,
                 items_count: boutiqueItems.length
+            };
+
+            const order = isOnlinePayment ? null : await Order.create({
+                ...orderPayload,
+                payment_status: 'en_attente',
+                status: 'en_attente'
             }, { transaction });
+
+            const itemPayloads = [];
 
             for (const { product, item, unitPrice, basePrice, variantData } of boutiqueItems) {
                 // Determine the best original_price for display: volume-discount base or product/variant old_price
@@ -738,38 +762,45 @@ export const createOrder = async (req, res) => {
                     : null;
                 const storeOriginalPrice = basePrice !== unitPrice ? basePrice : displayOldPrice;
 
-                await OrderItem.create({
-                    order_id: order.id,
+                const itemPayload = {
                     product_id: product.id,
                     variant_id: variantData?.variant_id || null,
                     boutique_id: actualBoutiqueId,
                     quantity: item.quantity,
                     price: unitPrice,
-                    original_price: storeOriginalPrice,
-                }, { transaction }).catch(async (createErr) => {
-                    // If original_price column doesn't exist yet, retry without it
-                    if (createErr.message?.includes('original_price')) {
-                        return OrderItem.create({
-                            order_id: order.id,
-                            product_id: product.id,
-                            variant_id: variantData?.variant_id || null,
-                            boutique_id: actualBoutiqueId,
-                            quantity: item.quantity,
-                            price: unitPrice,
-                        }, { transaction });
-                    }
-                    throw createErr;
-                });
+                    original_price: storeOriginalPrice
+                };
 
-                // On RÉSERVE la quantité (stock physique intact) — la commande peut
-                // encore être annulée ou ne jamais être payée ; le stock réel n'est
-                // décrémenté qu'à la livraison confirmée (voir updateOrderStatus).
+                if (isOnlinePayment) {
+                    itemPayloads.push(itemPayload);
+                } else {
+                    await OrderItem.create({ order_id: order.id, ...itemPayload }, { transaction }).catch(async (createErr) => {
+                        // If original_price column doesn't exist yet, retry without it
+                        if (createErr.message?.includes('original_price')) {
+                            const { original_price, ...rest } = itemPayload;
+                            return OrderItem.create({ order_id: order.id, ...rest }, { transaction });
+                        }
+                        throw createErr;
+                    });
+                    // Compte les ventes tout de suite pour ce mode de paiement
+                    // (livraison/portefeuille) — pour le paiement en ligne, voir
+                    // materializePendingCheckout : on ne compte une vente qu'une
+                    // fois le paiement réellement confirmé, pas à la simple tentative.
+                    await product.increment('total_sold', { by: item.quantity, transaction });
+                }
+
+                // On RÉSERVE la quantité MAINTENANT dans tous les cas (stock
+                // physique intact) — que la commande soit créée tout de suite
+                // ou différée jusqu'à confirmation du paiement, il faut retenir
+                // le stock pendant la fenêtre de paiement pour ne pas survendre.
+                // Le stock réel n'est décrémenté qu'à la livraison confirmée
+                // (voir updateOrderStatus).
                 if (variantData) {
                     await variantData.increment('reserved_stock', { by: item.quantity, transaction });
                     await variantData.reload({ transaction });
                     const availableAfter = variantData.stock - variantData.reserved_stock;
-                    if (availableAfter <= 5 && order.supplier_id) {
-                        Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'user' }] }).then(s => {
+                    if (availableAfter <= 5 && actualSupplierId) {
+                        Supplier.findByPk(actualSupplierId, { include: [{ model: Profile, as: 'user' }] }).then(s => {
                             const phone = s?.whatsapp || s?.phone || s?.user?.phone;
                             if (phone) notifySupplierOfLowStock(phone, `${product.name} (${variantData.variant_id})`, availableAfter);
                         }).catch(() => {});
@@ -778,18 +809,77 @@ export const createOrder = async (req, res) => {
                     await product.increment('reserved_stock', { by: item.quantity, transaction });
                     await product.reload({ transaction });
                 }
-
-                // Track real sales count for POPULAIRE badge
-                await product.increment('total_sold', { by: item.quantity, transaction });
             }
-            createdOrders.push(order);
 
-            // WhatsApp notif to supplier is sent only after admin confirms (see updateOrderStatus)
+            if (isOnlinePayment) {
+                pendingBoutiqueOrders.push({ ...orderPayload, items: itemPayloads });
+            } else {
+                createdOrders.push(order);
 
-            // WhatsApp Notif to Customer (Priority to dedicated phone)
-            const customerWhatsApp = whatsapp_notif_phone || guest_phone;
-            if (customerWhatsApp) {
-                sendNewOrderWhatsApp(customerWhatsApp, order.id, order.total_amount).catch(e => console.error("WA CUST NOTIF ERR:", e));
+                // WhatsApp notif to supplier is sent only after admin confirms (see updateOrderStatus)
+
+                // WhatsApp Notif to Customer (Priority to dedicated phone)
+                const customerWhatsApp = whatsapp_notif_phone || guest_phone;
+                if (customerWhatsApp) {
+                    sendNewOrderWhatsApp(customerWhatsApp, order.id, order.total_amount).catch(e => console.error("WA CUST NOTIF ERR:", e));
+                }
+            }
+        }
+
+        // Paiement en ligne : commande différée jusqu'à confirmation — on
+        // enregistre le payload complet (déjà entièrement calculé/tarifé
+        // ci-dessus) dans PendingCheckout, sans toucher au panier ni au
+        // coupon (consommés seulement si le paiement aboutit, voir
+        // materializePendingCheckout). Le stock est déjà réservé (boucle
+        // ci-dessus) — c'est ce qui empêche la survente pendant que le
+        // client est sur la page de paiement FedaPay.
+        if (isOnlinePayment) {
+            const pendingCheckout = await PendingCheckout.create({
+                id: crypto.randomUUID(),
+                user_id: userId,
+                payload: JSON.stringify({
+                    boutiqueOrders: pendingBoutiqueOrders,
+                    coupon: (validatedCoupon && couponApplied)
+                        ? { id: validatedCoupon.id, discount_amount: totalDiscount }
+                        : null
+                }),
+                status: 'pending'
+            }, { transaction });
+
+            await transaction.commit();
+
+            const totalCartAmount = pendingBoutiqueOrders.reduce((sum, o) => sum + o.total_amount, 0);
+            try {
+                const customerProfile = userId ? await Profile.findByPk(userId) : null;
+                const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+                const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${pendingCheckout.id}`;
+                const fedapayOrderObj = { id: pendingCheckout.id, total_amount: totalCartAmount };
+
+                const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl, { type: 'pending_checkout' });
+
+                await pendingCheckout.update({ fedapay_transaction_id: fedaTx.transactionId });
+
+                return res.status(201).json({
+                    message: 'Paiement en cours',
+                    pending_checkout_id: pendingCheckout.id,
+                    payment_url: fedaTx.checkoutUrl,
+                    transaction_id: fedaTx.transactionId,
+                    // Voir CheckoutPage.jsx — indispensable pour ouvrir la modale
+                    // FedaPay intégrée au lieu de rediriger en pleine page.
+                    token: fedaTx.token,
+                    amount: totalCartAmount
+                });
+            } catch (fedaError) {
+                console.error('CREATE ORDER (PENDING CHECKOUT) FEDAPAY ERROR:', fedaError);
+                // Le lien de paiement n'a jamais pu être généré : on relâche la
+                // réservation de stock tout de suite plutôt que d'attendre le
+                // cron d'expiration (30min) — rien ne sert de la garder puisque
+                // cette tentative de paiement n'aboutira jamais.
+                await releasePendingCheckoutReservation(pendingCheckout).catch(() => {});
+                await pendingCheckout.update({ status: 'failed' }).catch(() => {});
+                return res.status(500).json({
+                    error: 'Erreur lors de la génération du lien de paiement. Votre panier est intact, vous pouvez réessayer.'
+                });
             }
         }
 
@@ -895,49 +985,14 @@ export const createOrder = async (req, res) => {
         const customerPhone = guest_phone || (userId ? (await Profile.findByPk(userId))?.phone : null);
         if (customerPhone) sendNewOrderWhatsApp(customerPhone, mainOrder.id, totalCartAmount).catch(() => {});
 
-        if (['fedapay', 'mobile_money', 'card'].includes(payment_method)) {
-            try {
-                const customerProfile = userId ? await Profile.findByPk(userId) : null;
-                // Le redirectUrl doit pointer vers notre endpoint backend qui traitera le retour
-                const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-                const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${mainOrder.id}`;
-                
-                const fedapayOrderObj = { ...mainOrder.toJSON(), total_amount: totalCartAmount };
-                fedapayOrderObj.id = createdOrders.map(o => o.id).join(','); 
-
-                const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl);
-                
-                return res.status(201).json({
-                    message: 'Commande créée (Paiement Requis)',
-                    order: mainOrder.toJSON(),
-                    payment_url: fedaTx.checkoutUrl,
-                    transaction_id: fedaTx.transactionId,
-                    // Sans ce champ, CheckoutPage.jsx ne peut jamais ouvrir la
-                    // modale FedaPay intégrée (elle ne teste que
-                    // createResponse.token) et retombe systématiquement sur
-                    // la redirection pleine page vers payment_url.
-                    token: fedaTx.token,
-                    // Montant total confirmé par le serveur (somme de toutes
-                    // les commandes-boutique créées) — c'est celui-ci qui a
-                    // servi à créer la transaction FedaPay. Le frontend
-                    // l'utilise pour l'affichage de la modale plutôt que son
-                    // propre calcul, afin qu'il ne puisse jamais diverger du
-                    // montant réellement facturé.
-                    amount: totalCartAmount
-                });
-            } catch (fedaError) {
-                return res.status(201).json({ 
-                    message: 'Commande créée, mais erreur de paiement. Veuillez payer via votre historique.', 
-                    order: mainOrder.toJSON(),
-                    payment_error: true 
-                });
-            }
-        }
-
-        res.status(201).json({ 
-            message: 'Commande créée avec succès', 
-            order: mainOrder.toJSON(), 
-            delivery_code: mainOrder.delivery_code 
+        // Note : le cas paiement en ligne (fedapay/mobile_money/card) est
+        // entièrement géré plus haut (branche isOnlinePayment) et retourne
+        // avant d'atteindre ce point — cette fonction ne peut arriver ici
+        // qu'avec un mode de paiement livraison/portefeuille déjà confirmé.
+        res.status(201).json({
+            message: 'Commande créée avec succès',
+            order: mainOrder.toJSON(),
+            delivery_code: mainOrder.delivery_code
         });
 
     } catch (error) {
@@ -945,6 +1000,233 @@ export const createOrder = async (req, res) => {
         console.error("CREATE ORDER ERROR:", error);
         notifyAdmin(`❌ ERREUR CRITIQUE (Create Order): ${error.message}`).catch(() => {});
         res.status(500).json({ error: 'Erreur lors de la création de la commande', details: error.message });
+    }
+};
+
+// =====================================================================
+// PAIEMENT EN LIGNE DIFFÉRÉ — libération de réservation + matérialisation
+// =====================================================================
+// Relâche la réservation de stock d'un PendingCheckout qui n'aboutira
+// jamais (échec immédiat de génération du lien FedaPay, ou expiration —
+// voir orderExpiryService.js). Aucune commande n'a jamais existé pour lui,
+// donc il n'y a que la réservation à défaire, pas de stock physique à
+// restaurer (jamais décrémenté avant la livraison).
+export const releasePendingCheckoutReservation = async (pendingCheckout) => {
+    try {
+        const payload = JSON.parse(pendingCheckout.payload);
+        for (const bo of (payload.boutiqueOrders || [])) {
+            for (const it of (bo.items || [])) {
+                if (it.variant_id) {
+                    await ProductVariantPrice.decrement('reserved_stock', { by: it.quantity, where: { variant_id: it.variant_id } });
+                } else if (it.product_id) {
+                    await Product.decrement('reserved_stock', { by: it.quantity, where: { id: it.product_id } });
+                }
+            }
+        }
+    } catch (err) {
+        console.error('[releasePendingCheckoutReservation] Error:', err);
+    }
+};
+
+// Matérialise réellement la/les commande(s) d'un PendingCheckout confirmé —
+// appelée par le webhook FedaPay, le callback de redirection, ET la
+// confirmation explicite envoyée par le widget embarqué (onComplete côté
+// frontend) : les trois peuvent arriver pour le même paiement, d'où
+// l'idempotence stricte sur pending.status. Rejoue tel quel le payload déjà
+// entièrement calculé/tarifé au moment du checkout (voir createOrder) —
+// aucune logique de prix/coupon/kit n'est recalculée ici, seulement de la
+// persistance + les effets de bord (panier, coupon, notifications).
+export const materializePendingCheckout = async (pendingCheckoutId) => {
+    const pending = await PendingCheckout.findByPk(pendingCheckoutId);
+    if (!pending) return null;
+
+    if (pending.status === 'confirmed') {
+        try {
+            const ids = JSON.parse(pending.resulting_order_ids || '[]');
+            return ids.length ? await Order.findByPk(ids[0]) : null;
+        } catch {
+            return null;
+        }
+    }
+    if (pending.status !== 'pending') return null; // expired/failed — trop tard, il faut recommencer le checkout
+
+    const payload = JSON.parse(pending.payload);
+    const { boutiqueOrders, coupon } = payload;
+    if (!Array.isArray(boutiqueOrders) || boutiqueOrders.length === 0) return null;
+
+    const transaction = await sequelize.transaction();
+    try {
+        const createdOrders = [];
+        for (const bo of boutiqueOrders) {
+            const order = await Order.create({
+                id: bo.id,
+                user_id: bo.user_id,
+                guest_name: bo.guest_name,
+                guest_email: bo.guest_email,
+                guest_phone: bo.guest_phone,
+                address_id: bo.address_id,
+                payment_method: bo.payment_method,
+                payment_status: 'payé',
+                status: 'en_attente',
+                whatsapp_notif_phone: bo.whatsapp_notif_phone,
+                total_amount: bo.total_amount,
+                delivery_fee: bo.delivery_fee,
+                discount_amount: bo.discount_amount,
+                coupon_code: bo.coupon_code,
+                notes: bo.notes,
+                delivery_code: bo.delivery_code,
+                supplier_id: bo.supplier_id,
+                boutique_id: bo.boutique_id,
+                items_count: bo.items_count
+            }, { transaction });
+
+            for (const it of (bo.items || [])) {
+                await OrderItem.create({
+                    order_id: order.id,
+                    product_id: it.product_id,
+                    variant_id: it.variant_id,
+                    boutique_id: it.boutique_id,
+                    quantity: it.quantity,
+                    price: it.price,
+                    original_price: it.original_price
+                }, { transaction }).catch(async (createErr) => {
+                    if (createErr.message?.includes('original_price')) {
+                        return OrderItem.create({
+                            order_id: order.id, product_id: it.product_id, variant_id: it.variant_id,
+                            boutique_id: it.boutique_id, quantity: it.quantity, price: it.price
+                        }, { transaction });
+                    }
+                    throw createErr;
+                });
+                // Compte la vente seulement maintenant, paiement réellement
+                // confirmé — pas à la simple tentative (voir createOrder).
+                await Product.increment('total_sold', { by: it.quantity, where: { id: it.product_id }, transaction });
+            }
+            createdOrders.push(order);
+        }
+
+        const mainParentId = createdOrders[0].id;
+        for (let i = 0; i < createdOrders.length; i++) {
+            await createdOrders[i].update({ parent_id: mainParentId, is_parent: i === 0 }, { transaction });
+        }
+
+        const anyBo = boutiqueOrders[0];
+        if (anyBo.user_id) {
+            await Cart.destroy({ where: { user_id: anyBo.user_id }, transaction });
+        }
+
+        if (coupon) {
+            await Coupon.increment('used_count', { by: 1, where: { id: coupon.id }, transaction });
+            await CouponUsage.create({
+                id: crypto.randomUUID(),
+                coupon_id: coupon.id,
+                user_id: anyBo.user_id || null,
+                order_id: mainParentId,
+                discount_amount: coupon.discount_amount
+            }, { transaction });
+        }
+
+        await pending.update({
+            status: 'confirmed',
+            resulting_order_ids: JSON.stringify(createdOrders.map(o => o.id))
+        }, { transaction });
+
+        await transaction.commit();
+
+        // --- Notifications (hors transaction, best-effort — même schéma que le flux immédiat) ---
+        const totalCartAmount = createdOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+        const orderListStr = createdOrders.map(o => `#${o.id.slice(0, 8)}`).join(', ');
+        notifyAdmin(`🛍️ Nouvelle commande${createdOrders.length > 1 ? ' Multi-Boutiques' : ''} payée en ligne !\nIDs: ${orderListStr}\nTotal: ${totalCartAmount.toLocaleString()} F`).catch(() => {});
+
+        let invoiceEmail = anyBo.guest_email || null;
+        if (!invoiceEmail && anyBo.user_id) {
+            try {
+                const up = await Profile.findByPk(anyBo.user_id, { attributes: ['email'] });
+                invoiceEmail = up?.email || null;
+            } catch (_) { /* ignore */ }
+        }
+
+        for (const order of createdOrders) {
+            const items = await OrderItem.findAll({
+                where: { order_id: order.id },
+                include: [{ model: Product, as: 'product' }]
+            });
+            sendOrderNotificationToAdmin(order).catch(() => {});
+            const orderForInvoice = invoiceEmail ? { ...order.toJSON(), user_email: invoiceEmail } : order;
+            sendInvoiceEmail(orderForInvoice, items).catch(() => {});
+        }
+
+        const customerPhone = anyBo.guest_phone || (anyBo.user_id ? (await Profile.findByPk(anyBo.user_id))?.phone : null);
+        if (customerPhone) sendNewOrderWhatsApp(customerPhone, mainParentId, totalCartAmount).catch(() => {});
+
+        sendMetaCapiEvent({
+            eventName: 'Purchase',
+            eventSourceUrl: `${process.env.FRONTEND_URL || 'https://vtout.com'}/checkout/success`,
+            customData: { currency: 'XOF', value: totalCartAmount }
+        }).catch(() => {});
+
+        return createdOrders[0];
+    } catch (err) {
+        await transaction.rollback();
+        // Course concurrente possible : webhook, callback de redirection et
+        // confirmation explicite du widget peuvent arriver quasi simultanément
+        // pour le MÊME paiement. Si un autre appel a déjà matérialisé entre-
+        // temps (échec ici dû à la clé primaire déjà prise sur Order.create),
+        // on renvoie simplement le résultat déjà créé plutôt que de remonter
+        // une erreur pour un paiement qui, en réalité, a bien réussi.
+        try {
+            const refreshed = await PendingCheckout.findByPk(pendingCheckoutId);
+            if (refreshed?.status === 'confirmed') {
+                const ids = JSON.parse(refreshed.resulting_order_ids || '[]');
+                if (ids.length) return await Order.findByPk(ids[0]);
+            }
+        } catch { /* on retombe sur l'erreur d'origine ci-dessous */ }
+        console.error('[materializePendingCheckout] Error:', err);
+        throw err;
+    }
+};
+
+// Endpoint appelé par le widget FedaPay embarqué (onComplete côté
+// CheckoutPage.jsx) dès que le navigateur signale un paiement terminé — on
+// ne fait JAMAIS confiance à ce signal client seul : re-vérification
+// serveur-à-serveur via verifyFedapayTransaction avant de matérialiser quoi
+// que ce soit. Le webhook et le callback de redirection couvrent déjà le
+// cas où l'utilisateur ferme l'onglet avant que cet appel ne parte — cet
+// endpoint n'est qu'un raccourci pour une confirmation immédiate côté UI.
+export const confirmPendingCheckout = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { transaction_id } = req.body;
+        if (!transaction_id) return res.status(400).json({ error: 'transaction_id manquant' });
+
+        const pending = await PendingCheckout.findByPk(id);
+        if (!pending) return res.status(404).json({ error: 'Paiement introuvable' });
+
+        if (pending.status === 'confirmed') {
+            const order = await materializePendingCheckout(id); // idempotent, retourne l'existant
+            return res.json({ order: order?.toJSON() || null });
+        }
+        if (pending.status !== 'pending') {
+            return res.status(400).json({ error: 'Ce paiement a expiré ou échoué. Merci de recommencer votre commande.' });
+        }
+
+        const fedaTx = await verifyFedapayTransaction(transaction_id);
+        const txPendingId = fedaTx?.custom_metadata?.order_id || fedaTx?.metadata?.order_id;
+        if (!txPendingId || !txPendingId.includes(id)) {
+            console.error('[Confirm Pending Checkout] Transaction/pending mismatch — tentative de fraude potentielle.');
+            return res.status(403).json({ error: 'Transaction non reconnue pour ce paiement.' });
+        }
+        if (fedaTx.status !== 'approved') {
+            return res.status(400).json({ error: 'Paiement non confirmé.' });
+        }
+
+        const order = await materializePendingCheckout(id);
+        if (!order) return res.status(500).json({ error: 'Erreur lors de la création de la commande.' });
+
+        res.json({ order: order.toJSON() });
+    } catch (error) {
+        console.error('CONFIRM PENDING CHECKOUT ERROR:', error);
+        res.status(500).json({ error: 'Erreur lors de la confirmation du paiement.' });
     }
 };
 
@@ -967,48 +1249,88 @@ export const createOrder = async (req, res) => {
 export const retryOrderPayment = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Cas 1 : une vraie commande existe déjà pour cet id (flux legacy —
+        // commandes créées avant ce changement d'architecture, ou tout mode
+        // de paiement qui crée toujours la commande immédiatement).
         const order = await Order.findByPk(id);
-        if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+        if (order) {
+            if (order.user_id && req.auth?.userId && req.auth.userId !== order.user_id) {
+                return res.status(403).json({ error: 'Non autorisé' });
+            }
+            if (!['fedapay', 'mobile_money', 'card'].includes(order.payment_method)) {
+                return res.status(400).json({ error: "Cette commande n'est pas un paiement en ligne." });
+            }
+            if (order.payment_status === 'payé') {
+                return res.status(400).json({ error: 'Cette commande est déjà payée.' });
+            }
+            if (['annulée', 'livrée', 'retournée'].includes(order.status)) {
+                return res.status(400).json({ error: `Cette commande ne peut plus être payée (statut : ${order.status}).` });
+            }
 
-        if (order.user_id && req.auth?.userId && req.auth.userId !== order.user_id) {
-            return res.status(403).json({ error: 'Non autorisé' });
+            // Commande scindée multi-boutiques : on régénère un paiement pour
+            // TOUT le groupe (même logique que createOrder), pas seulement la
+            // commande-boutique individuelle passée en paramètre.
+            const parentId = order.parent_id || order.id;
+            const groupOrders = await Order.findAll({
+                where: { [Op.or]: [{ id: parentId }, { parent_id: parentId }] }
+            });
+            const mainOrder = groupOrders.find(o => o.is_parent) || groupOrders[0] || order;
+            const totalAmount = groupOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+
+            const customerProfile = order.user_id ? await Profile.findByPk(order.user_id) : null;
+            const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+            const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${mainOrder.id}`;
+
+            const fedapayOrderObj = { ...mainOrder.toJSON(), total_amount: totalAmount };
+            fedapayOrderObj.id = groupOrders.map(o => o.id).join(',');
+
+            const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl);
+
+            return res.json({
+                payment_url: fedaTx.checkoutUrl,
+                transaction_id: fedaTx.transactionId,
+                token: fedaTx.token,
+                amount: totalAmount
+            });
         }
 
-        if (!['fedapay', 'mobile_money', 'card'].includes(order.payment_method)) {
-            return res.status(400).json({ error: "Cette commande n'est pas un paiement en ligne." });
+        // Cas 2 : pas de commande — un PendingCheckout en attente de paiement
+        // (flux différé, voir createOrder) peut exister à cet id à la place.
+        // Régénère juste un nouveau lien FedaPay pour le MÊME payload déjà
+        // calculé (la réservation de stock reste inchangée) ; en pratique le
+        // checkout gère déjà ça côté frontend sans repasser par cet endpoint
+        // (l'utilisateur peut retenter directement depuis la page), mais on
+        // le garde pour toute réutilisation externe (lien, support…).
+        const pending = await PendingCheckout.findByPk(id);
+        if (pending) {
+            if (pending.user_id && req.auth?.userId && req.auth.userId !== pending.user_id) {
+                return res.status(403).json({ error: 'Non autorisé' });
+            }
+            if (pending.status !== 'pending') {
+                return res.status(400).json({ error: 'Ce paiement a expiré ou a déjà été traité. Merci de recommencer votre commande.' });
+            }
+
+            const payload = JSON.parse(pending.payload);
+            const totalAmount = (payload.boutiqueOrders || []).reduce((sum, o) => sum + o.total_amount, 0);
+            const customerProfile = pending.user_id ? await Profile.findByPk(pending.user_id) : null;
+            const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+            const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${pending.id}`;
+            const fedapayOrderObj = { id: pending.id, total_amount: totalAmount };
+
+            const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl, { type: 'pending_checkout' });
+            await pending.update({ fedapay_transaction_id: fedaTx.transactionId });
+
+            return res.json({
+                pending_checkout_id: pending.id,
+                payment_url: fedaTx.checkoutUrl,
+                transaction_id: fedaTx.transactionId,
+                token: fedaTx.token,
+                amount: totalAmount
+            });
         }
-        if (order.payment_status === 'payé') {
-            return res.status(400).json({ error: 'Cette commande est déjà payée.' });
-        }
-        if (['annulée', 'livrée', 'retournée'].includes(order.status)) {
-            return res.status(400).json({ error: `Cette commande ne peut plus être payée (statut : ${order.status}).` });
-        }
 
-        // Commande scindée multi-boutiques : on régénère un paiement pour
-        // TOUT le groupe (même logique que createOrder), pas seulement la
-        // commande-boutique individuelle passée en paramètre.
-        const parentId = order.parent_id || order.id;
-        const groupOrders = await Order.findAll({
-            where: { [Op.or]: [{ id: parentId }, { parent_id: parentId }] }
-        });
-        const mainOrder = groupOrders.find(o => o.is_parent) || groupOrders[0] || order;
-        const totalAmount = groupOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
-
-        const customerProfile = order.user_id ? await Profile.findByPk(order.user_id) : null;
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-        const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${mainOrder.id}`;
-
-        const fedapayOrderObj = { ...mainOrder.toJSON(), total_amount: totalAmount };
-        fedapayOrderObj.id = groupOrders.map(o => o.id).join(',');
-
-        const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl);
-
-        res.json({
-            payment_url: fedaTx.checkoutUrl,
-            transaction_id: fedaTx.transactionId,
-            token: fedaTx.token,
-            amount: totalAmount
-        });
+        return res.status(404).json({ error: 'Commande introuvable' });
     } catch (error) {
         console.error('RETRY PAYMENT ERROR:', error);
         res.status(500).json({ error: 'Erreur lors de la génération du lien de paiement. Réessayez plus tard.' });
