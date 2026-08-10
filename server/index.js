@@ -183,12 +183,14 @@ const startJobs = () => {
 // Webhooks & Special routes
 import createFedapay from "./api/create-fedapay.js";
 import fedapayWebhook from "./api/fedapay-webhook.js";
+import { captureException } from "./services/sentryService.js";
 
 const app = express();
 app.set('trust proxy', 1); // Indispensable pour Dokploy/Traefik
 
 process.on('uncaughtException', (err) => {
     console.error('[FATAL] Uncaught Exception:', err.message);
+    captureException(err, { source: 'uncaughtException' });
     // Ne pas quitter sur ECONNRESET (reconnexion DB) — juste logger
     if (err.code === 'ECONNRESET' || err.code === 'PROTOCOL_CONNECTION_LOST') {
         console.warn('[DB] Connection reset — pool will reconnect automatically.');
@@ -199,6 +201,7 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
     console.error('[WARN] Unhandled Rejection:', reason?.message || reason);
+    captureException(reason instanceof Error ? reason : new Error(String(reason)), { source: 'unhandledRejection' });
     // Ne pas crasher — juste alerter
 });
 

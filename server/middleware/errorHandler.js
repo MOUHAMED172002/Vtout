@@ -1,3 +1,5 @@
+import { captureException } from '../services/sentryService.js';
+
 /**
  * Centralized Error Handler Middleware
  * In production: hides internal error details from API responses (prevents info leakage).
@@ -8,6 +10,8 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const errorHandler = (err, req, res, next) => {
     // Always log full error server-side
     console.error(`[ERROR] ${req.method} ${req.originalUrl}`, err);
+    // No-op tant que SENTRY_DSN n'est pas configuré (voir sentryService.js)
+    captureException(err, { method: req.method, url: req.originalUrl });
 
     const statusCode = err.statusCode || err.status || 500;
 
@@ -31,7 +35,10 @@ export const errorHandler = (err, req, res, next) => {
  * Usage: return sendError(res, 500, 'Message visible', error)
  */
 export const sendError = (res, status, userMessage, err = null) => {
-    if (err) console.error(`[ERROR ${status}] ${userMessage}`, err);
+    if (err) {
+        console.error(`[ERROR ${status}] ${userMessage}`, err);
+        captureException(err, { userMessage, status });
+    }
 
     if (IS_PRODUCTION) {
         return res.status(status).json({ error: userMessage });
