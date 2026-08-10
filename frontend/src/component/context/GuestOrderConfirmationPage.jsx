@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Check, Package, ArrowRight, CreditCard, Clock, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { getOrderById } from "../../services/orderService";
+import RetryPaymentButton from "../Shared/RetryPaymentButton";
 import toast from "react-hot-toast";
 
 export default function GuestOrderConfirmationPage() {
@@ -96,6 +97,17 @@ export default function GuestOrderConfirmationPage() {
                         </div>
                     </div>
                 </div>
+
+                {["fedapay", "mobile_money", "card"].includes(order?.payment_method)
+                    && order?.payment_status !== "payé"
+                    && !["annulée", "livrée", "retournée"].includes(order?.status) && (
+                    <div className="relative z-10">
+                        <RetryPaymentButton
+                            orderId={orderId}
+                            className="btn btn-primary rounded-2xl h-14 font-black shadow-lg shadow-primary/20 gap-2 text-sm w-full"
+                        />
+                    </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center relative z-10">
                     <Link

@@ -35,6 +35,7 @@ import {
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import OrderTrackingMap from "../Shared/OrderTrackingMap";
+import RetryPaymentButton from "../Shared/RetryPaymentButton";
 import { notificationService } from "../../services/notificationService";
 
 /* ── Timeline progression ──────────────────────────────────────────────────── */
@@ -795,6 +796,15 @@ export default function OrderDetail() {
                   </p>
                 </div>
               </div>
+              {["fedapay", "mobile_money", "card"].includes(order.payment_method)
+                && order.payment_status !== "payé"
+                && !["annulee", "livree", "retournee"].includes(normalizedStatus) && (
+                <RetryPaymentButton
+                  orderId={order.id}
+                  getToken={getToken}
+                  className="btn btn-primary rounded-2xl font-bold gap-2 w-full"
+                />
+              )}
             </div>
 
             {/* Livreur (Nouveau) */}

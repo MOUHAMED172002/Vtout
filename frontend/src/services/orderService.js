@@ -52,6 +52,15 @@ export const cancelOrder = async (orderId, token) => {
     return data;
 };
 
+// Régénère un lien/token de paiement FedaPay pour une commande dont le
+// paiement en ligne a échoué — pas d'auth requise (guests inclus), voir
+// retryOrderPayment côté backend.
+export const retryOrderPayment = async (orderId, token = null) => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const { data } = await api.post(`/orders/${orderId}/retry-payment`, {}, { headers });
+    return data;
+};
+
 export const getSuggestedSuppliers = async (id, token) => {
     const { data } = await api.get(`/orders/${id}/suggested-suppliers`, {
         headers: { Authorization: `Bearer ${token}` }

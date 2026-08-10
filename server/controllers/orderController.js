@@ -948,6 +948,73 @@ export const createOrder = async (req, res) => {
     }
 };
 
+// =====================================================================
+// RETRY PAYMENT — self-service pour un paiement en ligne qui a échoué
+// =====================================================================
+// Avant ce endpoint, un client dont le paiement FedaPay échouait au
+// checkout n'avait AUCUN moyen de repayer lui-même : la commande restait
+// "en attente" jusqu'à un contact manuel de l'équipe, ou était
+// auto-annulée après 30min (voir orderExpiryService.js). On régénère ici
+// une nouvelle transaction FedaPay pour une commande déjà créée, sans
+// toucher au stock (déjà réservé depuis la création) ni recréer de ligne
+// de commande.
+//
+// Pas de requireAuth : les commandes invitées doivent pouvoir être
+// repayées sans compte, même modèle de confiance par UUID que
+// /order-confirmation/:id déjà utilisé côté frontend pour les invités.
+// Seule restriction : si la commande appartient à un compte ET qu'un
+// AUTRE compte est actuellement connecté, on bloque.
+export const retryOrderPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.findByPk(id);
+        if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+
+        if (order.user_id && req.auth?.userId && req.auth.userId !== order.user_id) {
+            return res.status(403).json({ error: 'Non autorisé' });
+        }
+
+        if (!['fedapay', 'mobile_money', 'card'].includes(order.payment_method)) {
+            return res.status(400).json({ error: "Cette commande n'est pas un paiement en ligne." });
+        }
+        if (order.payment_status === 'payé') {
+            return res.status(400).json({ error: 'Cette commande est déjà payée.' });
+        }
+        if (['annulée', 'livrée', 'retournée'].includes(order.status)) {
+            return res.status(400).json({ error: `Cette commande ne peut plus être payée (statut : ${order.status}).` });
+        }
+
+        // Commande scindée multi-boutiques : on régénère un paiement pour
+        // TOUT le groupe (même logique que createOrder), pas seulement la
+        // commande-boutique individuelle passée en paramètre.
+        const parentId = order.parent_id || order.id;
+        const groupOrders = await Order.findAll({
+            where: { [Op.or]: [{ id: parentId }, { parent_id: parentId }] }
+        });
+        const mainOrder = groupOrders.find(o => o.is_parent) || groupOrders[0] || order;
+        const totalAmount = groupOrders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+
+        const customerProfile = order.user_id ? await Profile.findByPk(order.user_id) : null;
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+        const callbackUrl = `${backendUrl}/api/payments/fedapay-callback?order_id=${mainOrder.id}`;
+
+        const fedapayOrderObj = { ...mainOrder.toJSON(), total_amount: totalAmount };
+        fedapayOrderObj.id = groupOrders.map(o => o.id).join(',');
+
+        const fedaTx = await createFedapayTransaction(fedapayOrderObj, customerProfile, callbackUrl);
+
+        res.json({
+            payment_url: fedaTx.checkoutUrl,
+            transaction_id: fedaTx.transactionId,
+            token: fedaTx.token,
+            amount: totalAmount
+        });
+    } catch (error) {
+        console.error('RETRY PAYMENT ERROR:', error);
+        res.status(500).json({ error: 'Erreur lors de la génération du lien de paiement. Réessayez plus tard.' });
+    }
+};
+
 export const updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;

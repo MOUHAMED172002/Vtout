@@ -7,9 +7,18 @@ const router = express.Router();
 router.get('/me', requireAuth, orderController.getMyOrders);
 router.get('/me/supplier', requireAuth, orderController.getMySupplierOrders);
 router.get('/', requireAuth, requireAdmin, orderController.getAllOrders);
-router.get('/:id', requireAuth, orderController.getOrderById);
+// Pas de requireAuth ici : le contrôleur gère déjà explicitement l'accès
+// invité par UUID ("2. Guest Order access" dans getOrderById) — mais ce
+// code était mort tant que ce middleware bloquait tout accès non
+// authentifié en amont avec un 401, empêchant GuestOrderConfirmationPage.jsx
+// de fonctionner pour un vrai invité (sans compte). authMiddleware (global,
+// appliqué avant toutes les routes) décore req.auth quand un token est
+// présent, sans jamais bloquer son absence — la vérification de propriété
+// reste donc entièrement assurée par le contrôleur lui-même.
+router.get('/:id', orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
 router.post('/', orderController.createOrder); // guests allowed — controller handles null userId
+router.post('/:id/retry-payment', orderController.retryOrderPayment); // guests allowed — self-service retry for failed online payments
 router.put('/:id/status', requireAuth, orderController.updateOrderStatus);
 router.post('/:id/dispute', requireAuth, orderController.reportOrderDispute);
 router.patch('/:id/dispute/response', requireAuth, orderController.respondToDisputeResolution);
