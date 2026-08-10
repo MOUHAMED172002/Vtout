@@ -319,7 +319,10 @@ export default function CheckoutPage() {
         });
 
         if (createResponse.token && window.FedaPay) {
-            const backendTotal = createResponse.orders ? createResponse.orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0) : finalTotal;
+            // Le montant affiché doit toujours venir du serveur (celui qui a
+            // servi à créer la transaction FedaPay) — jamais du calcul local
+            // finalTotal, qui pourrait diverger dans un cas non prévu.
+            const backendTotal = createResponse.amount ?? finalTotal;
             setShowFedaPayModal(true);
             window.FedaPay.init({
                 public_key: import.meta.env.VITE_FEDAPAY_PUBLIC_KEY || 'pk_sandbox_66S78_P3mXhL-N5X-J_N2xW0',

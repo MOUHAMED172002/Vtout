@@ -900,7 +900,14 @@ export const createOrder = async (req, res) => {
                     // modale FedaPay intégrée (elle ne teste que
                     // createResponse.token) et retombe systématiquement sur
                     // la redirection pleine page vers payment_url.
-                    token: fedaTx.token
+                    token: fedaTx.token,
+                    // Montant total confirmé par le serveur (somme de toutes
+                    // les commandes-boutique créées) — c'est celui-ci qui a
+                    // servi à créer la transaction FedaPay. Le frontend
+                    // l'utilise pour l'affichage de la modale plutôt que son
+                    // propre calcul, afin qu'il ne puisse jamais diverger du
+                    // montant réellement facturé.
+                    amount: totalCartAmount
                 });
             } catch (fedaError) {
                 return res.status(201).json({ 
