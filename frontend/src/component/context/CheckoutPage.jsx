@@ -333,6 +333,20 @@ export default function CheckoutPage() {
         } else if (createResponse.payment_url) {
             window.location.href = createResponse.payment_url;
             return;
+        } else if (createResponse.payment_error && createResponse.order) {
+            // La commande a bien été créée côté serveur mais la génération du
+            // lien FedaPay a échoué (ex: clé/API mal configurée) — on ne doit
+            // surtout pas laisser croire au client qu'il peut relancer sa
+            // commande depuis zéro (doublon), on l'oriente vers son suivi de
+            // commande où il pourra retenter le paiement.
+            await refreshCart();
+            toast.error(
+                "Votre commande est enregistrée, mais le paiement en ligne a échoué. Notre équipe va vous contacter pour finaliser le règlement.",
+                { duration: 8000 }
+            );
+            const nextPath = isGuest ? `/order-confirmation/${createResponse.order.id}` : `/user/dashboard/orders/${createResponse.order.id}`;
+            setTimeout(() => navigate(nextPath), 2500);
+            return;
         } else {
             toast.error("Erreur de génération du lien de paiement");
         }
