@@ -268,7 +268,16 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '10kb' }));
+// `verify` conserve le corps brut exact (req.rawBody) sur toute requête
+// JSON — nécessaire pour calculer la signature HMAC du webhook FedaPay
+// (x-fedapay-signature), qui porte sur les octets bruts envoyés, pas sur
+// le JSON re-sérialisé après parsing. Avant ce correctif, un second
+// express.json({verify}) était posé uniquement sur la route webhook
+// (paymentRoutes.js), mais ce middleware global s'exécutait en premier et
+// consommait déjà le flux — le second n'avait donc plus rien à lire et
+// req.rawBody restait vide, faisant échouer la vérification de signature
+// à chaque fois ("éléments manquants pour vérifier").
+app.use(express.json({ limit: '10kb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 
 // 🆘 ROUTE DE SECOURS - Protégée par clé secrète (DIAGNOSTIC_KEY)
 app.get("/api/repair-db", async (req, res) => {

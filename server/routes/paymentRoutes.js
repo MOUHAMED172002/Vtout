@@ -7,11 +7,12 @@ const router = express.Router();
 router.get('/fedapay-callback', paymentController.fedapayCallback);
 
 // Webhook silencieux pour FedaPay (Confirmation automatique en asynchrone)
-// `verify` conserve le corps brut (req.rawBody) — indispensable pour calculer
-// la signature HMAC de x-fedapay-signature, qui doit porter sur les octets
-// exacts envoyés par FedaPay, pas sur le JSON re-sérialisé après parsing.
-router.post('/fedapay-webhook', express.json({
-    verify: (req, res, buf) => { req.rawBody = buf; }
-}), paymentController.fedapayWebhook);
+// req.body et req.rawBody sont déjà fournis par le express.json({verify})
+// GLOBAL posé dans index.js — poser un second express.json() ici serait
+// non seulement redondant mais actif nuisible : le flux de la requête est
+// déjà consommé par le middleware global à ce stade, donc ce second
+// parseur ne recevrait plus rien et req.rawBody resterait vide (c'était
+// exactement le bug qui empêchait la vérification de signature).
+router.post('/fedapay-webhook', paymentController.fedapayWebhook);
 
 export default router;
