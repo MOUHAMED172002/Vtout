@@ -108,6 +108,24 @@ export const processProductsForCommunes = async (products) => {
     return await Promise.all(products.map(async (p) => {
         const product = p.toJSON ? p.toJSON() : p;
         normalizeExpiredFlashSale(product);
+
+        // Stock réellement disponible à l'achat pour chaque variante = stock
+        // physique - réservations en cours (commandes créées mais pas encore
+        // livrées/annulées). On ajoute un champ SÉPARÉ (available_stock) sans
+        // toucher au `stock` brut, car ce même objet produit sert aussi aux
+        // vues admin (édition produit) qui doivent voir le stock physique réel,
+        // pas la quantité réduite par les réservations.
+        product.available_stock = Math.max(0, (product.stock || 0) - (product.reserved_stock || 0));
+        if (Array.isArray(product.variants)) {
+            for (const v of product.variants) {
+                if (Array.isArray(v.priceRows)) {
+                    for (const pr of v.priceRows) {
+                        pr.available_stock = Math.max(0, (pr.stock || 0) - (pr.reserved_stock || 0));
+                    }
+                }
+            }
+        }
+
         product.free_delivery_communes = [];
         if (product.boutique?.commune_label) {
             product.free_delivery_communes.push(product.boutique.commune_label);
@@ -409,6 +427,22 @@ export const getProductById = async (req, res) => {
 
         const productJson = product.toJSON();
         normalizeExpiredFlashSale(productJson);
+
+        // Voir le commentaire équivalent dans processProductsForCommunes —
+        // available_stock (stock - reserved_stock) en plus de `stock` brut,
+        // pour que la fiche produit affiche la vraie dispo par variante sans
+        // casser l'édition admin qui a besoin du stock physique réel.
+        productJson.available_stock = Math.max(0, (productJson.stock || 0) - (productJson.reserved_stock || 0));
+        if (Array.isArray(productJson.variants)) {
+            for (const v of productJson.variants) {
+                if (Array.isArray(v.priceRows)) {
+                    for (const pr of v.priceRows) {
+                        pr.available_stock = Math.max(0, (pr.stock || 0) - (pr.reserved_stock || 0));
+                    }
+                }
+            }
+        }
+
         productJson.free_delivery_communes = [];
         if (productJson.boutique?.commune_label) {
             productJson.free_delivery_communes.push(productJson.boutique.commune_label);

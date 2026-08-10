@@ -32,6 +32,34 @@ if (missingEnv.length > 0 && process.env.NODE_ENV === 'production') {
     // process.exit(1); // On commente pour voir les logs même s'il manque des choses
 }
 
+// --- VALIDATION FORMAT FEDAPAY (au-delà de la simple présence ci-dessus) ---
+// Ajoutée après plusieurs incidents en prod où une variable était bien
+// PRÉSENTE mais mal RENSEIGNÉE (FEDAPAY_ENV contenant la clé publique au
+// lieu du mot "live", FEDAPAY_WEBHOOK_SECRET avec un point final collé) —
+// des erreurs invisibles jusqu'à ce qu'un vrai paiement échoue. On log en
+// console.error (jamais désactivé, contrairement à console.log ci-dessus
+// en prod) pour que ça reste visible même si NODE_ENV=production.
+(() => {
+    const fedaEnv = process.env.FEDAPAY_ENV;
+    if (fedaEnv && fedaEnv !== 'live' && fedaEnv !== 'sandbox') {
+        console.error(`[CONFIG] ⚠️ FEDAPAY_ENV="${fedaEnv}" — valeur inattendue. Doit être exactement "live" ou "sandbox" (sinon le service bascule silencieusement en sandbox). On dirait une clé API collée par erreur dans cette variable.`);
+    }
+    const fedaKey = process.env.FEDAPAY_SECRET_KEY || process.env.FEDAPAY_SECRET;
+    if (fedaKey && !/^sk_(live|sandbox|test)_/.test(fedaKey)) {
+        console.error(`[CONFIG] ⚠️ FEDAPAY_SECRET_KEY ne commence pas par "sk_live_"/"sk_sandbox_"/"sk_test_" comme attendu (valeur actuelle : ${fedaKey.slice(0, 6)}…). Vérifiez qu'il n'y a pas eu de copier-coller partiel.`);
+    }
+    if (fedaKey && fedaKey !== fedaKey.trim()) {
+        console.error('[CONFIG] ⚠️ FEDAPAY_SECRET_KEY contient un espace en début/fin — retirez-le.');
+    }
+    const webhookSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
+    if (webhookSecret && webhookSecret !== webhookSecret.trim()) {
+        console.error('[CONFIG] ⚠️ FEDAPAY_WEBHOOK_SECRET contient un espace/caractère invisible en début/fin — retirez-le (déjà arrivé avec un point final collé par erreur).');
+    }
+    if (!process.env.RESEND_API_KEY) {
+        console.error('[CONFIG] ℹ️ RESEND_API_KEY absente — les emails (factures, notifications, secours WhatsApp) ne seront pas envoyés tant que ce n\'est pas configuré (Admin > Paramètres ou .env).');
+    }
+})();
+
 console.log(">>> [BOOT] Server execution started");
 console.log(">>> [BOOT] Env: PORT=" + (process.env.PORT || 3000));
 console.log(">>> [BOOT] Database URL defined:", !!process.env.MYSQL_DATABASE_URL);

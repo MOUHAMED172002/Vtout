@@ -163,20 +163,26 @@ export default function ProductPages() {
 
   // When variants exist, stock comes exclusively from the matched variant's priceRow.
   // product.stock is ignored entirely for variant products.
+  // available_stock (= stock - reserved_stock, fourni par le backend) est
+  // préféré au `stock` brut : il reflète ce qui est vraiment achetable
+  // maintenant, en tenant compte des commandes en cours non encore livrées.
+  // Fallback sur `stock` pour rester compatible si le backend ne l'envoie pas.
   const currentStock = useMemo(() => {
     if (variants.length > 0) {
       if (!matchedVariant) return null; // nothing selected yet
-      return matchedVariant?.priceRows?.[0]?.stock ?? 0;
+      const p = matchedVariant?.priceRows?.[0];
+      return p?.available_stock ?? p?.stock ?? 0;
     }
-    return product?.stock ?? 0;
+    return product?.available_stock ?? product?.stock ?? 0;
   }, [matchedVariant, product, variants]);
 
   const isOutOfStock = useMemo(() => {
     if (variants.length > 0) {
       if (!matchedVariant) return false; // no selection yet — keep buttons active
-      return (matchedVariant?.priceRows?.[0]?.stock ?? 0) <= 0;
+      const p = matchedVariant?.priceRows?.[0];
+      return (p?.available_stock ?? p?.stock ?? 0) <= 0;
     }
-    return (product?.stock ?? 0) <= 0;
+    return (product?.available_stock ?? product?.stock ?? 0) <= 0;
   }, [matchedVariant, product, variants]);
 
   const displayPrice = useMemo(() => {

@@ -169,9 +169,9 @@ export default function ProductCard({ product, onFavoriteChange }) {
       return Number(product.total_stock) <= 0;
     }
     if (product.variants && product.variants.length > 0) {
-      return !product.variants.some(v => (v.priceRows?.[0]?.stock || 0) > 0);
+      return !product.variants.some(v => (v.priceRows?.[0]?.available_stock ?? v.priceRows?.[0]?.stock ?? 0) > 0);
     }
-    return (product.stock || 0) <= 0;
+    return (product.available_stock ?? product.stock ?? 0) <= 0;
   }, [product]);
 
   const showOldPrice = isSaleActive;
@@ -225,7 +225,7 @@ export default function ProductCard({ product, onFavoriteChange }) {
     ) || null;
   }, [parsedVariants, selectedAttributes, allAttributesSelected, attributeKeys]);
 
-  const matchedVariantStock = matchedVariant?.priceRows?.[0]?.stock;
+  const matchedVariantStock = matchedVariant?.priceRows?.[0]?.available_stock ?? matchedVariant?.priceRows?.[0]?.stock;
   const matchedVariantOutOfStock = matchedVariant != null && (matchedVariantStock ?? 0) <= 0;
 
   const proceedToCheckout = (variant = null) => {
