@@ -103,8 +103,27 @@ export const fedapayCallback = async (req, res) => {
 
 export const fedapayWebhook = async (req, res) => {
     try {
+        // SECURITE : secret partagé configuré côté FedaPay (en-tête HTTP
+        // personnalisé "X-Webhook-Secret" ajouté à chaque appel de webhook,
+        // voir dashboard FedaPay > Webhooks) — rejette tout appel qui ne le
+        // connaît pas, avant même de traiter le payload. Comparaison en
+        // temps constant pour éviter une attaque par mesure de timing.
+        const expectedSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
+        const providedSecret = req.headers['x-webhook-secret'];
+        if (expectedSecret) {
+            const expectedBuf = Buffer.from(expectedSecret);
+            const providedBuf = Buffer.from(String(providedSecret || ''));
+            const isValid = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+            if (!isValid) {
+                console.warn('[FedaPay Webhook] Secret invalide ou manquant — appel rejeté.');
+                return res.status(403).send('Forbidden');
+            }
+        } else {
+            console.warn('[FedaPay Webhook] FEDAPAY_WEBHOOK_SECRET non configuré — vérification du secret ignorée.');
+        }
+
         console.log('[FedaPay Webhook] Received:', req.body);
-        
+
         // FedaPay envoie les événements webhook.
         const { event, entity } = req.body;
 
