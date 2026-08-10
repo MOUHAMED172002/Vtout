@@ -1068,12 +1068,13 @@ export const updateOrderStatus = async (req, res) => {
             }
         }
 
-        // WhatsApp Notif to Customer
+        // WhatsApp Notif to Customer (avec repli email si Green API échoue)
         try {
             const userProfile = await Profile.findByPk(order.user_id);
             const customerPhone = order.whatsapp_notif_phone || order.guest_phone || userProfile?.phone;
+            const customerEmail = order.guest_email || userProfile?.email || null;
             if (customerPhone && status) {
-                notifyCustomerOfStatusUpdate(customerPhone, order.id, mappedStatus).catch(() => {});
+                notifyCustomerOfStatusUpdate(customerPhone, order.id, mappedStatus, customerEmail).catch(() => {});
             }
         } catch (_) {}
 

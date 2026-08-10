@@ -192,10 +192,24 @@ const normalizeStatusKey = (status) => {
     return mapping[status] || String(status).toLowerCase().replace(/[^a-z0-9]+/g, '_');
 };
 
+const EMAIL_STATUS_LABELS = {
+    'confirmée': 'Confirmée',
+    'expédiée': 'Expédiée',
+    'livrée': 'Livrée',
+    'annulée': 'Annulée',
+    'retournée': 'Retournée',
+};
+
 /**
  * Alerter le client d'un changement de statut
+ *
+ * fallbackEmail (optionnel) : si l'envoi WhatsApp échoue (quota Green API
+ * dépassé, numéro invalide, service non configuré…), on bascule sur un
+ * email pour ne pas laisser le client sans nouvelle — c'est le seul canal
+ * de notification client actuellement, donc un échec silencieux de Green
+ * API équivalait avant à ne prévenir personne.
  */
-export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, status) => {
+export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, status, fallbackEmail = null) => {
     const { notifCustomer } = await getWhatsAppConfigs();
     if (!notifCustomer || !customerPhone) return;
     const statusKey = normalizeStatusKey(status);
@@ -213,7 +227,16 @@ export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, statu
         defaultBody,
         { orderId: orderId.slice(0, 8), status }
     );
-    return sendWhatsAppMessage(customerPhone, message);
+    const result = await sendWhatsAppMessage(customerPhone, message);
+    if (!result?.success && fallbackEmail) {
+        try {
+            const { sendOrderUpdateToCustomer } = await import('./mailService.js');
+            await sendOrderUpdateToCustomer({ id: orderId, guest_email: fallbackEmail }, EMAIL_STATUS_LABELS[status] || status);
+        } catch (mailErr) {
+            console.error('[Notif Fallback] Email de secours échoué:', mailErr);
+        }
+    }
+    return result;
 };
 
 /**

@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import { Order, OrderItem, Product, ProductVariantPrice, Profile } from '../models/index.js';
 import { notifyCustomerOfStatusUpdate, sendWhatsAppMessage } from './whatsappService.js';
+import { sendOrderUpdateToCustomer } from './mailService.js';
 
 const EXPIRY_HOURS = 48;
 
@@ -40,14 +41,23 @@ export async function expireStaleOrders() {
 
         await order.update({ status: 'annulée', status_history: history });
 
-        // Notify customer
-        const customerPhone = order.whatsapp_notif_phone || order.guest_phone;
+        // Notify customer — email de secours (fallbackEmail) si WhatsApp
+        // échoue, pour ne pas laisser le client sans nouvelle en cas de
+        // panne/quota Green API.
+        let customerPhone = order.whatsapp_notif_phone || order.guest_phone;
+        let customerEmail = order.guest_email || null;
+        if ((!customerPhone || !customerEmail) && order.user_id) {
+            try {
+                const p = await Profile.findByPk(order.user_id);
+                if (!customerPhone) customerPhone = p?.phone || null;
+                if (!customerEmail) customerEmail = p?.email || null;
+            } catch { /* ignore */ }
+        }
         if (customerPhone) {
-            notifyCustomerOfStatusUpdate(customerPhone, order.id, 'annulée').catch(() => {});
-        } else if (order.user_id) {
-            Profile.findByPk(order.user_id).then(p => {
-                if (p?.phone) notifyCustomerOfStatusUpdate(p.phone, order.id, 'annulée').catch(() => {});
-            }).catch(() => {});
+            notifyCustomerOfStatusUpdate(customerPhone, order.id, 'annulée', customerEmail).catch(() => {});
+        } else if (customerEmail) {
+            // Aucun téléphone connu du tout — email direct, seul canal possible.
+            sendOrderUpdateToCustomer({ id: order.id, guest_email: customerEmail }, 'Annulée').catch(() => {});
         }
     }
 
@@ -95,15 +105,32 @@ export async function expireUnpaidOnlinePayments() {
         // Message dédié (pas notifyCustomerOfStatusUpdate) pour expliquer la
         // vraie raison — "annulée" tout court laisserait croire à une
         // décision du vendeur, alors qu'ici c'est simplement le paiement
-        // qui n'a jamais été confirmé à temps.
+        // qui n'a jamais été confirmé à temps. Repli email si WhatsApp
+        // échoue, même logique que expireStaleOrders ci-dessus.
         const reasonMessage = `📦 *VTOUT : Commande annulée*\nVotre commande #${order.id.slice(0, 8).toUpperCase()} a été annulée car le paiement n'a pas été confirmé à temps. Vous pouvez recommander à tout moment.`;
-        const customerPhone = order.whatsapp_notif_phone || order.guest_phone;
+        let customerPhone = order.whatsapp_notif_phone || order.guest_phone;
+        let customerEmail = order.guest_email || null;
+        if ((!customerPhone || !customerEmail) && order.user_id) {
+            try {
+                const p = await Profile.findByPk(order.user_id);
+                if (!customerPhone) customerPhone = p?.phone || null;
+                if (!customerEmail) customerEmail = p?.email || null;
+            } catch { /* ignore */ }
+        }
+        const emailFallback = async () => {
+            if (!customerEmail) return;
+            try {
+                await sendOrderUpdateToCustomer({ id: order.id, guest_email: customerEmail }, 'Annulée (paiement non confirmé)');
+            } catch (mailErr) {
+                console.error('[Notif Fallback] Email de secours échoué:', mailErr);
+            }
+        };
         if (customerPhone) {
-            sendWhatsAppMessage(customerPhone, reasonMessage).catch(() => {});
-        } else if (order.user_id) {
-            Profile.findByPk(order.user_id).then(p => {
-                if (p?.phone) sendWhatsAppMessage(p.phone, reasonMessage).catch(() => {});
-            }).catch(() => {});
+            sendWhatsAppMessage(customerPhone, reasonMessage).then(r => {
+                if (!r?.success) emailFallback();
+            }).catch(() => emailFallback());
+        } else {
+            emailFallback();
         }
     }
 
