@@ -908,6 +908,21 @@ sequelize.authenticate()
                 if (!e.message.includes('Duplicate column')) console.warn('  ⚠️ products.cost_price:', e.message);
             }
 
+            // ── reserved_stock — le stock physique n'est plus décrémenté qu'à la
+            // livraison (isDelivered) ; cette colonne retient la quantité déjà
+            // engagée par des commandes en cours (créées mais pas encore livrées
+            // ni annulées), pour empêcher la survente sans toucher au stock réel
+            // avant que la vente soit effective. Disponible à l'achat = stock -
+            // reserved_stock. ──
+            for (const [tbl, col] of [['products', 'reserved_stock'], ['product_variant_prices', 'reserved_stock']]) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`${tbl}\` ADD COLUMN \`${col}\` INT NOT NULL DEFAULT 0`);
+                    console.log(`  ✅ [MIGRATION] Added ${tbl}.${col}`);
+                } catch (e) {
+                    if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ${tbl}.${col}:`, e.message);
+                }
+            }
+
             // ── Distribution WhatsApp — récompense par vues (remplace le montant fixe
             // initial) : ces tables ont pu être créées par sync() AVANT ce rework, donc
             // les nouvelles colonnes doivent être ajoutées explicitement ici, comme pour

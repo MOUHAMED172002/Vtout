@@ -19,6 +19,14 @@ const ProductVariantPrice = sequelize.define('ProductVariantPrice', {
         type: DataTypes.DECIMAL(15, 2)
     },
     stock: {
+        // Stock physique réel de cette variante — décrémenté seulement à la
+        // LIVRAISON (voir reserved_stock ci-dessous).
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    reserved_stock: {
+        // Quantité retenue par des commandes en cours pour cette variante.
+        // Disponible à l'achat = stock - reserved_stock.
         type: DataTypes.INTEGER,
         defaultValue: 0
     },

@@ -200,12 +200,12 @@ export const getAllProducts = async (req, res) => {
             
             where[Op.and].push(
                 sequelize.literal(`(
-                    \`Product\`.stock > 0
+                    (\`Product\`.stock - \`Product\`.reserved_stock) > 0
                     OR EXISTS (
                         SELECT 1 FROM \`product_variant_prices\` AS pvp
                         INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
                         WHERE pv.product_id = \`Product\`.id
-                        AND pvp.stock > 0
+                        AND (pvp.stock - pvp.reserved_stock) > 0
                     )
                 )`)
             );
@@ -317,11 +317,11 @@ export const getAllProducts = async (req, res) => {
                     [
                         sequelize.literal(`(
                             COALESCE((
-                                SELECT SUM(pvp.stock)
+                                SELECT SUM(pvp.stock - pvp.reserved_stock)
                                 FROM product_variant_prices AS pvp
                                 INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
                                 WHERE pv.product_id = Product.id
-                            ), \`Product\`.stock)
+                            ), \`Product\`.stock - \`Product\`.reserved_stock)
                         )`),
                         'total_stock'
                     ]
@@ -380,11 +380,11 @@ export const getProductById = async (req, res) => {
                     [
                         sequelize.literal(`(
                             COALESCE((
-                                SELECT SUM(pvp.stock) 
+                                SELECT SUM(pvp.stock - pvp.reserved_stock) 
                                 FROM product_variant_prices AS pvp
                                 INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
                                 WHERE pv.product_id = Product.id
-                            ), \`Product\`.stock)
+                            ), \`Product\`.stock - \`Product\`.reserved_stock)
                         )`),
                         'total_stock'
                     ]
@@ -447,12 +447,12 @@ export const searchProducts = async (req, res) => {
             price: { [Op.gt]: 0 },
             [Op.and]: [
                 sequelize.literal(`(
-                    \`Product\`.stock > 0
+                    (\`Product\`.stock - \`Product\`.reserved_stock) > 0
                     OR EXISTS (
                         SELECT 1 FROM \`product_variant_prices\` AS pvp
                         INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
                         WHERE pv.product_id = \`Product\`.id
-                        AND pvp.stock > 0
+                        AND (pvp.stock - pvp.reserved_stock) > 0
                     )
                 )`),
                 {
@@ -475,11 +475,11 @@ export const searchProducts = async (req, res) => {
                     [
                         sequelize.literal(`(
                             COALESCE((
-                                SELECT SUM(pvp.stock) 
+                                SELECT SUM(pvp.stock - pvp.reserved_stock) 
                                 FROM product_variant_prices AS pvp
                                 INNER JOIN product_variants AS pv ON pv.id = pvp.variant_id
                                 WHERE pv.product_id = Product.id
-                            ), \`Product\`.stock)
+                            ), \`Product\`.stock - \`Product\`.reserved_stock)
                         )`),
                         'total_stock'
                     ]
@@ -517,12 +517,12 @@ export const searchProducts = async (req, res) => {
                 id: { [Op.notIn]: products.map(p => p.id) },
                 [Op.and]: [
                     sequelize.literal(`(
-                        \`Product\`.stock > 0
+                        (\`Product\`.stock - \`Product\`.reserved_stock) > 0
                         OR EXISTS (
                             SELECT 1 FROM \`product_variant_prices\` AS pvp
                             INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
                             WHERE pv.product_id = \`Product\`.id
-                            AND pvp.stock > 0
+                            AND (pvp.stock - pvp.reserved_stock) > 0
                         )
                     )`)
                 ]
@@ -1383,12 +1383,12 @@ export const getRelatedProducts = async (req, res) => {
                 approval_status: 'approved',
                 [Op.and]: [
                     sequelize.literal(`(
-                        \`Product\`.stock > 0
+                        (\`Product\`.stock - \`Product\`.reserved_stock) > 0
                         OR EXISTS (
                             SELECT 1 FROM \`product_variant_prices\` AS pvp
                             INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
                             WHERE pv.product_id = \`Product\`.id
-                            AND pvp.stock > 0
+                            AND (pvp.stock - pvp.reserved_stock) > 0
                         )
                     )`)
                 ]
@@ -1475,12 +1475,12 @@ export const getFrequentlyBoughtTogether = async (req, res) => {
                 price: { [Op.gt]: 0 },
                 [Op.and]: [
                     sequelize.literal(`(
-                        \`Product\`.stock > 0
+                        (\`Product\`.stock - \`Product\`.reserved_stock) > 0
                         OR EXISTS (
                             SELECT 1 FROM \`product_variant_prices\` AS pvp
                             INNER JOIN \`product_variants\` AS pv ON pv.id = pvp.variant_id
                             WHERE pv.product_id = \`Product\`.id
-                            AND pvp.stock > 0
+                            AND (pvp.stock - pvp.reserved_stock) > 0
                         )
                     )`)
                 ]

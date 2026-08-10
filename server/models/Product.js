@@ -26,6 +26,17 @@ const Product = sequelize.define('Product', {
         type: DataTypes.DECIMAL(15, 2)
     },
     stock: {
+        // Stock physique réel — décrémenté seulement à la LIVRAISON, jamais
+        // à la simple création de commande (voir reserved_stock ci-dessous).
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    reserved_stock: {
+        // Quantité retenue par des commandes en cours (créées mais pas
+        // encore livrées, ni annulées) — jamais négatif. Le stock réellement
+        // disponible à l'achat = stock - reserved_stock. Évite la survente
+        // sans décrémenter le stock physique avant que la vente soit
+        // effective (livrée).
         type: DataTypes.INTEGER,
         defaultValue: 0
     },

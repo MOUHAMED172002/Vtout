@@ -360,9 +360,12 @@ export const createOrder = async (req, res) => {
                         await transaction.rollback();
                         return res.status(400).json({ error: `La variante ne correspond pas au produit ${product.name}` });
                     }
-                    if (variantPrice.stock < item.quantity) {
+                    // Disponible à l'achat = stock physique - déjà réservé par des
+                    // commandes en cours (le stock réel n'est décrémenté qu'à la livraison).
+                    const availableVariantStock = variantPrice.stock - (variantPrice.reserved_stock || 0);
+                    if (availableVariantStock < item.quantity) {
                         await transaction.rollback();
-                        return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${variantPrice.stock})` });
+                        return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${availableVariantStock})` });
                     }
                     basePrice = parseFloat(variantPrice.price || basePrice);
                     variantData = variantPrice;
@@ -373,9 +376,12 @@ export const createOrder = async (req, res) => {
             } else {
                 // LOCK the product row for simple-stock products
                 const lockedProduct = await Product.findByPk(product.id, { transaction, lock: true });
-                if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock !== null && lockedProduct.stock < item.quantity) {
-                    await transaction.rollback();
-                    return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${lockedProduct.stock})` });
+                if (lockedProduct && lockedProduct.stock !== undefined && lockedProduct.stock !== null) {
+                    const availableProductStock = lockedProduct.stock - (lockedProduct.reserved_stock || 0);
+                    if (availableProductStock < item.quantity) {
+                        await transaction.rollback();
+                        return res.status(400).json({ error: `Stock insuffisant pour ${product.name} (Disponible: ${availableProductStock})` });
+                    }
                 }
             }
 
@@ -755,11 +761,21 @@ export const createOrder = async (req, res) => {
                     throw createErr;
                 });
 
+                // On RÉSERVE la quantité (stock physique intact) — la commande peut
+                // encore être annulée ou ne jamais être payée ; le stock réel n'est
+                // décrémenté qu'à la livraison confirmée (voir updateOrderStatus).
                 if (variantData) {
-                    await variantData.decrement('stock', { by: item.quantity, transaction });
+                    await variantData.increment('reserved_stock', { by: item.quantity, transaction });
                     await variantData.reload({ transaction });
+                    const availableAfter = variantData.stock - variantData.reserved_stock;
+                    if (availableAfter <= 5 && order.supplier_id) {
+                        Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'user' }] }).then(s => {
+                            const phone = s?.whatsapp || s?.phone || s?.user?.phone;
+                            if (phone) notifySupplierOfLowStock(phone, `${product.name} (${variantData.variant_id})`, availableAfter);
+                        }).catch(() => {});
+                    }
                 } else if (product.stock !== undefined) {
-                    await product.decrement('stock', { by: item.quantity, transaction });
+                    await product.increment('reserved_stock', { by: item.quantity, transaction });
                     await product.reload({ transaction });
                 }
 
@@ -1035,14 +1051,19 @@ export const updateOrderStatus = async (req, res) => {
 
         await order.update(updatePayload);
 
-        // Restore stock when cancelling an unconfirmed order
+        // Libère la réservation d'une commande annulée avant livraison — le stock
+        // physique réel n'a jamais été touché pour cette commande (voir création),
+        // donc on relâche reserved_stock, pas stock. Correction au passage d'un bug
+        // pré-existant : ProductVariant n'a pas de colonne stock (c'est
+        // ProductVariantPrice qui la porte) — l'ancien code ne restaurait donc
+        // jamais rien pour les produits à variantes.
         if (mappedStatus === 'annulée' && (oldStatus === 'en_attente' || oldStatus === 'en attente')) {
             const items = await OrderItem.findAll({ where: { order_id: order.id } });
             for (const item of items) {
                 if (item.variant_id) {
-                    await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                    await ProductVariantPrice.decrement('reserved_stock', { by: item.quantity, where: { variant_id: item.variant_id } });
                 } else if (item.product_id) {
-                    await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                    await Product.decrement('reserved_stock', { by: item.quantity, where: { id: item.product_id } });
                 }
             }
         }
@@ -1107,35 +1128,16 @@ export const updateOrderStatus = async (req, res) => {
             );
         }
 
-        // 1. Stock deduction on confirmation
-        if (mappedStatus === 'confirmée' && oldStatus === 'en_attente') {
-            try {
-                const items = await OrderItem.findAll({ where: { order_id: order.id } });
-                for (const item of items) {
-                    const variantPrice = await ProductVariantPrice.findOne({
-                        where: { variant_id: item.variant_id }
-                    });
-                    if (variantPrice) {
-                        await variantPrice.decrement('stock', { by: item.quantity });
-                        await variantPrice.reload();
-                        if (variantPrice.stock <= 5 && order.supplier_id) {
-                            Supplier.findByPk(order.supplier_id, { include: [{ model: Profile, as: 'user' }] }).then(s => {
-                                const phone = s?.whatsapp || s?.phone || s?.user?.phone;
-                                if (phone) {
-                                    Product.findByPk(item.product_id).then(p => {
-                                        notifySupplierOfLowStock(phone, `${p?.name || 'Produit'} (${item.variant_id})`, variantPrice.stock);
-                                    });
-                                }
-                            });
-                        }
-                    }
-                }
-            } catch (stockErr) {
-                console.error("STOCK DEDUCTION ERROR:", stockErr);
-            }
-        }
+        // 1. (ancien emplacement de la décrémentation de stock à la confirmation —
+        // supprimé : le stock réel n'est plus touché ici. Il est décrémenté une
+        // seule fois, à la livraison confirmée, juste ci-dessous. L'alerte "stock
+        // bas" est désormais envoyée dès la réservation, à la création de la
+        // commande, voir createOrder.)
 
-        // 2. Financial logging on delivery
+        // 2. Financial logging on delivery — DOIT s'exécuter avant la consommation
+        // de stock ci-dessous : en cas d'échec, le statut est reverti (early
+        // return), donc on ne veut surtout pas avoir déjà décrémenté le stock
+        // réel pour une livraison qui, finalement, ne sera pas actée.
         const isDelivered = (mappedStatus === 'livrée') && (oldStatus !== 'livrée');
         if (isDelivered) {
             try {
@@ -1147,8 +1149,33 @@ export const updateOrderStatus = async (req, res) => {
             }
         }
 
+        // 3. Consommation réelle du stock à la LIVRAISON confirmée (seulement
+        // atteint si le traitement financier ci-dessus a réussi) — c'est le seul
+        // moment où le stock physique baisse vraiment. On relâche la réservation
+        // en même temps (la vente est désormais définitive, plus "en attente").
+        if (isDelivered) {
+            try {
+                const items = await OrderItem.findAll({ where: { order_id: order.id } });
+                for (const item of items) {
+                    if (item.variant_id) {
+                        await ProductVariantPrice.decrement(
+                            { stock: item.quantity, reserved_stock: item.quantity },
+                            { where: { variant_id: item.variant_id } }
+                        );
+                    } else if (item.product_id) {
+                        await Product.decrement(
+                            { stock: item.quantity, reserved_stock: item.quantity },
+                            { where: { id: item.product_id } }
+                        );
+                    }
+                }
+            } catch (stockErr) {
+                console.error("STOCK CONSUMPTION ERROR (delivery):", stockErr);
+            }
+        }
 
-        // 3. Handle Cancellations & Returns (Escrow protection & Customer Refund)
+
+        // 4. Handle Cancellations & Returns (Escrow protection & Customer Refund)
         if ((mappedStatus === 'annulée' || mappedStatus === 'retournée') && (oldStatus !== 'annulée' && oldStatus !== 'retournée')) {
             // WhatsApp notification and unassignment of deliverer
             if (order.delivery_person_id) {
@@ -1169,8 +1196,11 @@ export const updateOrderStatus = async (req, res) => {
                 }
             }
 
-            // Re-increment stock if it was previously confirmed/deducted
-            if (['confirmée', 'expédiée', 'livrée'].includes(oldStatus)) {
+            // Stock : deux cas bien distincts selon que la livraison avait déjà
+            // consommé le stock réel ou non.
+            if (oldStatus === 'livrée') {
+                // La livraison avait déjà décrémenté stock ET reserved_stock (voir
+                // plus haut) — un retour restaure donc le vrai stock physique.
                 try {
                     const items = await OrderItem.findAll({ where: { order_id: order.id } });
                     for (const item of items) {
@@ -1182,6 +1212,21 @@ export const updateOrderStatus = async (req, res) => {
                     }
                 } catch (stockErr) {
                     console.error("STOCK RESTORE ERROR:", stockErr);
+                }
+            } else if (['confirmée', 'expédiée'].includes(oldStatus)) {
+                // Jamais livrée : le stock réel n'a jamais été touché, seule la
+                // réservation doit être relâchée.
+                try {
+                    const items = await OrderItem.findAll({ where: { order_id: order.id } });
+                    for (const item of items) {
+                        if (item.variant_id) {
+                            await ProductVariantPrice.decrement('reserved_stock', { by: item.quantity, where: { variant_id: item.variant_id } });
+                        } else {
+                            await Product.decrement('reserved_stock', { by: item.quantity, where: { id: item.product_id } });
+                        }
+                    }
+                } catch (stockErr) {
+                    console.error("RESERVED STOCK RELEASE ERROR:", stockErr);
                 }
             }
 

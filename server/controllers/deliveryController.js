@@ -1,4 +1,4 @@
-import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, Boutique, ProductVariant, sequelize } from '../models/index.js';
+import { DeliveryPerson, Order, Address, Profile, OrderItem, Product, ProductImage, Supplier, Boutique, ProductVariant, ProductVariantPrice, sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { processOrderFinancials } from '../services/financialService.js';
 import { notifyDelivererStatusUpdate, notifyAdmin, sendWhatsAppMessage } from '../services/whatsappService.js';
@@ -261,6 +261,30 @@ export const updateDeliveryStatus = async (req, res) => {
                 console.error(`[ROLLBACK] processOrderFinancials failed for order ${order.id}, reverting status:`, financialErr);
                 await order.update({ status: oldStatus });
                 return res.status(500).json({ error: 'Erreur lors du traitement financier. Le statut a été restauré. Veuillez réessayer.' });
+            }
+
+            // Consommation réelle du stock à la livraison — c'est ici, pas à la
+            // création de commande, que le stock physique baisse vraiment (voir
+            // orderController.js:createOrder pour la réservation initiale). Ce
+            // livreur passe par un endpoint séparé de orderController.js:
+            // updateOrderStatus, donc la même logique doit être dupliquée ici.
+            try {
+                const items = await OrderItem.findAll({ where: { order_id: order.id } });
+                for (const item of items) {
+                    if (item.variant_id) {
+                        await ProductVariantPrice.decrement(
+                            { stock: item.quantity, reserved_stock: item.quantity },
+                            { where: { variant_id: item.variant_id } }
+                        );
+                    } else if (item.product_id) {
+                        await Product.decrement(
+                            { stock: item.quantity, reserved_stock: item.quantity },
+                            { where: { id: item.product_id } }
+                        );
+                    }
+                }
+            } catch (stockErr) {
+                console.error("STOCK CONSUMPTION ERROR (livreur delivery):", stockErr);
             }
         }
 

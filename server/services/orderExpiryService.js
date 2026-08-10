@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Order, OrderItem, Product, ProductVariant, Profile } from '../models/index.js';
+import { Order, OrderItem, Product, ProductVariantPrice, Profile } from '../models/index.js';
 import { notifyCustomerOfStatusUpdate, sendWhatsAppMessage } from './whatsappService.js';
 
 const EXPIRY_HOURS = 48;
@@ -21,12 +21,16 @@ export async function expireStaleOrders() {
     });
 
     for (const order of staleOrders) {
-        // Restore stock
+        // Ces commandes sont toujours 'en_attente' (jamais livrées) — le stock
+        // physique réel n'a jamais été touché, seule la réservation doit être
+        // relâchée. Corrige au passage un bug pré-existant : ProductVariant n'a
+        // pas de colonne stock (c'est ProductVariantPrice qui la porte), donc
+        // cet appel ne mettait jamais rien à jour pour les produits à variantes.
         for (const item of (order.items || [])) {
             if (item.variant_id) {
-                await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                await ProductVariantPrice.decrement('reserved_stock', { by: item.quantity, where: { variant_id: item.variant_id } });
             } else if (item.product_id) {
-                await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                await Product.decrement('reserved_stock', { by: item.quantity, where: { id: item.product_id } });
             }
         }
 
@@ -71,11 +75,14 @@ export async function expireUnpaidOnlinePayments() {
     });
 
     for (const order of unpaidOrders) {
+        // Toujours 'en_attente' (voir requête ci-dessus) — même logique que
+        // expireStaleOrders : on relâche la réservation, le stock réel n'a
+        // jamais été décrémenté pour ces commandes.
         for (const item of (order.items || [])) {
             if (item.variant_id) {
-                await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variant_id } });
+                await ProductVariantPrice.decrement('reserved_stock', { by: item.quantity, where: { variant_id: item.variant_id } });
             } else if (item.product_id) {
-                await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });
+                await Product.decrement('reserved_stock', { by: item.quantity, where: { id: item.product_id } });
             }
         }
 
