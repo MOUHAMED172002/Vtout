@@ -51,10 +51,20 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
             throw new Error(data.message || 'Erreur API FedaPay');
         }
 
-        // FedaPay retourne Transaction et token (selon leur API REST v1)
-        // Pour générer le lien de paiement, nous devons appeler l'endpoint token
-        const transactionId = data.v1_transaction.id;
-        
+        // FedaPay retourne la transaction créée, mais la clé racine exacte
+        // du JSON varie selon les comptes/versions d'API observées en prod
+        // (v1_transaction, transaction, ou l'objet transaction directement
+        // à la racine) — on couvre les cas connus plutôt que de supposer un
+        // seul format, qui plantait silencieusement sur "Cannot read
+        // properties of undefined". Si aucun ne matche, on log la vraie
+        // forme reçue pour ajuster précisément au lieu de re-deviner.
+        const txObject = data.v1_transaction || data.transaction || (data.id ? data : null);
+        if (!txObject?.id) {
+            console.error('[FedaPay] Structure de réponse inattendue — clés reçues:', Object.keys(data));
+            throw new Error('Réponse FedaPay inattendue (transaction introuvable dans la réponse)');
+        }
+        const transactionId = txObject.id;
+
         const tokenResponse = await fetch(`${baseUrl}/${transactionId}/token`, {
             method: 'POST',
             headers: {
@@ -107,7 +117,11 @@ export const verifyFedapayTransaction = async (transactionId) => {
         });
 
         const data = await response.json();
-        return data.v1_transaction;
+        const txObject = data.v1_transaction || data.transaction || (data.id ? data : null);
+        if (!txObject) {
+            console.error('[FedaPay] Structure de réponse inattendue (verify) — clés reçues:', Object.keys(data));
+        }
+        return txObject;
     } catch (error) {
         console.error('[FedaPay Service] Verify Error:', error);
         throw error;

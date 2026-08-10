@@ -103,25 +103,38 @@ export const fedapayCallback = async (req, res) => {
 
 export const fedapayWebhook = async (req, res) => {
     try {
-        // SECURITE (EN COURS DE FIABILISATION) : on ne sait pas encore avec
-        // certitude si FedaPay envoie le secret via l'en-tête personnalisé
-        // "X-Webhook-Secret" (configuré manuellement dans leur dashboard) ou
-        // via son propre mécanisme de signature (X-FEDAPAY-SIGNATURE, basé
-        // sur le "wh_live_..." généré à la création du webhook). Tant que ce
-        // n'est pas confirmé, on NE BLOQUE PAS les appels (pour ne jamais
-        // rater une confirmation de paiement réelle) — on se contente de
-        // logguer tous les en-têtes reçus pour identifier le bon mécanisme.
-        // ⚠️ À durcir en rejet strict (403) une fois le mécanisme confirmé.
-        const expectedSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
-        const providedSecret = req.headers['x-webhook-secret'];
-        let secretMatches = false;
-        if (expectedSecret && providedSecret) {
-            const expectedBuf = Buffer.from(expectedSecret);
-            const providedBuf = Buffer.from(String(providedSecret));
-            secretMatches = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+        // SECURITE : confirmé sur trafic réel — FedaPay envoie sa propre
+        // signature dans l'en-tête "x-fedapay-signature", format
+        // "t=<timestamp_unix>,s=<hmac_sha256_hex>" (le header personnalisé
+        // "X-Webhook-Secret" configuré manuellement n'est lui-même jamais
+        // envoyé). Hypothèse d'algorithme (à confirmer sur du trafic réel
+        // avant de durcir en rejet strict) : signature = HMAC-SHA256(
+        // FEDAPAY_WEBHOOK_SECRET, "{timestamp}.{corps brut}") — schéma
+        // standard (Stripe et assimilés) que la doc FedaPay semble suivre.
+        // ⚠️ Toujours en mode LOG SEULEMENT (jamais de rejet) tant qu'on n'a
+        // pas confirmé au moins une correspondance "VALIDE" sur un vrai
+        // paiement — sinon on risquerait de bloquer de vraies confirmations
+        // sur une hypothèse d'algorithme encore non vérifiée.
+        const sigHeader = req.headers['x-fedapay-signature'];
+        let sigStatus = 'absent';
+        if (sigHeader) {
+            const parts = Object.fromEntries(String(sigHeader).split(',').map(p => p.split('=')));
+            const { t: timestamp, s: providedSig } = parts;
+            const webhookSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
+            if (webhookSecret && timestamp && providedSig && req.rawBody) {
+                const expectedSig = crypto
+                    .createHmac('sha256', webhookSecret)
+                    .update(`${timestamp}.${req.rawBody.toString('utf8')}`)
+                    .digest('hex');
+                const expectedBuf = Buffer.from(expectedSig);
+                const providedBuf = Buffer.from(providedSig);
+                const matches = expectedBuf.length === providedBuf.length && crypto.timingSafeEqual(expectedBuf, providedBuf);
+                sigStatus = matches ? 'VALIDE (hypothèse d\'algorithme confirmée !)' : `INVALIDE (calculé: ${expectedSig.slice(0, 12)}… reçu: ${providedSig.slice(0, 12)}…)`;
+            } else {
+                sigStatus = 'présent mais éléments manquants pour vérifier (secret/rawBody/parts)';
+            }
         }
-        console.log('[FedaPay Webhook] En-têtes reçus:', JSON.stringify(req.headers));
-        console.log(`[FedaPay Webhook] Secret x-webhook-secret ${providedSecret ? (secretMatches ? 'présent et VALIDE' : 'présent mais INVALIDE') : 'ABSENT'} | x-fedapay-signature: ${req.headers['x-fedapay-signature'] ? 'présent' : 'absent'}`);
+        console.log(`[FedaPay Webhook] Signature x-fedapay-signature: ${sigStatus}`);
 
         console.log('[FedaPay Webhook] Received:', req.body);
 

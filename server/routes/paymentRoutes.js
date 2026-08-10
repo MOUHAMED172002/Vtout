@@ -7,6 +7,11 @@ const router = express.Router();
 router.get('/fedapay-callback', paymentController.fedapayCallback);
 
 // Webhook silencieux pour FedaPay (Confirmation automatique en asynchrone)
-router.post('/fedapay-webhook', express.json(), paymentController.fedapayWebhook);
+// `verify` conserve le corps brut (req.rawBody) — indispensable pour calculer
+// la signature HMAC de x-fedapay-signature, qui doit porter sur les octets
+// exacts envoyés par FedaPay, pas sur le JSON re-sérialisé après parsing.
+router.post('/fedapay-webhook', express.json({
+    verify: (req, res, buf) => { req.rawBody = buf; }
+}), paymentController.fedapayWebhook);
 
 export default router;
