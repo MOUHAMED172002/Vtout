@@ -1,5 +1,19 @@
 // On utilise fetch natif de Node 18+ (pas besoin d'import)
 
+// Extrait l'objet transaction d'une réponse FedaPay quel que soit le format
+// exact renvoyé — pure fonction, testable indépendamment (voir
+// server/tests/fedapayService.test.js) sans avoir à mocker fetch().
+// Confirmé en prod (10/08/2026) : la vraie clé racine est littéralement
+// 'v1/transaction' AVEC UN SLASH (cohérent avec le "klass": "v1/transaction"
+// déjà vu dans les payloads webhook) — impossible à écrire en notation
+// pointée, d'où l'accès par crochets. Anciennes variantes (v1_transaction,
+// transaction, objet à la racine) gardées en repli au cas où le format
+// varie encore selon compte/version d'API.
+export const extractFedapayTransaction = (data) => {
+    if (!data || typeof data !== 'object') return null;
+    return data['v1/transaction'] || data.v1_transaction || data.transaction || (data.id ? data : null);
+};
+
 export const createFedapayTransaction = async (order, customerProfile, redirectUrl, extraMetadata = {}) => {
     try {
         // Accepte les deux noms de variable (FEDAPAY_SECRET_KEY est le nom
@@ -51,17 +65,9 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
             throw new Error(data.message || 'Erreur API FedaPay');
         }
 
-        // FedaPay retourne la transaction créée, mais la clé racine exacte
-        // du JSON varie selon les comptes/versions d'API observées en prod.
-        // Confirmé en prod (10/08/2026) : la vraie clé est littéralement
-        // 'v1/transaction' AVEC UN SLASH (cohérent avec le "klass":
-        // "v1/transaction" déjà vu dans les payloads webhook) — impossible à
-        // écrire en notation pointée, d'où l'accès par crochets ci-dessous.
-        // On garde aussi les anciennes variantes (v1_transaction, transaction,
-        // objet à la racine) en fallback au cas où le format varie encore
-        // selon compte/version d'API. Si aucun ne matche, on log la vraie
-        // forme reçue pour ajuster précisément au lieu de re-deviner.
-        const txObject = data['v1/transaction'] || data.v1_transaction || data.transaction || (data.id ? data : null);
+        // Si aucune forme connue ne matche, on log la vraie forme reçue pour
+        // ajuster précisément au lieu de re-deviner (voir extractFedapayTransaction).
+        const txObject = extractFedapayTransaction(data);
         if (!txObject?.id) {
             console.error('[FedaPay] Structure de réponse inattendue — clés reçues:', Object.keys(data));
             throw new Error('Réponse FedaPay inattendue (transaction introuvable dans la réponse)');
@@ -120,9 +126,7 @@ export const verifyFedapayTransaction = async (transactionId) => {
         });
 
         const data = await response.json();
-        // Même correctif que createFedapayTransaction ci-dessus : la vraie clé
-        // racine renvoyée par FedaPay est 'v1/transaction' (avec un slash).
-        const txObject = data['v1/transaction'] || data.v1_transaction || data.transaction || (data.id ? data : null);
+        const txObject = extractFedapayTransaction(data);
         if (!txObject) {
             console.error('[FedaPay] Structure de réponse inattendue (verify) — clés reçues:', Object.keys(data));
         }

@@ -6,7 +6,7 @@ import { getTextTemplate, getTextConfig } from './textTemplateService.js';
  * Helper : Formater le numéro pour Green API
  * Green API s'attend au format international (sans le +) suivi de @c.us
  */
-const formatPhoneNumber = (phone) => {
+export const formatPhoneNumber = (phone) => {
     if (!phone) return '';
 
     // 1. Enlever tout ce qui n'est pas un chiffre

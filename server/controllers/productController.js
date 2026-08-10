@@ -5,6 +5,7 @@ import { sendProductApprovalNotification } from '../services/mailService.js';
 import { notifyProductStatusUpdate } from '../services/whatsappService.js';
 import { getDeliveryFeeTiers, computeDeliveryFee, computePublicPrice, decomposePublicPrice } from '../services/deliveryFeeService.js';
 import { sendMetaCapiEvent } from '../services/metaCapiService.js';
+import { computeAvailableStock } from '../utils/stockUtils.js';
 
 // =====================================================================
 // UTILITAIRE : filtre livraison gratuite par commune
@@ -115,12 +116,12 @@ export const processProductsForCommunes = async (products) => {
         // toucher au `stock` brut, car ce même objet produit sert aussi aux
         // vues admin (édition produit) qui doivent voir le stock physique réel,
         // pas la quantité réduite par les réservations.
-        product.available_stock = Math.max(0, (product.stock || 0) - (product.reserved_stock || 0));
+        product.available_stock = computeAvailableStock(product.stock, product.reserved_stock);
         if (Array.isArray(product.variants)) {
             for (const v of product.variants) {
                 if (Array.isArray(v.priceRows)) {
                     for (const pr of v.priceRows) {
-                        pr.available_stock = Math.max(0, (pr.stock || 0) - (pr.reserved_stock || 0));
+                        pr.available_stock = computeAvailableStock(pr.stock, pr.reserved_stock);
                     }
                 }
             }
@@ -432,12 +433,12 @@ export const getProductById = async (req, res) => {
         // available_stock (stock - reserved_stock) en plus de `stock` brut,
         // pour que la fiche produit affiche la vraie dispo par variante sans
         // casser l'édition admin qui a besoin du stock physique réel.
-        productJson.available_stock = Math.max(0, (productJson.stock || 0) - (productJson.reserved_stock || 0));
+        productJson.available_stock = computeAvailableStock(productJson.stock, productJson.reserved_stock);
         if (Array.isArray(productJson.variants)) {
             for (const v of productJson.variants) {
                 if (Array.isArray(v.priceRows)) {
                     for (const pr of v.priceRows) {
-                        pr.available_stock = Math.max(0, (pr.stock || 0) - (pr.reserved_stock || 0));
+                        pr.available_stock = computeAvailableStock(pr.stock, pr.reserved_stock);
                     }
                 }
             }
