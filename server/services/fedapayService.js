@@ -52,13 +52,16 @@ export const createFedapayTransaction = async (order, customerProfile, redirectU
         }
 
         // FedaPay retourne la transaction créée, mais la clé racine exacte
-        // du JSON varie selon les comptes/versions d'API observées en prod
-        // (v1_transaction, transaction, ou l'objet transaction directement
-        // à la racine) — on couvre les cas connus plutôt que de supposer un
-        // seul format, qui plantait silencieusement sur "Cannot read
-        // properties of undefined". Si aucun ne matche, on log la vraie
+        // du JSON varie selon les comptes/versions d'API observées en prod.
+        // Confirmé en prod (10/08/2026) : la vraie clé est littéralement
+        // 'v1/transaction' AVEC UN SLASH (cohérent avec le "klass":
+        // "v1/transaction" déjà vu dans les payloads webhook) — impossible à
+        // écrire en notation pointée, d'où l'accès par crochets ci-dessous.
+        // On garde aussi les anciennes variantes (v1_transaction, transaction,
+        // objet à la racine) en fallback au cas où le format varie encore
+        // selon compte/version d'API. Si aucun ne matche, on log la vraie
         // forme reçue pour ajuster précisément au lieu de re-deviner.
-        const txObject = data.v1_transaction || data.transaction || (data.id ? data : null);
+        const txObject = data['v1/transaction'] || data.v1_transaction || data.transaction || (data.id ? data : null);
         if (!txObject?.id) {
             console.error('[FedaPay] Structure de réponse inattendue — clés reçues:', Object.keys(data));
             throw new Error('Réponse FedaPay inattendue (transaction introuvable dans la réponse)');
@@ -117,7 +120,9 @@ export const verifyFedapayTransaction = async (transactionId) => {
         });
 
         const data = await response.json();
-        const txObject = data.v1_transaction || data.transaction || (data.id ? data : null);
+        // Même correctif que createFedapayTransaction ci-dessus : la vraie clé
+        // racine renvoyée par FedaPay est 'v1/transaction' (avec un slash).
+        const txObject = data['v1/transaction'] || data.v1_transaction || data.transaction || (data.id ? data : null);
         if (!txObject) {
             console.error('[FedaPay] Structure de réponse inattendue (verify) — clés reçues:', Object.keys(data));
         }
