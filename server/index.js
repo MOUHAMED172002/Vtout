@@ -90,7 +90,7 @@ import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
 import { processReviewReminders } from "./services/reviewReminderService.js";
 import { processReengagement, processVipMessages } from "./services/reengagementService.js";
-import { expireStaleOrders } from "./services/orderExpiryService.js";
+import { expireStaleOrders, expireUnpaidOnlinePayments } from "./services/orderExpiryService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
@@ -122,6 +122,17 @@ const startJobs = () => {
     setInterval(() => {
         expireStaleOrders().catch(err => console.error("[JOB ERROR] Order Expiry:", err));
     }, 60 * 60 * 1000);
+
+    // Annulation des paiements en ligne (FedaPay/mobile money/carte) non confirmés
+    // après 30 min (toutes les 10 min) — bien plus réactif que le nettoyage 48h
+    // ci-dessus, car un paiement abandonné doit libérer le stock rapidement.
+    setInterval(() => {
+        expireUnpaidOnlinePayments().catch(err => console.error("[JOB ERROR] Online Payment Expiry:", err));
+    }, 10 * 60 * 1000);
+    // Premier passage peu après le démarrage (pas d'attente de 10 min avant le tout premier run)
+    setTimeout(() => {
+        expireUnpaidOnlinePayments().catch(err => console.error("[JOB ERROR] Online Payment Expiry:", err));
+    }, 60 * 1000);
 
     // Nettoyage des ventes flash expirées (toutes les heures)
     setInterval(async () => {
