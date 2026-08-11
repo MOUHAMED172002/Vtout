@@ -12,6 +12,22 @@ import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRigh
 
 import api from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Ce n'est pas un échec — juste une contrainte de zone qui invite le client à
+// choisir un autre mode de paiement — donc un toast neutre plutôt que
+// toast.error, qui laisserait croire à un problème technique.
+const showZoneMismatchToast = () => toast(
+  "Le paiement à la livraison n'est pas proposé pour cette zone avec ce vendeur. Un autre mode de paiement fera l'affaire !",
+  {
+    icon: "📦",
+    style: {
+      background: '#FFF7ED', // fond orange très clair, doux
+      color: '#9A3412',      // texte orange foncé, lisible mais pas alarmant
+      border: '1px solid #FED7AA',
+    },
+  }
+);
+
 export default function CheckoutPage() {
   const { getToken } = useAuth();
   const { user, isSignedIn, isLoaded } = useUser();
@@ -244,7 +260,7 @@ export default function CheckoutPage() {
   // du client est différente de celle du vendeur.
   const handleSelectDeliveryPayment = () => {
     if (isZoneMismatch) {
-      toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
+      showZoneMismatchToast();
       return;
     }
     setPaymentMethod('delivery');
@@ -297,15 +313,8 @@ export default function CheckoutPage() {
     try {
       if (!address) return toast.error("Veuillez renseigner votre adresse !");
       if (paymentMethod === 'delivery' && isZoneMismatch) {
-        toast("Le paiement à la livraison n'est pas proposé pour cette zone avec ce vendeur. Un autre mode de paiement fera l'affaire !", {
-               icon: "📦",
-               style: {
-                 background: '#FFF7ED', // fond orange très clair, doux
-                 color: '#9A3412',      // texte orange foncé, lisible mais pas alarmant
-                 border: '1px solid #FED7AA',
-               },
-             });
-             return;
+        showZoneMismatchToast();
+        return;
       }
       setLoading(true);
 
@@ -691,7 +700,7 @@ export default function CheckoutPage() {
                     <button
                       onClick={() => {
                         if (paymentMethod === 'delivery' && isZoneMismatch) {
-                          toast.error("Le paiement à la livraison n'est pas disponible pour votre zone, différente de celle du vendeur. Veuillez choisir un autre mode de paiement.");
+                          showZoneMismatchToast();
                           return;
                         }
                         if (isWhatsAppUser) {

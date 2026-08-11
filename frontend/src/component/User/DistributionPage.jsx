@@ -124,7 +124,9 @@ export default function DistributionPage() {
                     ? await submitLateScreenshot(submission.id, file, Number(viewsReported), token)
                     : await submitLiveCheckScreenshot(submission.id, file, token);
             if (res.flagged) {
-                toast.error("Capture envoyée, mais signalée pour vérification manuelle.");
+                // L'envoi a réussi — signalée pour vérification manuelle n'est
+                // pas un échec, juste une étape supplémentaire avant validation.
+                toast("Capture envoyée, mais signalée pour vérification manuelle.", { icon: "ℹ️", duration: 6000 });
             } else {
                 toast.success("Capture envoyée !");
             }

@@ -98,7 +98,10 @@ export default function ReviewModal({ product: initialProduct = null, orderId, o
           urls = urls.concat(uploaded);
         } catch (uploadErr) {
           console.error("upload error", uploadErr);
-          toast.error("Impossible d'uploader les images. L'avis sera enregistré sans images.");
+          // L'avis continue d'être enregistré malgré cet échec — un simple
+          // avertissement suffit, pas une alerte rouge qui laisserait croire
+          // que l'envoi de l'avis a échoué.
+          toast("Impossible d'uploader les images. L'avis sera enregistré sans images.", { icon: "⚠️", duration: 6000 });
           urls = [];
         }
       }

@@ -85,7 +85,9 @@ export default function ProductCard({ product, onFavoriteChange }) {
     e.stopPropagation();
 
     if (!isSignedIn) {
-      toast.error("Veuillez vous connecter pour gérer vos favoris.");
+      // Simple invitation à se connecter, pas un échec — un toast.error ici
+      // donnerait l'impression qu'un problème est survenu.
+      toast("Connectez-vous pour gérer vos favoris.", { icon: "ℹ️" });
       navigate('/auth/connexion');
       return;
     }
