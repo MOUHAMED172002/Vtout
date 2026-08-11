@@ -39,6 +39,13 @@ const PendingCheckout = sequelize.define('PendingCheckout', {
     resulting_order_ids: {
         type: DataTypes.TEXT,
         allowNull: true
+    },
+    // Horodatage de la relance mi-fenêtre envoyée au client (voir
+    // orderExpiryService.js remindPendingCheckouts) — évite de relancer
+    // plusieurs fois au fil des passages du cron.
+    reminder_sent_at: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'pending_checkouts',

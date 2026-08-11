@@ -72,6 +72,14 @@ export const confirmPendingPayment = async (pendingCheckoutId, transactionId) =>
     return data;
 };
 
+// Infos publiques minimales d'un PendingCheckout (montant, statut) — pour la
+// page de reprise de paiement atteinte via le lien envoyé dans la relance
+// WhatsApp/email (voir orderExpiryService.js remindPendingCheckouts).
+export const getPendingCheckout = async (pendingCheckoutId) => {
+    const { data } = await api.get(`/orders/pending-checkout/${pendingCheckoutId}`);
+    return data;
+};
+
 export const getSuggestedSuppliers = async (id, token) => {
     const { data } = await api.get(`/orders/${id}/suggested-suppliers`, {
         headers: { Authorization: `Bearer ${token}` }

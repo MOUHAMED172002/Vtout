@@ -1193,6 +1193,46 @@ export const materializePendingCheckout = async (pendingCheckoutId) => {
 // que ce soit. Le webhook et le callback de redirection couvrent déjà le
 // cas où l'utilisateur ferme l'onglet avant que cet appel ne parte — cet
 // endpoint n'est qu'un raccourci pour une confirmation immédiate côté UI.
+// Infos publiques minimales d'un PendingCheckout (montant, statut) — sert à
+// la page de reprise de paiement (lien envoyé dans la relance WhatsApp/email,
+// voir orderExpiryService.js remindPendingCheckouts) avant que le client ne
+// clique sur "Reprendre le paiement". Pas d'auth requise (guests inclus),
+// aucune donnée sensible exposée (ni adresse, ni contact).
+export const getPendingCheckout = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pending = await PendingCheckout.findByPk(id);
+        if (!pending) return res.status(404).json({ error: 'Paiement introuvable' });
+
+        if (pending.user_id && req.auth?.userId && req.auth.userId !== pending.user_id) {
+            return res.status(403).json({ error: 'Non autorisé' });
+        }
+
+        let amount = 0;
+        let itemsCount = 0;
+        try {
+            const payload = JSON.parse(pending.payload);
+            amount = (payload.boutiqueOrders || []).reduce((sum, o) => sum + o.total_amount, 0);
+            itemsCount = (payload.boutiqueOrders || []).reduce((sum, o) => sum + (o.items?.length || 0), 0);
+        } catch { /* payload illisible — on renvoie quand même le statut */ }
+
+        // Si déjà confirmé, on renvoie directement l'id de commande réelle pour
+        // que la page de reprise puisse rediriger sans repasser par confirm.
+        let orderId = null;
+        if (pending.status === 'confirmed') {
+            try {
+                const ids = JSON.parse(pending.resulting_order_ids || '[]');
+                orderId = ids[0] || null;
+            } catch { /* ignore */ }
+        }
+
+        res.json({ id: pending.id, status: pending.status, amount, items_count: itemsCount, order_id: orderId });
+    } catch (error) {
+        console.error('GET PENDING CHECKOUT ERROR:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération du paiement' });
+    }
+};
+
 export const confirmPendingCheckout = async (req, res) => {
     try {
         const { id } = req.params;

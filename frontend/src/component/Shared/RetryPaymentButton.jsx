@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { CreditCard, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { retryOrderPayment } from "../../services/orderService";
+import { retryOrderPayment, confirmPendingPayment } from "../../services/orderService";
 
-// Bouton self-service pour relancer le paiement en ligne d'une commande
-// dont la transaction FedaPay a échoué au checkout (voir CheckoutPage.jsx
-// payment_error). Avant ce composant, la seule issue pour ces commandes
-// était un contact manuel de l'équipe ou l'auto-annulation après 30min
+// Bouton self-service pour relancer un paiement en ligne — soit une commande
+// déjà créée dont la transaction FedaPay a échoué (flux legacy), soit un
+// PendingCheckout encore en attente (flux différé, voir orderController.js
+// materializePendingCheckout). retryOrderPayment gère les deux côté backend
+// et le distingue via res.pending_checkout_id dans la réponse.
+//
+// Avant ce composant, la seule issue pour un paiement resté sans suite était
+// un contact manuel de l'équipe ou l'auto-annulation après 30min
 // (orderExpiryService.js) — le client n'avait aucun moyen de repayer
 // lui-même. Aucune auth requise côté API : fonctionne aussi pour les
-// commandes invitées.
-export default function RetryPaymentButton({ orderId, getToken = null, className = "" }) {
+// commandes/paiements invités.
+export default function RetryPaymentButton({ orderId, getToken = null, className = "", onSuccess = null }) {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -27,7 +31,37 @@ export default function RetryPaymentButton({ orderId, getToken = null, className
             id: res.transaction_id,
             amount: Math.round(res.amount)
           },
-          container: '#fedapay-embed-retry'
+          container: '#fedapay-embed-retry',
+          // Si res.pending_checkout_id est présent, aucune commande n'existe
+          // encore — il faut la matérialiser explicitement (comme au premier
+          // checkout, voir CheckoutPage.jsx). Sinon (commande déjà existante,
+          // flux legacy), le webhook suffit déjà à mettre à jour son statut
+          // de paiement — on ferme juste la modale.
+          onComplete: async ({ reason, transaction: fedaTransaction }) => {
+            if (reason !== window.FedaPay.CHECKOUT_COMPLETED) {
+              setShowModal(false); // DIALOG_DISMISSED — fermé sans payer
+              return;
+            }
+            if (res.pending_checkout_id) {
+              try {
+                const confirmRes = await confirmPendingPayment(res.pending_checkout_id, fedaTransaction.id);
+                setShowModal(false);
+                toast.success("Paiement confirmé !");
+                onSuccess?.(confirmRes.order);
+              } catch (confirmErr) {
+                // Le webhook matérialisera quand même la commande en
+                // asynchrone si cet appel échoue — ne pas dire au client
+                // que le paiement a échoué alors qu'il a peut-être réussi.
+                console.error("[RetryPaymentButton onComplete] Confirmation error:", confirmErr);
+                setShowModal(false);
+                toast("Paiement reçu, finalisation en cours… Vous recevrez une confirmation sous peu.", { duration: 7000, icon: "⏳" });
+              }
+            } else {
+              setShowModal(false);
+              toast.success("Paiement confirmé !");
+              onSuccess?.({ id: orderId });
+            }
+          }
         });
       } else if (res.payment_url) {
         window.location.href = res.payment_url;

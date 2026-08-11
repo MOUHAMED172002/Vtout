@@ -19,6 +19,9 @@ router.get('/:id', orderController.getOrderById);
 router.get('/:id/delivery-code', requireAuth, orderController.getOrderDeliveryCode);
 router.post('/', orderController.createOrder); // guests allowed — controller handles null userId
 router.post('/:id/retry-payment', orderController.retryOrderPayment); // guests allowed — self-service retry for failed online payments
+// Infos publiques minimales pour la page de reprise de paiement (lien envoyé
+// dans la relance WhatsApp/email) — guests inclus.
+router.get('/pending-checkout/:id', orderController.getPendingCheckout);
 // Confirmation explicite depuis le widget FedaPay embarqué (onComplete) —
 // guests inclus, re-vérifiée serveur-à-serveur dans le contrôleur, jamais
 // fait confiance au seul signal du navigateur.

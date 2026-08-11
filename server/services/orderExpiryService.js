@@ -13,6 +13,11 @@ const EXPIRY_HOURS = 48;
 // admin/livreur si le paiement n'a jamais abouti.
 const ONLINE_PAYMENT_TIMEOUT_MINUTES = 30;
 
+// Délai de la relance mi-fenêtre — assez tôt pour laisser le temps de finir
+// le paiement avant expiration (30min), assez tard pour ne pas relancer un
+// client qui était juste en train de payer normalement.
+const REMINDER_DELAY_MINUTES = 15;
+
 export async function expireStaleOrders() {
     const cutoff = new Date(Date.now() - EXPIRY_HOURS * 60 * 60 * 1000);
 
@@ -122,5 +127,78 @@ export async function expirePendingCheckouts() {
 
     if (staleCheckouts.length > 0) {
         console.log(`[ORDER EXPIRY] ${staleCheckouts.length} tentative(s) de paiement en ligne expirée(s) automatiquement après ${ONLINE_PAYMENT_TIMEOUT_MINUTES}min sans confirmation`);
+    }
+}
+
+// Relance mi-fenêtre pour un paiement en ligne initié mais pas encore
+// confirmé — jusqu'ici le client n'avait AUCUNE nouvelle avant l'expiration
+// à 30min (voir expirePendingCheckouts ci-dessus), ce qui laissait passer
+// des paiements simplement abandonnés en cours de route (onglet fermé,
+// distraction…) qui auraient pu être finalisés avec un simple rappel.
+// reminder_sent_at empêche de relancer plusieurs fois au fil des passages
+// du cron. Contient un lien direct vers la page de reprise du paiement
+// (PendingPaymentPage.jsx côté frontend), qui réutilise RetryPaymentButton
+// pour régénérer une transaction FedaPay sans perdre la réservation de stock.
+export async function remindPendingCheckouts() {
+    const cutoff = new Date(Date.now() - REMINDER_DELAY_MINUTES * 60 * 1000);
+
+    const dueCheckouts = await PendingCheckout.findAll({
+        where: {
+            status: 'pending',
+            reminder_sent_at: null,
+            created_at: { [Op.lt]: cutoff }
+        }
+    });
+
+    let sent = 0;
+    for (const pending of dueCheckouts) {
+        try {
+            const payload = JSON.parse(pending.payload);
+            const bo = payload.boutiqueOrders?.[0];
+            if (!bo) continue;
+
+            const link = `${process.env.FRONTEND_URL || 'https://vtout.com'}/paiement-en-attente/${pending.id}`;
+            const remainingMinutes = ONLINE_PAYMENT_TIMEOUT_MINUTES - REMINDER_DELAY_MINUTES;
+            const reminderMessage = `⏳ *VTOUT : Paiement en attente*\nVotre commande n'est pas encore finalisée — il vous reste environ ${remainingMinutes} minutes pour terminer le paiement avant que votre réservation ne soit relâchée.\n\n👉 ${link}`;
+
+            let customerPhone = bo.whatsapp_notif_phone || bo.guest_phone;
+            let customerEmail = bo.guest_email || null;
+            if ((!customerPhone || !customerEmail) && bo.user_id) {
+                try {
+                    const p = await Profile.findByPk(bo.user_id);
+                    if (!customerPhone) customerPhone = p?.phone || null;
+                    if (!customerEmail) customerEmail = p?.email || null;
+                } catch { /* ignore */ }
+            }
+
+            const emailFallback = async () => {
+                if (!customerEmail) return;
+                try {
+                    await sendOrderUpdateToCustomer({ id: pending.id, guest_email: customerEmail }, `En attente — ${link}`);
+                } catch (mailErr) {
+                    console.error('[Notif Fallback] Email de secours échoué:', mailErr);
+                }
+            };
+
+            if (customerPhone) {
+                sendWhatsAppMessage(customerPhone, reminderMessage).then(r => {
+                    if (!r?.success) emailFallback();
+                }).catch(() => emailFallback());
+            } else {
+                emailFallback();
+            }
+
+            // Marqué relancé qu'un contact ait été trouvé ou non — sans
+            // téléphone ni email, aucune relance ultérieure ne fera mieux, et
+            // on ne veut pas retenter indéfiniment un checkout sans contact.
+            await pending.update({ reminder_sent_at: new Date() });
+            sent++;
+        } catch (err) {
+            console.error('[ORDER EXPIRY] Relance paiement en attente échouée:', err);
+        }
+    }
+
+    if (sent > 0) {
+        console.log(`[ORDER EXPIRY] ${sent} relance(s) de paiement en attente envoyée(s)`);
     }
 }

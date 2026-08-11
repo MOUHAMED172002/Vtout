@@ -118,7 +118,7 @@ import { runMasterSeed } from "./masterSeed.js";
 import { processAbandonedCarts } from "./services/abandonedCartService.js";
 import { processReviewReminders } from "./services/reviewReminderService.js";
 import { processReengagement, processVipMessages } from "./services/reengagementService.js";
-import { expireStaleOrders, expirePendingCheckouts } from "./services/orderExpiryService.js";
+import { expireStaleOrders, expirePendingCheckouts, remindPendingCheckouts } from "./services/orderExpiryService.js";
 
 // --- BACKGROUND JOBS ---
 const startJobs = () => {
@@ -163,6 +163,14 @@ const startJobs = () => {
     setTimeout(() => {
         expirePendingCheckouts().catch(err => console.error("[JOB ERROR] Pending Checkout Expiry:", err));
     }, 60 * 1000);
+
+    // Relance mi-fenêtre (~15min) des paiements en ligne pas encore confirmés
+    // (toutes les 5 min, pour rester assez précis sur le délai de 15 min).
+    // Jusqu'ici un client qui abandonnait son paiement en cours de route
+    // n'avait aucune nouvelle avant l'annulation automatique à 30min.
+    setInterval(() => {
+        remindPendingCheckouts().catch(err => console.error("[JOB ERROR] Pending Checkout Reminder:", err));
+    }, 5 * 60 * 1000);
 
     // Nettoyage des ventes flash expirées (toutes les heures)
     setInterval(async () => {
@@ -962,6 +970,18 @@ sequelize.authenticate()
                     console.log(`  ✅ [MIGRATION] Added ${tbl}.${col}`);
                 } catch (e) {
                     if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ ${tbl}.${col}:`, e.message);
+                }
+            }
+
+            // ── pending_checkouts.reminder_sent_at — au cas où la table aurait déjà
+            // été créée par sync() avant l'ajout de ce champ (alter:false ne
+            // rattrape jamais les colonnes manquantes sur une table existante). ──
+            try {
+                await sequelize.query(`ALTER TABLE \`pending_checkouts\` ADD COLUMN \`reminder_sent_at\` DATETIME NULL`);
+                console.log('  ✅ [MIGRATION] Added pending_checkouts.reminder_sent_at');
+            } catch (e) {
+                if (!e.message.includes('Duplicate column') && !e.message.includes("doesn't exist")) {
+                    console.warn('  ⚠️ pending_checkouts.reminder_sent_at:', e.message);
                 }
             }
 

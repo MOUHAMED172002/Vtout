@@ -49,6 +49,7 @@ import CheckoutPage from './component/context/CheckoutPage';
 import CheckoutSuccess from './component/context/CheckoutSuccess';
 import AddressSelector from './component/context/AddressSelector';
 import GuestOrderConfirmationPage from './component/context/GuestOrderConfirmationPage';
+import PendingPaymentPage from './component/context/PendingPaymentPage';
 import OrderDetail from './component/User/OrderDetail';
 import DashboardRoutes from './component/User/DashboardRoutes';
 import AdminLayout from './component/Admin/AdminLayaout'; // Note: maintained typo to match existing file
@@ -259,6 +260,7 @@ const AppContent = ({ products, loading }) => {
 
           <Route path="/admin/Dashboard/*" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/order-confirmation/:orderId" element={<><Navbar /><GuestOrderConfirmationPage /><Footer /></>} />
+          <Route path="/paiement-en-attente/:pendingCheckoutId" element={<><Navbar /><PendingPaymentPage /><Footer /></>} />
           <Route path="/orders" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/orders/:id" element={
               <>
