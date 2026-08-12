@@ -87,11 +87,29 @@ import { useNavigate } from "react-router-dom";
 import PortalSwitcher from "../Shared/PortalSwitcher";
 import ThemeSelector from "../context/ThemeSelector";
 import NotificationCenter from "../Shared/NotificationCenter";
+import TourHelpButton from "../Shared/TourHelpButton";
+import TourAnchor from "../../tour/TourAnchor";
+import { useTour } from "../../tour/TourContext";
+import { ADMIN_TOUR_STEPS } from "../../tour/tourSteps";
+
+// Ancres de la visite guidée (voir src/tour/tourSteps.js#ADMIN_TOUR_STEPS) —
+// seules les sections couvertes par une étape ont une entrée ici.
+const ADMIN_TOUR_ANCHOR_MAP = {
+  Dashboard: "tour-admin-dashboard",
+  Produits: "tour-admin-produits",
+  Fournisseurs: "tour-admin-fournisseurs",
+  Commandes: "tour-admin-commandes",
+  Logistique: "tour-admin-logistique",
+  Utilisateurs: "tour-admin-utilisateurs",
+};
+
+const ADMIN_TOUR_SEEN_KEY = "vtout_tour_admin_seen";
 
 
 const AdminLayout = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { start: startTour } = useTour();
   const [selectedMenu, setSelectedMenu] = useState("Dashboard");
 
   const [selectedSub, setSelectedSub] = useState("overview");
@@ -112,6 +130,19 @@ const AdminLayout = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Visite guidée : proposée une seule fois, au premier accès à l'admin. On force
+  // le tiroir ouvert (utile sur mobile où il est fermé par défaut) avant de démarrer.
+  useEffect(() => {
+    if (localStorage.getItem(ADMIN_TOUR_SEEN_KEY)) return;
+    const t = setTimeout(() => {
+      setSidebarOpen(true);
+      startTour(ADMIN_TOUR_STEPS);
+    }, 600);
+    localStorage.setItem(ADMIN_TOUR_SEEN_KEY, "true");
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const menuItems = [
@@ -349,8 +380,9 @@ const AdminLayout = () => {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
-            {menuItems.map((menu) => (
-              <div key={menu.name} className="mb-2">
+            {menuItems.map((menu) => {
+              const anchorId = ADMIN_TOUR_ANCHOR_MAP[menu.name];
+              const menuButton = (
                 <button
                   onClick={() => setOpenMenu(openMenu === menu.name ? null : menu.name)}
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 group ${
@@ -370,6 +402,10 @@ const AdminLayout = () => {
                     className={`transition-transform duration-200 ${openMenu === menu.name ? "rotate-90" : ""}`}
                   />
                 </button>
+              );
+              return (
+              <div key={menu.name} className="mb-2">
+                {anchorId ? <TourAnchor id={anchorId}>{menuButton}</TourAnchor> : menuButton}
 
                 {openMenu === menu.name && (
                   <div className="mt-1 ml-4 pl-4 border-l-2 border-base-200 space-y-1">
@@ -394,7 +430,8 @@ const AdminLayout = () => {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </nav>
 
           {/* User Section */}
@@ -501,6 +538,7 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
+              <TourHelpButton steps={ADMIN_TOUR_STEPS} onBeforeStart={() => setSidebarOpen(true)} />
               <PortalSwitcher />
               <ThemeSelector />
               <NotificationCenter />

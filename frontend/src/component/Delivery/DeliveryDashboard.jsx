@@ -46,10 +46,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import ThemeSelector from "../context/ThemeSelector";
 import api from "../../services/api";
+import TourHelpButton from "../Shared/TourHelpButton";
+import TourAnchor from "../../tour/TourAnchor";
+import { useTour } from "../../tour/TourContext";
+import { DELIVERY_TOUR_STEPS } from "../../tour/tourSteps";
+
+const DELIVERY_TOUR_SEEN_KEY = "vtout_tour_delivery_seen";
 
 export default function DeliveryDashboard() {
     const { getToken } = useAuth();
     const { user: clerkUser } = useUser();
+    const { start: startTour } = useTour();
     const [availableOrders, setAvailableOrders] = useState([]);
     const [myOrders, setMyOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -95,6 +102,16 @@ export default function DeliveryDashboard() {
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tab]);
+
+    // Visite guidée : proposée une seule fois, une fois les données du premier onglet chargées.
+    useEffect(() => {
+        if (loading) return;
+        if (localStorage.getItem(DELIVERY_TOUR_SEEN_KEY)) return;
+        const t = setTimeout(() => startTour(DELIVERY_TOUR_STEPS), 600);
+        localStorage.setItem(DELIVERY_TOUR_SEEN_KEY, "true");
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading]);
 
     async function loadData() {
         if (abortControllerRef.current) {
@@ -460,6 +477,7 @@ export default function DeliveryDashboard() {
 
                 <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     <div className="flex items-center gap-2 mr-auto lg:mr-0">
+                        <TourHelpButton steps={DELIVERY_TOUR_STEPS} />
                         <ThemeSelector />
                         <PortalSwitcher />
                         <NotificationCenter />
@@ -494,51 +512,64 @@ export default function DeliveryDashboard() {
             {/* Tabs Layout */}
             <div className="bg-base-100 rounded-3xl md:rounded-[3rem] border border-base-content/10 shadow-2xl shadow-base-content/5 overflow-hidden">
                 <div className="flex border-b border-base-content/5 p-2 md:p-4 gap-2 md:gap-4 overflow-x-auto custom-scrollbar no-scrollbar">
+                    {/* Chaque bouton d'onglet garde ses classes de dimensionnement flex sur la
+                        <TourAnchor> (div wrapper) plutôt que sur le <button>, sinon il perd sa
+                        place dans le flex row du parent. */}
+                    <TourAnchor id="tour-delivery-available" className="flex-none min-w-[120px] md:flex-1">
                     <button
                         onClick={() => {
                             setTab("available");
                             if (tab === 'available') loadData();
                         }}
-                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'available' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
+                        className={`w-full py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'available' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
                     >
                         Disponibles ({availableOrders.length})
                     </button>
+                    </TourAnchor>
+                    <TourAnchor id="tour-delivery-active" className="flex-none min-w-[120px] md:flex-1">
                     <button
                         onClick={() => {
                             setTab("active");
                             if (tab === 'active') loadData();
                         }}
-                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'active' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
+                        className={`w-full py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'active' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
                     >
                         En cours ({activeOrders.length})
                     </button>
+                    </TourAnchor>
+                    <TourAnchor id="tour-delivery-history" className="flex-none min-w-[100px] md:flex-1">
                     <button
                         onClick={() => {
                             setTab("history");
                             if (tab === 'history') loadData();
                         }}
-                        className={`flex-none min-w-[100px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'history' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
+                        className={`w-full py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'history' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
                     >
                         Historique
                     </button>
+                    </TourAnchor>
+                    <TourAnchor id="tour-delivery-profile" className="flex-none min-w-[120px] md:flex-1">
                     <button
                         onClick={() => {
                             setTab("profile");
                             if (tab === 'profile') loadData();
                         }}
-                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
+                        className={`w-full py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'profile' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
                     >
                         ZONES & INFOS
                     </button>
+                    </TourAnchor>
+                    <TourAnchor id="tour-delivery-wallet" className="flex-none min-w-[120px] md:flex-1">
                     <button
                         onClick={() => {
                             setTab("wallet");
                             if (tab === 'wallet') loadData();
                         }}
-                        className={`flex-none min-w-[120px] md:flex-1 py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
+                        className={`w-full py-3 md:py-4 px-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all ${tab === 'wallet' ? 'bg-neutral text-neutral-content shadow-xl shadow-neutral/10' : 'text-base-content/40 hover:bg-base-200'}`}
                     >
                         PORTEFEUILLE
                     </button>
+                    </TourAnchor>
                 </div>
 
                 {/* Manual Refresh & Tab Re-fetch logic */}
