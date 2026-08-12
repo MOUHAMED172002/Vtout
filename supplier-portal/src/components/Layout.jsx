@@ -13,6 +13,10 @@ import ThemeSelector from './Shared/ThemeSelector';
 import PortalSwitcher from './Shared/PortalSwitcher';
 import LogoText from './Shared/LogoText';
 import ProfileReminderModal from './Shared/ProfileReminderModal';
+import TourHelpButton from './Shared/TourHelpButton';
+import TourAnchor from '../tour/TourAnchor';
+import { useTour } from '../tour/TourContext';
+import { SUPPLIER_TOUR_STEPS } from '../tour/tourSteps';
 
 
 
@@ -29,6 +33,19 @@ const navLinks = [
     { to: '/mes-litiges', icon: AlertCircle, label: 'Mes Litiges' },
     { to: '/conditions', icon: FileText, label: 'Conditions & Politiques' },
 ];
+
+// Ancres de la visite guidée (voir src/tour/tourSteps.js#SUPPLIER_TOUR_STEPS) —
+// seuls les liens couverts par une étape ont une entrée ici.
+const TOUR_ANCHOR_MAP = {
+    '/dashboard': 'tour-supplier-dashboard',
+    '/mes-boutiques': 'tour-supplier-boutiques',
+    '/mes-commandes': 'tour-supplier-orders',
+    '/mes-produits': 'tour-supplier-products',
+    '/portefeuille': 'tour-supplier-wallet',
+    '/badge-certifie': 'tour-supplier-badge',
+};
+
+const SUPPLIER_TOUR_SEEN_KEY = 'vtout_tour_supplier_seen';
 
 const Sidebar = ({ mobile, onClose }) => {
     const { user } = useUser();
@@ -99,23 +116,30 @@ const Sidebar = ({ mobile, onClose }) => {
             {/* Navigation */}
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/20 px-4 mb-3">Menu</p>
-                {navLinks.map(({ to, icon: Icon, label }) => (
-                    <NavLink
-                        key={to}
-                        to={to}
-                        onClick={onClose}
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group ${isActive
-                                ? 'bg-primary text-white shadow-xl shadow-primary/30'
-                                : 'text-white/50 hover:text-white hover:bg-white/5'
-                            }`
-                        }
-                    >
-                        <Icon size={18} />
-                        <span className="flex-1">{label}</span>
-                        <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </NavLink>
-                ))}
+                {navLinks.map(({ to, icon: Icon, label }) => {
+                    const anchorId = TOUR_ANCHOR_MAP[to];
+                    const link = (
+                        <NavLink
+                            to={to}
+                            onClick={onClose}
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group ${isActive
+                                    ? 'bg-primary text-white shadow-xl shadow-primary/30'
+                                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                                }`
+                            }
+                        >
+                            <Icon size={18} />
+                            <span className="flex-1">{label}</span>
+                            <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </NavLink>
+                    );
+                    return anchorId ? (
+                        <TourAnchor key={to} id={anchorId}>{link}</TourAnchor>
+                    ) : (
+                        <React.Fragment key={to}>{link}</React.Fragment>
+                    );
+                })}
             </nav>
 
             <div className="p-4 border-t border-white/5 space-y-2">
@@ -143,6 +167,21 @@ const Layout = ({ children }) => {
 
     const { getToken } = useAuth();
     const navigate = useNavigate();
+    const { start: startTour } = useTour();
+
+    // Visite guidée : proposée une seule fois, au premier accès à l'espace vendeur.
+    // On force le tiroir mobile ouvert (rendu seulement quand sidebarOpen est vrai)
+    // pour que les ancres du menu existent bien dans le DOM au démarrage.
+    useEffect(() => {
+        if (localStorage.getItem(SUPPLIER_TOUR_SEEN_KEY)) return;
+        const t = setTimeout(() => {
+            setSidebarOpen(true);
+            startTour(SUPPLIER_TOUR_STEPS);
+        }, 600);
+        localStorage.setItem(SUPPLIER_TOUR_SEEN_KEY, 'true');
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const fetchSupplierData = async () => {
@@ -292,6 +331,7 @@ const Layout = ({ children }) => {
                             </AnimatePresence>
                         </div>
 
+                        <TourHelpButton steps={SUPPLIER_TOUR_STEPS} onBeforeStart={() => setSidebarOpen(true)} />
                         <ThemeSelector />
                         <NotificationCenter />
                     </div>

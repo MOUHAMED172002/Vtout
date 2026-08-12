@@ -26,6 +26,10 @@ import HowItWorksVendeur from './pages/HowItWorksVendeur';
 import SupplierBadge from './pages/SupplierBadge';
 import SupplierBadgeSuccess from './pages/SupplierBadgeSuccess';
 
+// Visite guidée
+import { TourProvider } from './tour/TourContext';
+import TourOverlay from './tour/TourOverlay';
+
 // Role Blocker Modal
 const RoleBlockModal = ({ role }) => {
     const { signOut } = useAuth();
@@ -91,31 +95,34 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
     return (
-        <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<SupplierLanding />} />
-            <Route path="/comment-ca-marche" element={<HowItWorksVendeur />} />
-            <Route path="/connexion" element={<SupplierLogin />} />
-            <Route path="/inscription" element={<SupplierRegister />} />
+        <TourProvider>
+            <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<SupplierLanding />} />
+                <Route path="/comment-ca-marche" element={<HowItWorksVendeur />} />
+                <Route path="/connexion" element={<SupplierLogin />} />
+                <Route path="/inscription" element={<SupplierRegister />} />
 
-            {/* Protected Routes (inside Layout) */}
-            <Route path="/dashboard" element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />
-            <Route path="/mes-produits" element={<ProtectedRoute><SupplierProducts /></ProtectedRoute>} />
-            <Route path="/promotions" element={<ProtectedRoute><SupplierPromotions /></ProtectedRoute>} />
-            <Route path="/mes-commandes" element={<ProtectedRoute><SupplierOrders /></ProtectedRoute>} />
-            <Route path="/ajouter-produit" element={<ProtectedRoute><AddProductSupplier /></ProtectedRoute>} />
-            <Route path="/edit-product/:id" element={<ProtectedRoute><EditProductSupplier /></ProtectedRoute>} />
-            <Route path="/portefeuille" element={<ProtectedRoute><SupplierWallet /></ProtectedRoute>} />
-            <Route path="/statistiques" element={<ProtectedRoute><SupplierStats /></ProtectedRoute>} />
-            <Route path="/conditions" element={<ProtectedRoute><SupplierPolicies /></ProtectedRoute>} />
-            <Route path="/mes-boutiques" element={<ProtectedRoute><SupplierBoutiques /></ProtectedRoute>} />
-            <Route path="/mes-litiges" element={<ProtectedRoute><SupplierDisputes /></ProtectedRoute>} />
-            <Route path="/badge-certifie" element={<ProtectedRoute><SupplierBadge /></ProtectedRoute>} />
-            <Route path="/badge-certifie/success" element={<SupplierBadgeSuccess />} />
+                {/* Protected Routes (inside Layout) */}
+                <Route path="/dashboard" element={<ProtectedRoute><SupplierDashboard /></ProtectedRoute>} />
+                <Route path="/mes-produits" element={<ProtectedRoute><SupplierProducts /></ProtectedRoute>} />
+                <Route path="/promotions" element={<ProtectedRoute><SupplierPromotions /></ProtectedRoute>} />
+                <Route path="/mes-commandes" element={<ProtectedRoute><SupplierOrders /></ProtectedRoute>} />
+                <Route path="/ajouter-produit" element={<ProtectedRoute><AddProductSupplier /></ProtectedRoute>} />
+                <Route path="/edit-product/:id" element={<ProtectedRoute><EditProductSupplier /></ProtectedRoute>} />
+                <Route path="/portefeuille" element={<ProtectedRoute><SupplierWallet /></ProtectedRoute>} />
+                <Route path="/statistiques" element={<ProtectedRoute><SupplierStats /></ProtectedRoute>} />
+                <Route path="/conditions" element={<ProtectedRoute><SupplierPolicies /></ProtectedRoute>} />
+                <Route path="/mes-boutiques" element={<ProtectedRoute><SupplierBoutiques /></ProtectedRoute>} />
+                <Route path="/mes-litiges" element={<ProtectedRoute><SupplierDisputes /></ProtectedRoute>} />
+                <Route path="/badge-certifie" element={<ProtectedRoute><SupplierBadge /></ProtectedRoute>} />
+                <Route path="/badge-certifie/success" element={<SupplierBadgeSuccess />} />
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                {/* Catch-all */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <TourOverlay />
+        </TourProvider>
     );
 }
 
