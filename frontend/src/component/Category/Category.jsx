@@ -3,6 +3,7 @@ import { getCategories } from "../../services/productService";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import * as LucideIcons from "lucide-react";
+import TourAnchor from "../../tour/TourAnchor";
 
 export default function Category() {
   const [allCategories, setAllCategories] = useState([]);
@@ -52,7 +53,7 @@ export default function Category() {
   }
 
   return (
-    <div className="container mt-16 mb-0 px-4 max-w-7xl mx-auto overflow-hidden">
+    <TourAnchor id="tour-categories" className="container mt-16 mb-0 px-4 max-w-7xl mx-auto overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-2">
@@ -225,6 +226,6 @@ export default function Category() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,300&display=swap');
         .font-serif { font-family: 'Playfair Display', serif; }
       `}</style>
-    </div>
+    </TourAnchor>
   );
 }

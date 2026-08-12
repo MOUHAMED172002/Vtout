@@ -26,6 +26,9 @@ import { useAppConfig } from "../context/ConfigContext";
 import logo from "../../assets/brand/vtout-logo.png";
 import ThemeSelector from "../context/ThemeSelector";
 import EmailVerificationBanner from "../Shared/EmailVerificationBanner";
+import TourHelpButton from "../Shared/TourHelpButton";
+import TourAnchor from "../../tour/TourAnchor";
+import { HOME_TOUR_STEPS } from "../../tour/tourSteps";
 
 
 import PortalSwitcher from "../Shared/PortalSwitcher";
@@ -124,12 +127,13 @@ export default function Navbar() {
             <div className="h-6 w-px bg-base-300"></div>
 
             <div className="flex items-center gap-6">
+              {location.pathname === '/' && <TourHelpButton steps={HOME_TOUR_STEPS} />}
               <PortalSwitcher />
               <ThemeSelector />
-              <SearchBar />
-              <CartIcon />
+              <TourAnchor id="tour-search"><SearchBar /></TourAnchor>
+              <TourAnchor id="tour-cart"><CartIcon /></TourAnchor>
               <SignedIn>
-                <div className="flex items-center gap-4 pl-2">
+                <TourAnchor id="tour-dashboard" className="flex items-center gap-4 pl-2">
                   <Link
                     to={isAdmin ? "/admin/dashboard" : "/user/dashboard"}
                     className="text-sm font-black text-base-content hover:text-primary transition-colors flex items-center gap-2"
@@ -139,7 +143,7 @@ export default function Navbar() {
                   </Link>
 
                   <UserButton afterSignOutUrl="/" />
-                </div>
+                </TourAnchor>
               </SignedIn>
               <SignedOut>
                 <button
@@ -154,8 +158,8 @@ export default function Navbar() {
 
           {/* Mobile Right Controls */}
           <div className="flex lg:hidden items-center gap-4">
-            <SearchBar />
-            <CartIcon />
+            <TourAnchor id="tour-search"><SearchBar /></TourAnchor>
+            <TourAnchor id="tour-cart"><CartIcon /></TourAnchor>
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 text-base-content"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useClerk } from "../../lib/AuthHooks";
 import {
@@ -25,6 +25,10 @@ import ThemeSelector from "../context/ThemeSelector";
 import avartar from "../../assets/avatar-placeholder.png";
 import { motion, AnimatePresence } from "framer-motion";
 import PortalSwitcher from "../Shared/PortalSwitcher";
+import TourHelpButton from "../Shared/TourHelpButton";
+import TourAnchor from "../../tour/TourAnchor";
+import { useTour } from "../../tour/TourContext";
+import { DASHBOARD_TOUR_STEPS } from "../../tour/tourSteps";
 
 const NAV_ITEMS = [
   { to: "/user/dashboard", label: "Aperçu", icon: <BarChart3 size={18} /> },
@@ -37,12 +41,35 @@ const NAV_ITEMS = [
   { to: "/user/dashboard/settings", label: "Paramètres", icon: <Settings size={18} /> },
 ];
 
+// Ancres de la visite guidée (voir src/tour/tourSteps.js#DASHBOARD_TOUR_STEPS) —
+// seuls les items couverts par une étape ont une entrée ici.
+const TOUR_ANCHOR_MAP = {
+  "/user/dashboard": "tour-dash-overview",
+  "/user/dashboard/orders": "tour-dash-orders",
+  "/user/dashboard/favorites": "tour-dash-favorites",
+  "/user/dashboard/addresses": "tour-dash-addresses",
+  "/user/dashboard/settings": "tour-dash-settings",
+};
+
+const DASHBOARD_TOUR_SEEN_KEY = "vtout_tour_dashboard_seen";
+
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut: clerkSignOut } = useClerk();
   const { user, loading } = useProfile();
+  const { start: startTour } = useTour();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Visite guidée : proposée une seule fois, au premier accès à l'espace client.
+  useEffect(() => {
+    if (loading) return;
+    if (localStorage.getItem(DASHBOARD_TOUR_SEEN_KEY)) return;
+    const t = setTimeout(() => startTour(DASHBOARD_TOUR_STEPS), 600);
+    localStorage.setItem(DASHBOARD_TOUR_SEEN_KEY, "true");
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   async function signOut() {
     try {
@@ -78,9 +105,9 @@ export default function DashboardLayout() {
           <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-base-content/40 mb-4">Compte Client</p>
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.to;
-            return (
+            const anchorId = TOUR_ANCHOR_MAP[item.to];
+            const link = (
               <Link
-                key={item.to}
                 to={item.to}
                 className={`relative flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all duration-300 group ${isActive
                   ? "bg-neutral text-neutral-content shadow-xl shadow-neutral/10"
@@ -100,6 +127,11 @@ export default function DashboardLayout() {
                   </motion.div>
                 )}
               </Link>
+            );
+            return anchorId ? (
+              <TourAnchor key={item.to} id={anchorId}>{link}</TourAnchor>
+            ) : (
+              <React.Fragment key={item.to}>{link}</React.Fragment>
             );
           })}
 
@@ -156,6 +188,7 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-2 md:gap-8">
 
             <div className="flex items-center gap-2">
+              <TourHelpButton steps={DASHBOARD_TOUR_STEPS} />
               <ThemeSelector />
               <PortalSwitcher />
               <NotificationCenter />
@@ -239,9 +272,9 @@ export default function DashboardLayout() {
               <div className="flex-1 p-6 space-y-2 overflow-y-auto">
                 {NAV_ITEMS.map((item) => {
                   const isActive = location.pathname === item.to;
-                  return (
+                  const anchorId = TOUR_ANCHOR_MAP[item.to];
+                  const link = (
                     <Link
-                      key={item.to}
                       to={item.to}
                       onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center gap-4 px-6 py-5 rounded-2xl font-bold transition-all ${isActive
@@ -254,6 +287,11 @@ export default function DashboardLayout() {
                       </div>
                       <span className="text-sm">{item.label}</span>
                     </Link>
+                  );
+                  return anchorId ? (
+                    <TourAnchor key={item.to} id={anchorId}>{link}</TourAnchor>
+                  ) : (
+                    <React.Fragment key={item.to}>{link}</React.Fragment>
                   );
                 })}
               </div>

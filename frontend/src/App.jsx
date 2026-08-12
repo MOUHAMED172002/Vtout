@@ -38,6 +38,11 @@ import CookieConsent from './component/Shared/CookieConsent';
 import SupportChat from './component/Shared/SupportChat';
 import SupplierBlockModal from './component/Shared/SupplierBlockModal';
 import EmailVerificationBanner from './component/Shared/EmailVerificationBanner';
+import { TourProvider, useTour } from './tour/TourContext';
+import TourOverlay from './tour/TourOverlay';
+import { HOME_TOUR_STEPS } from './tour/tourSteps';
+
+const HOME_TOUR_SEEN_KEY = 'vtout_tour_home_seen';
 
 
 
@@ -91,6 +96,7 @@ const AppContent = ({ products, loading }) => {
   const location = useLocation();
   const { user: profileUser, loading: profileLoading } = useProfile();
   const { signOut } = useAuth();
+  const { start: startTour } = useTour();
   const [showSupplierModal, setShowSupplierModal] = useState(false);
 
   useEffect(() => {
@@ -147,6 +153,17 @@ const AppContent = ({ products, loading }) => {
   };
 
   const Home = () => {
+    // Visite guidée : proposée une seule fois par navigateur, une fois les produits chargés
+    // (miroir de l'auto-démarrage sur src/screens/HomeScreen.js côté mobile).
+    useEffect(() => {
+      if (loading) return;
+      if (localStorage.getItem(HOME_TOUR_SEEN_KEY)) return;
+      const t = setTimeout(() => startTour(HOME_TOUR_STEPS), 600);
+      localStorage.setItem(HOME_TOUR_SEEN_KEY, 'true');
+      return () => clearTimeout(t);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading]);
+
     return (
       <>
         <Navbar />
@@ -308,11 +325,14 @@ const App = () => {
   }, []);
 
   return (
-    <div className="app-container">
-      <ScrollToTop />
-      <AppContent products={products} loading={loading} />
-      <SupportChat />
-    </div>
+    <TourProvider>
+      <div className="app-container">
+        <ScrollToTop />
+        <AppContent products={products} loading={loading} />
+        <SupportChat />
+        <TourOverlay />
+      </div>
+    </TourProvider>
   );
 };
 
