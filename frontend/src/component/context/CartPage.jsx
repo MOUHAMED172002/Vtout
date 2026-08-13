@@ -6,6 +6,7 @@ import { Trash2, Plus, Minus, ArrowRight, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import EmptyState from "../Shared/EmptyState";
+import TourAnchor from "../../tour/TourAnchor";
 
 export default function CartPage() {
   const { cart: displayCart, loading, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -177,13 +178,18 @@ export default function CartPage() {
             </div>
 
             {displayCart.length === 0 ? (
-              <EmptyState
-                type="cart"
-                title="Votre panier est vide"
-                description="Parcourez notre collection et trouvez votre bonheur dès aujourd'hui."
-                actionLabel="Continuer vos achats"
-                actionLink="/products-liste"
-              />
+              // Même ancre que le bouton "Passer à la caisse" ci-dessous : la visite
+              // guidée (HOME_TOUR_STEPS, étape "Passez votre commande") a toujours
+              // quelque chose à montrer sur cette page, panier vide ou non.
+              <TourAnchor id="tour-cart-checkout">
+                <EmptyState
+                  type="cart"
+                  title="Votre panier est vide"
+                  description="Parcourez notre collection et trouvez votre bonheur dès aujourd'hui."
+                  actionLabel="Continuer vos achats"
+                  actionLink="/products-liste"
+                />
+              </TourAnchor>
             ) : (
               <div className="space-y-6">
                 <div className="flex items-center gap-4 px-6 py-4 bg-base-100 rounded-3xl border border-gray-100 shadow-sm">
@@ -355,12 +361,14 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full btn btn-primary rounded-2xl h-16 font-black text-lg shadow-xl shadow-primary/20 gap-3 group"
-                  >
-                    Passer à la caisse <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-                  </button>
+                  <TourAnchor id="tour-cart-checkout">
+                    <button
+                      onClick={handleCheckout}
+                      className="w-full btn btn-primary rounded-2xl h-16 font-black text-lg shadow-xl shadow-primary/20 gap-3 group"
+                    >
+                      Passer à la caisse <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                    </button>
+                  </TourAnchor>
                 </div>
 
                 <div className="bg-base-100 p-8 rounded-3xl border border-gray-100 space-y-4 shadow-sm">

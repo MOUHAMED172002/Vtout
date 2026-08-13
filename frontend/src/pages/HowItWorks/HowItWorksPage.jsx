@@ -9,6 +9,7 @@ import {
   ArrowRight, ChevronRight, Megaphone, MessageCircle, Eye,
   Share2, Gift, Ticket, Percent, Tag, Sparkles
 } from 'lucide-react';
+import TourAnchor from '../../tour/TourAnchor';
 
 const SUPPLIER_URL = import.meta.env.VITE_SUPPLIER_PORTAL_URL || 'https://vendeur.vtout.com';
 
@@ -200,29 +201,33 @@ export default function HowItWorksPage() {
       <section className="py-14 max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {active.steps.map((step, i) => (
-            <motion.div
-              key={step.num}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="relative bg-base-100 rounded-3xl p-7 border border-base-200 shadow-sm hover:shadow-xl hover:border-base-300 transition-all duration-400 group"
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div className={`w-11 h-11 rounded-2xl ${active.bgColor} ${active.textColor} flex items-center justify-center`}>
-                  {step.icon}
+            // Ancre "tour-howitworks-step-{num}" : la visite guidée acheteur
+            // (HOME_TOUR_STEPS) navigue jusqu'ici pour circler les étapes 4/5/6
+            // (livraison, réception, avis) directement sur cette page.
+            <TourAnchor key={step.num} id={`tour-howitworks-step-${step.num}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 }}
+                className="relative bg-base-100 rounded-3xl p-7 border border-base-200 shadow-sm hover:shadow-xl hover:border-base-300 transition-all duration-400 group"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <div className={`w-11 h-11 rounded-2xl ${active.bgColor} ${active.textColor} flex items-center justify-center`}>
+                    {step.icon}
+                  </div>
+                  <span className={`text-4xl font-black ${active.textColor} opacity-15 group-hover:opacity-30 transition-opacity`}>
+                    {String(step.num).padStart(2, '0')}
+                  </span>
                 </div>
-                <span className={`text-4xl font-black ${active.textColor} opacity-15 group-hover:opacity-30 transition-opacity`}>
-                  {String(step.num).padStart(2, '0')}
-                </span>
-              </div>
-              <h3 className="text-lg font-black text-base-content mb-2 tracking-tight">{step.title}</h3>
-              <p className="text-base-content/50 font-medium leading-relaxed text-sm">{step.desc}</p>
-              {i < active.steps.length - 1 && (i + 1) % 3 !== 0 && (
-                <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                  <ChevronRight size={18} className="text-base-content/20" />
-                </div>
-              )}
-            </motion.div>
+                <h3 className="text-lg font-black text-base-content mb-2 tracking-tight">{step.title}</h3>
+                <p className="text-base-content/50 font-medium leading-relaxed text-sm">{step.desc}</p>
+                {i < active.steps.length - 1 && (i + 1) % 3 !== 0 && (
+                  <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                    <ChevronRight size={18} className="text-base-content/20" />
+                  </div>
+                )}
+              </motion.div>
+            </TourAnchor>
           ))}
         </div>
       </section>

@@ -3,19 +3,21 @@
 // DashboardLayout.jsx...), un titre et une description courte affichés dans l'infobulle.
 
 // Le parcours acheteur reprend le même déroulé que la page "Comment ça marche"
-// (frontend/src/pages/HowItWorks/HowItWorksPage.jsx#userTypes.acheteur.steps) —
-// même histoire, mais racontée en contexte sur les vrais éléments de l'interface.
-// Les étapes sans `target` (paiement, livraison, réception, avis) n'ont pas
-// d'élément visible à cet instant : elles s'affichent en carte centrée, sans
-// découpe — voir TourOverlay.jsx pour ce comportement.
+// (frontend/src/pages/HowItWorks/HowItWorksPage.jsx#userTypes.acheteur.steps).
+// Les 3 premières étapes restent sur l'accueil ; les suivantes changent
+// réellement de page (`route`) pour montrer le vrai panier puis la page
+// "Comment ça marche" elle-même (dont chaque carte porte sa propre ancre,
+// voir HowItWorksPage.jsx) — la visite se termine sur la page qu'elle vient
+// de visiter, le Navbar (et son ancre "tour-dashboard") y étant toujours
+// présent, pas besoin de revenir à l'accueil.
 export const HOME_TOUR_STEPS = [
   { target: 'tour-search', icon: 'Search', title: 'Explorez les produits', description: 'Parcourez des milliers de produits de vendeurs vérifiés partout au Bénin — la recherche vous aide à trouver vite ce qu’il vous faut.' },
   { target: 'tour-categories', icon: 'Search', title: 'Filtrez par catégorie', description: 'Explorez les rayons et filtrez par catégorie, prix ou ville pour affiner votre recherche.' },
   { target: 'tour-cart', icon: 'ShoppingBag', title: 'Ajoutez au panier', description: 'Sélectionnez vos articles, choisissez la quantité et ajoutez-les à votre panier en un clic.' },
-  { icon: 'CreditCard', title: 'Passez votre commande', description: 'Renseignez votre adresse de livraison et confirmez — paiement à la réception, aucun risque.' },
-  { icon: 'Truck', title: 'Suivez votre livraison', description: 'Un livreur prend en charge votre commande. Vous recevez des notifications WhatsApp à chaque étape, avec suivi en temps réel.' },
-  { icon: 'Package', title: 'Recevez votre colis', description: 'Votre commande arrive à votre porte. Vérifiez le contenu avant de payer — satisfaction garantie.' },
-  { icon: 'Star', title: 'Donnez votre avis', description: 'Notez le vendeur et le produit pour aider la communauté. Vos retours améliorent la plateforme.' },
+  { route: '/cartpage', target: 'tour-cart-checkout', icon: 'CreditCard', title: 'Passez votre commande', description: 'Renseignez votre adresse de livraison et confirmez — paiement à la réception, aucun risque.' },
+  { route: '/comment-ca-marche/acheteur', target: 'tour-howitworks-step-4', icon: 'Truck', title: 'Suivez votre livraison', description: 'Un livreur prend en charge votre commande. Vous recevez des notifications WhatsApp à chaque étape, avec suivi en temps réel.' },
+  { route: '/comment-ca-marche/acheteur', target: 'tour-howitworks-step-5', icon: 'Package', title: 'Recevez votre colis', description: 'Votre commande arrive à votre porte. Vérifiez le contenu avant de payer — satisfaction garantie.' },
+  { route: '/comment-ca-marche/acheteur', target: 'tour-howitworks-step-6', icon: 'Star', title: 'Donnez votre avis', description: 'Notez le vendeur et le produit pour aider la communauté. Vos retours améliorent la plateforme.' },
   { target: 'tour-dashboard', title: 'Votre espace', description: 'Retrouvez ici, à tout moment, toutes vos commandes, vos favoris, vos adresses et vos paramètres.' },
 ];
 

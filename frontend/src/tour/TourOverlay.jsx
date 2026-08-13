@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X, ArrowRight, Search, ShoppingBag, CreditCard, Truck, Package, Star, Bell, Navigation, Wallet, UserCheck } from 'lucide-react';
 import { useTour } from './TourContext';
 
 const PAD = 8;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Icônes optionnelles pour illustrer une étape (voir HOME_TOUR_STEPS /
 // DELIVERY_TOUR_STEPS) — utilisées aussi bien sur des étapes ancrées que sur
@@ -15,51 +17,74 @@ const STEP_ICONS = { Search, ShoppingBag, CreditCard, Truck, Package, Star, Bell
  * (mask) autour de la cible courante + infobulle titre/description/navigation.
  * Rendu via un portail dans document.body pour ignorer les `overflow-hidden` /
  * transformations CSS des conteneurs ancêtres (App.jsx a overflow-hidden).
+ *
+ * Une étape peut porter `route` : si elle diffère de la page courante, on y
+ * navigue avant de chercher sa cible — la visite peut ainsi traverser
+ * plusieurs pages réelles (ex. panier → "Comment ça marche") au lieu de tout
+ * expliquer depuis l'accueil.
  */
 export default function TourOverlay() {
   const { tour, next, stop, getAnchorEl } = useTour();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [rect, setRect] = useState(null);
-  const skippedRef = useRef(new Set());
   const rafRef = useRef(null);
+  const runIdRef = useRef(0);
 
   const step = tour?.steps?.[tour.index] || null;
 
   const measure = useCallback(() => {
-    // Une étape sans `target` est volontairement une carte "récit" centrée, sans
-    // découpe — pas d'ancre à chercher (voir HOME_TOUR_STEPS pour des exemples :
-    // paiement, livraison... des moments du parcours qui n'ont pas d'élément
-    // visible sur la page à cet instant).
-    if (!step || !step.target) { setRect(null); return; }
+    if (!step || !step.target) return;
     const el = getAnchorEl(step.target);
-    if (!el) { setRect(null); return; }
+    if (!el) return;
     const r = el.getBoundingClientRect();
     setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
   }, [step, getAnchorEl]);
 
-  // Nouvelle étape : on retente la mesure (et on scrolle la cible en vue si besoin).
+  // Nouvelle étape : navigue vers sa page si besoin, puis cherche sa cible avec
+  // quelques tentatives (le temps que la nouvelle page se monte), et saute
+  // l'étape si rien n'apparaît. Une étape sans `target` est volontairement une
+  // carte "récit" centrée : pas d'ancre à chercher, jamais sautée (voir
+  // HOME_TOUR_STEPS pour des exemples : paiement, livraison...).
   useEffect(() => {
-    if (!step) return undefined;
-    if (!step.target) { setRect(null); return undefined; }
-    skippedRef.current.delete(step.target);
-    const el = getAnchorEl(step.target);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const t = setTimeout(measure, el ? 350 : 0);
-    return () => clearTimeout(t);
+    // Incrémenté en premier, inconditionnellement : invalide toute exécution
+    // précédente encore en vol (y compris quand la nouvelle étape est nulle,
+    // ex. fin de la visite), sans avoir besoin d'une fonction de nettoyage.
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+    const cancelled = () => runId !== runIdRef.current;
+    setRect(null);
+    if (!step) return;
+
+    (async () => {
+      if (step.route && location.pathname !== step.route) {
+        navigate(step.route);
+        await wait(500); // laisse le temps à la nouvelle page de se monter
+      }
+      if (cancelled()) return;
+      if (!step.target) return; // carte centrée, rien à mesurer
+
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (cancelled()) return;
+        const el = getAnchorEl(step.target);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          await wait(350);
+          if (cancelled()) return;
+          const r = el.getBoundingClientRect();
+          setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+          return;
+        }
+        await wait(150);
+      }
+      // Cible introuvable après plusieurs tentatives (ex. panier vide sans
+      // bouton de commande) : on saute l'étape plutôt que de rester bloqué.
+      if (!cancelled()) next();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tour?.index, step?.target]);
+  }, [tour?.index, step?.target, step?.route]);
 
-  // Cible introuvable / non visible à cette résolution (ex. desktop-only à cet id) :
-  // on saute l'étape une seule fois pour ne pas boucler indéfiniment. Une étape
-  // sans `target` n'est jamais sautée : c'est son état normal (carte centrée).
-  useEffect(() => {
-    if (!step || !step.target || rect) return undefined;
-    if (skippedRef.current.has(step.target)) return undefined;
-    if (getAnchorEl(step.target)) return undefined; // trouvé, measure() va suivre
-    skippedRef.current.add(step.target);
-    const t = setTimeout(() => next(), 50);
-    return () => clearTimeout(t);
-  }, [step, rect, getAnchorEl, next]);
-
+  // Le calque reste ouvert : garde le spot aligné si la page défile/se redimensionne.
   useEffect(() => {
     if (!tour) return undefined;
     const onChange = () => {
