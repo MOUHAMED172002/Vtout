@@ -2,11 +2,21 @@
 // Chaque étape référence l'id d'une <TourAnchor> (voir Navbar.jsx, Category.jsx,
 // DashboardLayout.jsx...), un titre et une description courte affichés dans l'infobulle.
 
+// Le parcours acheteur reprend le même déroulé que la page "Comment ça marche"
+// (frontend/src/pages/HowItWorks/HowItWorksPage.jsx#userTypes.acheteur.steps) —
+// même histoire, mais racontée en contexte sur les vrais éléments de l'interface.
+// Les étapes sans `target` (paiement, livraison, réception, avis) n'ont pas
+// d'élément visible à cet instant : elles s'affichent en carte centrée, sans
+// découpe — voir TourOverlay.jsx pour ce comportement.
 export const HOME_TOUR_STEPS = [
-  { target: 'tour-search', title: 'Recherchez vos produits', description: 'Trouvez rapidement ce que vous cherchez grâce à la barre de recherche.' },
-  { target: 'tour-categories', title: 'Parcourez les catégories', description: 'Explorez les rayons pour découvrir tous les produits vendus sur Vtout.' },
-  { target: 'tour-cart', title: 'Votre panier', description: 'Retrouvez ici les articles ajoutés avant de passer commande.' },
-  { target: 'tour-dashboard', title: 'Votre espace', description: 'Accédez à vos commandes, favoris, adresses et paramètres depuis votre tableau de bord.' },
+  { target: 'tour-search', icon: 'Search', title: 'Explorez les produits', description: 'Parcourez des milliers de produits de vendeurs vérifiés partout au Bénin — la recherche vous aide à trouver vite ce qu’il vous faut.' },
+  { target: 'tour-categories', icon: 'Search', title: 'Filtrez par catégorie', description: 'Explorez les rayons et filtrez par catégorie, prix ou ville pour affiner votre recherche.' },
+  { target: 'tour-cart', icon: 'ShoppingBag', title: 'Ajoutez au panier', description: 'Sélectionnez vos articles, choisissez la quantité et ajoutez-les à votre panier en un clic.' },
+  { icon: 'CreditCard', title: 'Passez votre commande', description: 'Renseignez votre adresse de livraison et confirmez — paiement à la réception, aucun risque.' },
+  { icon: 'Truck', title: 'Suivez votre livraison', description: 'Un livreur prend en charge votre commande. Vous recevez des notifications WhatsApp à chaque étape, avec suivi en temps réel.' },
+  { icon: 'Package', title: 'Recevez votre colis', description: 'Votre commande arrive à votre porte. Vérifiez le contenu avant de payer — satisfaction garantie.' },
+  { icon: 'Star', title: 'Donnez votre avis', description: 'Notez le vendeur et le produit pour aider la communauté. Vos retours améliorent la plateforme.' },
+  { target: 'tour-dashboard', title: 'Votre espace', description: 'Retrouvez ici, à tout moment, toutes vos commandes, vos favoris, vos adresses et vos paramètres.' },
 ];
 
 export const DASHBOARD_TOUR_STEPS = [
