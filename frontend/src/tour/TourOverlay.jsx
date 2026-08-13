@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ArrowRight, Search, ShoppingBag, CreditCard, Truck, Package, Star } from 'lucide-react';
+import { X, ArrowRight, Search, ShoppingBag, CreditCard, Truck, Package, Star, Bell, Navigation, Wallet, UserCheck } from 'lucide-react';
 import { useTour } from './TourContext';
 
 const PAD = 8;
 
-// Icônes optionnelles pour les étapes "récit" sans cible DOM (voir plus bas) —
-// un step peut porter `icon: 'CreditCard'` par ex. pour illustrer sa carte centrée.
-const STEP_ICONS = { Search, ShoppingBag, CreditCard, Truck, Package, Star };
+// Icônes optionnelles pour illustrer une étape (voir HOME_TOUR_STEPS /
+// DELIVERY_TOUR_STEPS) — utilisées aussi bien sur des étapes ancrées que sur
+// les étapes "récit" sans cible DOM.
+const STEP_ICONS = { Search, ShoppingBag, CreditCard, Truck, Package, Star, Bell, Navigation, Wallet, UserCheck };
 
 /**
  * Calque plein écran de la visite guidée : fond assombri avec une découpe SVG

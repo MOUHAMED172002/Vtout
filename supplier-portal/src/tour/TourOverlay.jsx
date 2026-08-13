@@ -1,15 +1,20 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Store, Upload, Bell, Send, DollarSign, BarChart3, BadgeCheck } from 'lucide-react';
 import { useTour } from './TourContext';
 
 const PAD = 8;
+
+// Icônes optionnelles pour illustrer une étape (voir SUPPLIER_TOUR_STEPS) —
+// utilisées aussi bien sur des étapes ancrées que sur les étapes "récit" sans
+// cible DOM (ex. « Remettez au livreur », une action physique sans écran).
+const STEP_ICONS = { Store, Upload, Bell, Send, DollarSign, BarChart3, BadgeCheck };
 
 /**
  * Calque plein écran de la visite guidée : fond assombri avec une découpe SVG
  * (mask) autour de la cible courante + infobulle titre/description/navigation.
  * Rendu via un portail dans document.body pour ignorer les `overflow-hidden` /
- * transformations CSS des conteneurs ancêtres (App.jsx a overflow-hidden).
+ * transformations CSS des conteneurs ancêtres.
  */
 export default function TourOverlay() {
   const { tour, next, stop, getAnchorEl } = useTour();
@@ -20,7 +25,11 @@ export default function TourOverlay() {
   const step = tour?.steps?.[tour.index] || null;
 
   const measure = useCallback(() => {
-    if (!step) { setRect(null); return; }
+    // Une étape sans `target` est volontairement une carte "récit" centrée, sans
+    // découpe — pas d'ancre à chercher (voir SUPPLIER_TOUR_STEPS pour un
+    // exemple : « Remettez au livreur », un moment du parcours qui n'a pas
+    // d'élément visible sur le portail à cet instant).
+    if (!step || !step.target) { setRect(null); return; }
     const el = getAnchorEl(step.target);
     if (!el) { setRect(null); return; }
     const r = el.getBoundingClientRect();
@@ -30,6 +39,7 @@ export default function TourOverlay() {
   // Nouvelle étape : on retente la mesure (et on scrolle la cible en vue si besoin).
   useEffect(() => {
     if (!step) return undefined;
+    if (!step.target) { setRect(null); return undefined; }
     skippedRef.current.delete(step.target);
     const el = getAnchorEl(step.target);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -39,9 +49,10 @@ export default function TourOverlay() {
   }, [tour?.index, step?.target]);
 
   // Cible introuvable / non visible à cette résolution (ex. desktop-only à cet id) :
-  // on saute l'étape une seule fois pour ne pas boucler indéfiniment.
+  // on saute l'étape une seule fois pour ne pas boucler indéfiniment. Une étape
+  // sans `target` n'est jamais sautée : c'est son état normal (carte centrée).
   useEffect(() => {
-    if (!step || rect) return undefined;
+    if (!step || !step.target || rect) return undefined;
     if (skippedRef.current.has(step.target)) return undefined;
     if (getAnchorEl(step.target)) return undefined; // trouvé, measure() va suivre
     skippedRef.current.add(step.target);
@@ -114,6 +125,11 @@ export default function TourOverlay() {
             <X size={16} />
           </button>
         </div>
+        {step.icon && STEP_ICONS[step.icon] && (
+          <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+            {React.createElement(STEP_ICONS[step.icon], { size: 20 })}
+          </div>
+        )}
         <h3 className="font-black text-base mb-1">{step.title}</h3>
         <p className="text-sm text-base-content/70 mb-4">{step.description}</p>
         <div className="flex items-center justify-between gap-3">

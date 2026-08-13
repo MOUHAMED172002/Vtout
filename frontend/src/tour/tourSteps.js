@@ -36,10 +36,15 @@ export const ADMIN_TOUR_STEPS = [
   { target: 'tour-admin-utilisateurs', title: 'Utilisateurs', description: "Gérez l'ensemble des comptes clients de la plateforme." },
 ];
 
+// Même principe que HOME_TOUR_STEPS : reprend le déroulé de la page "Comment ça
+// marche" pour les livreurs (userTypes.livreur.steps) — inscription, missions,
+// récupération/livraison, paiement. Ici les 5 étapes ont toutes un élément
+// visible sur le tableau de bord (contrairement à l'acheteur), donc pas besoin
+// d'étape "récit" sans target.
 export const DELIVERY_TOUR_STEPS = [
-  { target: 'tour-delivery-available', title: 'Commandes disponibles', description: 'Les livraisons à prendre en charge dans votre zone apparaissent ici.' },
-  { target: 'tour-delivery-active', title: 'En cours', description: 'Suivez vos livraisons en cours et confirmez-les avec le code client.' },
+  { target: 'tour-delivery-profile', icon: 'UserCheck', title: 'Vos zones & infos', description: 'Votre profil livreur est actif — gérez vos zones de service et vos informations ici, comme lors de votre inscription.' },
+  { target: 'tour-delivery-available', icon: 'Bell', title: 'Recevez des missions', description: "Dès qu'une commande est disponible dans votre zone, elle apparaît ici. Acceptez selon vos disponibilités." },
+  { target: 'tour-delivery-active', icon: 'Navigation', title: 'Récupérez & livrez', description: 'Rendez-vous chez le vendeur pour récupérer le colis, livrez-le au client, puis confirmez avec son code de livraison.' },
+  { target: 'tour-delivery-wallet', icon: 'Wallet', title: 'Soyez payé', description: 'Vos gains sont automatiquement crédités ici après chaque livraison réussie — demandez un retrait à tout moment.' },
   { target: 'tour-delivery-history', title: 'Historique', description: 'Retrouvez toutes vos livraisons terminées.' },
-  { target: 'tour-delivery-profile', title: 'Zones & infos', description: 'Gérez vos zones de service et les informations de votre profil livreur.' },
-  { target: 'tour-delivery-wallet', title: 'Portefeuille', description: 'Vos gains sont crédités ici après chaque livraison réussie — demandez un retrait à tout moment.' },
 ];
