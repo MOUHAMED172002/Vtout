@@ -130,8 +130,8 @@ export default function Navbar() {
               {location.pathname === '/' && <TourHelpButton steps={HOME_TOUR_STEPS} />}
               <PortalSwitcher />
               <ThemeSelector />
-              <TourAnchor id="tour-search"><SearchBar /></TourAnchor>
-              <TourAnchor id="tour-cart"><CartIcon /></TourAnchor>
+              <TourAnchor id="tour-search" className="flex items-center"><SearchBar /></TourAnchor>
+              <TourAnchor id="tour-cart" className="flex items-center"><CartIcon /></TourAnchor>
               <SignedIn>
                 <TourAnchor id="tour-dashboard" className="flex items-center gap-4 pl-2">
                   <Link
@@ -158,8 +158,8 @@ export default function Navbar() {
 
           {/* Mobile Right Controls */}
           <div className="flex lg:hidden items-center gap-4">
-            <TourAnchor id="tour-search"><SearchBar /></TourAnchor>
-            <TourAnchor id="tour-cart"><CartIcon /></TourAnchor>
+            <TourAnchor id="tour-search" className="flex items-center"><SearchBar /></TourAnchor>
+            <TourAnchor id="tour-cart" className="flex items-center"><CartIcon /></TourAnchor>
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 text-base-content"
