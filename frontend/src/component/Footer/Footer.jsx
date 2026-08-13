@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Instagram, Facebook, MapPin, Phone, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAppConfig } from '../context/ConfigContext';
 import { FaTiktok, FaWhatsapp } from 'react-icons/fa';
 import LogoText from '../Shared/LogoText';
 import { getPolicies } from '../../services/contentService';
+import { useTour } from '../../tour/TourContext';
+import { HOME_TOUR_STEPS } from '../../tour/tourSteps';
 
 const FooterLinks = [
     { title: "Accueil", link: "/" },
@@ -20,6 +22,7 @@ const FooterLinks = [
 const FooterNav = [
     { title: "Blog", link: "/mag" },
     { title: "Supports", link: "/#" },
+    { title: "Revoir la visite guidée", link: "/#tour" },
     { title: "FAQ", link: "/Faq" },
     { title: "Témoignages", link: "/temoignages" },
 
@@ -30,6 +33,21 @@ const Footer = () => {
     const { getConfig } = useAppConfig();
     const appName = getConfig('APP_NAME', 'VTOUT');
     const [policyLinks, setPolicyLinks] = useState([]);
+    const { start: startTour } = useTour();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Relance la visite guidée du site principal — si on n'est pas sur l'accueil
+    // (seul endroit où toutes les cibles existent, ex. les catégories), on y
+    // navigue d'abord puis on démarre une fois la page installée.
+    const handleReplayTour = () => {
+        if (location.pathname !== '/') {
+            navigate('/');
+            setTimeout(() => startTour(HOME_TOUR_STEPS), 600);
+        } else {
+            startTour(HOME_TOUR_STEPS);
+        }
+    };
 
     useEffect(() => {
         const fetchPolicies = async () => {
@@ -137,6 +155,14 @@ const Footer = () => {
                                     {data.title === "Supports" ? (
                                         <button
                                             onClick={() => window.dispatchEvent(new Event('open-support-chat'))}
+                                            className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group"
+                                        >
+                                            <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                                            {data.title}
+                                        </button>
+                                    ) : data.title === "Revoir la visite guidée" ? (
+                                        <button
+                                            onClick={handleReplayTour}
                                             className="text-base-content/80 font-bold hover:text-primary transition-colors flex items-center gap-2 group"
                                         >
                                             <ArrowRight size={14} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
