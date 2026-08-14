@@ -85,6 +85,7 @@ import SupplierStorePage from './pages/Supplier/SupplierStorePage';
 import DeliveryRoutes from './component/Delivery/DeliveryRoutes';
 import DevenirLivreur from './component/Delivery/DevenirLivreur';
 import DevenirLivreurLanding from './component/Delivery/DevenirLivreurLanding';
+import DevenirAnnonceurLanding from './component/User/DevenirAnnonceurLanding';
 import { useProfile } from './component/context/useProfile';
 
 // --- Supplier ---
@@ -265,6 +266,7 @@ const AppContent = ({ products, loading }) => {
           <Route path="/mentions-legales" element={<><Navbar /><MentionsLegales /><Footer /></>} />
           <Route path="/devenir-livreur" element={<><Navbar /><DevenirLivreurLanding /><Footer /></>} />
           <Route path="/devenir-livreur/inscription" element={<><Navbar /><DevenirLivreur /><Footer /></>} />
+          <Route path="/devenir-annonceur" element={<><Navbar /><DevenirAnnonceurLanding /><Footer /></>} />
 
           {/* Supplier Routes (Redirecting to external portal) */}
           <Route path="/fournisseur/inscription" element={<SupplierRegister />} />

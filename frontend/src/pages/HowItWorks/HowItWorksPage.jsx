@@ -77,7 +77,7 @@ const userTypes = {
     bgColor: 'bg-blue-50',
     textColor: 'text-[#0054a6]',
     ctaLabel: 'Devenir annonceur',
-    ctaLink: '/user/dashboard/distribution',
+    ctaLink: '/devenir-annonceur',
     ctaExternal: false,
     steps: [
       { num: 1, icon: <MessageCircle size={22} />, title: 'Vérifiez votre compte', desc: "Confirmez votre numéro WhatsApp par code reçu et renseignez votre numéro Mobile Money pour être payé." },
