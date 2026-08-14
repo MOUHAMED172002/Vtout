@@ -642,55 +642,62 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* ... (Payment methods content) ... */}
+                  <div className="flex flex-col gap-3">
                     <button
                       onClick={handleSelectDeliveryPayment}
-                      className={`p-8 rounded-3xl border-2 transition-all text-left space-y-4 ${paymentMethod === 'delivery' ? 'border-primary bg-orange-50/50 ring-4 ring-primary/5' : 'border-gray-100 hover:border-gray-200'} ${isZoneMismatch ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                      className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 text-left ${paymentMethod === 'delivery' ? 'border-primary bg-orange-50/50' : 'border-gray-100 hover:border-gray-200'} ${isZoneMismatch ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                     >
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${paymentMethod === 'delivery' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-                        <Truck size={24} />
+                      <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${paymentMethod === 'delivery' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                        <Truck size={18} />
                       </div>
-                      <div>
-                        <p className="font-black text-lg text-gray-900">À la livraison</p>
-                        <p className="text-sm text-gray-500 font-medium">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm text-gray-900">À la livraison</p>
+                        <p className="text-xs text-gray-500 font-medium truncate">
                           {isZoneMismatch ? "Indisponible pour votre zone" : "Payez en espèces à réception"}
                         </p>
                       </div>
+                      <span className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'delivery' ? 'border-primary' : 'border-gray-300'}`}>
+                        {paymentMethod === 'delivery' && <span className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                      </span>
                     </button>
 
                     <button
                       onClick={() => setPaymentMethod('fedapay')}
-                      className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'fedapay' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-primary/30 hover:bg-base-200/50'}`}
+                      className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 text-left ${paymentMethod === 'fedapay' ? 'border-primary bg-primary/5' : 'border-base-content/10 hover:border-primary/30'}`}
                     >
-                      {paymentMethod === 'fedapay' && <div className="absolute -top-6 -right-6 w-20 h-20 bg-primary/10 rounded-full blur-2xl"></div>}
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'fedapay' ? 'bg-primary text-primary-content rotate-6' : 'bg-base-200 text-base-content/40'}`}>
-                        <CreditCard size={28} />
+                      <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${paymentMethod === 'fedapay' ? 'bg-primary text-primary-content' : 'bg-base-200 text-base-content/40'}`}>
+                        <CreditCard size={18} />
                       </div>
-                      <div>
-                        <p className="font-black text-xl text-base-content">Paiement en ligne</p>
-                        <p className="text-sm text-base-content/60 font-bold mt-1">MTN, Moov, Carte bancaire</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm text-base-content">Paiement en ligne</p>
+                        <p className="text-xs text-base-content/50 font-bold truncate">MTN, Moov, Carte bancaire</p>
                       </div>
+                      <span className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'fedapay' ? 'border-primary' : 'border-base-content/20'}`}>
+                        {paymentMethod === 'fedapay' && <span className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                      </span>
                     </button>
 
                     {!isGuest && walletBalance > 0 && (
                       <button
                         onClick={() => setPaymentMethod('wallet')}
                         disabled={walletBalance < finalTotal}
-                        className={`p-10 rounded-[2.5rem] border-2 transition-all text-left space-y-6 group overflow-hidden relative ${paymentMethod === 'wallet' ? 'border-primary bg-primary/5 ring-8 ring-primary/5' : 'border-base-content/5 hover:border-emerald-500/30 hover:bg-emerald-50/10'} ${walletBalance < finalTotal ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                        className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-4 text-left ${paymentMethod === 'wallet' ? 'border-primary bg-primary/5' : 'border-base-content/10 hover:border-emerald-500/30'} ${walletBalance < finalTotal ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                       >
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'bg-emerald-500 text-white rotate-3' : 'bg-emerald-50 text-emerald-400'}`}>
-                          <Wallet size={28} />
+                        <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-400'}`}>
+                          <Wallet size={18} />
                         </div>
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <p className="font-black text-xl text-base-content">Portefeuille Vtout</p>
-                            <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full uppercase">Solde: {walletBalance.toLocaleString()} F</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-black text-sm text-base-content">Portefeuille Vtout</p>
+                            <span className="text-[9px] font-black bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full uppercase shrink-0">{walletBalance.toLocaleString()} F</span>
                           </div>
-                          <p className="text-sm text-base-content/60 font-bold mt-1">
+                          <p className="text-xs text-base-content/50 font-bold truncate">
                             {walletBalance < finalTotal ? "Solde insuffisant" : "Paiement instantané avec vos gains"}
                           </p>
                         </div>
+                        <span className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'wallet' ? 'border-primary' : 'border-base-content/20'}`}>
+                          {paymentMethod === 'wallet' && <span className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                        </span>
                       </button>
                     )}
                   </div>
