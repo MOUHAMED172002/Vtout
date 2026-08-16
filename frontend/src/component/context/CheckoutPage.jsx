@@ -8,7 +8,7 @@ import { createOrder, updateOrderStatus, confirmPendingPayment } from "../../ser
 import { createAddress } from "../../services/addressService";
 import { validateCoupon } from "../../services/couponService";
 import toast from "react-hot-toast";
-import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap, Wallet } from "lucide-react";
+import { Check, CreditCard, Truck, MapPin, ReceiptText, ShieldCheck, ChevronRight, X, Zap, Wallet, Lock, Package, BadgeCheck, RotateCcw, HandCoins, Headset } from "lucide-react";
 
 import api from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -723,6 +723,37 @@ export default function CheckoutPage() {
                     >
                       {loading ? <span className="loading loading-spinner"></span> : "Confirmer la commande"}
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="bg-orange-50/60 border border-orange-100 rounded-[2rem] md:rounded-[3.5rem] p-6 md:p-10 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 text-primary rounded-2xl shrink-0"><ShieldCheck size={24} /></div>
+                    <h3 className="text-xl md:text-2xl font-black text-base-content tracking-tight">
+                      Protection de votre commande sur Vtout
+                    </h3>
+                  </div>
+                  <div className="space-y-5">
+                    {[
+                      { icon: <Lock size={18} />, title: "Paiement sécurisé", desc: "Vos paiements en ligne sont traités par un prestataire agréé, jamais stockés sur nos serveurs." },
+                      { icon: <Package size={18} />, title: "Livraison suivie", desc: "Suivez l'évolution de votre commande jusqu'à sa livraison, avec notifications à chaque étape." },
+                      { icon: <BadgeCheck size={18} />, title: "Vendeurs vérifiés", desc: "Chaque vendeur est validé par notre équipe avant de pouvoir vendre sur Vtout." },
+                      { icon: <RotateCcw size={18} />, title: "Protection en cas de problème", desc: "Un souci avec votre commande ? Signalez-le, notre équipe examine chaque cas." },
+                      { icon: <HandCoins size={18} />, title: "Remboursement", desc: "Selon les conditions applicables, vous pouvez bénéficier d'un remboursement sur votre portefeuille Vtout." },
+                      { icon: <Headset size={18} />, title: "Assistance Vtout", desc: "Notre équipe vous accompagne en cas de besoin, avant et après votre commande." },
+                    ].map((item) => (
+                      <div key={item.title} className="flex items-start gap-4">
+                        <div className="w-9 h-9 shrink-0 rounded-xl bg-base-100 text-primary flex items-center justify-center border border-orange-100">
+                          {item.icon}
+                        </div>
+                        <div>
+                          <p className="font-black text-sm text-base-content">{item.title}</p>
+                          <p className="text-xs text-base-content/50 font-medium leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
