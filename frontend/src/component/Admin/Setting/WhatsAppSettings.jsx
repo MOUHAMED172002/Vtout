@@ -12,7 +12,7 @@ export default function WhatsAppSettings() {
   const [showToken, setShowToken] = useState(false);
 
   const [whatsapp, setWhatsapp] = useState({
-    whatsapp_instance_id: "",
+    whatsapp_phone_number_id: "",
     whatsapp_api_token: "",
     whatsapp_admin_phones: "",
   });
@@ -98,7 +98,7 @@ export default function WhatsAppSettings() {
             <MessageSquare size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tighter">WhatsApp (Green API)</h1>
+            <h1 className="text-2xl font-black tracking-tighter">WhatsApp (WhatChimp)</h1>
             <p className="text-white/70 text-sm mt-1">
               Gérez les notifications automatiques et les alertes administratrices via WhatsApp.
             </p>
@@ -106,7 +106,7 @@ export default function WhatsAppSettings() {
         </div>
       </motion.div>
 
-      {/* Green API Instance Config */}
+      {/* WhatChimp Account Config */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -119,29 +119,29 @@ export default function WhatsAppSettings() {
               <Key size={22} />
             </div>
             <div>
-              <h2 className="text-xl font-black text-base-content tracking-tighter">Paramètres Green API</h2>
+              <h2 className="text-xl font-black text-base-content tracking-tighter">Paramètres WhatChimp</h2>
               <p className="text-xs text-base-content/40 font-medium mt-0.5">
                 Identifiants requis pour l'envoi des messages
               </p>
             </div>
           </div>
           <a
-            href="https://console.green-api.com/"
+            href="https://app.whatchimp.com/"
             target="_blank"
             rel="noreferrer"
             className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-800 transition-colors border border-emerald-200 px-4 py-2 rounded-xl"
           >
-            Console Green API →
+            Tableau de bord WhatChimp →
           </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <InputField
-            label="ID Instance"
-            name="whatsapp_instance_id"
-            placeholder="7107XXXXXX"
+            label="Phone Number ID"
+            name="whatsapp_phone_number_id"
+            placeholder="1234567890"
             icon={Hash}
-            hint="L'identifiant de votre instance Green API."
+            hint="L'identifiant du numéro WhatsApp connecté dans WhatChimp."
           />
           <InputField
             label="Token API"
@@ -149,8 +149,21 @@ export default function WhatsAppSettings() {
             placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
             secret
             icon={Key}
-            hint="Le jeton d'accès de votre instance."
+            hint="Votre clé API de compte WhatChimp (Paramètres > API)."
           />
+        </div>
+
+        <div className="p-5 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+          <AlertCircle size={20} className="text-amber-500 shrink-0" />
+          <div className="text-xs text-amber-800 space-y-1">
+            <p className="font-black uppercase tracking-tight">Important — fenêtre de session 24h</p>
+            <p className="font-medium opacity-80">
+              WhatChimp repose sur l'API Cloud officielle WhatsApp. Un message texte libre n'est
+              autorisé que dans les 24h suivant le dernier message envoyé par le destinataire ;
+              au-delà, un template pré-approuvé par Meta est requis. Vérifiez vos templates dans
+              WhatChimp pour les notifications envoyées à des clients qui ne vous ont jamais écrit.
+            </p>
+          </div>
         </div>
       </motion.div>
 

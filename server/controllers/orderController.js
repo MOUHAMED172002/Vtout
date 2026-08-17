@@ -1497,7 +1497,7 @@ export const updateOrderStatus = async (req, res) => {
             }
         }
 
-        // WhatsApp Notif to Customer (avec repli email si Green API échoue)
+        // WhatsApp Notif to Customer (avec repli email si WhatChimp échoue)
         try {
             const userProfile = await Profile.findByPk(order.user_id);
             const customerPhone = order.whatsapp_notif_phone || order.guest_phone || userProfile?.phone;

@@ -48,7 +48,7 @@ export async function expireStaleOrders() {
 
         // Notify customer — email de secours (fallbackEmail) si WhatsApp
         // échoue, pour ne pas laisser le client sans nouvelle en cas de
-        // panne/quota Green API.
+        // panne WhatChimp/hors fenêtre de session 24h.
         let customerPhone = order.whatsapp_notif_phone || order.guest_phone;
         let customerEmail = order.guest_email || null;
         if ((!customerPhone || !customerEmail) && order.user_id) {

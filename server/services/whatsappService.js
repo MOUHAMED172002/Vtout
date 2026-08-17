@@ -3,8 +3,8 @@ import { Config } from '../models/index.js';
 import { getTextTemplate, getTextConfig } from './textTemplateService.js';
 
 /**
- * Helper : Formater le numéro pour Green API
- * Green API s'attend au format international (sans le +) suivi de @c.us
+ * Helper : Formater le numéro au format international attendu par WhatChimp
+ * (indicatif pays + chiffres uniquement, sans le +).
  */
 export const formatPhoneNumber = (phone) => {
     if (!phone) return '';
@@ -22,7 +22,7 @@ export const formatPhoneNumber = (phone) => {
     //      (ex: 97000000 → 22997000000)
     //    - Nouveau format à 10 chiffres depuis nov. 2024, commençant par 0
     //      (ex: 0167703242 → 2290167703242). Sans ce cas, un numéro saisi/
-    //      stocké sans le "229" partait tel quel vers Green API, qui le
+    //      stocké sans le "229" partait tel quel vers l'API, qui le
     //      rejetait ("invalid phone number") — notification jamais envoyée.
     if (clean.length === 8) {
         return '229' + clean;
@@ -46,15 +46,19 @@ export const getWhatsAppConfigs = async () => {
         const configs = await Config.findAll({
             where: { group: 'whatsapp' }
         });
-        
+
         const configMap = {};
         configs.forEach(c => {
             configMap[c.key] = c.value;
         });
 
         return {
-            idInstance: configMap['whatsapp_instance_id'] || process.env.GREEN_API_ID_INSTANCE,
-            apiToken: configMap['whatsapp_api_token'] || process.env.GREEN_API_TOKEN_INSTANCE,
+            // WhatChimp (WhatsApp Cloud API officielle) — remplace Green API.
+            // phoneNumberId identifie le numéro WhatsApp connecté côté
+            // WhatChimp ; apiToken est la clé de compte WhatChimp (pas un
+            // jeton Meta), voir server/services/whatsappService.js sendWhatsAppMessage.
+            phoneNumberId: configMap['whatsapp_phone_number_id'] || process.env.WHATCHIMP_PHONE_NUMBER_ID,
+            apiToken: configMap['whatsapp_api_token'] || process.env.WHATCHIMP_API_TOKEN,
             adminPhones: configMap['whatsapp_admin_phones'] || process.env.ADMIN_WHATSAPP_PHONE,
             notifCustomer: configMap['notif_whatsapp_customer'] !== 'false', // Default true
             notifSupplier: configMap['notif_whatsapp_supplier'] !== 'false',
@@ -62,8 +66,8 @@ export const getWhatsAppConfigs = async () => {
         };
     } catch (e) {
         return {
-            idInstance: process.env.GREEN_API_ID_INSTANCE,
-            apiToken: process.env.GREEN_API_TOKEN_INSTANCE,
+            phoneNumberId: process.env.WHATCHIMP_PHONE_NUMBER_ID,
+            apiToken: process.env.WHATCHIMP_API_TOKEN,
             adminPhones: process.env.ADMIN_WHATSAPP_PHONE,
             notifCustomer: true,
             notifSupplier: true,
@@ -72,46 +76,61 @@ export const getWhatsAppConfigs = async () => {
     }
 };
 
+// Endpoint WhatChimp "Send Text Message" — repose sur l'API Cloud
+// officielle WhatsApp de Meta. IMPORTANT (contrairement à Green API,
+// non-officielle, qui acceptait n'importe quel texte à tout moment) :
+// un message texte libre n'est autorisé que dans les 24h suivant le
+// dernier message ENVOYÉ PAR le destinataire (fenêtre de session client).
+// En dehors de cette fenêtre, Meta exige un message "template" pré-
+// approuvé — cet appel échouera silencieusement (status "0") pour un
+// destinataire qui ne nous a jamais écrit en premier, ce qui concerne la
+// plupart de nos notifications sortantes (confirmation de commande, OTP…).
+// Voir la doc WhatChimp "Send Template Message" si ce cas doit être géré.
+const WHATCHIMP_SEND_URL = 'https://app.whatchimp.com/api/v1/whatsapp/send';
+
 /**
- * Envoyer un message WhatsApp via Green API (Non-Officiel, simple)
+ * Envoyer un message WhatsApp via WhatChimp (API Cloud WhatsApp officielle)
  */
 export const sendWhatsAppMessage = async (to, body) => {
-    const { idInstance, apiToken } = await getWhatsAppConfigs();
+    const { phoneNumberId, apiToken } = await getWhatsAppConfigs();
 
-    if (!idInstance || !apiToken || idInstance.includes('XXXX')) {
-        console.warn('[Green API] ⚠️  Service non configuré — vérifiez WHATSAPP_INSTANCE_ID et WHATSAPP_TOKEN dans Admin > Paramètres.');
-        return { success: false, error: 'Identifiants Green API manquants' };
+    if (!phoneNumberId || !apiToken) {
+        console.warn('[WhatChimp] ⚠️  Service non configuré — vérifiez le Phone Number ID et le Token API dans Admin > Paramètres.');
+        return { success: false, error: 'Identifiants WhatChimp manquants' };
     }
 
     if (!to) {
-        console.warn('[Green API] ⚠️  Numéro destinataire manquant — le client n\'a peut-être pas de téléphone enregistré.');
+        console.warn('[WhatChimp] ⚠️  Numéro destinataire manquant — le client n\'a peut-être pas de téléphone enregistré.');
         return { success: false, error: 'Numéro destinataire manquant' };
     }
 
     const cleanTo = formatPhoneNumber(to);
     if (!cleanTo || cleanTo.length < 8) {
-        console.warn(`[Green API] ⚠️  Numéro invalide après formatage : "${to}" → "${cleanTo}"`);
+        console.warn(`[WhatChimp] ⚠️  Numéro invalide après formatage : "${to}" → "${cleanTo}"`);
         return { success: false, error: 'Numéro invalide' };
     }
 
-    const chatId = `${cleanTo}@c.us`;
-    const url = `https://api.green-api.com/waInstance${idInstance}/sendMessage/${apiToken}`;
-
     try {
-        console.log(`[Green API] Envoi à ${chatId}...`);
-        const response = await axios.post(url, { chatId, message: body });
+        console.log(`[WhatChimp] Envoi à ${cleanTo}...`);
+        const response = await axios.post(WHATCHIMP_SEND_URL, new URLSearchParams({
+            apiToken,
+            phone_number_id: phoneNumberId,
+            message: body,
+            phone_number: cleanTo
+        }));
 
-        if (response.data && response.data.idMessage) {
-            console.log(`[Green API] ✅ Succès ! ID: ${response.data.idMessage}`);
-            return { success: true, sid: response.data.idMessage };
+        // status est une CHAÎNE ("1"/"0"), pas un booléen — confirmé par la doc WhatChimp.
+        if (String(response.data?.status) === '1') {
+            console.log(`[WhatChimp] ✅ Succès ! ID: ${response.data.wa_message_id}`);
+            return { success: true, sid: response.data.wa_message_id };
         } else {
-            console.warn('[Green API] Réponse inattendue:', response.data);
-            return { success: false, error: 'Réponse inattendue de l\'API' };
+            console.warn('[WhatChimp] Échec envoi:', response.data?.message || response.data);
+            return { success: false, error: response.data?.message || 'Réponse inattendue de l\'API' };
         }
     } catch (error) {
         const detail = error.response?.data || error.message;
-        console.error('[Green API] ❌ Erreur envoi:', detail);
-        return { success: false, error: String(detail) };
+        console.error('[WhatChimp] ❌ Erreur envoi:', detail);
+        return { success: false, error: String(detail?.message || detail) };
     }
 };
 
@@ -203,11 +222,11 @@ const EMAIL_STATUS_LABELS = {
 /**
  * Alerter le client d'un changement de statut
  *
- * fallbackEmail (optionnel) : si l'envoi WhatsApp échoue (quota Green API
- * dépassé, numéro invalide, service non configuré…), on bascule sur un
- * email pour ne pas laisser le client sans nouvelle — c'est le seul canal
- * de notification client actuellement, donc un échec silencieux de Green
- * API équivalait avant à ne prévenir personne.
+ * fallbackEmail (optionnel) : si l'envoi WhatsApp échoue (hors fenêtre de
+ * session client 24h — voir WHATCHIMP_SEND_URL plus haut —, numéro
+ * invalide, service non configuré…), on bascule sur un email pour ne pas
+ * laisser le client sans nouvelle — un échec silencieux de WhatChimp
+ * équivalait avant à ne prévenir personne.
  */
 export const notifyCustomerOfStatusUpdate = async (customerPhone, orderId, status, fallbackEmail = null) => {
     const { notifCustomer } = await getWhatsAppConfigs();

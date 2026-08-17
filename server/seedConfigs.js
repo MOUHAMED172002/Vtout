@@ -26,10 +26,10 @@ const initialConfigs = [
     { key: 'CONTACT_EMAIL', value: 'contact@vtout.com', group: 'contact', description: 'Email de support' },
     { key: 'CONTACT_PHONE', value: '+229 61 00 00 00', group: 'contact', description: 'Téléphone de support' },
 
-    // WhatsApp API (Green API / Custom)
-    { key: 'WHATSAPP_INSTANCE_ID', value: '', group: 'whatsapp', description: 'ID Instance WhatsApp API' },
-    { key: 'WHATSAPP_TOKEN', value: '', group: 'whatsapp', description: 'Token WhatsApp API' },
-    { key: 'ADMIN_WHATSAPP_NUMBERS', value: '', group: 'whatsapp', description: 'Numéros admin (séparés par des virgules)' },
+    // WhatsApp API (WhatChimp) — clés alignées sur whatsappService.js/getWhatsAppConfigs
+    { key: 'whatsapp_phone_number_id', value: '', group: 'whatsapp', description: 'Phone Number ID WhatChimp' },
+    { key: 'whatsapp_api_token', value: '', group: 'whatsapp', description: 'Token API WhatChimp' },
+    { key: 'whatsapp_admin_phones', value: '', group: 'whatsapp', description: 'Numéros admin (séparés par des virgules)' },
 
     // Cloudinary Config
     { key: 'CLOUDINARY_CLOUD_NAME', value: '', group: 'cloudinary', description: 'Cloudinary Cloud Name' },

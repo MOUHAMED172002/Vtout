@@ -4,7 +4,7 @@ import { formatPhoneNumber } from '../services/whatsappService.js';
 
 // Régression directe d'un bug de prod : les numéros béninois à 10 chiffres
 // commençant par 0 (format en vigueur depuis nov. 2024) partaient sans
-// l'indicatif 229 vers Green API, qui les rejetait ("invalid phone
+// l'indicatif 229 vers l'API WhatsApp, qui les rejetait ("invalid phone
 // number") — notification jamais envoyée, silencieusement.
 test('formatPhoneNumber: ajoute l\'indicatif 229 pour un numéro béninois 10 chiffres (format 2024+)', () => {
     assert.equal(formatPhoneNumber('0167703242'), '2290167703242');
