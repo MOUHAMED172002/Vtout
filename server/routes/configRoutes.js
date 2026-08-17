@@ -16,6 +16,7 @@ router.get('/group/:group', requireAdmin, configController.getConfigsByGroup);
 // Admin
 router.post('/upsert', requireAdmin, configController.upsertConfig);
 router.post('/test-email', requireAdmin, configController.testEmailConfig);
+router.post('/test-whatsapp', requireAdmin, configController.testWhatsAppConfig);
 router.delete('/:key', requireAdmin, configController.deleteConfig);
 
 export default router;

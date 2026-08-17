@@ -1,5 +1,6 @@
 import { Config } from '../models/index.js';
 import { sendTestEmail } from '../services/mailService.js';
+import { sendWhatsAppMessage } from '../services/whatsappService.js';
 
 
 import { Op } from 'sequelize';
@@ -79,6 +80,27 @@ export const testEmailConfig = async (req, res) => {
         const result = await sendTestEmail(to);
         if (result.success) {
             res.json({ success: true, message: `Email de test envoyé à ${to}` });
+        } else {
+            res.status(500).json({ success: false, error: String(result.error) });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Test manuel de l'envoi WhatsApp (WhatChimp) depuis l'admin — permet de
+// vérifier que Phone Number ID + Token API sont corrects sans devoir passer
+// par un vrai flux applicatif (commande, OTP...). Rappel : ce test envoie du
+// texte libre, donc il échoue si le numéro destinataire n'a jamais écrit au
+// numéro WhatsApp business dans les dernières 24h (fenêtre de session Meta) —
+// fais d'abord écrire "test" depuis ce numéro au business avant de tester ici.
+export const testWhatsAppConfig = async (req, res) => {
+    try {
+        const { to } = req.body;
+        if (!to) return res.status(400).json({ error: 'Numéro destinataire requis' });
+        const result = await sendWhatsAppMessage(to, '✅ Vtout — Message de test WhatChimp. Si vous recevez ceci, la configuration fonctionne !');
+        if (result.success) {
+            res.json({ success: true, message: `Message WhatsApp de test envoyé à ${to}`, sid: result.sid });
         } else {
             res.status(500).json({ success: false, error: String(result.error) });
         }

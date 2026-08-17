@@ -30,3 +30,10 @@ export const testEmailConfig = async (to, token) => {
     });
     return data;
 };
+
+export const testWhatsAppConfig = async (to, token) => {
+    const { data } = await api.post('/configs/test-whatsapp', { to }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+};

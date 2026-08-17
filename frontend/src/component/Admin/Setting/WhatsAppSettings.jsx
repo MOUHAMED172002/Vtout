@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../lib/AuthHooks";
-import { getConfigsByGroup, upsertConfig } from "../../../services/configService";
+import { getConfigsByGroup, upsertConfig, testWhatsAppConfig } from "../../../services/configService";
 import toast from "react-hot-toast";
-import { MessageSquare, Key, Eye, EyeOff, Save, Loader2, Phone, Hash, AlertCircle } from "lucide-react";
+import { MessageSquare, Key, Eye, EyeOff, Save, Loader2, Phone, Hash, AlertCircle, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function WhatsAppSettings() {
@@ -10,6 +10,8 @@ export default function WhatsAppSettings() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showToken, setShowToken] = useState(false);
+  const [testPhone, setTestPhone] = useState("");
+  const [testing, setTesting] = useState(false);
 
   const [whatsapp, setWhatsapp] = useState({
     whatsapp_phone_number_id: "",
@@ -45,6 +47,24 @@ export default function WhatsAppSettings() {
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestWhatsApp = async () => {
+    if (!testPhone.trim()) {
+      toast.error("Renseignez d'abord un numéro de test (format international, sans le +).");
+      return;
+    }
+    setTesting(true);
+    try {
+      const token = await getToken();
+      await testWhatsAppConfig(testPhone.trim(), token);
+      toast.success(`Message de test envoyé à ${testPhone.trim()} — vérifiez WhatsApp !`);
+    } catch (err) {
+      const detail = err?.response?.data?.error || "Échec de l'envoi. Vérifiez le Phone Number ID / Token, ou la fenêtre de session 24h.";
+      toast.error(detail);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -163,6 +183,38 @@ export default function WhatsAppSettings() {
               au-delà, un template pré-approuvé par Meta est requis. Vérifiez vos templates dans
               WhatChimp pour les notifications envoyées à des clients qui ne vous ont jamais écrit.
             </p>
+          </div>
+        </div>
+
+        {/* Test d'envoi — vérifie Phone Number ID + Token API sans passer par
+            un vrai flux applicatif. Nécessite d'avoir écrit "test" au numéro
+            business WhatChimp depuis testPhone dans les 24h précédentes
+            (voir l'encadré ci-dessus). */}
+        <div className="p-5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-tight text-emerald-800">
+            Tester l'envoi maintenant
+          </p>
+          <p className="text-xs text-emerald-800/70 font-medium">
+            Envoyez un message de test pour vérifier que le Phone Number ID et le Token sont
+            corrects. Écrivez d'abord "test" depuis ce numéro au numéro WhatsApp business —
+            sinon l'envoi échouera (fenêtre de session 24h, voir ci-dessus).
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={testPhone}
+              onChange={(e) => setTestPhone(e.target.value)}
+              placeholder="22997000000"
+              className="flex-1 h-12 bg-base-100 border border-emerald-200 rounded-xl px-4 font-bold text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:outline-none transition-all"
+            />
+            <button
+              onClick={handleTestWhatsApp}
+              disabled={testing}
+              className="flex items-center justify-center gap-2 px-6 h-12 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-wide hover:bg-emerald-700 transition-all disabled:opacity-50 shrink-0"
+            >
+              {testing ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              {testing ? "Envoi..." : "Envoyer un test"}
+            </button>
           </div>
         </div>
       </motion.div>
