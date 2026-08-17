@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Users,
   Package,
@@ -32,7 +32,8 @@ import {
   BadgeCheck,
   Ticket,
   Share2,
-  Megaphone
+  Megaphone,
+  Cloud
 } from "lucide-react";
 import DashboardPage from "./Dashboard/Dashboard";
 import SalesChart from "./Dashboard/SalesChart";
@@ -61,6 +62,8 @@ import PaymentSettings from "./Setting/PaymentSettings";
 import ShippingSettings from "./Setting/ShippingSettings";
 import AdminAccountSettings from "./Setting/AdminAccountSettings";
 import NotificationsSettings from "./Setting/NotificationsSettings";
+import WhatsAppSettings from "./Setting/WhatsAppSettings";
+import CloudinarySettings from "./Setting/CloudinarySettings";
 import FaqManager from "./FaqManager";
 import PolicyManager from "./PolicyManager";
 import GeographyManager from "./GeographyManager";
@@ -105,6 +108,17 @@ const ADMIN_TOUR_ANCHOR_MAP = {
 
 const ADMIN_TOUR_SEEN_KEY = "vtout_tour_admin_seen";
 
+// Normalise pour une recherche insensible aux accents/emojis/casse — permet
+// de taper "parametre" et matcher "Paramètres", ou "whatsapp" et matcher
+// "📧 Email & Notifications" grâce aux mots-clés.
+const normalizeSearch = (str) =>
+  String(str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 
 const AdminLayout = () => {
   const { signOut } = useAuth();
@@ -117,6 +131,7 @@ const AdminLayout = () => {
   const [openMenu, setOpenMenu] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Auto-close sidebar on mobile when menu changes
   useEffect(() => {
@@ -241,15 +256,61 @@ const AdminLayout = () => {
       name: "Paramètres",
       icon: <Settings size={18} />,
       subItems: [
-        { key: 'config', name: 'Configuration Royale', icon: <Settings size={16} /> },
+        { key: 'config', name: 'Configuration Royale', icon: <Settings size={16} />, keywords: ['branding', 'reseaux sociaux', 'general'] },
+        { key: 'store', name: 'Boutique', icon: <Store size={16} /> },
+        { key: 'payment', name: 'Paiement', icon: <Banknote size={16} />, keywords: ['fedapay'] },
+        { key: 'shipping', name: 'Livraison', icon: <Truck size={16} />, keywords: ['zones', 'frais'] },
+        { key: 'whatsapp', name: 'WhatsApp', icon: <MessageCircle size={16} />, keywords: ['whatchimp', 'green api', 'otp', 'template'] },
+        { key: 'cloudinary', name: 'Cloudinary', icon: <Cloud size={16} />, keywords: ['images', 'upload', 'stockage'] },
         { key: 'notifications', name: '📧 Email & Notifications', icon: <MessageCircle size={16} /> },
         { key: 'geography', name: 'Géographie', icon: <MapPin size={16} /> },
         { key: 'supportMessages', name: 'Messages Support', icon: <MessageCircle size={16} /> },
         { key: 'deliveryFeeTiers', name: '🚚 Frais de Livraison', icon: <Truck size={16} /> },
-        { key: 'deliveryMultiplier', name: '📦 Coefficient Livreur', icon: <Package size={16} /> },
+        { key: 'deliveryMultiplier', name: '📦 Coefficient Livreur', icon: <Package size={16} />, keywords: ['multiplicateur'] },
+        { key: 'adminAccount', name: 'Compte Admin', icon: <UserCircle size={16} />, keywords: ['mot de passe', 'email admin'] },
       ],
     },
   ];
+
+  // Index plat de TOUTES les sections/sous-sections du menu (Dashboard,
+  // Produits, Fournisseurs... jusqu'à Paramètres) — reconstruit à chaque
+  // rendu (coût négligeable) pour que la barre de recherche du header
+  // puisse naviguer directement vers n'importe quel élément, pas seulement
+  // filtrer la page actuellement affichée.
+  const adminSearchIndex = useMemo(
+    () => menuItems.flatMap((menu) =>
+      menu.subItems.map((sub) => ({
+        menu: menu.name,
+        menuIcon: menu.icon,
+        key: sub.key,
+        name: sub.name,
+        icon: sub.icon,
+        keywords: sub.keywords || [],
+      }))
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const navResults = useMemo(() => {
+    const q = normalizeSearch(searchQuery);
+    if (q.length < 2) return [];
+    return adminSearchIndex.filter((item) => {
+      if (normalizeSearch(item.name).includes(q)) return true;
+      if (normalizeSearch(item.menu).includes(q)) return true;
+      return item.keywords.some((k) => normalizeSearch(k).includes(q));
+    }).slice(0, 8);
+  }, [searchQuery, adminSearchIndex]);
+
+  const goToSearchResult = (result) => {
+    setSelectedMenu(result.menu);
+    setOpenMenu(result.menu);
+    setSelectedSub(result.key);
+    setSearchQuery("");
+    setSearchFocused(false);
+    setIsMobileSearchOpen(false);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
+  };
 
   const renderContent = () => {
     switch (selectedMenu) {
@@ -337,6 +398,8 @@ const AdminLayout = () => {
           case "payment": return <PaymentSettings />;
           case "shipping": return <ShippingSettings />;
           case "adminAccount": return <AdminAccountSettings />;
+          case "whatsapp": return <WhatsAppSettings />;
+          case "cloudinary": return <CloudinarySettings />;
           case "notifications": return <NotificationsSettings />;
           case "geography": return <GeographyManager />;
           case "supportMessages": return <SupportAdmin />;
@@ -492,6 +555,8 @@ const AdminLayout = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
                   placeholder="Rechercher partout..."
                   className="w-full pl-12 pr-12 py-3 bg-base-200 border border-base-200 rounded-2xl text-base font-medium placeholder:text-base-content/40 focus:bg-base-100 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none"
                 />
@@ -500,6 +565,36 @@ const AdminLayout = () => {
                     <X size={14} />
                   </button>
                 )}
+
+                {/* Résultats de navigation — apparaissent dès que le texte tapé
+                    correspond à une section/sous-section du menu (nom ou
+                    mots-clés). Un clic saute directement dessus, sans avoir à
+                    chercher dans quel onglet elle se trouve. */}
+                <AnimatePresence>
+                  {searchFocused && navResults.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute left-0 right-0 top-full mt-2 bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden z-50 max-h-96 overflow-y-auto"
+                    >
+                      {navResults.map((r) => (
+                        <button
+                          key={`${r.menu}-${r.key}`}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => goToSearchResult(r)}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-base-200 text-left transition-colors border-b border-base-200 last:border-b-0"
+                        >
+                          <span className="text-indigo-500 shrink-0">{r.icon}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-base-content truncate">{r.name}</p>
+                            <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide">{r.menu}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -518,20 +613,39 @@ const AdminLayout = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="fixed inset-x-0 top-0 h-20 bg-base-100 z-[60] flex items-center px-4 gap-4 shadow-xl"
+                    className="fixed inset-x-0 top-0 z-[60] bg-base-100 shadow-xl"
                   >
-                    <Search className="text-indigo-600" size={20} />
-                    <input
-                      autoFocus
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Rechercher..."
-                      className="flex-1 bg-transparent border-none text-base font-bold text-base-content focus:ring-0"
-                    />
-                    <button onClick={() => setIsMobileSearchOpen(false)} className="p-2 text-base-content/40">
-                      <X size={24} />
-                    </button>
+                    <div className="h-20 flex items-center px-4 gap-4">
+                      <Search className="text-indigo-600" size={20} />
+                      <input
+                        autoFocus
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Rechercher..."
+                        className="flex-1 bg-transparent border-none text-base font-bold text-base-content focus:ring-0"
+                      />
+                      <button onClick={() => setIsMobileSearchOpen(false)} className="p-2 text-base-content/40">
+                        <X size={24} />
+                      </button>
+                    </div>
+                    {navResults.length > 0 && (
+                      <div className="max-h-[60vh] overflow-y-auto border-t border-base-200">
+                        {navResults.map((r) => (
+                          <button
+                            key={`m-${r.menu}-${r.key}`}
+                            onClick={() => goToSearchResult(r)}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-base-200 text-left transition-colors border-b border-base-200 last:border-b-0"
+                          >
+                            <span className="text-indigo-500 shrink-0">{r.icon}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-base-content truncate">{r.name}</p>
+                              <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide">{r.menu}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
