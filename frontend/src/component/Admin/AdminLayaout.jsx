@@ -548,7 +548,7 @@ const AdminLayout = () => {
 
           <div className="flex items-center gap-2 lg:gap-6">
             {/* Search Bar - Desktop */}
-            <div className="flex-1 max-w-md hidden sm:block">
+            <div className="flex-1 min-w-[140px] max-w-md hidden sm:block">
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-indigo-600 transition-colors" size={18} />
                 <input
@@ -576,7 +576,7 @@ const AdminLayout = () => {
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
-                      className="absolute left-0 right-0 top-full mt-2 bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden z-50 max-h-96 overflow-y-auto"
+                      className="absolute left-0 top-full mt-2 w-[22rem] max-w-[90vw] bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden z-50 max-h-96 overflow-y-auto"
                     >
                       {navResults.map((r) => (
                         <button
