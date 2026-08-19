@@ -94,6 +94,9 @@ import TourHelpButton from "../Shared/TourHelpButton";
 import TourAnchor from "../../tour/TourAnchor";
 import { useTour } from "../../tour/TourContext";
 import { ADMIN_TOUR_STEPS } from "../../tour/tourSteps";
+import { normalizeSearch } from "../../lib/textSearch";
+import AdminHelpCenter from "./Shared/AdminHelpCenter";
+import { HelpCircle } from "lucide-react";
 
 // Ancres de la visite guidée (voir src/tour/tourSteps.js#ADMIN_TOUR_STEPS) —
 // seules les sections couvertes par une étape ont une entrée ici.
@@ -108,18 +111,6 @@ const ADMIN_TOUR_ANCHOR_MAP = {
 
 const ADMIN_TOUR_SEEN_KEY = "vtout_tour_admin_seen";
 
-// Normalise pour une recherche insensible aux accents/emojis/casse — permet
-// de taper "parametre" et matcher "Paramètres", ou "whatsapp" et matcher
-// "📧 Email & Notifications" grâce aux mots-clés.
-const normalizeSearch = (str) =>
-  String(str || "")
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-
 const AdminLayout = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -132,6 +123,7 @@ const AdminLayout = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Auto-close sidebar on mobile when menu changes
   useEffect(() => {
@@ -652,6 +644,13 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
+              <button
+                onClick={() => setHelpOpen(true)}
+                className="p-2 lg:p-2.5 bg-base-200 text-base-content/50 rounded-xl hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="Centre d'aide — comment fonctionne chaque fonctionnalité"
+              >
+                <HelpCircle size={18} />
+              </button>
               <TourHelpButton steps={ADMIN_TOUR_STEPS} onBeforeStart={() => setSidebarOpen(true)} />
               <PortalSwitcher />
               <ThemeSelector />
@@ -699,6 +698,8 @@ const AdminLayout = () => {
           className="fixed inset-0 bg-neutral/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
         ></div>
       )}
+
+      <AdminHelpCenter open={helpOpen} onClose={() => setHelpOpen(false)} onGoTo={goToSearchResult} />
     </div>
   );
 };
