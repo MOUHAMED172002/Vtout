@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
 import { haptics } from "../../utils/haptics";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -55,14 +55,26 @@ export default function ProductPages() {
   const variantsRef = useRef(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const descriptionTextRef = useRef(null);
+  const [descriptionMaxHeight, setDescriptionMaxHeight] = useState(null); // px — null tant que non mesuré
   const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+  const DESCRIPTION_COLLAPSED_LINES = 6;
 
-  // N'affiche "Afficher plus" que si le texte dépasse réellement 6 lignes
-  // repliées — sinon le bouton n'aurait rien à faire.
-  useEffect(() => {
+  // Mesure la hauteur naturelle du texte pour savoir si on doit le replier
+  // à 6 lignes. Volontairement PAS de -webkit-line-clamp ici : comparer
+  // scrollHeight/clientHeight sur un élément déjà replié avec cette
+  // technique est peu fiable (le navigateur ne recalcule pas toujours
+  // scrollHeight au-delà du clamp), ce qui faisait que le bouton
+  // "Afficher plus" n'apparaissait jamais. On utilise plutôt max-height,
+  // fiable sur un bloc standard, mesuré via useLayoutEffect (avant peinture
+  // écran — donc sans flash de contenu déplié avant repliement).
+  useLayoutEffect(() => {
     const el = descriptionTextRef.current;
-    if (!el) return;
-    setDescriptionOverflows(el.scrollHeight > el.clientHeight + 2);
+    if (!el || !product?.description) return;
+    const style = window.getComputedStyle(el);
+    const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.4;
+    const collapsedHeight = lineHeight * DESCRIPTION_COLLAPSED_LINES;
+    setDescriptionMaxHeight(collapsedHeight);
+    setDescriptionOverflows(el.scrollHeight > collapsedHeight + 2);
   }, [product?.description]);
 
   useEffect(() => {
@@ -708,12 +720,21 @@ export default function ProductPages() {
             <h3 className="text-2xl md:text-3xl font-black text-base-content">Détails du produit</h3>
             <div className="h-px flex-1 bg-base-200"></div>
           </div>
-          <div
-            ref={descriptionTextRef}
-            className={`prose whitespace-pre-wrap prose-sm md:prose-lg max-w-none text-base-content/70 leading-relaxed ${descriptionExpanded ? "" : "line-clamp-6"
-              }`}
-          >
-            {product.description}
+          <div className="relative">
+            <div
+              ref={descriptionTextRef}
+              style={
+                !descriptionExpanded && descriptionMaxHeight
+                  ? { maxHeight: descriptionMaxHeight, overflow: "hidden" }
+                  : undefined
+              }
+              className="prose whitespace-pre-wrap prose-sm md:prose-lg max-w-none text-base-content/70 leading-relaxed"
+            >
+              {product.description}
+            </div>
+            {!descriptionExpanded && descriptionOverflows && (
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-base-100 to-transparent pointer-events-none" />
+            )}
           </div>
           {descriptionOverflows && (
             <button
