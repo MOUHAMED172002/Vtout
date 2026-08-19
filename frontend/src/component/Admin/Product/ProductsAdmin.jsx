@@ -69,7 +69,19 @@ export default function ProductsAdmin({ globalSearchQuery = "" }) {
       toast.success("Produit retiré du catalogue");
       await fetchProducts();
     } catch (e) {
-      toast.error("Erreur de suppression");
+      // Le backend refuse volontairement de supprimer un produit déjà
+      // commandé (pour ne pas casser l'historique des commandes existantes)
+      // et renvoie un message explicite + une suggestion — on l'affiche tel
+      // quel au lieu d'un "Erreur de suppression" générique qui cache la
+      // vraie raison.
+      const backendError = e?.response?.data?.error;
+      const backendDetails = e?.response?.data?.details;
+      toast.error(
+        backendError
+          ? `${backendError}${backendDetails ? ` ${backendDetails}` : ""}`
+          : "Erreur de suppression",
+        { duration: 6000 }
+      );
     } finally {
       setLoading(false);
     }

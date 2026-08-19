@@ -294,7 +294,17 @@ const SupplierProductsApproval = ({ globalSearchQuery = "" }) => {
             toast.success('🗑️ Produit supprimé définitivement');
         } catch (error) {
             console.error('Erreur suppression:', error);
-            toast.error('❌ Erreur lors de la suppression');
+            // Le backend refuse volontairement de supprimer un produit déjà
+            // commandé (historique de commandes à préserver) et renvoie un
+            // message explicite — on l'affiche au lieu d'un message générique.
+            const backendError = error?.response?.data?.error;
+            const backendDetails = error?.response?.data?.details;
+            toast.error(
+                backendError
+                    ? `❌ ${backendError}${backendDetails ? ` ${backendDetails}` : ""}`
+                    : '❌ Erreur lors de la suppression',
+                { duration: 6000 }
+            );
         }
     };
 
