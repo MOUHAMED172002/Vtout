@@ -645,7 +645,14 @@ export default function ProductPages() {
                   initial={{ y: 100, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0 }}
-                  className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100/90 backdrop-blur-xl border-t border-base-200 p-4 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
+                  // z-[110] > z-[100] de MobileBottomNav (nav globale du bas,
+                  // toujours montée sur toutes les pages) : sans ça, la nav
+                  // globale capte tous les clics à cet endroit même si elle
+                  // paraît transparente ici, et les boutons Ajouter/Acheter
+                  // deviennent injoignables au toucher tant que la barre
+                  // sticky est affichée. Son propre fond opaque masque
+                  // proprement la nav pendant qu'elle est visible.
+                  className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100/90 backdrop-blur-xl border-t border-base-200 p-4 pb-safe z-[110] shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col min-w-0">
