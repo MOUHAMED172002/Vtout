@@ -41,14 +41,16 @@ export default function ProductPages() {
   const thumbsRef = useRef(null);
   const actionRef = useRef(null);
   const descriptionRef = useRef(null);
-  // La barre sticky ne doit vivre que le temps où les VRAIS boutons ne sont
-  // plus visibles À L'ÉCRAN : elle apparaît quand le bloc d'actions a
-  // défilé au-dessus de l'écran (actionOutOfView), et disparaît dès que le
-  // bloc "Détails du produit" a lui aussi défilé au-dessus — au-delà, il
-  // n'y a plus de raison de la garder pendant les avis/produits liés/footer.
-  const [actionOutOfView, setActionOutOfView] = useState(false);
+  // La barre sticky ne doit être cachée que pendant que les VRAIS boutons
+  // sont effectivement visibles à l'écran. Le reste du temps elle est
+  // affichée — y compris dès le chargement de la page, avant même que
+  // l'utilisateur n'ait scrollé jusqu'au bloc "Commander maintenant" —
+  // jusqu'à ce que le bloc "Détails du produit" ait lui aussi défilé
+  // au-dessus de l'écran (au-delà, plus de raison de la garder pendant les
+  // avis/produits liés/footer).
+  const [actionVisible, setActionVisible] = useState(false);
   const [descriptionOutOfView, setDescriptionOutOfView] = useState(false);
-  const showSticky = actionOutOfView && !descriptionOutOfView;
+  const showSticky = !actionVisible && !descriptionOutOfView;
   const [shakeVariants, setShakeVariants] = useState(false);
   const variantsRef = useRef(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
@@ -66,12 +68,12 @@ export default function ProductPages() {
   useEffect(() => {
     if (!actionRef.current) return;
 
-    // top < 0 = le bloc a défilé AU-DESSUS de l'écran (dépassé en scrollant
-    // vers le bas). top > 0 signifierait au contraire qu'il n'a pas encore
-    // été atteint (plus bas que l'écran) — ce n'est pas ce qu'on veut ici.
+    // Peu importe la direction (pas encore atteint plus bas, ou déjà
+    // dépassé plus haut) — dès que le vrai bloc n'est pas à l'écran, la
+    // barre sticky doit être là pour le remplacer.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setActionOutOfView(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+        setActionVisible(entry.isIntersecting);
       },
       { threshold: 0 }
     );
