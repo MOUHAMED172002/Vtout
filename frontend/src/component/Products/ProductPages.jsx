@@ -75,7 +75,15 @@ export default function ProductPages() {
     const collapsedHeight = lineHeight * DESCRIPTION_COLLAPSED_LINES;
     setDescriptionMaxHeight(collapsedHeight);
     setDescriptionOverflows(el.scrollHeight > collapsedHeight + 2);
-  }, [product?.description]);
+    // `loading` est nécessaire ici (comme pour les deux observers plus bas) :
+    // setProduct(data) et setLoading(false) dans fetchProduct ne sont PAS
+    // forcément dans le même rendu (un await sépare les deux pour un
+    // utilisateur connecté — token + vérification favori). Sans `loading`
+    // en dépendance, cet effet peut se déclencher une première fois avant
+    // que le bloc description soit réellement monté (ref encore null,
+    // skeleton affiché) et ne jamais se redéclencher ensuite, puisque le
+    // texte de description, lui, n'a pas changé entre les deux rendus.
+  }, [loading, product?.description]);
 
   useEffect(() => {
     if (!actionRef.current) return;
