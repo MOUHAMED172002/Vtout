@@ -51,6 +51,17 @@ export default function ProductPages() {
   const showSticky = actionOutOfView && !descriptionOutOfView;
   const [shakeVariants, setShakeVariants] = useState(false);
   const variantsRef = useRef(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const descriptionTextRef = useRef(null);
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+
+  // N'affiche "Afficher plus" que si le texte dépasse réellement 6 lignes
+  // repliées — sinon le bouton n'aurait rien à faire.
+  useEffect(() => {
+    const el = descriptionTextRef.current;
+    if (!el) return;
+    setDescriptionOverflows(el.scrollHeight > el.clientHeight + 2);
+  }, [product?.description]);
 
   useEffect(() => {
     if (!actionRef.current) return;
@@ -85,6 +96,7 @@ export default function ProductPages() {
 
   useEffect(() => {
     if (id) fetchProduct();
+    setDescriptionExpanded(false); // repart replié à chaque changement de produit
   }, [id]);
 
   async function fetchProduct() {
@@ -687,9 +699,21 @@ export default function ProductPages() {
             <h3 className="text-2xl md:text-3xl font-black text-base-content">Détails du produit</h3>
             <div className="h-px flex-1 bg-base-200"></div>
           </div>
-          <div className="prose whitespace-pre-wrap prose-sm md:prose-lg max-w-none text-base-content/70 leading-relaxed">
+          <div
+            ref={descriptionTextRef}
+            className={`prose whitespace-pre-wrap prose-sm md:prose-lg max-w-none text-base-content/70 leading-relaxed ${descriptionExpanded ? "" : "line-clamp-6"
+              }`}
+          >
             {product.description}
           </div>
+          {descriptionOverflows && (
+            <button
+              onClick={() => setDescriptionExpanded((v) => !v)}
+              className="text-sm font-black text-primary hover:text-primary/70 transition-colors"
+            >
+              {descriptionExpanded ? "Afficher moins" : "Afficher plus"}
+            </button>
+          )}
         </div>
 
         {/* Supplier store link */}
