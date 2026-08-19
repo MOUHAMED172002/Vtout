@@ -40,21 +40,46 @@ export default function ProductPages() {
 
   const thumbsRef = useRef(null);
   const actionRef = useRef(null);
-  const [showSticky, setShowSticky] = useState(false);
+  const descriptionRef = useRef(null);
+  // La barre sticky ne doit vivre que le temps où les VRAIS boutons ne sont
+  // plus visibles À L'ÉCRAN : elle apparaît quand le bloc d'actions a
+  // défilé au-dessus de l'écran (actionOutOfView), et disparaît dès que le
+  // bloc "Détails du produit" a lui aussi défilé au-dessus — au-delà, il
+  // n'y a plus de raison de la garder pendant les avis/produits liés/footer.
+  const [actionOutOfView, setActionOutOfView] = useState(false);
+  const [descriptionOutOfView, setDescriptionOutOfView] = useState(false);
+  const showSticky = actionOutOfView && !descriptionOutOfView;
   const [shakeVariants, setShakeVariants] = useState(false);
   const variantsRef = useRef(null);
 
   useEffect(() => {
     if (!actionRef.current) return;
 
+    // top < 0 = le bloc a défilé AU-DESSUS de l'écran (dépassé en scrollant
+    // vers le bas). top > 0 signifierait au contraire qu'il n'a pas encore
+    // été atteint (plus bas que l'écran) — ce n'est pas ce qu'on veut ici.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowSticky(!entry.isIntersecting && entry.boundingClientRect.top > 0);
+        setActionOutOfView(!entry.isIntersecting && entry.boundingClientRect.top < 0);
       },
       { threshold: 0 }
     );
 
     observer.observe(actionRef.current);
+    return () => observer.disconnect();
+  }, [loading, product]);
+
+  useEffect(() => {
+    if (!descriptionRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setDescriptionOutOfView(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(descriptionRef.current);
     return () => observer.disconnect();
   }, [loading, product]);
 
@@ -308,6 +333,21 @@ export default function ProductPages() {
       value: displayPrice.current * quantity
     });
     // CartContext already shows "Ajouté au panier!" — no duplicate toast or redirect here.
+  };
+
+  // Logique partagée par "Commander maintenant!" (bloc principal) et
+  // "Acheter" (barre sticky mobile) — les deux DOIVENT faire exactement la
+  // même chose : demander la variante manquante si besoin, sinon ajouter au
+  // panier puis aller directement au checkout.
+  const handleBuyNow = () => {
+    if (variants.length > 0 && !matchedVariant) {
+      haptics.tap();
+      setAttrModalAction('buy');
+      setShowAttrModal(true);
+      return;
+    }
+    handleAddToCart();
+    navigate("/cartpage");
   };
 
   const toggleFav = async () => {
@@ -578,16 +618,7 @@ export default function ProductPages() {
                 </button>
               </div>
               <button
-                onClick={() => {
-                  if (variants.length > 0 && !matchedVariant) {
-                    haptics.tap();
-                    setAttrModalAction('buy');
-                    setShowAttrModal(true);
-                    return;
-                  }
-                  handleAddToCart();
-                  navigate("/cartpage");
-                }}
+                onClick={handleBuyNow}
                 disabled={isOutOfStock}
                 className="btn bg-orange-400 text-white btn-block h-14 rounded-2xl text-lg font-black border-none hover:bg-orange-500 disabled:opacity-50"
               >
@@ -613,14 +644,14 @@ export default function ProductPages() {
                     </div>
                     <div className="flex gap-2 flex-1 justify-end">
                         <button
-                        onClick={() => { setAttrModalAction('cart'); handleAddToCart(); }}
+                        onClick={handleAddToCart}
                         disabled={isOutOfStock}
                         className="flex-1 bg-primary text-white h-12 rounded-xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50 text-xs px-2"
                         >
                         <ShoppingCart size={16} /> {isOutOfStock ? "Épuisé" : "Ajouter"}
                         </button>
                         <button
-                        onClick={() => { setAttrModalAction('buy'); handleAddToCart(); }}
+                        onClick={handleBuyNow}
                         disabled={isOutOfStock}
                         className="px-4 bg-neutral text-neutral-content h-12 rounded-xl font-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 text-xs"
                         >
@@ -651,7 +682,7 @@ export default function ProductPages() {
         </div>
 
         {/* Long Description */}
-        <div className="mt-16 md:mt-24 space-y-6">
+        <div ref={descriptionRef} className="mt-16 md:mt-24 space-y-6">
           <div className="flex items-center gap-4">
             <h3 className="text-2xl md:text-3xl font-black text-base-content">Détails du produit</h3>
             <div className="h-px flex-1 bg-base-200"></div>
