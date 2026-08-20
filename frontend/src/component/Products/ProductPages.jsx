@@ -41,28 +41,27 @@ export default function ProductPages() {
   const thumbsRef = useRef(null);
   const actionRef = useRef(null);
   const descriptionRef = useRef(null);
-  // La barre sticky ne doit être cachée que pendant que les VRAIS boutons
-  // sont effectivement visibles à l'écran. Le reste du temps elle est
-  // affichée — y compris dès le chargement de la page, avant même que
-  // l'utilisateur n'ait scrollé jusqu'au bloc "Commander maintenant" —
-  // jusqu'à ce que le bloc "Détails du produit" ait lui aussi défilé
-  // au-dessus de l'écran (au-delà, plus de raison de la garder pendant les
-  // avis/produits liés/footer).
-  const [actionVisible, setActionVisible] = useState(false);
+  // La barre sticky n'apparaît qu'APRÈS la disparition du vrai bloc
+  // "Commander maintenant" (scrollé au-dessus de l'écran) — jamais avant de
+  // l'avoir atteint — et disparaît à son tour une fois que le bloc "Détails
+  // du produit" a lui aussi défilé au-dessus (au-delà, plus de raison de la
+  // garder pendant les avis/produits liés/footer).
+  const [actionOutOfView, setActionOutOfView] = useState(false);
   const [descriptionOutOfView, setDescriptionOutOfView] = useState(false);
-  const showSticky = !actionVisible && !descriptionOutOfView;
+  const showSticky = actionOutOfView && !descriptionOutOfView;
   const [shakeVariants, setShakeVariants] = useState(false);
   const variantsRef = useRef(null);
 
   useEffect(() => {
     if (!actionRef.current) return;
 
-    // Peu importe la direction (pas encore atteint plus bas, ou déjà
-    // dépassé plus haut) — dès que le vrai bloc n'est pas à l'écran, la
-    // barre sticky doit être là pour le remplacer.
+    // top < 0 = le bloc a défilé AU-DESSUS de l'écran (dépassé en scrollant
+    // vers le bas, donc "disparu"). top > 0 signifierait au contraire qu'il
+    // n'a pas encore été atteint (plus bas que l'écran) — volontairement
+    // ignoré ici, la barre ne doit pas s'afficher avant d'y être arrivé.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setActionVisible(entry.isIntersecting);
+        setActionOutOfView(!entry.isIntersecting && entry.boundingClientRect.top < 0);
       },
       { threshold: 0 }
     );
